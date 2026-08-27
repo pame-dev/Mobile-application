@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             CarvexaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Pame",
+                        name = "Pame, juan",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
