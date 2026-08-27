@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             CarvexaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Pame, juan",
+                        name = "Pame, juan, nancy",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -42,6 +42,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     CarvexaTheme {
-        Greeting("Pame")
+        Greeting("Hola mundo")
     }
 }
