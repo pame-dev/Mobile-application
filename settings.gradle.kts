@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "carvexa"
+rootProject.name = "Karsy"
 include(":app")
  
