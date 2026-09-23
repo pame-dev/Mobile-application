@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import 'tailwindcss';
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+:root {
+  --karsy-navy: #0D2B45;
+  --karsy-teal: #52A3AA;
+  --karsy-bg: #F4F7F9;
+  --karsy-charcoal: #333333;
+  --karsy-mid: #8E9A8E;
+  --karsy-white: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--karsy-navy);
+}
+
+@keyframes fadeSlide {
+  0% { opacity: 0; transform: scale(1.04); }
+  8% { opacity: 1; transform: scale(1); }
+  28% { opacity: 1; transform: scale(1); }
+  36% { opacity: 0; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+
+.carousel-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  animation: fadeSlide 20s infinite;
+}
+
+.carousel-slide:nth-child(1) { animation-delay: 0s; }
+.carousel-slide:nth-child(2) { animation-delay: 5s; }
+.carousel-slide:nth-child(3) { animation-delay: 10s; }
+.carousel-slide:nth-child(4) { animation-delay: 15s; }
+
+.dot-active {
+  background: #FFFFFF;
+  width: 20px;
+}
+
+.dot-inactive {
+  background: rgba(255,255,255,0.45);
+  width: 8px;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--karsy-teal) !important;
+  box-shadow: 0 0 0 3px rgba(82, 163, 170, 0.15);
+}
+
+::-webkit-scrollbar { display: none; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
