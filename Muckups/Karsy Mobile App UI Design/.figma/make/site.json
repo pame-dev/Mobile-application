@@ -1,0 +1,10 @@
+{
+  "description": "Streamline your car buying experience with a user-friendly mobile app that offers seamless login, registration, and a visually engaging interface.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
