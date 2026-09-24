@@ -115,7 +115,7 @@ fun FeaturedCarCard(
                         append(car.price)
                         append(" ")
                         withStyle(SpanStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, color = KarsyMid)) {
-                            append("MXN")
+                            append(car.currency)
                         }
                     },
                     fontFamily = Outfit,

@@ -89,7 +89,7 @@ fun VehicleCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        car.year.toString(),
+                        "${car.year} · ${car.kilometraje}",
                         fontFamily = DmSans,
                         fontSize = 12.sp,
                         color = KarsyMid,
@@ -105,7 +105,7 @@ fun VehicleCard(
                         fontWeight = FontWeight.Bold,
                         color = KarsyTeal
                     )
-                    Text("MXN", fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+                    Text(car.currency, fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
                 }
             }
             Text(

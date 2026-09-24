@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -73,7 +72,8 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.karsyTextFieldColors
-import com.pame.karsy.core.session.UserMode
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -82,7 +82,6 @@ import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
-import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -93,7 +92,7 @@ private val OtpBorder = Color(0xFFDDE5E9)
  * recoveryStep: 0 = formulario de login, 1 = correo, 2 = código, 3 = nueva contraseña.
  */
 @Composable
-fun LoginScreen(onBack: () -> Unit, onLogin: (UserMode) -> Unit, onRegister: () -> Unit) {
+fun LoginScreen(onBack: () -> Unit, onLogin: (SessionAccount) -> Unit, onRegister: () -> Unit) {
     var recoveryStep by rememberSaveable { mutableIntStateOf(0) }
 
     if (recoveryStep == 0) {
@@ -118,14 +117,13 @@ fun LoginScreen(onBack: () -> Unit, onLogin: (UserMode) -> Unit, onRegister: () 
 @Composable
 private fun LoginForm(
     onBack: () -> Unit,
-    onLogin: (UserMode) -> Unit,
+    onLogin: (SessionAccount) -> Unit,
     onRegister: () -> Unit,
     onForgot: () -> Unit,
+    vm: LoginViewModel = viewModel(),
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    // TEMPORAL: selector de tipo de usuario mientras no hay autenticación real. Quitar cuando se conecte Supabase Auth.
-    var selectedMode by rememberSaveable { mutableStateOf(UserMode.PARTICULAR) }
 
     Column(
         modifier = Modifier
@@ -199,20 +197,26 @@ private fun LoginForm(
                             .padding(4.dp)
                     )
                 }
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(28.dp))
 
-                // TEMPORAL: selector de tipo de usuario mientras no hay autenticación real. Quitar cuando se conecte Supabase Auth.
-                TestModeSelector(selected = selectedMode, onSelect = { selectedMode = it })
-                Spacer(Modifier.height(24.dp))
-
+                // El destino (admin / lote / particular) lo decide la cuenta en Supabase.
                 PrimaryButton(
-                    text = "Iniciar Sesión",
-                    onClick = {
-                        // TODO: llamar a supabase.auth.signInWith(Email) con email/password y leer
-                        //  tipo_cuenta de public.cuentas (y rol admin) para decidir el UserMode
-                        onLogin(selectedMode)
-                    }
+                    text = if (vm.loading) "Iniciando sesión…" else "Iniciar Sesión",
+                    enabled = !vm.loading,
+                    onClick = { vm.signIn(email, password, onLogin) }
                 )
+                vm.error?.let {
+                    Text(
+                        it,
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        color = KarsyError,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                    )
+                }
             }
         }
 
@@ -234,53 +238,6 @@ private fun LoginForm(
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable(onClick = onRegister)
             )
-        }
-    }
-}
-
-/** Selector temporal del tipo de usuario con el que se entra (modo prueba). */
-@Composable
-private fun TestModeSelector(selected: UserMode, onSelect: (UserMode) -> Unit) {
-    val shape = RoundedCornerShape(12.dp)
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(KarsyWhite)
-            .border(1.5.dp, KarsyBorder, shape)
-            .padding(12.dp)
-    ) {
-        Text(
-            "ENTRAR COMO (MODO PRUEBA)",
-            fontFamily = DmSans,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.04.em,
-            color = KarsyMid,
-            modifier = Modifier.padding(bottom = 10.dp)
-        )
-        val modes = listOf(UserMode.PARTICULAR, UserMode.LOTE, UserMode.ADMIN, UserMode.VISITANTE)
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            modes.forEach { mode ->
-                val active = mode == selected
-                val chipShape = RoundedCornerShape(20.dp)
-                Text(
-                    mode.label,
-                    fontFamily = DmSans,
-                    fontSize = 13.sp,
-                    fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
-                    color = if (active) KarsyTeal else KarsyCharcoal,
-                    modifier = Modifier
-                        .clip(chipShape)
-                        .background(if (active) KarsyTealLight else KarsyBg)
-                        .border(if (active) 1.5.dp else 1.dp, if (active) KarsyTeal else KarsyBorder, chipShape)
-                        .clickable { onSelect(mode) }
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
-                )
-            }
         }
     }
 }
@@ -483,9 +440,8 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
                     }
 
                     else -> {
-                        val hasLength = newPassword.length >= 8
-                        val hasUpperAndDigit = newPassword.any { it.isUpperCase() } && newPassword.any { it.isDigit() }
-                        val valid = hasLength && hasUpperAndDigit && newPassword == confirmPassword
+                        // Sin reglas de contraseña: solo debe coincidir con la confirmación.
+                        val valid = newPassword.isNotEmpty() && newPassword == confirmPassword
                         IconInput(
                             label = "NUEVA CONTRASEÑA",
                             value = newPassword,
@@ -502,20 +458,8 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
                             placeholder = "••••••••••••",
                             leading = Icons.Outlined.Lock,
                             isPassword = true,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            modifier = Modifier.padding(bottom = 22.dp)
                         )
-                        Column(
-                            Modifier
-                                .padding(top = 4.dp, bottom = 22.dp)
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(KarsyWhite.copy(alpha = 0.6f))
-                                .border(1.dp, KarsyBorder, RoundedCornerShape(12.dp))
-                                .padding(horizontal = 14.dp, vertical = 12.dp)
-                        ) {
-                            PasswordRule(hasLength, "Mínimo 8 caracteres.")
-                            PasswordRule(hasUpperAndDigit, "Al menos una letra mayúscula y un número.")
-                        }
                         PrimaryButton(
                             text = "Restablecer contraseña",
                             onClick = {
@@ -548,17 +492,6 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
             })
         }
     }
-}
-
-@Composable
-private fun PasswordRule(ok: Boolean, text: String) {
-    Text(
-        (if (ok) "✓ " else "○ ") + text,
-        fontFamily = DmSans,
-        fontSize = 12.sp,
-        lineHeight = 21.sp,
-        color = if (ok) KarsyTeal else KarsyMid
-    )
 }
 
 /** 4 casillas del código de verificación; avanzan/retroceden el foco solas. */

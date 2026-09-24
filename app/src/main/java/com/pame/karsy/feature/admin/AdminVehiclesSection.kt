@@ -3,6 +3,7 @@ package com.pame.karsy.feature.admin
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
@@ -21,13 +22,12 @@ import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 
 @Composable
-fun AdminVehiclesSection() {
+fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
     var search by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("Todos") }
     var selected by remember { mutableStateOf<AdminVehicle?>(null) }
 
-    // TODO: cargar publicaciones de vehículos desde Supabase
-    val filtered = AdminSampleData.vehicles.filter { vehicle ->
+    val filtered = vm.vehicles.filter { vehicle ->
         val matchesSearch = "${vehicle.name} ${vehicle.seller}".contains(search, ignoreCase = true)
         val matchesStatus = status == "Todos" || vehicle.status == status
         matchesSearch && matchesStatus
@@ -48,7 +48,10 @@ fun AdminVehiclesSection() {
                 )
                 AdminSelect(
                     value = status,
-                    options = listOf("Todos", "Activo", "Pendiente", "Deshabilitado"),
+                    options = listOf(
+                        "Todos", "Activo", "Pendiente", "Cambios pendientes", "Rechazado",
+                        "Deshabilitado", "Pausado", "Vendido"
+                    ),
                     onSelect = { status = it }
                 )
             }
@@ -91,25 +94,55 @@ fun AdminVehiclesSection() {
     }
 
     selected?.let { vehicle ->
-        // TODO: aprobar/rechazar propuestas_publicacion o deshabilitar la publicación
-        //  + insertar en acciones_administrativas
         AdminDetailModal(
             title = "Detalle del vehículo",
             subtitle = vehicle.name,
             onDismiss = { selected = null }
         ) {
-            DetailRow("Vehículo", vehicle.name)
-            DetailRow("Transmisión", "Automática")
-            DetailRow("Kilometraje", "45,000 km")
-            DetailRow("Carrocería", "Sedán")
-            DetailRow("Color", "Blanco perla")
+            DetailRow("Vehículo", "${vehicle.name} ${vehicle.year}")
+            DetailRow("Vendedor", vehicle.seller)
+            DetailRow("Precio", vehicle.price)
+            DetailRow("Transmisión", vehicle.transmision)
+            DetailRow("Kilometraje", vehicle.kilometraje)
+            DetailRow("Carrocería", vehicle.tipo)
+            DetailRow("Color", vehicle.color)
             DetailRow("Estado", vehicle.status)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 18.dp)
+            ) {
+                // Propuesta pendiente: aprobar publica el contenido; rechazar lo devuelve al vendedor.
+                if (vehicle.pendingProposalId != null) {
+                    AdminActionButton("Aprobar", tone = ActionTone.Success, onClick = {
+                        vm.moderate(vehicle, approve = true)
+                        selected = null
+                    })
+                    AdminActionButton("Rechazar", tone = ActionTone.Danger, onClick = {
+                        vm.moderate(vehicle, approve = false)
+                        selected = null
+                    })
+                } else if (vehicle.status != "Rechazado") {
+                    AdminActionButton(
+                        if (vehicle.enabledByAdmin) "Deshabilitar" else "Habilitar",
+                        tone = if (vehicle.enabledByAdmin) ActionTone.Danger else ActionTone.Success,
+                        onClick = {
+                            vm.setVehicleEnabled(vehicle, enabled = !vehicle.enabledByAdmin)
+                            selected = null
+                        }
+                    )
+                }
+                AdminActionButton("Ver publicación", onClick = {
+                    selected = null
+                    onCarClick(vehicle.id)
+                })
+            }
         }
     }
 }
 
 private fun vehicleStatusTone(status: String) = when (status) {
     "Activo" -> BadgeTone.Success
-    "Pendiente" -> BadgeTone.Warning
+    "Pendiente", "Cambios pendientes" -> BadgeTone.Warning
+    "Vendido", "Pausado" -> BadgeTone.Info
     else -> BadgeTone.Danger
 }

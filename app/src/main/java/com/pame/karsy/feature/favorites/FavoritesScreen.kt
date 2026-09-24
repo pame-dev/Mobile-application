@@ -28,11 +28,12 @@ import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.components.SubHeader
@@ -57,28 +59,31 @@ import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
-import com.pame.karsy.data.repository.CarRepository
 
 private val CardBorder = Color(0xFFEEF1F4)
 
 /** Lista de vehículos guardados por el usuario (WebFavoritesView del mockup). */
 @Composable
-fun FavoritesScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
-    // TODO: cargar los favoritos del usuario en sesión desde public.favoritos
-    val saved = remember { CarRepository.favoriteCars }
-    val favoriteIds = remember { mutableStateListOf<Int>().apply { addAll(saved.map { it.id }) } }
+fun FavoritesScreen(
+    onBack: () -> Unit,
+    onCarClick: (Long) -> Unit,
+    vm: FavoritesViewModel = viewModel(),
+) {
+    LaunchedEffect(Unit) { vm.load() }
     var search by rememberSaveable { mutableStateOf("") }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+    val favoriteIds = vm.favoriteIds
 
-    // TODO: mover la búsqueda a la consulta de favoritos cuando haya backend
-    val displayed = saved.filter {
+    val displayed = vm.sorted(vm.cars.filter {
         it.brand.contains(search, ignoreCase = true) || it.model.contains(search, ignoreCase = true)
-    }
+    })
 
     Column(
         Modifier
@@ -114,13 +119,24 @@ fun FavoritesScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
                             color = KarsyNavy
                         )
                         Text(
-                            "Ordenar ↕",
+                            vm.sortLabel,
                             fontFamily = DmSans,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = KarsyTeal,
-                            modifier = Modifier.clickable { /* TODO: ordenar favoritos */ }
+                            modifier = Modifier.clickable(onClick = vm::nextSort)
                         )
+                    }
+                    (errorMsg ?: vm.error)?.let {
+                        Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError, modifier = Modifier.padding(top = 8.dp))
+                    }
+                }
+            }
+
+            if (vm.loading) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = KarsyTeal)
                     }
                 }
             }
@@ -131,14 +147,11 @@ fun FavoritesScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
                     car = car,
                     isFavorite = isFav,
                     onClick = { onCarClick(car.id) },
-                    onToggleFavorite = {
-                        // TODO: insertar/borrar en public.favoritos
-                        if (isFav) favoriteIds.remove(car.id) else favoriteIds.add(car.id)
-                    }
+                    onToggleFavorite = { vm.toggle(car.id) { errorMsg = it } }
                 )
             }
 
-            if (displayed.isEmpty()) {
+            if (displayed.isEmpty() && !vm.loading) {
                 item(span = { GridItemSpan(maxLineSpan) }) { EmptyState() }
             }
         }
@@ -262,7 +275,7 @@ private fun FavoriteCard(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                "${car.year} · ⭐ ${car.rating}",
+                "${car.year} · ${car.kilometraje}",
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 color = KarsyMid,

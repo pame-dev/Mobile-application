@@ -26,12 +26,11 @@ import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.Outfit
 
 @Composable
-fun AdminReportsSection() {
+fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
     var status by rememberSaveable { mutableStateOf("Todos") }
     var selected by remember { mutableStateOf<AdminReport?>(null) }
 
-    // TODO: cargar reportes enviados por la comunidad desde Supabase
-    val reports = AdminSampleData.reports
+    val reports = vm.reports
     val filtered = reports.filter { status == "Todos" || it.status == status }
 
     AdminSectionScroll {
@@ -60,7 +59,7 @@ fun AdminReportsSection() {
                     }
                     AdminSelect(
                         value = status,
-                        options = listOf("Todos", "Pendiente", "En revisión", "Resuelto"),
+                        options = listOf("Todos", "Pendiente", "Atendido", "Descartado"),
                         onSelect = { status = it }
                     )
                 }
@@ -113,29 +112,41 @@ fun AdminReportsSection() {
         ) {
             DetailRow("Tipo", report.type)
             DetailRow("Reportado por", report.reporter)
-            DetailRow("Elemento", report.target)
+            DetailRow("Publicación", report.target)
+            DetailRow("Motivo", report.reason)
             DetailRow("Estado", report.status)
+            report.resolution?.let { DetailRow("Resolución", it) }
+            // Solo un reporte pendiente se puede resolver (admin_resolver_reporte).
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(top = 18.dp)
             ) {
-                AdminActionButton("Marcar resuelto", tone = ActionTone.Success, onClick = {
-                    // TODO: resolver reportes: actualizar estado del reporte a 'resuelto'
-                    //  + insertar en acciones_administrativas
-                    selected = null
-                })
-                AdminActionButton("Deshabilitar", tone = ActionTone.Danger, onClick = {
-                    // TODO: deshabilitar la publicación/cuenta reportada
-                    //  + insertar en acciones_administrativas
-                    selected = null
-                })
+                if (report.status == "Pendiente") {
+                    AdminActionButton("Marcar atendido", tone = ActionTone.Success, onClick = {
+                        vm.resolveReport(report, disableCar = false)
+                        selected = null
+                    })
+                    AdminActionButton("Deshabilitar", tone = ActionTone.Danger, onClick = {
+                        vm.resolveReport(report, disableCar = true)
+                        selected = null
+                    })
+                    AdminActionButton("Descartar", onClick = {
+                        vm.dismissReport(report)
+                        selected = null
+                    })
+                } else {
+                    AdminActionButton("Ver publicación", onClick = {
+                        selected = null
+                        onCarClick(report.publicationId)
+                    })
+                }
             }
         }
     }
 }
 
 private fun reportStatusTone(status: String) = when (status) {
-    "Resuelto" -> BadgeTone.Success
-    "En revisión" -> BadgeTone.Info
+    "Atendido" -> BadgeTone.Success
+    "Descartado" -> BadgeTone.Neutral
     else -> BadgeTone.Danger
 }

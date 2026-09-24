@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
@@ -20,17 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 
 @Composable
-fun AdminUsersSection() {
+fun AdminUsersSection(vm: AdminViewModel) {
     var search by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("Todos") }
     var selected by remember { mutableStateOf<AdminUser?>(null) }
 
-    // TODO: cargar usuarios desde public.cuentas (con búsqueda y filtro por tipo en el servidor)
-    val filtered = AdminSampleData.users.filter { user ->
+    val filtered = vm.users.filter { user ->
         val matchesSearch = user.name.contains(search, ignoreCase = true) ||
             user.email.contains(search, ignoreCase = true)
         val matchesFilter = filter == "Todos" || user.type == filter
@@ -91,6 +92,7 @@ fun AdminUsersSection() {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             AdminBadge(user.type, if (user.type == "Lote") BadgeTone.Info else BadgeTone.Neutral)
+                            if (user.isAdmin) AdminBadge("Admin", BadgeTone.Success)
                             Text(
                                 user.date,
                                 fontFamily = DmSans,
@@ -107,18 +109,33 @@ fun AdminUsersSection() {
     }
 
     selected?.let { user ->
-        // TODO: suspender/reactivar cuenta: update public.cuentas set estado_cuenta='suspendida'
-        //  + insertar en acciones_administrativas
         AdminDetailModal(
             title = "Detalle del usuario",
             subtitle = user.name,
             onDismiss = { selected = null }
         ) {
             DetailRow("Nombre", user.name)
-            DetailRow("Tipo de cuenta", user.type)
+            DetailRow("Correo", user.email)
+            DetailRow("Tipo de cuenta", if (user.isAdmin) "${user.type} · Administrador" else user.type)
             DetailRow("Estado", user.status)
             DetailRow("Publicaciones", user.posts.toString())
             DetailRow("Fecha de registro", user.date)
+            // Suspender / reactivar (admin_cambiar_estado_cuenta registra la acción en la bitácora).
+            if (user.id != SessionManager.userId) {
+                Row(Modifier.padding(top = 18.dp)) {
+                    if (user.status == "Suspendido") {
+                        AdminActionButton("Reactivar cuenta", tone = ActionTone.Success, onClick = {
+                            vm.setSuspended(user.id, suspend = false)
+                            selected = null
+                        })
+                    } else {
+                        AdminActionButton("Suspender cuenta", tone = ActionTone.Danger, onClick = {
+                            vm.setSuspended(user.id, suspend = true)
+                            selected = null
+                        })
+                    }
+                }
+            }
         }
     }
 }

@@ -39,7 +39,12 @@ fun SalesComparisonChart(
         fontWeight = FontWeight.Bold,
         color = KarsyNavy
     )
-    val maxValue = ((viaPlataforma + fuera).maxOrNull() ?: 1) * 1.15f
+    // Escala hasta la última línea guía (o 15 % sobre el máximo); nunca 0 para no dividir entre 0.
+    val maxValue = maxOf(
+        ((viaPlataforma + fuera).maxOrNull() ?: 0) * 1.15f,
+        (gridValues.maxOrNull() ?: 0).toFloat(),
+        1f
+    )
 
     Canvas(modifier) {
         val left = 34.dp.toPx()

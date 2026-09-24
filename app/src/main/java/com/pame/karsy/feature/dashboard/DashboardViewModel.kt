@@ -4,43 +4,68 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-
-/** Vehículo publicado por el vendedor, tal como aparece en "Mis Vehículos Publicados". */
-data class MyListing(val name: String, val price: String, val imageUrl: String)
+import androidx.lifecycle.viewModelScope
+import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.repository.CarRepository
+import com.pame.karsy.data.repository.SellerStats
+import com.pame.karsy.data.repository.StatsRepository
+import com.pame.karsy.data.repository.UserRepository
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
- * Estado del panel del vendedor (datos estáticos del mockup).
- * TODO: obtener métricas y publicaciones del usuario en sesión desde Supabase
- *  (publicaciones del propietario, favoritos por día, contactos recibidos).
+ * Panel del vendedor en sesión: métricas (vendedor_estadisticas), sus publicaciones
+ * y solicitudes para destacar (solicitudes_destacado).
  */
 class DashboardViewModel : ViewModel() {
 
-    val totalSales = 163
-    val salesTrend = "▲ +18% este mes"
-    val publishedCount = 12
-    val inquiries = 84
-    val salesMonths = listOf(28f, 42f, 35f, 58f, 47f, 65f, 52f, 71f, 63f, 80f, 74f, 92f)
-    val favWeekly = listOf(3f, 7f, 5f, 12f, 9f, 15f, 11f)
-    val weekDays = listOf("L", "M", "X", "J", "V", "S", "D")
-    val avatarUrl = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&auto=format"
+    var stats by mutableStateOf<SellerStats?>(null)
+        private set
+    var myListings by mutableStateOf<List<Car>>(emptyList())
+        private set
+    var avatarUrl by mutableStateOf<String?>(null)
+        private set
+    var loading by mutableStateOf(true)
+        private set
+    var error by mutableStateOf<String?>(null)
+        private set
 
-    val myListings = listOf(
-        MyListing("BMW 320i 2023", "$685,000", "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=300&h=200&fit=crop&auto=format"),
-        MyListing("Mustang EcoBoost 2021", "$580,000", "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300&h=200&fit=crop&auto=format"),
-        MyListing("Audi A4 2022", "$620,000", "https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=300&h=200&fit=crop&auto=format"),
-        MyListing("Mercedes C200 2022", "$710,000", "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=300&h=200&fit=crop&auto=format"),
-    )
+    val displayName: String get() = SessionManager.account?.nombre.orEmpty()
+
+    /** "▲ +20% este mes" comparando las vistas del mes contra el anterior. */
+    val viewsTrend: String
+        get() {
+            val s = stats ?: return ""
+            if (s.vistasMesAnterior == 0) return "${s.vistasMes} este mes"
+            val pct = ((s.vistasMes - s.vistasMesAnterior) * 100f / s.vistasMesAnterior).roundToInt()
+            return if (pct >= 0) "▲ +$pct% este mes" else "▼ $pct% este mes"
+        }
 
     /** Auto para el que se muestra el diálogo "¿Quieres destacar tu vehículo?". */
-    var destacarCar by mutableStateOf<String?>(null)
+    var destacarCar by mutableStateOf<Car?>(null)
         private set
 
     /** Auto para el que se muestra "Solicitud enviada". */
-    var solicitudCar by mutableStateOf<String?>(null)
+    var solicitudCar by mutableStateOf<Car?>(null)
         private set
 
-    fun askDestacar(carName: String) {
-        destacarCar = carName
+    fun load() {
+        val uid = SessionManager.userId ?: run { loading = false; return }
+        viewModelScope.launch {
+            safeCall { StatsRepository.seller() }
+                .onSuccess { stats = it; error = null }
+                .onFailure { error = it.mensajeUsuario() }
+            myListings = safeCall { CarRepository.ownerCars(uid) }.getOrDefault(myListings)
+            if (avatarUrl == null) avatarUrl = safeCall { UserRepository.currentUser()?.avatarUrl }.getOrNull()
+            loading = false
+        }
+    }
+
+    fun askDestacar(car: Car) {
+        destacarCar = car
     }
 
     fun cancelDestacar() {
@@ -48,9 +73,19 @@ class DashboardViewModel : ViewModel() {
     }
 
     fun confirmDestacar() {
-        // TODO: insertar en solicitudes_destacado (estado 'pendiente') para la publicación seleccionada
-        solicitudCar = destacarCar
+        val car = destacarCar ?: return
         destacarCar = null
+        viewModelScope.launch {
+            safeCall { CarRepository.requestFeatured(car.id) }
+                .onSuccess {
+                    solicitudCar = car
+                    myListings = myListings.map { if (it.id == car.id) it.copy(featuredPending = true) else it }
+                }
+                .onFailure {
+                    val msg = it.mensajeUsuario()
+                    error = if (msg.contains("uq_solicitudes_pendiente")) "Ya hay una solicitud pendiente para este vehículo." else msg
+                }
+        }
     }
 
     fun closeSolicitud() {

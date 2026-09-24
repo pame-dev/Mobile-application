@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -60,6 +61,7 @@ import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.data.repository.AdminStats
 import com.pame.karsy.feature.admin.charts.ChartSeries
 import com.pame.karsy.feature.admin.charts.GrowthChart
 import com.pame.karsy.feature.admin.charts.SalesComparisonChart
@@ -88,14 +90,14 @@ private val LotsColor = Color(0xFF8B5CF6)
 private val PostsColor = Color(0xFF22C55E)
 
 @Composable
-fun AdminHomeSection(onNavigate: (AdminSection) -> Unit) {
-    // TODO: el rango debería filtrar las estadísticas consultadas en Supabase
-    var range by rememberSaveable { mutableStateOf("7") }
+fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection) -> Unit) {
+    val range = vm.range
+    val stats = vm.stats
 
     AdminSectionScroll {
         // Saludo + selector de rango
         Text(
-            "¡Hola, Administrador!",
+            "¡Hola, ${SessionManager.account?.nombre ?: "Administrador"}!",
             fontFamily = Outfit,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -110,11 +112,11 @@ fun AdminHomeSection(onNavigate: (AdminSection) -> Unit) {
             color = KarsyMid
         )
         Spacer(Modifier.height(14.dp))
-        RangeSelector(range = range, onSelect = { range = it })
+        RangeSelector(range = range, onSelect = vm::changeRange)
         Spacer(Modifier.height(20.dp))
 
-        // KPIs en cuadrícula de 2 columnas
-        val kpis = AdminSampleData.kpis
+        // KPIs en cuadrícula de 2 columnas (el cambio es lo nuevo en el rango elegido)
+        val kpis = vm.kpis
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             kpis.indices.chunked(2).forEach { rowIdx ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -127,11 +129,13 @@ fun AdminHomeSection(onNavigate: (AdminSection) -> Unit) {
         }
         Spacer(Modifier.height(20.dp))
 
-        GrowthCard(range = range, onRange = { range = it })
-        Spacer(Modifier.height(16.dp))
-        SalesCard()
-        Spacer(Modifier.height(20.dp))
-        AlertsCard(onSeeAll = { onNavigate(AdminSection.Reportes) })
+        if (stats != null) {
+            GrowthCard(stats = stats, range = range, onRange = vm::changeRange)
+            Spacer(Modifier.height(16.dp))
+            InteractionsCard(stats = stats)
+            Spacer(Modifier.height(20.dp))
+            AlertsCard(alerts = vm.alerts, onOpen = onNavigate, onSeeAll = { onNavigate(AdminSection.Reportes) })
+        }
     }
 }
 
@@ -259,12 +263,12 @@ private fun LegendItem(label: String, color: Color, square: Boolean = false) {
 }
 
 @Composable
-private fun GrowthCard(range: String, onRange: (String) -> Unit) {
+private fun GrowthCard(stats: AdminStats, range: String, onRange: (String) -> Unit) {
     AdminCard {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 20.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
-                    CardTitle("Crecimiento de la plataforma", "Usuarios, lotes y publicaciones por día")
+                    CardTitle("Crecimiento de la plataforma", "Usuarios, lotes y publicaciones acumulados")
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -293,33 +297,42 @@ private fun GrowthCard(range: String, onRange: (String) -> Unit) {
                 LegendItem("Publicaciones", PostsColor)
             }
             Spacer(Modifier.height(12.dp))
+            val maximo = (stats.crecimientoUsuarios + stats.crecimientoPublicaciones + stats.crecimientoLotes)
+                .maxOrNull() ?: 0f
+            val ticks = niceTicks(maximo)
             GrowthChart(
-                labels = AdminSampleData.growthLabels,
+                labels = stats.crecimientoEtiquetas,
                 series = listOf(
-                    ChartSeries(AdminSampleData.growthUsuarios, UsersColor, fillArea = true),
-                    ChartSeries(AdminSampleData.growthPublicaciones, PostsColor, fillArea = true),
-                    ChartSeries(AdminSampleData.growthLotes, LotsColor),
+                    ChartSeries(stats.crecimientoUsuarios, UsersColor, fillArea = true),
+                    ChartSeries(stats.crecimientoPublicaciones, PostsColor, fillArea = true),
+                    ChartSeries(stats.crecimientoLotes, LotsColor),
                 ),
+                maxValue = ticks.last().toFloat(),
+                gridValues = ticks,
                 modifier = Modifier.fillMaxWidth().height(230.dp)
             )
         }
     }
 }
 
+/**
+ * Vistas de detalle vs. contactos por mes (interacciones_publicacion).
+ * Reemplaza la comparación de ventas del mockup: la BD no registra ventas.
+ */
 @Composable
-private fun SalesCard() {
-    val via = AdminSampleData.salesViaPlataforma
-    val fuera = AdminSampleData.salesFuera
+private fun InteractionsCard(stats: AdminStats) {
+    val via = stats.vistasPorMes
+    val fuera = stats.contactosPorMes
     val totalVia = via.sum()
     val totalFuera = fuera.sum()
-    val porcentaje = Math.round(totalVia.toFloat() / (totalVia + totalFuera) * 100)
+    val porcentaje = if (totalVia == 0) 0 else Math.round(totalFuera.toFloat() / totalVia * 100)
 
     AdminCard {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 20.dp)) {
-            CardTitle("Comparación de ventas", "Ventas cerradas vía Karsy vs. fuera de la plataforma")
+            CardTitle("Interés en publicaciones", "Vistas de detalle vs. contactos al vendedor")
             Spacer(Modifier.height(10.dp))
             Text(
-                "$porcentaje% vía Karsy",
+                "$porcentaje% de las vistas terminan en contacto",
                 fontFamily = DmSans,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
@@ -331,23 +344,24 @@ private fun SalesCard() {
             )
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                LegendItem("Vía plataforma Karsy", KarsyTeal, square = true)
-                LegendItem("Fuera de la plataforma", KarsyBorderMuted, square = true)
+                LegendItem("Vistas", KarsyTeal, square = true)
+                LegendItem("Contactos", KarsyBorderMuted, square = true)
             }
             Spacer(Modifier.height(14.dp))
             SalesComparisonChart(
-                labels = AdminSampleData.salesLabels,
+                labels = stats.interaccionesEtiquetas,
                 viaPlataforma = via,
                 fuera = fuera,
+                gridValues = niceTicks(((via + fuera).maxOrNull() ?: 0).toFloat()),
                 modifier = Modifier.fillMaxWidth().height(230.dp)
             )
             Spacer(Modifier.height(18.dp))
             HorizontalDivider(thickness = 1.dp, color = KarsyBg)
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SummaryTile("Total vía Karsy", totalVia.toString(), KarsyTealLight, KarsyNavy, Modifier.weight(1f))
-                SummaryTile("Total fuera", totalFuera.toString(), KarsyBg, KarsyNavy, Modifier.weight(1f))
-                SummaryTile("Efectividad", "$porcentaje%", Color(0xFFF0FDF4), AdminColors.Green, Modifier.weight(1f))
+                SummaryTile("Vistas", totalVia.toString(), KarsyTealLight, KarsyNavy, Modifier.weight(1f))
+                SummaryTile("Contactos", totalFuera.toString(), KarsyBg, KarsyNavy, Modifier.weight(1f))
+                SummaryTile("Conversión", "$porcentaje%", Color(0xFFF0FDF4), AdminColors.Green, Modifier.weight(1f))
             }
         }
     }
@@ -368,7 +382,7 @@ private fun SummaryTile(label: String, value: String, bg: Color, valueColor: Col
 }
 
 @Composable
-private fun AlertsCard(onSeeAll: () -> Unit) {
+private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit, onSeeAll: () -> Unit) {
     AdminCard(shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
@@ -397,15 +411,14 @@ private fun AlertsCard(onSeeAll: () -> Unit) {
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                AdminSampleData.alerts.forEachIndexed { i, alert ->
+                alerts.forEachIndexed { i, alert ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .background(alert.bg)
-                            // TODO: abrir la sección correspondiente a cada alerta
-                            .clickable { }
+                            .clickable { onOpen(alert.target) }
                             .padding(horizontal = 14.dp, vertical = 12.dp)
                     ) {
                         Box(

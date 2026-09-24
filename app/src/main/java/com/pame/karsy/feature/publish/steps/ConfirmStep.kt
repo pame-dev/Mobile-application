@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,52 +53,47 @@ import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.Formato
 import com.pame.karsy.feature.publish.PublishStepScaffold
+import com.pame.karsy.feature.publish.PublishViewModel
 
-// TODO: mostrar la vista previa con los datos y fotos capturados en los pasos anteriores (PublishViewModel)
-private val techSpecs = listOf(
-    "Modelo" to "Serie 3 320i",
-    "Año" to "2023",
-    "Marca" to "BMW",
-    "Transmisión" to "Automática",
-    "Kilometraje" to "18,500 km",
-    "Cilindros" to "4 en línea",
-    "Caballos de fuerza" to "184 hp",
-    "Tipo de carro" to "Sedán",
-    "Color" to "Blanco Alpino",
-    "Cant. de dueños" to "1",
-)
-
-private val carImages = listOf(
-    "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=500&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&h=500&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=200&h=150&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1550355291-bbee04a92027?w=200&h=150&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200&h=150&fit=crop&auto=format",
-)
-
-private const val DESCRIPTION =
-    "BMW Serie 3 320i en excelente estado, primer dueño, factura original. Motor 2.0L turbo de 184 hp, " +
-        "transmisión automática de 8 velocidades. Cuenta con techo corredizo, Apple CarPlay, asientos de cuero " +
-        "y sistema de frenado automático."
-
-private const val IMPERFECTIONS =
-    "Pequeño rayón en parachoque trasero lado derecho (pintado). Resto del vehículo sin golpes ni abolladuras. " +
-        "Tapicería impecable, sin olores."
-
-/** Paso 4: vista previa de la publicación y botón "Publicar". */
+/** Paso 4: vista previa de la publicación (datos y fotos de los pasos anteriores) y "Publicar". */
 @Composable
-fun ConfirmStep(onPublish: () -> Unit, onBack: () -> Unit) {
+fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Unit) {
     var imgIndex by rememberSaveable { mutableIntStateOf(0) }
+    val carImages = form.fotosElegidas
+    val techSpecs = listOf(
+        "Modelo" to form.modeloNombre,
+        "Año" to form.anio.trim(),
+        "Marca" to form.marcaNombre,
+        "Transmisión" to form.transmisionNombre,
+        "Kilometraje" to form.kilometraje.filter(Char::isDigit).toIntOrNull().let { Formato.km(it) },
+        "Cilindros" to form.cilindros.ifBlank { "—" },
+        "Caballos de fuerza" to form.caballos.filter(Char::isDigit).let { if (it.isEmpty()) "—" else "$it hp" },
+        "Tipo de carro" to form.carroceriaNombre,
+        "Color" to form.colorNombre,
+        "Dueños anteriores" to form.duenos.ifBlank { "0" },
+    )
 
     PublishStepScaffold(
         step = 4,
         onBack = onBack,
-        buttonText = "Publicar",
+        buttonText = if (form.publishing) "Publicando…" else "Publicar",
         onButtonClick = onPublish,
         contentPadding = PaddingValues(0.dp),
         spacing = 0
     ) {
+        form.error?.let {
+            Box(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) { StepError(it) }
+        }
+        if (form.publishing) {
+            LinearProgressIndicator(
+                color = KarsyTeal,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+            )
+        }
         // Carrusel principal
         Box(
             modifier = Modifier
@@ -108,24 +104,24 @@ fun ConfirmStep(onPublish: () -> Unit, onBack: () -> Unit) {
                 .background(KarsyCharcoal)
         ) {
             AsyncImage(
-                model = carImages[imgIndex],
-                contentDescription = "BMW Serie 3",
+                model = carImages.getOrNull(imgIndex),
+                contentDescription = form.titulo,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            CarouselArrow(
+            if (carImages.size > 1) CarouselArrow(
                 icon = Icons.Rounded.ChevronLeft,
                 description = "Anterior",
                 modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
                 onClick = { imgIndex = (imgIndex - 1 + carImages.size) % carImages.size }
             )
-            CarouselArrow(
+            if (carImages.size > 1) CarouselArrow(
                 icon = Icons.Rounded.ChevronRight,
                 description = "Siguiente",
                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
                 onClick = { imgIndex = (imgIndex + 1) % carImages.size }
             )
-            Text(
+            if (carImages.isNotEmpty()) Text(
                 "${imgIndex + 1} / ${carImages.size}",
                 fontFamily = DmSans,
                 fontSize = 11.sp,
@@ -166,7 +162,7 @@ fun ConfirmStep(onPublish: () -> Unit, onBack: () -> Unit) {
         // Modelo y precio
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
             Text(
-                "Serie 3 320i · 2023",
+                "${form.marcaNombre} ${form.modeloNombre} · ${form.anio.trim()}",
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 color = KarsyMid,
@@ -174,7 +170,7 @@ fun ConfirmStep(onPublish: () -> Unit, onBack: () -> Unit) {
             )
             Text(
                 buildAnnotatedString {
-                    append("$685,000 ")
+                    append(form.precioTexto + " ")
                     withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold)) { append("MXN") }
                 },
                 fontFamily = Outfit,
@@ -225,9 +221,20 @@ fun ConfirmStep(onPublish: () -> Unit, onBack: () -> Unit) {
         // Descripción e imperfecciones
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp)) {
             BlockLabel("DESCRIPCIÓN")
-            TextBlock(DESCRIPTION, background = KarsyWhite, border = KarsyBorderMuted)
+            TextBlock(form.descripcion.trim(), background = KarsyWhite, border = KarsyBorderMuted)
             Box(Modifier.padding(top = 16.dp)) { BlockLabel("DETALLADO O IMPERFECCIONES") }
-            TextBlock(IMPERFECTIONS, background = Color(0xFFFFFBF0), border = Color(0xFFF5E8B0))
+            TextBlock(
+                form.imperfecciones.trim().ifEmpty { "Sin imperfecciones reportadas." },
+                background = Color(0xFFFFFBF0),
+                border = Color(0xFFF5E8B0)
+            )
+            Text(
+                "Tu publicación se revisará antes de aparecer en el inicio.",
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                color = KarsyMid,
+                modifier = Modifier.padding(top = 14.dp)
+            )
         }
         Box(Modifier.height(24.dp))
     }

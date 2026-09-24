@@ -31,9 +31,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,16 +57,27 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.repository.SellerStats
+import com.pame.karsy.feature.profile.ImagePlaceholder
+import com.pame.karsy.feature.profile.ProfileAvatar
 
 /** Panel del vendedor ("Mi Panel"): métricas, interés semanal y vehículos publicados. */
 @Composable
-fun DashboardScreen(onBack: () -> Unit, onNewPublication: () -> Unit) {
-    val vm: DashboardViewModel = viewModel()
+fun DashboardScreen(
+    onBack: () -> Unit,
+    onNewPublication: () -> Unit,
+    onCarClick: (Long) -> Unit,
+    vm: DashboardViewModel = viewModel(),
+) {
+    // Se recarga al volver (p. ej. después de publicar).
+    LaunchedEffect(Unit) { vm.load() }
 
     Box(
         modifier = Modifier
@@ -72,7 +85,7 @@ fun DashboardScreen(onBack: () -> Unit, onNewPublication: () -> Unit) {
             .background(KarsyBg)
     ) {
         Column(Modifier.fillMaxSize()) {
-            DashboardHeader(avatarUrl = vm.avatarUrl, onBack = onBack)
+            DashboardHeader(name = vm.displayName, avatarUrl = vm.avatarUrl, onBack = onBack)
 
             Column(
                 modifier = Modifier
@@ -83,38 +96,50 @@ fun DashboardScreen(onBack: () -> Unit, onNewPublication: () -> Unit) {
                     .padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                StatsRow(vm)
-                WeeklyInterestCard(vm)
+                vm.error?.let {
+                    Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
+                }
+                val stats = vm.stats
+                if (stats == null && vm.loading) {
+                    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = KarsyTeal)
+                    }
+                }
+                if (stats != null) {
+                    StatsRow(stats, vm.viewsTrend)
+                    WeeklyInterestCard(stats.favoritosSemana, stats.diasSemana)
+                }
                 MyListingsSection(
                     listings = vm.myListings,
                     onDestacar = vm::askDestacar,
-                    onNewPublication = onNewPublication
+                    onNewPublication = onNewPublication,
+                    onCarClick = onCarClick
                 )
             }
         }
 
         AnimatedVisibility(visible = vm.destacarCar != null, enter = fadeIn(), exit = fadeOut()) {
-            // Se conserva el último nombre mientras se anima la salida.
-            val name = vm.destacarCar
-            if (name != null) {
+            // Se conserva el último auto mientras se anima la salida.
+            val car = vm.destacarCar
+            if (car != null) {
                 DestacarDialog(
-                    carName = name,
+                    carName = "${car.title} ${car.year}",
                     onConfirm = vm::confirmDestacar,
                     onCancel = vm::cancelDestacar
                 )
             }
         }
         AnimatedVisibility(visible = vm.solicitudCar != null, enter = fadeIn(), exit = fadeOut()) {
-            val name = vm.solicitudCar
-            if (name != null) {
-                SolicitudEnviadaDialog(carName = name, onClose = vm::closeSolicitud)
+            val car = vm.solicitudCar
+            if (car != null) {
+                SolicitudEnviadaDialog(carName = "${car.title} ${car.year}", onClose = vm::closeSolicitud)
             }
         }
     }
 }
 
 @Composable
-private fun DashboardHeader(avatarUrl: String, onBack: () -> Unit) {
+private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -146,20 +171,18 @@ private fun DashboardHeader(avatarUrl: String, onBack: () -> Unit) {
                 .padding(start = 8.dp)
                 .weight(1f)
         )
-        AsyncImage(
-            model = avatarUrl,
-            contentDescription = "Avatar",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .border(2.dp, KarsyTeal, CircleShape)
+        ProfileAvatar(
+            name = name,
+            avatarUrl = avatarUrl,
+            size = 40.dp,
+            initialsSize = 14.sp,
+            modifier = Modifier.border(2.dp, KarsyTeal, CircleShape)
         )
     }
 }
 
 @Composable
-private fun StatsRow(vm: DashboardViewModel) {
+private fun StatsRow(stats: SellerStats, trend: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -174,9 +197,10 @@ private fun StatsRow(vm: DashboardViewModel) {
                 .background(KarsyWhite)
                 .padding(16.dp)
         ) {
-            CardLabel("VENTAS TOTALES")
+            // No hay tabla de ventas: la métrica principal son las vistas de detalle.
+            CardLabel("VISTAS TOTALES")
             Text(
-                vm.totalSales.toString(),
+                stats.vistas.toString(),
                 fontFamily = Outfit,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -184,7 +208,7 @@ private fun StatsRow(vm: DashboardViewModel) {
                 modifier = Modifier.padding(top = 2.dp)
             )
             Text(
-                vm.salesTrend,
+                trend,
                 fontFamily = DmSans,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
@@ -197,7 +221,7 @@ private fun StatsRow(vm: DashboardViewModel) {
                     .fillMaxWidth()
                     .height(60.dp)
             ) {
-                drawSparkline(vm.salesMonths, size.width, size.height, strokeWidth = 2.dp, fillAlpha = 0.2f)
+                drawSparkline(stats.vistasPorMes, size.width, size.height, strokeWidth = 2.dp, fillAlpha = 0.2f)
             }
         }
 
@@ -205,8 +229,8 @@ private fun StatsRow(vm: DashboardViewModel) {
             modifier = Modifier.width(110.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SmallStatCard("PUBLICADOS", vm.publishedCount.toString(), KarsyNavy, "Vehículos", Modifier.weight(1f))
-            SmallStatCard("CONSULTAS", vm.inquiries.toString(), KarsyTeal, "Contactos", Modifier.weight(1f))
+            SmallStatCard("PUBLICADOS", stats.publicadas.toString(), KarsyNavy, "Vehículos", Modifier.weight(1f))
+            SmallStatCard("CONSULTAS", stats.contactos.toString(), KarsyTeal, "Contactos", Modifier.weight(1f))
         }
     }
 }
@@ -247,7 +271,7 @@ private fun CardLabel(text: String) {
 }
 
 @Composable
-private fun WeeklyInterestCard(vm: DashboardViewModel) {
+private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -276,11 +300,11 @@ private fun WeeklyInterestCard(vm: DashboardViewModel) {
                 .height(90.dp)
         ) {
             val chartH = size.height - 16.dp.toPx()
-            drawSparkline(vm.favWeekly, size.width, chartH, strokeWidth = 2.5.dp, fillAlpha = 0.28f)
-            val points = sparklinePoints(vm.favWeekly, size.width, chartH, 6.dp.toPx())
-            val maxV = vm.favWeekly.max()
+            drawSparkline(favWeekly, size.width, chartH, strokeWidth = 2.5.dp, fillAlpha = 0.28f)
+            val points = sparklinePoints(favWeekly, size.width, chartH, 6.dp.toPx())
+            val maxV = favWeekly.maxOrNull() ?: 0f
             points.forEachIndexed { i, p ->
-                val isMax = vm.favWeekly[i] == maxV
+                val isMax = maxV > 0f && favWeekly[i] == maxV
                 if (isMax) drawCircle(KarsyTeal.copy(alpha = 0.2f), radius = 8.dp.toPx(), center = p)
                 drawCircle(KarsyTeal, radius = if (isMax) 5.dp.toPx() else 3.5.dp.toPx(), center = p)
             }
@@ -291,7 +315,7 @@ private fun WeeklyInterestCard(vm: DashboardViewModel) {
                 .padding(top = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            vm.weekDays.forEach { d ->
+            weekDays.forEach { d ->
                 Text(d, fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
             }
         }
@@ -300,9 +324,10 @@ private fun WeeklyInterestCard(vm: DashboardViewModel) {
 
 @Composable
 private fun MyListingsSection(
-    listings: List<MyListing>,
-    onDestacar: (String) -> Unit,
+    listings: List<Car>,
+    onDestacar: (Car) -> Unit,
     onNewPublication: () -> Unit,
+    onCarClick: (Long) -> Unit,
 ) {
     Column {
         Row(
@@ -333,13 +358,21 @@ private fun MyListingsSection(
             )
         }
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (listings.isEmpty()) {
+                Text(
+                    "Todavía no publicas ningún vehículo. Toca \"+ Publicar\" para crear el primero.",
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    color = KarsyMid
+                )
+            }
             listings.chunked(2).forEach { rowItems ->
                 Row(
                     modifier = Modifier.height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     rowItems.forEach { car ->
-                        ListingCard(car, onDestacar, Modifier.weight(1f).fillMaxHeight())
+                        ListingCard(car, onDestacar, onCarClick, Modifier.weight(1f).fillMaxHeight())
                     }
                     if (rowItems.size == 1) Spacer(Modifier.weight(1f))
                 }
@@ -349,27 +382,43 @@ private fun MyListingsSection(
 }
 
 @Composable
-private fun ListingCard(car: MyListing, onDestacar: (String) -> Unit, modifier: Modifier) {
+private fun ListingCard(car: Car, onDestacar: (Car) -> Unit, onCarClick: (Long) -> Unit, modifier: Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(KarsyWhite)
+            .clickable { onCarClick(car.id) }
     ) {
-        AsyncImage(
-            model = car.imageUrl,
-            contentDescription = car.name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(110.dp)
-        )
+        Box {
+            AsyncImage(
+                model = car.imageUrl,
+                contentDescription = car.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(110.dp)
+                    .background(ImagePlaceholder)
+            )
+            Text(
+                car.status,
+                fontFamily = DmSans,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = KarsyWhite,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background((if (car.status == "Activo") KarsyTeal else KarsyNavy).copy(alpha = 0.85f))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
+        }
         Column(
             modifier = Modifier
                 .weight(1f)
                 .padding(12.dp)
         ) {
             Text(
-                car.name,
+                "${car.title} ${car.year}",
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 lineHeight = 15.sp,
@@ -385,8 +434,11 @@ private fun ListingCard(car: MyListing, onDestacar: (String) -> Unit, modifier: 
                 modifier = Modifier.padding(top = 4.dp)
             )
             Spacer(Modifier.weight(1f))
+            // Solo un anuncio activo puede destacarse, y una solicitud a la vez.
+            val puedeDestacar = car.status == "Activo" && !car.featured && !car.featuredPending
             Button(
-                onClick = { onDestacar(car.name) },
+                onClick = { onDestacar(car) },
+                enabled = puedeDestacar,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
                 contentPadding = PaddingValues(vertical = 8.dp),
@@ -395,7 +447,16 @@ private fun ListingCard(car: MyListing, onDestacar: (String) -> Unit, modifier: 
                     .fillMaxWidth()
                     .height(34.dp)
             ) {
-                Text("Destacar", fontFamily = Outfit, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    when {
+                        car.featured -> "Destacado"
+                        car.featuredPending -> "Solicitud enviada"
+                        else -> "Destacar"
+                    },
+                    fontFamily = Outfit,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
@@ -403,12 +464,14 @@ private fun ListingCard(car: MyListing, onDestacar: (String) -> Unit, modifier: 
 
 /** Puntos de la gráfica (misma fórmula que sparklinePath del mockup). */
 private fun sparklinePoints(data: List<Float>, w: Float, h: Float, pad: Float): List<Offset> {
+    if (data.isEmpty()) return emptyList()
     val minV = data.min()
     val maxV = data.max()
     val range = (maxV - minV).takeIf { it != 0f } ?: 1f
+    val pasos = (data.size - 1).coerceAtLeast(1)
     return data.mapIndexed { i, v ->
         Offset(
-            x = i.toFloat() / (data.size - 1) * w,
+            x = i.toFloat() / pasos * w,
             y = h - pad - (v - minV) / range * (h - pad * 2)
         )
     }
@@ -416,6 +479,7 @@ private fun sparklinePoints(data: List<Float>, w: Float, h: Float, pad: Float): 
 
 private fun DrawScope.drawSparkline(data: List<Float>, w: Float, h: Float, strokeWidth: Dp, fillAlpha: Float) {
     val points = sparklinePoints(data, w, h, 6.dp.toPx())
+    if (points.isEmpty()) return
     val line = Path().apply {
         points.forEachIndexed { i, p -> if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y) }
     }

@@ -12,7 +12,7 @@ sealed class Routes(val route: String) {
 
     object CarDetail : Routes("car_detail/{carId}") {
         const val ARG = "carId"
-        fun createRoute(carId: Int) = "car_detail/$carId"
+        fun createRoute(carId: Long) = "car_detail/$carId"
     }
 
     object Favorites : Routes("favorites")

@@ -26,6 +26,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.SpaceDashboard
@@ -34,13 +36,14 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -54,10 +57,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.components.RegisterToast
@@ -74,38 +79,37 @@ import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
-import com.pame.karsy.data.repository.CarRepository
 
 /** Pantalla principal del marketplace (WebHomeScreen del mockup). */
 @Composable
 fun HomeScreen(
     userMode: UserMode,
-    onCarClick: (Int) -> Unit,
+    onCarClick: (Long) -> Unit,
     onFavorites: () -> Unit,
     onProfile: () -> Unit,
     onAdminPanel: () -> Unit,
     onPublish: () -> Unit,
     onRegister: () -> Unit,
+    vm: HomeViewModel = viewModel(),
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var toastMsg by remember { mutableStateOf<String?>(null) }
-    // TODO: cargar los favoritos del usuario desde public.favoritos
-    val favoriteIds = remember { mutableStateListOf<Int>() }
-    var sortBy by rememberSaveable { mutableStateOf(ORDEN_OPCIONES.first()) }
 
-    // TODO: obtener destacados y publicaciones activas desde Supabase
-    val featured = CarRepository.featuredCars
-    val allCars = CarRepository.allCars
+    // Recarga anuncios y favoritos cada vez que se vuelve a esta pantalla.
+    LaunchedEffect(Unit) { vm.refresh() }
+
+    val featured = vm.featured
+    val allCars = vm.visibleCars
+    val favoriteIds = vm.favoriteIds
 
     val isVisitor = !userMode.isLoggedIn
     val showHeart = !userMode.isAdmin
 
-    val toggleFavorite: (Int) -> Unit = { id ->
+    val toggleFavorite: (Long) -> Unit = { id ->
         if (isVisitor) {
             toastMsg = "Regístrate para guardar tus favoritos"
         } else {
-            // TODO: insertar/borrar en public.favoritos
-            if (id in favoriteIds) favoriteIds.remove(id) else favoriteIds.add(id)
+            vm.toggleFavorite(id) { toastMsg = it }
         }
     }
     val goRegister = {
@@ -139,7 +143,13 @@ fun HomeScreen(
                     .fillMaxSize()
                     .navigationBarsPadding()
             ) {
-                item(span = { GridItemSpan(maxLineSpan) }) { HeroSection() }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    HeroSection(
+                        stats = vm.heroStats,
+                        query = vm.query,
+                        onSearch = { vm.query = it }
+                    )
+                }
 
                 if (isVisitor) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
@@ -147,24 +157,14 @@ fun HomeScreen(
                     }
                 }
 
-                // Vehículos destacados
-                item(span = { GridItemSpan(maxLineSpan) }) {
+                // Vehículos destacados (solicitudes de destacado aprobadas y vigentes)
+                if (featured.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                     Column(Modifier.padding(top = 8.dp)) {
                         SectionHeader(
                             title = "Vehículos destacados",
                             subtitle = "Selección especial de nuestra plataforma",
                             modifier = Modifier.padding(horizontal = 16.dp)
-                        ) {
-                            OutlinedButton(
-                                onClick = { /* TODO: abrir listado completo de destacados */ },
-                                shape = RoundedCornerShape(10.dp),
-                                border = BorderStroke(1.5.dp, KarsyBorder),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = KarsyNavy),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                            ) {
-                                Text("Ver todos →", fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                            }
-                        }
+                        ) {}
                         LazyRow(
                             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -189,14 +189,31 @@ fun HomeScreen(
                         subtitle = "${allCars.size} vehículos disponibles",
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
-                        // TODO: ordenar la consulta de publicaciones según la opción elegida
                         KarsySelect(
-                            selected = sortBy,
+                            selected = vm.filters.orden,
                             options = ORDEN_OPCIONES,
-                            onSelect = { sortBy = it },
+                            onSelect = { vm.filters = vm.filters.copy(orden = it) },
                             fillWidth = false,
                             container = KarsyWhite,
                             textColor = KarsyTextSecondary
+                        )
+                    }
+                }
+                when {
+                    vm.loading && allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = KarsyTeal)
+                        }
+                    }
+                    vm.error != null && allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        EmptyMessage(vm.error!!, action = "Reintentar", onAction = vm::refresh)
+                    }
+                    allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        EmptyMessage(
+                            if (vm.cars.isEmpty()) "Todavía no hay vehículos publicados."
+                            else "Ningún vehículo coincide con tu búsqueda.",
+                            action = if (vm.cars.isEmpty()) null else "Quitar filtros",
+                            onAction = { vm.filters = HomeFilters(); vm.query = "" }
                         )
                     }
                 }
@@ -244,9 +261,35 @@ fun HomeScreen(
         FilterSheet(
             visible = menuOpen,
             userMode = userMode,
+            filters = vm.filters,
+            options = vm.filterOptions,
+            onApply = { vm.filters = it },
             onDismiss = { menuOpen = false },
             onRegister = goRegister
         )
+    }
+}
+
+@Composable
+private fun EmptyMessage(text: String, action: String?, onAction: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text, fontFamily = DmSans, fontSize = 14.sp, color = KarsyMid, textAlign = TextAlign.Center)
+        if (action != null) {
+            OutlinedButton(
+                onClick = onAction,
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.5.dp, KarsyBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = KarsyNavy),
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
+                Text(action, fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
     }
 }
 
@@ -334,7 +377,7 @@ private fun HeaderIconButton(onClick: () -> Unit, active: Boolean = false, conte
 }
 
 @Composable
-private fun HeroSection() {
+private fun HeroSection(stats: List<Pair<String, String>>, query: String, onSearch: (String) -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -379,12 +422,12 @@ private fun HeroSection() {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
-            HeroSearch()
+            HeroSearch(initial = query, onSearch = onSearch)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
                 modifier = Modifier.padding(top = 24.dp)
             ) {
-                listOf("12,400+" to "Vehículos", "50+" to "Marcas", "100+" to "Modelos").forEach { (num, lbl) ->
+                stats.forEach { (num, lbl) ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(num, fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = KarsyWhite)
                         Text(lbl, fontFamily = DmSans, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
@@ -396,8 +439,8 @@ private fun HeroSection() {
 }
 
 @Composable
-private fun HeroSearch() {
-    var query by rememberSaveable { mutableStateOf("") }
+private fun HeroSearch(initial: String, onSearch: (String) -> Unit) {
+    var query by rememberSaveable { mutableStateOf(initial) }
     val shape = RoundedCornerShape(12.dp)
     Row(
         Modifier
@@ -410,8 +453,14 @@ private fun HeroSearch() {
     ) {
         BasicTextField(
             value = query,
-            onValueChange = { query = it },
+            onValueChange = {
+                query = it
+                // Al borrar el texto se vuelve a mostrar todo sin tocar "Buscar".
+                if (it.isEmpty()) onSearch("")
+            },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { onSearch(query) }),
             textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyWhite),
             cursorBrush = SolidColor(KarsyTeal),
             modifier = Modifier
@@ -430,7 +479,7 @@ private fun HeroSearch() {
             Modifier
                 .fillMaxHeight()
                 .background(KarsyTeal)
-                .clickable { /* TODO: buscar publicaciones por marca, modelo o año */ }
+                .clickable { onSearch(query) }
                 .padding(horizontal = 18.dp),
             contentAlignment = Alignment.Center
         ) {

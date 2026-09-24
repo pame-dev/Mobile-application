@@ -1,5 +1,9 @@
 package com.pame.karsy.feature.publish.steps
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,6 +26,10 @@ import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,21 +51,22 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.feature.publish.PublishStepScaffold
+import com.pame.karsy.feature.publish.PublishViewModel
 
-private data class PhotoSlot(val label: String, val imageUrl: String?)
+private data class PhotoSlot(val label: String, val image: Uri?)
 
-// Datos de ejemplo del mockup: sólo la foto frontal aparece cargada.
-private val photoSlots = listOf(
-    PhotoSlot("Foto frontal", "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=120&h=90&fit=crop&auto=format"),
-    PhotoSlot("Foto trasera", null),
-    PhotoSlot("Foto lateral izquierda", null),
-    PhotoSlot("Foto lateral derecha", null),
-    PhotoSlot("Foto del tablero", null),
+private val slotLabels = listOf(
+    "Foto frontal", "Foto trasera", "Foto lateral izquierda", "Foto lateral derecha", "Foto del tablero",
 )
 
-/** Paso 2: fotos del vehículo. */
+/** Paso 2: fotos del vehículo (una por ángulo, se suben a Storage al publicar). */
 @Composable
-fun PhotosStep(onNext: () -> Unit, onBack: () -> Unit) {
+fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
+    var targetSlot by remember { mutableIntStateOf(0) }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) form.photos[targetSlot] = uri
+    }
+
     PublishStepScaffold(
         step = 2,
         onBack = onBack,
@@ -65,14 +74,22 @@ fun PhotosStep(onNext: () -> Unit, onBack: () -> Unit) {
         onButtonClick = onNext,
         spacing = 12
     ) {
-        photoSlots.forEachIndexed { i, slot ->
-            PhotoSlotCard(slot = slot, isDashboard = i == 4)
+        form.error?.let { StepError(it) }
+        slotLabels.forEachIndexed { i, label ->
+            PhotoSlotCard(
+                slot = PhotoSlot(label, form.photos[i]),
+                isDashboard = i == 4,
+                onPick = {
+                    targetSlot = i
+                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean) {
+private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, onPick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,9 +144,9 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean) {
                     .background(KarsyBg),
                 contentAlignment = Alignment.Center
             ) {
-                if (slot.imageUrl != null) {
+                if (slot.image != null) {
                     AsyncImage(
-                        model = slot.imageUrl,
+                        model = slot.image,
                         contentDescription = slot.label,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -172,9 +189,7 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean) {
                 .clip(RoundedCornerShape(12.dp))
                 .background(KarsyWhite)
                 .border(1.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
-                .clickable {
-                    // TODO: abrir selector de imágenes (galería) y guardar la foto de este ángulo
-                }
+                .clickable(onClick = onPick)
                 .padding(vertical = 10.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically

@@ -23,20 +23,50 @@ enum class UserMode(val label: String) {
     val isSeller: Boolean get() = this == PARTICULAR || this == LOTE
 }
 
+/** Cuenta con sesión iniciada en Supabase Auth (fila de public.cuentas + rol). */
+data class SessionAccount(
+    val id: String,
+    val nombre: String,
+    val tipoCuenta: String,
+    val esAdmin: Boolean,
+    val correo: String,
+) {
+    val mode: UserMode
+        get() = when {
+            esAdmin -> UserMode.ADMIN
+            tipoCuenta == "lote" -> UserMode.LOTE
+            else -> UserMode.PARTICULAR
+        }
+}
+
 /**
- * Sesión en memoria. De momento solo guarda el modo elegido en el login.
- * TODO: reemplazar por la sesión de Supabase Auth (supabase.auth.currentSessionOrNull())
- *  y leer tipo_cuenta / rol desde las tablas cuentas y cuentas_roles.
+ * Sesión en memoria. El token lo guarda Supabase Auth (se restaura al abrir la app);
+ * aquí solo se guarda la cuenta y el modo que decide qué ve el usuario.
  */
 object SessionManager {
     var userMode by mutableStateOf(UserMode.VISITANTE)
+        private set
+    var account by mutableStateOf<SessionAccount?>(null)
+        private set
 
-    fun login(mode: UserMode) {
-        userMode = mode
+    val userId: String? get() = account?.id
+
+    fun login(account: SessionAccount) {
+        this.account = account
+        userMode = account.mode
+    }
+
+    fun enterAsGuest() {
+        account = null
+        userMode = UserMode.VISITANTE
+    }
+
+    fun updateName(nombre: String) {
+        account = account?.copy(nombre = nombre)
     }
 
     fun logout() {
-        // TODO: supabase.auth.signOut()
+        account = null
         userMode = UserMode.VISITANTE
     }
 }
