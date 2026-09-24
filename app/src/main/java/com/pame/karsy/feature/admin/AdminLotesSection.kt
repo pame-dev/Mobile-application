@@ -3,6 +3,7 @@ package com.pame.karsy.feature.admin
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
@@ -17,16 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 
 @Composable
-fun AdminLotesSection() {
+fun AdminLotesSection(vm: AdminViewModel) {
     var search by rememberSaveable { mutableStateOf("") }
     var selected by remember { mutableStateOf<AdminLot?>(null) }
 
-    // TODO: cargar lotes/agencias registrados desde Supabase
-    val filtered = AdminSampleData.lots.filter { lot ->
+    val filtered = vm.lots.filter { lot ->
         "${lot.name} ${lot.responsible} ${lot.city}".contains(search, ignoreCase = true)
     }
 
@@ -84,7 +85,6 @@ fun AdminLotesSection() {
     }
 
     selected?.let { lot ->
-        // TODO: aprobar / suspender lote + insertar en acciones_administrativas
         AdminDetailModal(
             title = "Detalle del lote",
             subtitle = lot.name,
@@ -93,8 +93,21 @@ fun AdminLotesSection() {
             DetailRow("Nombre del lote", lot.name)
             DetailRow("Responsable", lot.responsible)
             DetailRow("Ciudad", lot.city)
-            DetailRow("Vehículos publicados", lot.vehicles.toString())
+            DetailRow("Vehículos activos", lot.vehicles.toString())
             DetailRow("Estado", lot.status)
+            if (lot.id != SessionManager.userId) {
+                Row(Modifier.padding(top = 18.dp)) {
+                    val suspendido = lot.status == "Suspendido"
+                    AdminActionButton(
+                        if (suspendido) "Reactivar lote" else "Suspender lote",
+                        tone = if (suspendido) ActionTone.Success else ActionTone.Danger,
+                        onClick = {
+                            vm.setSuspended(lot.id, suspend = !suspendido)
+                            selected = null
+                        }
+                    )
+                }
+            }
         }
     }
 }

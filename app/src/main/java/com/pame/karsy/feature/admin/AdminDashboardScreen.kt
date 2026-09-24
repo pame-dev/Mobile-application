@@ -3,6 +3,7 @@ package com.pame.karsy.feature.admin
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -38,10 +40,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.core.components.KarsyLogo
+import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import kotlinx.coroutines.launch
@@ -51,7 +58,12 @@ import kotlinx.coroutines.launch
  * la barra lateral se convierte en un ModalNavigationDrawer y las tablas en listas de tarjetas.
  */
 @Composable
-fun AdminDashboardScreen(onBack: () -> Unit) {
+fun AdminDashboardScreen(
+    onBack: () -> Unit,
+    onCarClick: (Long) -> Unit,
+    onLogout: () -> Unit,
+    vm: AdminViewModel = viewModel(),
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var section by rememberSaveable { mutableStateOf(AdminSection.Inicio) }
@@ -64,13 +76,21 @@ fun AdminDashboardScreen(onBack: () -> Unit) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
+            val stats = vm.stats
             AdminDrawerContent(
                 drawerState = drawerState,
                 current = section,
                 onSelect = {
                     section = it
                     scope.launch { drawerState.close() }
-                }
+                },
+                adminName = SessionManager.account?.nombre.orEmpty(),
+                badges = if (stats == null) emptyMap() else mapOf(
+                    AdminSection.Vehiculos to stats.propuestasPendientes,
+                    AdminSection.Reportes to stats.reportesPendientes,
+                    AdminSection.Destacados to stats.destacadosPendientes,
+                ),
+                onLogout = onLogout
             )
         }
     ) {
@@ -83,14 +103,36 @@ fun AdminDashboardScreen(onBack: () -> Unit) {
                 onMenu = { scope.launch { drawerState.open() } },
                 onHome = onBack
             )
+            vm.message?.let { msg ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(KarsyTealLight)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                ) {
+                    Text(msg, fontFamily = DmSans, fontSize = 13.sp, color = KarsyNavy, modifier = Modifier.weight(1f))
+                    Text(
+                        "Cerrar",
+                        fontFamily = DmSans,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = KarsyTeal,
+                        modifier = Modifier.clickable { vm.message = null }
+                    )
+                }
+            }
+            if (vm.loading || vm.working) {
+                LinearProgressIndicator(color = KarsyTeal, modifier = Modifier.fillMaxWidth())
+            }
             Box(Modifier.weight(1f)) {
                 when (section) {
-                    AdminSection.Inicio -> AdminHomeSection(onNavigate = { section = it })
-                    AdminSection.Usuarios -> AdminUsersSection()
-                    AdminSection.Lotes -> AdminLotesSection()
-                    AdminSection.Vehiculos -> AdminVehiclesSection()
-                    AdminSection.Reportes -> AdminReportsSection()
-                    AdminSection.Destacados -> AdminFeaturedSection()
+                    AdminSection.Inicio -> AdminHomeSection(vm = vm, onNavigate = { section = it })
+                    AdminSection.Usuarios -> AdminUsersSection(vm)
+                    AdminSection.Lotes -> AdminLotesSection(vm)
+                    AdminSection.Vehiculos -> AdminVehiclesSection(vm, onCarClick)
+                    AdminSection.Reportes -> AdminReportsSection(vm, onCarClick)
+                    AdminSection.Destacados -> AdminFeaturedSection(vm)
                 }
             }
         }

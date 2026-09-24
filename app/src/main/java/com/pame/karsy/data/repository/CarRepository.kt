@@ -1,100 +1,251 @@
 package com.pame.karsy.data.repository
 
+import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.supabase.Supabase
+import com.pame.karsy.core.util.Formato
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.CarDetail
+import com.pame.karsy.data.model.SellerContact
+import com.pame.karsy.data.remote.AnuncioDto
+import com.pame.karsy.data.remote.ContactoDto
+import com.pame.karsy.data.remote.FavoritoDto
+import com.pame.karsy.data.remote.InteraccionDto
+import com.pame.karsy.data.remote.InteraccionInsert
+import com.pame.karsy.data.remote.ReporteInsert
+import com.pame.karsy.data.remote.SolicitudDestacadoInsert
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.storage.storage
+import io.ktor.http.ContentType
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import java.util.Calendar
+import java.util.UUID
 
 /**
- * Datos estáticos copiados de los mockups.
- * TODO: reemplazar por consultas a Supabase:
- *  - featuredCars  -> publicaciones con solicitudes_destacado aprobadas y vigentes
- *  - allCars       -> publicaciones activas y habilitadas (paginadas, con filtros)
- *  - favoriteCars  -> favoritos del usuario en sesión
- *  - getDetail     -> publicación + fotos_publicacion + datos de contacto del propietario
+ * Anuncios desde Supabase. Todas las lecturas usan la vista public.v_anuncios, que
+ * respeta el RLS: el público solo ve lo aprobado; el dueño y el admin ven todo lo suyo.
  */
 object CarRepository {
 
-    private fun img(id: String, w: Int, h: Int) =
-        "https://images.unsplash.com/photo-$id?w=$w&h=$h&fit=crop&auto=format"
+    private val db get() = Supabase.client
+    private const val VISTA = "v_anuncios"
 
-    val featuredCars: List<Car> = listOf(
-        Car(1, "BMW", "Serie 3 320i", 2023, "$685,000",
-            "Sedán premium con tecnología deportiva, pantalla 12.3'' y asistente de manejo.",
-            img("1783740486439-b4487fad649f", 700, 440), badge = "Destacado", rating = 4.8),
-        Car(2, "Porsche", "Cayenne S", 2022, "$1,450,000",
-            "SUV de alto rendimiento, 440 CV, interior en piel Nappa y techo panorámico.",
-            img("1763165524637-9067debdc80b", 700, 440), badge = "Premium", condition = "Usado", rating = 4.9),
-        Car(3, "Mercedes-Benz", "GLA 200", 2023, "$798,000",
-            "Crossover compacto con MBUX, cámara 360° y acabados de lujo de serie.",
-            img("1788178243401-854e12eeb8b1", 700, 440), badge = "Seminuevo", rating = 4.7),
-        Car(4, "Audi", "A4 2.0 TFSI", 2022, "$730,000",
-            "Sedán ejecutivo con Virtual Cockpit, tracción quattro y faros Matrix LED.",
-            img("1764013290175-2b76e9a00b2e", 700, 440), badge = "Destacado", rating = 4.8),
-    )
-
-    val allCars: List<Car> = listOf(
-        Car(5, "Toyota", "Corolla LE", 2022, "$325,000",
-            "Sedán confiable, eficiente en combustible con seguridad Toyota Safety Sense.",
-            img("1610809589386-9ea41901eb54", 500, 320), condition = "Usado", rating = 4.5),
-        Car(6, "Honda", "Civic Sport", 2021, "$298,000",
-            "Compacto deportivo con pantalla táctil de 7'', carplay y frenos ABS.",
-            img("1629538745524-5b748fddac9f", 500, 320), condition = "Usado", rating = 4.6),
-        Car(7, "Mazda", "3 Sedán i Sport", 2023, "$365,000",
-            "Diseño KODO premiado, motor Skyactiv-G y sistema de sonido Bose.",
-            img("1522770450359-3de04ff5c9e2", 500, 320)),
-        Car(8, "Nissan", "Versa Advance", 2022, "$245,000",
-            "El sedán más vendido de México, económico y con excelente maniobrabilidad.",
-            img("1602791036370-b00a495d8a58", 500, 320), condition = "Usado", rating = 4.4),
-        Car(9, "Volkswagen", "Jetta Trendline", 2020, "$280,000",
-            "Sedán alemán de clase media con acabados de primera y gran espacio interior.",
-            img("1647588854348-f3b37a0f0ef7", 500, 320), condition = "Usado", rating = 4.5),
-        Car(10, "Kia", "Forte EX", 2023, "$340,000",
-            "Diseño dinámico, garantía 7 años, climatizador automático y control crucero.",
-            img("1770936044591-979681c051cf", 500, 320), rating = 4.6),
-    )
-
-    /** Favoritos de ejemplo (mismos autos que en el mockup de favoritos). */
-    val favoriteCars: List<Car>
-        get() = listOf(1, 2, 3, 5, 6, 4).mapNotNull { getCar(it) }
-
-    /** Fotos cuadradas que aparecen en la cuadrícula del perfil. */
-    val profilePostImages: List<String> = listOf(
-        "1610809589386-9ea41901eb54", "1629538745524-5b748fddac9f", "1580273916550-e323be2ae537",
-        "1767749995450-7b63ab7cd4fd", "1758411898152-5fde4b5eef56", "1602791036370-b00a495d8a58",
-        "1571987502227-9231b837d92a", "1522770450359-3de04ff5c9e2", "1647588854348-f3b37a0f0ef7",
-        "1770936044591-979681c051cf", "1783740486439-b4487fad649f", "1788178243401-854e12eeb8b1",
-    ).map { img(it, 220, 220) }
-
-    /** Imágenes del carrusel de la pantalla de bienvenida. */
+    /** Imágenes del carrusel de bienvenida (material de marketing, no son anuncios). */
     val welcomeCarousel: List<String> = listOf(
         "1767749995450-7b63ab7cd4fd", "1580273916550-e323be2ae537",
         "1571987502227-9231b837d92a", "1758411898152-5fde4b5eef56",
-    ).map { img(it, 600, 900) }
+    ).map { "https://images.unsplash.com/photo-$it?w=600&h=900&fit=crop&auto=format" }
 
-    fun getCar(id: Int): Car? = (featuredCars + allCars).firstOrNull { it.id == id }
+    // ── Lecturas ─────────────────────────────────────────────────────────────
 
-    /** Equivalente a enrichCar() del mockup: completa la ficha con datos de ejemplo. */
-    fun getDetail(id: Int): CarDetail? {
-        val car = getCar(id) ?: return null
+    /** Anuncios aprobados, activos y habilitados, del más reciente al más antiguo. */
+    suspend fun visibleCars(): List<Car> =
+        db.from(VISTA).select {
+            filter { eq("visible", true) }
+            order("fecha_primera_publicacion", Order.DESCENDING)
+        }.decodeList<AnuncioDto>().map(::toCar)
+
+    suspend fun detail(id: Long): CarDetail? =
+        db.from(VISTA).select { filter { eq("id_publicacion", id) } }
+            .decodeSingleOrNull<AnuncioDto>()
+            ?.let(::toDetail)
+
+    suspend fun carsByIds(ids: List<Long>): List<Car> {
+        if (ids.isEmpty()) return emptyList()
+        val porId = db.from(VISTA).select { filter { isIn("id_publicacion", ids) } }
+            .decodeList<AnuncioDto>()
+            .associateBy { it.idPublicacion }
+        return ids.mapNotNull { porId[it]?.let(::toCar) }
+    }
+
+    /**
+     * Publicaciones de una cuenta. Si es la cuenta en sesión (o el admin) incluye
+     * pendientes y rechazadas; para cualquier otro solo las visibles.
+     */
+    suspend fun ownerCars(ownerId: String, onlyVisible: Boolean = false): List<Car> =
+        db.from(VISTA).select {
+            filter {
+                eq("id_propietario", ownerId)
+                if (onlyVisible) eq("visible", true)
+            }
+            order("fecha_creacion", Order.DESCENDING)
+        }.decodeList<AnuncioDto>().map(::toCar)
+
+    // ── Favoritos ────────────────────────────────────────────────────────────
+
+    suspend fun favoriteIds(): Set<Long> {
+        val uid = SessionManager.userId ?: return emptySet()
+        return db.from("favoritos").select { filter { eq("id_cuenta", uid) } }
+            .decodeList<FavoritoDto>().map { it.idPublicacion }.toSet()
+    }
+
+    suspend fun favoriteCars(): List<Car> {
+        val uid = SessionManager.userId ?: return emptyList()
+        val ids = db.from("favoritos").select {
+            filter { eq("id_cuenta", uid) }
+            order("fecha_guardado", Order.DESCENDING)
+        }.decodeList<FavoritoDto>().map { it.idPublicacion }
+        return carsByIds(ids)
+    }
+
+    suspend fun setFavorite(id: Long, favorite: Boolean) {
+        val uid = SessionManager.userId ?: throw IllegalStateException("Inicia sesión para guardar favoritos.")
+        if (favorite) {
+            db.from("favoritos").insert(FavoritoDto(uid, id))
+        } else {
+            db.from("favoritos").delete {
+                filter {
+                    eq("id_cuenta", uid)
+                    eq("id_publicacion", id)
+                }
+            }
+        }
+    }
+
+    // ── Interacciones ────────────────────────────────────────────────────────
+
+    /** Registra que se abrió el detalle (alimenta estadísticas e historial). */
+    suspend fun registerView(id: Long) {
+        runCatching {
+            db.from("interacciones_publicacion")
+                .insert(InteraccionInsert(id, SessionManager.userId, "ver_detalle"))
+        }
+    }
+
+    /** Datos de contacto del vendedor; con sesión también registra el contacto. */
+    suspend fun contact(id: Long): SellerContact? {
+        val dto = db.postgrest.rpc("contacto_vendedor", buildJsonObject { put("p_id_publicacion", id) })
+            .decodeAsOrNull<ContactoDto>() ?: return null
+        SessionManager.userId?.let { uid ->
+            runCatching {
+                db.from("interacciones_publicacion").insert(InteraccionInsert(id, uid, "contactar"))
+            }
+        }
+        return SellerContact(
+            id = dto.idCuenta,
+            nombre = dto.nombre,
+            tipoCuenta = dto.tipoCuenta,
+            descripcion = dto.descripcion.orEmpty(),
+            ubicacion = dto.ubicacion.orEmpty(),
+            avatarUrl = Supabase.publicUrl(dto.fotoPerfil),
+            telefono = dto.telefono,
+            whatsapp = dto.whatsapp == true,
+            correo = dto.correo,
+        )
+    }
+
+    suspend fun report(id: Long, motivo: String) {
+        val uid = SessionManager.userId ?: throw IllegalStateException("Inicia sesión para reportar.")
+        db.from("reportes").insert(ReporteInsert(id, uid, motivo))
+    }
+
+    suspend fun requestFeatured(id: Long) {
+        db.from("solicitudes_destacado").insert(SolicitudDestacadoInsert(id))
+    }
+
+    /** Anuncios vistos por la cuenta en sesión, con el texto "Visto hace …". */
+    suspend fun history(): List<Pair<Car, String>> {
+        val uid = SessionManager.userId ?: return emptyList()
+        val vistas = db.from("interacciones_publicacion").select {
+            filter {
+                eq("id_cuenta", uid)
+                eq("tipo_interaccion", "ver_detalle")
+            }
+            order("fecha_hora", Order.DESCENDING)
+            limit(200)
+        }.decodeList<InteraccionDto>().distinctBy { it.idPublicacion }
+
+        val autos = carsByIds(vistas.map { it.idPublicacion }).associateBy { it.id }
+        return vistas.mapNotNull { v ->
+            autos[v.idPublicacion]?.let { it to "Visto ${Formato.haceCuanto(v.fechaHora).replaceFirstChar { c -> c.lowercase() }}" }
+        }
+    }
+
+    // ── Publicar ─────────────────────────────────────────────────────────────
+
+    /** Sube una foto al bucket y devuelve su ruta (publicaciones/<id_cuenta>/<archivo>). */
+    suspend fun uploadPhoto(bytes: ByteArray): String {
+        val uid = SessionManager.userId ?: throw IllegalStateException("Inicia sesión para publicar.")
+        val ruta = "publicaciones/$uid/${UUID.randomUUID()}.jpg"
+        db.storage.from(Supabase.BUCKET).upload(ruta, bytes) {
+            upsert = false
+            contentType = ContentType.Image.JPEG
+        }
+        return ruta
+    }
+
+    /** Crea la publicación con su propuesta pendiente (función crear_publicacion). */
+    suspend fun publish(datos: JsonObject, fotos: List<String>): Long =
+        db.postgrest.rpc("crear_publicacion", buildJsonObject {
+            put("p_datos", datos)
+            put("p_fotos", buildJsonArray { fotos.forEach { add(it) } })
+        }).decodeAs<Long>()
+
+    // ── Mapeo ────────────────────────────────────────────────────────────────
+
+    fun toCar(a: AnuncioDto): Car {
+        val anioActual = Calendar.getInstance().get(Calendar.YEAR)
+        val anio = a.anio ?: 0
+        return Car(
+            id = a.idPublicacion,
+            brand = a.marca ?: "Sin marca",
+            model = a.modelo.orEmpty(),
+            year = anio,
+            price = Formato.precio(a.precio),
+            currency = a.moneda ?: "MXN",
+            description = a.descripcion.orEmpty(),
+            imageUrl = Supabase.publicUrl(a.fotos.firstOrNull()),
+            badge = if (a.destacado) "Destacado" else null,
+            condition = if (anio >= anioActual - 3) "Seminuevo" else "Usado",
+            kilometraje = Formato.km(a.kilometraje),
+            ownerId = a.idPropietario,
+            ownerName = a.propietarioNombre,
+            status = statusOf(a),
+            priceValue = a.precio ?: 0.0,
+            brandId = a.idMarca,
+            bodyTypeId = a.idCarroceria,
+            bodyType = a.carroceria.orEmpty(),
+            publishedAt = a.fechaPrimeraPublicacion ?: a.fechaCreacion,
+            featured = a.destacado,
+            featuredPending = a.destacadoPendiente,
+        )
+    }
+
+    private fun statusOf(a: AnuncioDto): String = when {
+        !a.aprobada && a.estadoUltimaPropuesta == "rechazada" -> "Rechazado"
+        !a.aprobada -> "Pendiente"
+        a.estadoAdministrativo == "deshabilitada_administrador" -> "Deshabilitado"
+        a.estadoPublicacion == "vendida" -> "Vendido"
+        a.estadoPublicacion == "deshabilitada" -> "Pausado"
+        else -> "Activo"
+    }
+
+    private fun toDetail(a: AnuncioDto): CarDetail {
+        val car = toCar(a)
         return CarDetail(
             car = car,
-            gallery = listOf(
-                car.imageUrl,
-                img("1580273916550-e323be2ae537", 700, 440),
-                img("1571987502227-9231b837d92a", 700, 440),
-                img("1758411898152-5fde4b5eef56", 700, 440),
-            ),
-            transmision = "Automática",
-            kilometraje = "45,000 km",
-            cilindros = "4",
-            caballos = "158 HP",
-            tipoCarro = "Sedán",
-            color = "Blanco perla",
-            cantDuenos = "1",
-            contactoNombre = "Pamela Rodríguez",
-            contactoTelefono = "+52 55 1234 5678",
-            contactoCorreo = "pamela@correo.com",
-            detalles = "Sin golpes ni rayones visibles. Pintura original. Mantenimiento al día en agencia. Llantas nuevas, factura original.",
-            descripcionLarga = car.description,
+            gallery = a.fotos.mapNotNull { Supabase.publicUrl(it) },
+            transmision = a.transmision ?: "—",
+            kilometraje = Formato.km(a.kilometraje),
+            cilindros = a.cilindros?.toString() ?: "—",
+            motor = a.cilindrada ?: "—",
+            tipoCarro = a.carroceria ?: "—",
+            color = a.color ?: "—",
+            cantDuenos = a.propietariosAnteriores?.toString() ?: "—",
+            combustible = a.combustible ?: "—",
+            ubicacion = listOfNotNull(a.municipioUbicacion, a.estadoUbicacion).joinToString(", "),
+            sellerId = a.idPropietario,
+            sellerType = a.propietarioTipo,
+            sellerAvatar = Supabase.publicUrl(a.propietarioFoto),
+            contactoNombre = a.propietarioNombre,
+            detalles = if (a.tieneProblemas == true) a.descripcionProblemas.orEmpty()
+            else "Sin problemas ni detalles reportados por el vendedor.",
+            descripcionLarga = a.descripcion.orEmpty(),
         )
     }
 }

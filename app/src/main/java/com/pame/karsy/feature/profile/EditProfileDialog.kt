@@ -61,14 +61,16 @@ import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.User
 
 /**
- * Modal "Editar perfil" del mockup. Los cambios solo viven en memoria.
- * Para cuentas de lote el nombre es un solo campo ("Nombre del lote").
+ * Modal "Editar perfil" del mockup. Guarda en public.cuentas / telefonos_contacto
+ * (ver ProfileViewModel). Para cuentas de lote el nombre es un solo campo ("Nombre del lote").
  */
 @Composable
 fun EditProfileDialog(
     user: User,
     onDismiss: () -> Unit,
     onSave: (User) -> Unit,
+    onPickPhoto: () -> Unit,
+    saving: Boolean = false,
 ) {
     val isLote = user.accountType == "lote"
     var firstName by rememberSaveable {
@@ -142,9 +144,7 @@ fun EditProfileDialog(
                             .padding(2.dp)
                             .clip(CircleShape)
                             .background(KarsyTeal)
-                            .clickable {
-                                // TODO: abrir selector de imagen y subir a Storage (cuentas.foto_perfil)
-                            },
+                            .clickable(onClick = onPickPhoto),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -192,8 +192,7 @@ fun EditProfileDialog(
                     onClick = {
                         val name = if (isLote) firstName.trim()
                         else listOf(firstName.trim(), lastName.trim()).filter { it.isNotEmpty() }.joinToString(" ")
-                        // TODO: validar y guardar en public.cuentas (nombre_mostrar, descripcion_corta, foto_perfil)
-                        onSave(
+                        if (!saving) onSave(
                             user.copy(
                                 displayName = name.ifEmpty { user.displayName },
                                 phone = phone.trim(),

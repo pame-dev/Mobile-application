@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.feature.publish.steps.ConfirmStep
@@ -23,6 +24,7 @@ import com.pame.karsy.feature.publish.steps.PhotosStep
 @Composable
 fun PublishFlowScreen(onBack: () -> Unit, onFinished: () -> Unit) {
     val vm: PublishViewModel = viewModel()
+    val context = LocalContext.current
 
     val goBack = { if (!vm.back()) onBack() }
 
@@ -36,14 +38,14 @@ fun PublishFlowScreen(onBack: () -> Unit, onFinished: () -> Unit) {
     ) {
         when (vm.step) {
             1 -> DatosStep(form = vm, onNext = vm::next, onBack = goBack)
-            2 -> PhotosStep(onNext = vm::next, onBack = goBack)
+            2 -> PhotosStep(form = vm, onNext = vm::next, onBack = goBack)
             3 -> DetailsStep(form = vm, onNext = vm::next, onBack = goBack)
-            else -> ConfirmStep(onPublish = vm::publish, onBack = goBack)
+            else -> ConfirmStep(form = vm, onPublish = { vm.publish(context) }, onBack = goBack)
         }
 
         AnimatedVisibility(visible = vm.published, enter = fadeIn(), exit = fadeOut()) {
             // NavGraph saca este flujo de la pila al navegar al panel.
-            SuccessOverlay(onDone = onFinished)
+            SuccessOverlay(title = vm.titulo, onDone = onFinished)
         }
     }
 }

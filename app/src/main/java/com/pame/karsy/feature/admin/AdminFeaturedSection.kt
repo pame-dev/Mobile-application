@@ -57,6 +57,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -75,20 +76,14 @@ private val RejectedBg = Color(0xFFFDECEC)
 private val RejectedFg = Color(0xFFB42318)
 
 @Composable
-fun AdminFeaturedSection() {
-    // TODO: cargar solicitudes_destacado desde Supabase
-    val requests = remember { mutableStateListOf(*AdminSampleData.featuredRequests.toTypedArray()) }
+fun AdminFeaturedSection(vm: AdminViewModel) {
+    val requests = vm.featuredRequests
     var filter by rememberSaveable { mutableStateOf(FeaturedStatus.Pendiente) }
-    var selectedId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var selectedId by rememberSaveable { mutableStateOf<Long?>(null) }
     var showApproved by remember { mutableStateOf(false) }
     var showReject by remember { mutableStateOf(false) }
 
     val selected = requests.firstOrNull { it.id == selectedId }
-
-    fun updateStatus(status: FeaturedStatus) {
-        val index = requests.indexOfFirst { it.id == selectedId }
-        if (index >= 0) requests[index] = requests[index].copy(status = status)
-    }
 
     if (selected != null) {
         BackHandler { selectedId = null }
@@ -97,9 +92,8 @@ fun AdminFeaturedSection() {
             onBackToList = { selectedId = null },
             onReject = { showReject = true },
             onApprove = {
-                // TODO: aprobar solicitudes_destacado: marcar la publicación como destacada
-                //  + notificar al usuario + insertar en acciones_administrativas
-                updateStatus(FeaturedStatus.Aprobada)
+                // admin_resolver_destacado: destaca 1 mes desde hoy y registra la acción.
+                vm.resolveFeatured(selected, approve = true)
                 showApproved = true
             }
         )
@@ -117,10 +111,9 @@ fun AdminFeaturedSection() {
         if (showReject) {
             RejectDialog(
                 onCancel = { showReject = false },
-                onConfirm = { _, _ ->
-                    // TODO: rechazar solicitudes_destacado con motivo y comentario
-                    //  + notificar al usuario + insertar en acciones_administrativas
-                    updateStatus(FeaturedStatus.Rechazada)
+                onConfirm = { reason, comment ->
+                    val motivo = listOf(reason, comment.trim()).filter { it.isNotEmpty() }.joinToString(". ")
+                    vm.resolveFeatured(selected, approve = false, reason = motivo)
                     showReject = false
                     selectedId = null
                     filter = FeaturedStatus.Rechazada
@@ -252,13 +245,13 @@ private fun FeaturedRequestCard(request: FeaturedRequest, onClick: () -> Unit) {
                 )
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        request.price.replace(" MXN", ""),
+                        request.price.substringBeforeLast(" "),
                         fontFamily = Outfit,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = KarsyTeal
                     )
-                    Text("MXN", fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+                    Text(request.price.substringAfterLast(" "), fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
                 }
             }
         }
@@ -393,18 +386,18 @@ private fun FeaturedRequestDetail(
                             .padding(16.dp)
                     ) {
                         Row {
-                            SpecText("Transmisión", "Automática", Modifier.weight(1f))
-                            SpecText("Kilometraje", "42,000 km", Modifier.weight(1f))
+                            SpecText("Transmisión", request.transmision, Modifier.weight(1f))
+                            SpecText("Kilometraje", request.kilometraje, Modifier.weight(1f))
                         }
                         Row {
-                            SpecText("Color", "Gris", Modifier.weight(1f))
-                            SpecText("Combustible", "Gasolina", Modifier.weight(1f))
+                            SpecText("Color", request.color, Modifier.weight(1f))
+                            SpecText("Combustible", request.combustible, Modifier.weight(1f))
                         }
                     }
 
                     SectionLabel("Descripción")
                     Text(
-                        "Vehículo en excelentes condiciones, documentación en regla y servicios al corriente.",
+                        request.description.ifBlank { "Sin descripción." },
                         fontFamily = DmSans,
                         fontSize = 14.sp,
                         lineHeight = 23.sp,
@@ -421,11 +414,11 @@ private fun FeaturedRequestDetail(
                             .border(1.dp, KarsyBorder, RoundedCornerShape(14.dp))
                             .padding(15.dp)
                     ) {
-                        AsyncImage(
-                            model = AdminSampleData.REQUESTER_AVATAR,
-                            contentDescription = request.user,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(54.dp).clip(CircleShape).background(KarsyBg)
+                        ProfileAvatar(
+                            name = request.user,
+                            avatarUrl = request.userAvatar,
+                            size = 54.dp,
+                            initialsSize = 18.sp
                         )
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
@@ -617,7 +610,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             Spacer(Modifier.height(18.dp))
 
             Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                AdminSampleData.rejectOptions.forEach { (title, desc) ->
+                AdminOptions.rejectOptions.forEach { (title, desc) ->
                     val active = reason == title
                     Column(
                         Modifier

@@ -1,8 +1,8 @@
 package com.pame.karsy.data.model
 
 /**
- * Perfil público de una cuenta.
- * TODO: mapear desde public.cuentas (+ perfiles_lote cuando tipo_cuenta = 'lote').
+ * Perfil de la cuenta en sesión.
+ * Se arma desde public.cuentas (+ perfiles_lote si es lote, + teléfono principal y correo).
  */
 data class User(
     val id: String,

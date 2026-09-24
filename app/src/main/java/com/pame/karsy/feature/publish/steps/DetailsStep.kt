@@ -45,6 +45,7 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
         buttonText = "Siguiente: Confirmación →",
         onButtonClick = onNext
     ) {
+        form.error?.let { StepError(it) }
         LimitedTextArea(
             title = "Descripción del auto",
             value = form.descripcion,

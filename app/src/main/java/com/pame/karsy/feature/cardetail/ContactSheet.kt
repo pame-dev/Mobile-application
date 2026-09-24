@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.cardetail
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.MailOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,12 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -52,6 +54,8 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.CarDetail
+import com.pame.karsy.data.model.SellerContact
+import com.pame.karsy.feature.profile.ProfileAvatar
 
 internal val SheetScrim = Color(0x800D2B45)
 internal val SheetShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
@@ -61,9 +65,15 @@ internal val SheetShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
 @Composable
 internal fun ContactSheet(
     detail: CarDetail,
+    contact: SellerContact?,
+    loading: Boolean,
     onDismiss: () -> Unit,
     onOpenProfile: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val telefono = contact?.telefono
+    val correo = contact?.correo
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -118,13 +128,12 @@ internal fun ContactSheet(
                     .border(1.dp, KarsyBorder, cardShape)
                     .padding(16.dp)
             ) {
-                AsyncImage(
-                    model = sellerAvatar(112),
-                    contentDescription = "Ver perfil del vendedor",
-                    contentScale = ContentScale.Crop,
+                ProfileAvatar(
+                    name = detail.contactoNombre,
+                    avatarUrl = detail.sellerAvatar,
+                    size = 56.dp,
+                    initialsSize = 19.sp,
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
                         .border(2.dp, KarsyBorder, CircleShape)
                         .clickable(onClick = onOpenProfile)
                 )
@@ -137,15 +146,19 @@ internal fun ContactSheet(
                         color = KarsyNavy,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Text(
-                        detail.contactoTelefono,
-                        fontFamily = DmSans,
-                        fontSize = 12.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = KarsyTeal,
-                        modifier = Modifier.padding(bottom = 3.dp)
-                    )
-                    Text(detail.contactoCorreo, fontFamily = DmSans, fontSize = 12.sp, color = KarsyCharcoal)
+                    if (loading) {
+                        CircularProgressIndicator(color = KarsyTeal, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                    } else {
+                        Text(
+                            telefono ?: "Sin teléfono registrado",
+                            fontFamily = DmSans,
+                            fontSize = 12.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (telefono != null) KarsyTeal else KarsyMid,
+                            modifier = Modifier.padding(bottom = 3.dp)
+                        )
+                        Text(correo ?: "—", fontFamily = DmSans, fontSize = 12.sp, color = KarsyCharcoal)
+                    }
                 }
             }
 
@@ -159,8 +172,11 @@ internal fun ContactSheet(
             ) {
                 Button(
                     onClick = {
-                        // TODO: abrir marcador con el número (Intent.ACTION_DIAL) y registrar interacción 'llamar'.
+                        telefono?.let {
+                            context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + it.filter { c -> c.isDigit() || c == '+' })))
+                        }
                     },
+                    enabled = telefono != null,
                     shape = RoundedCornerShape(999.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
@@ -177,8 +193,13 @@ internal fun ContactSheet(
                 }
                 OutlinedButton(
                     onClick = {
-                        // TODO: abrir app de correo (Intent.ACTION_SENDTO mailto:) y registrar interacción 'correo'.
+                        correo?.let {
+                            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$it"))
+                                .putExtra(Intent.EXTRA_SUBJECT, "Interés en ${detail.car.title} ${detail.car.year} (Karsy)")
+                            runCatching { context.startActivity(intent) }
+                        }
                     },
+                    enabled = correo != null,
                     shape = RoundedCornerShape(999.dp),
                     border = BorderStroke(1.5.dp, KarsyTeal),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = KarsyNavy),

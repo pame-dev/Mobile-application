@@ -1,5 +1,9 @@
 package com.pame.karsy.feature.register
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,10 +26,6 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -33,12 +33,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.BackTopBar
+import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.SectionLabel
@@ -49,10 +54,17 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
 
-/** Formulario de registro de una cuenta de Lote (agencia). */
+/** Formulario de registro de una cuenta de Lote (agencia). Crea el usuario en Supabase Auth. */
 @Composable
-fun RegisterLoteScreen(onBack: () -> Unit, onCreated: () -> Unit) {
-    var acceptedTerms by rememberSaveable { mutableStateOf(false) }
+fun RegisterLoteScreen(
+    onBack: () -> Unit,
+    onCreated: (SessionAccount) -> Unit,
+    vm: RegisterViewModel = viewModel(),
+) {
+    val context = LocalContext.current
+    val pickLogo = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) vm.logo = uri
+    }
 
     Column(
         Modifier
@@ -72,32 +84,73 @@ fun RegisterLoteScreen(onBack: () -> Unit, onCreated: () -> Unit) {
                 .navigationBarsPadding()
                 .padding(start = 24.dp, end = 24.dp, top = 4.dp)
         ) {
-            // TODO: guardar los valores en un ViewModel/estado del formulario y validarlos
             SectionLabel("Datos del responsable")
-            FormInput(label = "Nombre del responsable", placeholder = "Ingresa el nombre")
-            FormInput(label = "Apellido del responsable", placeholder = "Ingresa el apellido")
-            FormInput(label = "Correo electrónico", placeholder = "correo@ejemplo.com", keyboardType = KeyboardType.Email)
-            FormInput(label = "Teléfono comercial", placeholder = "10 dígitos", keyboardType = KeyboardType.Phone)
+            FormInput(
+                label = "Nombre del responsable", placeholder = "Ingresa el nombre",
+                value = vm.nombre, onValueChange = { vm.nombre = it }, error = vm.errorFor("nombre")
+            )
+            FormInput(
+                label = "Apellido del responsable", placeholder = "Ingresa el apellido",
+                value = vm.apellido, onValueChange = { vm.apellido = it }, error = vm.errorFor("apellido")
+            )
+            FormInput(
+                label = "Correo electrónico", placeholder = "correo@ejemplo.com", keyboardType = KeyboardType.Email,
+                value = vm.correo, onValueChange = { vm.correo = it }, error = vm.errorFor("correo")
+            )
+            FormInput(
+                label = "Teléfono comercial", placeholder = "10 dígitos", keyboardType = KeyboardType.Phone,
+                value = vm.telefono, onValueChange = { vm.telefono = it }
+            )
 
             SectionLabel("Información del lote")
-            FormInput(label = "Nombre del lote", placeholder = "Ej. Auto Premium")
-            FormInput(label = "Dirección del lote", placeholder = "Ingresa la dirección")
+            FormInput(
+                label = "Nombre del lote", placeholder = "Ej. Auto Premium",
+                value = vm.nombreLote, onValueChange = { vm.nombreLote = it }, error = vm.errorFor("nombreLote")
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                // TODO: convertir Ciudad/Estado en selectores con el catálogo de la base de datos
-                FormInput(label = "Ciudad", placeholder = "Selecciona una ciudad", modifier = Modifier.weight(1f))
-                FormInput(label = "Estado", placeholder = "Selecciona un estado", modifier = Modifier.weight(1f))
+                FormInput(
+                    label = "Calle", placeholder = "Ej. Av. Juárez", modifier = Modifier.weight(2f),
+                    value = vm.calle, onValueChange = { vm.calle = it }, error = vm.errorFor("calle")
+                )
+                FormInput(
+                    label = "Número", placeholder = "123", modifier = Modifier.weight(1f),
+                    value = vm.numero, onValueChange = { vm.numero = it }, error = vm.errorFor("numero")
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FormInput(
+                    label = "Colonia", placeholder = "Ej. Centro", modifier = Modifier.weight(2f),
+                    value = vm.colonia, onValueChange = { vm.colonia = it }, error = vm.errorFor("colonia")
+                )
+                FormInput(
+                    label = "C.P.", placeholder = "27000", keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f),
+                    value = vm.codigoPostal, onValueChange = { vm.codigoPostal = it }, error = vm.errorFor("codigoPostal")
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FormInput(
+                    label = "Ciudad", placeholder = "Ej. Torreón", modifier = Modifier.weight(1f),
+                    value = vm.ciudad, onValueChange = { vm.ciudad = it }, error = vm.errorFor("ciudad")
+                )
+                FormInput(
+                    label = "Estado", placeholder = "Ej. Coahuila", modifier = Modifier.weight(1f),
+                    value = vm.estado, onValueChange = { vm.estado = it }, error = vm.errorFor("estado")
+                )
             }
             FormInput(
                 label = "Descripción del lote",
                 placeholder = "Describe brevemente tu lote, los servicios que ofrece y el tipo de vehículos que maneja.",
                 singleLine = false,
-                minLines = 4
+                minLines = 4,
+                value = vm.descripcion,
+                onValueChange = { vm.descripcion = it }
             )
 
             SectionLabel("Foto de perfil")
             PhotoPlaceholder(
+                imageUri = vm.logo,
                 onClick = {
-                    // TODO: abrir el selector de imágenes (PickVisualMedia) y subir el logo a Supabase Storage
+                    pickLogo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
@@ -114,28 +167,44 @@ fun RegisterLoteScreen(onBack: () -> Unit, onCreated: () -> Unit) {
             )
 
             SectionLabel("Seguridad")
-            FormInput(label = "Contraseña", placeholder = "Ingresa una contraseña", isPassword = true)
-            FormInput(label = "Confirmar contraseña", placeholder = "Repite tu contraseña", isPassword = true)
+            FormInput(
+                label = "Contraseña", placeholder = "Ingresa una contraseña", isPassword = true,
+                value = vm.password, onValueChange = { vm.password = it }, error = vm.errorFor("password")
+            )
+            FormInput(
+                label = "Confirmar contraseña", placeholder = "Repite tu contraseña", isPassword = true,
+                value = vm.confirmPassword, onValueChange = { vm.confirmPassword = it }, error = vm.passwordMismatch
+            )
 
             Spacer(Modifier.height(24.dp))
-            TermsCheckbox(checked = acceptedTerms, onCheckedChange = { acceptedTerms = it })
+            TermsCheckbox(checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it })
             PrimaryButton(
-                text = "Crear perfil",
-                onClick = {
-                    // TODO: supabase.auth.signUp(email, password) e insertar en public.cuentas
-                    //  (tipo_cuenta = 'lote'), public.perfiles_lote y public.telefonos_contacto
-                    if (acceptedTerms) onCreated()
-                },
-                modifier = Modifier.alpha(if (acceptedTerms) 1f else 0.5f)
+                text = if (vm.loading) "Creando perfil…" else "Crear perfil",
+                enabled = !vm.loading,
+                onClick = { vm.submit(esLote = true, context = context, onCreated = onCreated) },
+                modifier = Modifier.alpha(if (vm.acceptedTerms) 1f else 0.5f)
             )
+            RegisterError(vm.error)
             Spacer(Modifier.height(40.dp))
         }
     }
 }
 
-/** Círculo punteado "Agregar foto" (sin selector real todavía). */
+/** Círculo punteado "Agregar foto"; muestra la imagen elegida. */
 @Composable
-private fun PhotoPlaceholder(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PhotoPlaceholder(imageUri: Uri?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    if (imageUri != null) {
+        AsyncImage(
+            model = imageUri,
+            contentDescription = "Logo del lote",
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+                .size(100.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onClick)
+        )
+        return
+    }
     Box(
         modifier
             .size(100.dp)

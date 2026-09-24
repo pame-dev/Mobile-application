@@ -34,9 +34,12 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
-/** Pantalla de éxito tras publicar ("¡Publicado!"). [onDone] lleva al panel del vendedor. */
+/**
+ * Pantalla de éxito tras publicar ("¡Publicado!"). [onDone] lleva al panel del vendedor.
+ * La publicación queda como propuesta pendiente hasta que un administrador la aprueba.
+ */
 @Composable
-fun SuccessOverlay(onDone: () -> Unit, modifier: Modifier = Modifier) {
+fun SuccessOverlay(title: String, onDone: () -> Unit, modifier: Modifier = Modifier) {
     BackHandler(onBack = onDone)
     Column(
         modifier = modifier
@@ -65,9 +68,8 @@ fun SuccessOverlay(onDone: () -> Unit, modifier: Modifier = Modifier) {
             color = KarsyWhite,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        // TODO: usar marca y modelo reales de la publicación creada
         Text(
-            "Tu BMW Serie 3 320i ya está disponible para los compradores.",
+            "Tu $title se envió a revisión. Aparecerá para los compradores en cuanto un administrador lo apruebe.",
             fontFamily = DmSans,
             fontSize = 14.sp,
             color = KarsyWhite.copy(alpha = 0.7f),

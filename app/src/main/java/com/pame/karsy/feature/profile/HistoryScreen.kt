@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,30 +36,19 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.repository.CarRepository
 
-private data class HistoryItem(
-    val carId: Int,
-    val title: String,
-    val price: String,
-    val sub: String,
-    val imageIndex: Int,
-)
-
-// TODO: leer el historial de vistas del usuario desde Supabase (publicaciones vistas recientemente).
-private val historyItems = listOf(
-    HistoryItem(6, "Honda Civic Sport 2021", "$298,000 MXN", "Visto hace 2 horas", 1),
-    HistoryItem(5, "Toyota Corolla LE 2022", "$325,000 MXN", "Visto ayer", 0),
-    HistoryItem(7, "Mazda 3 Sedán 2023", "$365,000 MXN", "Visto hace 3 días", 7),
-    HistoryItem(1, "BMW Serie 3 320i 2023", "$685,000 MXN", "Visto hace 5 días", 2),
-    HistoryItem(2, "Porsche Cayenne S 2022", "$1,450,000 MXN", "Visto hace 1 semana", 4),
-    HistoryItem(8, "Nissan Versa Advance 2022", "$245,000 MXN", "Visto hace 1 semana", 3),
-)
-
-/** Historial de autos vistos (WebHistorialView del mockup). */
+/**
+ * Historial de autos vistos (WebHistorialView del mockup).
+ * Sale de interacciones_publicacion tipo 'ver_detalle' de la cuenta en sesión.
+ */
 @Composable
-fun HistoryScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
-    val images = CarRepository.profilePostImages
+fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
+    val historyItems by produceState<List<Pair<Car, String>>?>(initialValue = null) {
+        value = safeCall { CarRepository.history() }.getOrDefault(emptyList())
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,19 +66,33 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
                 .navigationBarsPadding()
                 .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
         ) {
+            val items = historyItems
+            if (items == null) {
+                CircularProgressIndicator(color = KarsyTeal, modifier = Modifier.align(Alignment.CenterHorizontally))
+                return@Column
+            }
             ProfileCard {
-                historyItems.forEachIndexed { idx, item ->
+                if (items.isEmpty()) {
+                    Text(
+                        "Aún no has visto ningún vehículo.",
+                        fontFamily = DmSans,
+                        fontSize = 14.sp,
+                        color = KarsyMid,
+                        modifier = Modifier.padding(20.dp)
+                    )
+                }
+                items.forEachIndexed { idx, (car, sub) ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onCarClick(item.carId) }
+                            .clickable { onCarClick(car.id) }
                             .padding(horizontal = 18.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         AsyncImage(
-                            model = images.getOrNull(item.imageIndex),
-                            contentDescription = item.title,
+                            model = car.imageUrl,
+                            contentDescription = car.title,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(72.dp)
@@ -95,7 +101,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                item.title,
+                                "${car.title} ${car.year}",
                                 fontFamily = DmSans,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 15.sp,
@@ -103,7 +109,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                item.price,
+                                "${car.price} ${car.currency}",
                                 fontFamily = Outfit,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
@@ -111,7 +117,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                item.sub,
+                                sub,
                                 fontFamily = DmSans,
                                 fontSize = 12.sp,
                                 color = KarsyMid
@@ -119,7 +125,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Int) -> Unit) {
                         }
                         RowChevron()
                     }
-                    if (idx < historyItems.lastIndex) RowDivider()
+                    if (idx < items.lastIndex) RowDivider()
                 }
             }
         }

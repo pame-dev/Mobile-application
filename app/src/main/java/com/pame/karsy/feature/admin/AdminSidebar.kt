@@ -49,13 +49,13 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 /** Secciones del panel de administración (barra lateral del mockup). */
-enum class AdminSection(val label: String, val badge: Int? = null) {
+enum class AdminSection(val label: String) {
     Inicio("Inicio"),
     Usuarios("Usuarios"),
     Lotes("Lotes"),
     Vehiculos("Vehículos"),
-    Reportes("Reportes", badge = 4),
-    Destacados("Destacados", badge = 2);
+    Reportes("Reportes"),
+    Destacados("Destacados");
 
     val icon: ImageVector
         get() = when (this) {
@@ -70,12 +70,18 @@ enum class AdminSection(val label: String, val badge: Int? = null) {
 
 private val AvatarBlue = Color(0xFF3B82F6)
 
-/** Contenido del menú lateral (ModalNavigationDrawer) en azul marino. */
+/**
+ * Contenido del menú lateral (ModalNavigationDrawer) en azul marino.
+ * [badges] = pendientes por sección (reportes, publicaciones, destacados) de la BD.
+ */
 @Composable
 fun AdminDrawerContent(
     drawerState: DrawerState,
     current: AdminSection,
     onSelect: (AdminSection) -> Unit,
+    adminName: String,
+    badges: Map<AdminSection, Int>,
+    onLogout: () -> Unit,
 ) {
     ModalDrawerSheet(
         drawerState = drawerState,
@@ -116,6 +122,7 @@ fun AdminDrawerContent(
                 AdminSection.entries.forEach { section ->
                     DrawerItem(
                         section = section,
+                        badge = badges[section]?.takeIf { it > 0 },
                         active = section == current,
                         onClick = { onSelect(section) }
                     )
@@ -133,23 +140,40 @@ fun AdminDrawerContent(
                         .clip(CircleShape)
                         .background(AvatarBlue)
                 ) {
-                    Text("A", fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyWhite)
+                    Text(
+                        adminName.take(1).uppercase().ifEmpty { "A" },
+                        fontFamily = DmSans,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = KarsyWhite
+                    )
                 }
                 Spacer(Modifier.width(10.dp))
-                Text(
-                    "Administrador",
-                    fontFamily = DmSans,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = KarsyWhite.copy(alpha = 0.85f)
-                )
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        adminName.ifEmpty { "Administrador" },
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = KarsyWhite.copy(alpha = 0.85f)
+                    )
+                    Text(
+                        "Cerrar sesión",
+                        fontFamily = DmSans,
+                        fontSize = 12.sp,
+                        color = KarsyWhite.copy(alpha = 0.6f),
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .clickable(onClick = onLogout)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DrawerItem(section: AdminSection, active: Boolean, onClick: () -> Unit) {
+private fun DrawerItem(section: AdminSection, badge: Int?, active: Boolean, onClick: () -> Unit) {
     val contentColor = if (active) KarsyWhite else KarsyWhite.copy(alpha = 0.75f)
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -163,7 +187,7 @@ private fun DrawerItem(section: AdminSection, active: Boolean, onClick: () -> Un
     ) {
         Box {
             Icon(section.icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(20.dp))
-            if (section.badge != null) {
+            if (badge != null) {
                 Box(
                     Modifier
                         .align(Alignment.TopEnd)
@@ -184,7 +208,7 @@ private fun DrawerItem(section: AdminSection, active: Boolean, onClick: () -> Un
             color = contentColor,
             modifier = Modifier.weight(1f)
         )
-        section.badge?.let { count ->
+        badge?.let { count ->
             Text(
                 count.toString(),
                 fontFamily = DmSans,

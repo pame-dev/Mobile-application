@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,14 +30,15 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,9 +46,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.session.UserMode
@@ -58,9 +64,8 @@ import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.User
-import com.pame.karsy.data.repository.CarRepository
-import com.pame.karsy.data.repository.UserRepository
 
 /** Pantalla "Mi perfil" (WebProfileView del mockup). */
 @Composable
@@ -70,12 +75,16 @@ fun ProfileScreen(
     onPanel: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
-    onCarClick: (Int) -> Unit,
+    onCarClick: (Long) -> Unit,
+    vm: ProfileViewModel = viewModel(),
 ) {
-    // TODO: leer la cuenta en sesión desde public.cuentas (vía ProfileViewModel).
-    val baseUser = remember(userMode) { UserRepository.currentUser(userMode) }
-    var user by remember(userMode) { mutableStateOf(baseUser) }
+    LaunchedEffect(Unit) { vm.load() }
+    val context = LocalContext.current
+    val user = vm.user
     var editOpen by rememberSaveable { mutableStateOf(false) }
+    val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) vm.uploadAvatar(context, uri)
+    }
 
     Column(
         modifier = Modifier
@@ -112,30 +121,37 @@ fun ProfileScreen(
                 .navigationBarsPadding()
                 .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
         ) {
-            val current = user
-            if (current != null) {
+            if (user != null) {
                 ProfileHeaderCard(
-                    user = current,
+                    user = user,
                     userMode = userMode,
                     onEdit = { editOpen = true }
                 )
                 Spacer(Modifier.height(16.dp))
+            } else if (vm.loading) {
+                Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = KarsyTeal)
+                }
+            }
+            vm.message?.let {
+                Text(
+                    it,
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    color = KarsyTeal,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
             }
 
-            // TODO: contar publicaciones del usuario (total, vendidas, activas) en public.publicaciones.
-            val stats = if (userMode == UserMode.LOTE) {
-                listOf("48" to "Publicaciones", "31" to "Vendidos", "17" to "Activas")
-            } else {
-                listOf("12" to "Publicaciones", "5" to "Vendidos", "7" to "Activas")
-            }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                stats.forEach { (num, label) ->
+                vm.stats.forEach { (num, label) ->
                     StatBox(num = num, label = label, modifier = Modifier.weight(1f))
                 }
             }
             Spacer(Modifier.height(16.dp))
 
             PostsCard(
+                cars = vm.cars,
                 panelLabel = if (userMode.isAdmin) "Panel admin" else "+ Mi panel",
                 onPanel = onPanel,
                 onCarClick = onCarClick
@@ -143,15 +159,14 @@ fun ProfileScreen(
         }
     }
 
-    val current = user
-    if (editOpen && current != null) {
+    if (editOpen && user != null) {
         EditProfileDialog(
-            user = current,
+            user = user,
+            saving = vm.saving,
             onDismiss = { editOpen = false },
-            onSave = { updated ->
-                // TODO: actualizar public.cuentas (nombre_mostrar, descripcion_corta, foto_perfil, telefono, correo)
-                user = updated
-                editOpen = false
+            onSave = { updated -> vm.save(updated) { editOpen = false } },
+            onPickPhoto = {
+                pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
         )
     }
@@ -249,7 +264,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "${user.bio} · ${user.location.substringBefore(",")}",
+                    text = listOf(user.bio, user.location).filter { it.isNotBlank() }.joinToString(" · "),
                     fontFamily = DmSans,
                     fontSize = 14.sp,
                     lineHeight = 21.sp,
@@ -305,11 +320,7 @@ private fun StatBox(num: String, label: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PostsCard(panelLabel: String, onPanel: () -> Unit, onCarClick: (Int) -> Unit) {
-    // TODO: cargar fotos de las publicaciones del usuario (fotos_publicacion) en lugar de datos estáticos.
-    val images = CarRepository.profilePostImages
-    val carIds = remember { (CarRepository.allCars + CarRepository.featuredCars).map { it.id } }
-
+private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, onCarClick: (Long) -> Unit) {
     ProfileCard {
         Row(
             modifier = Modifier
@@ -348,20 +359,47 @@ private fun PostsCard(panelLabel: String, onPanel: () -> Unit, onCarClick: (Int)
             modifier = Modifier.padding(3.dp),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            images.withIndex().chunked(3).forEach { row ->
+            if (cars.isEmpty()) {
+                Text(
+                    "Aún no tienes publicaciones.",
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    color = KarsyMid,
+                    modifier = Modifier.padding(18.dp)
+                )
+            }
+            cars.chunked(3).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    row.forEach { (i, src) ->
-                        AsyncImage(
-                            model = src,
-                            contentDescription = "Auto ${i + 1}",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
+                    row.forEach { car ->
+                        Box(
+                            Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .clip(RoundedCornerShape(6.dp))
                                 .background(ImagePlaceholder)
-                                .clickable { onCarClick(carIds[i % carIds.size]) }
-                        )
+                                .clickable { onCarClick(car.id) }
+                        ) {
+                            AsyncImage(
+                                model = car.imageUrl,
+                                contentDescription = "${car.title} ${car.year}",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            // Estado de moderación / venta cuando no está activo.
+                            if (car.status != "Activo") Text(
+                                car.status,
+                                fontFamily = DmSans,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = KarsyWhite,
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(5.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(KarsyNavy.copy(alpha = 0.75f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                     repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }

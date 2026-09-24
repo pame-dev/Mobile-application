@@ -73,20 +73,20 @@ import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
-private val MARCAS = listOf("Todas", "Toyota", "Honda", "Mazda", "Nissan", "Volkswagen", "Kia", "BMW", "Mercedes-Benz")
-private val MODELOS = listOf("Todos")
-private val ANIOS = listOf("Cualquiera", "2020", "2021", "2022", "2023", "2024")
-private val TIPOS = listOf("Todos", "Sedán", "SUV", "Pickup", "Hatchback", "Deportivo")
 internal val ORDEN_OPCIONES = listOf("Más recientes", "Menor precio", "Mayor precio")
 
 /**
  * Panel lateral derecho con los filtros del marketplace (menú de filtros del mockup).
- * Los visitantes ven una invitación a registrarse en lugar de los filtros.
+ * Las opciones salen de los catálogos de la BD. Los visitantes ven una invitación
+ * a registrarse en lugar de los filtros.
  */
 @Composable
 fun FilterSheet(
     visible: Boolean,
     userMode: UserMode,
+    filters: HomeFilters,
+    options: FilterOptions,
+    onApply: (HomeFilters) -> Unit,
     onDismiss: () -> Unit,
     onRegister: () -> Unit,
 ) {
@@ -111,20 +111,35 @@ fun FilterSheet(
             exit = slideOutHorizontally(tween(180)) { it },
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
-            FilterPanel(userMode = userMode, onDismiss = onDismiss, onRegister = onRegister)
+            FilterPanel(
+                userMode = userMode,
+                filters = filters,
+                options = options,
+                onApply = onApply,
+                onDismiss = onDismiss,
+                onRegister = onRegister
+            )
         }
     }
 }
 
 @Composable
-private fun FilterPanel(userMode: UserMode, onDismiss: () -> Unit, onRegister: () -> Unit) {
-    var marca by rememberSaveable { mutableStateOf(MARCAS.first()) }
-    var modelo by rememberSaveable { mutableStateOf(MODELOS.first()) }
-    var anio by rememberSaveable { mutableStateOf(ANIOS.first()) }
-    var tipo by rememberSaveable { mutableStateOf(TIPOS.first()) }
-    var precioMin by rememberSaveable { mutableStateOf("") }
-    var precioMax by rememberSaveable { mutableStateOf("") }
-    var orden by rememberSaveable { mutableStateOf(ORDEN_OPCIONES.first()) }
+private fun FilterPanel(
+    userMode: UserMode,
+    filters: HomeFilters,
+    options: FilterOptions,
+    onApply: (HomeFilters) -> Unit,
+    onDismiss: () -> Unit,
+    onRegister: () -> Unit,
+) {
+    // Borrador local: solo se aplica al tocar "Aplicar".
+    var marca by rememberSaveable(filters) { mutableStateOf(filters.marca) }
+    var modelo by rememberSaveable(filters) { mutableStateOf(filters.modelo) }
+    var anio by rememberSaveable(filters) { mutableStateOf(filters.anio) }
+    var tipo by rememberSaveable(filters) { mutableStateOf(filters.tipo) }
+    var precioMin by rememberSaveable(filters) { mutableStateOf(filters.precioMin) }
+    var precioMax by rememberSaveable(filters) { mutableStateOf(filters.precioMax) }
+    var orden by rememberSaveable(filters) { mutableStateOf(filters.orden) }
 
     Column(
         Modifier
@@ -170,11 +185,13 @@ private fun FilterPanel(userMode: UserMode, onDismiss: () -> Unit, onRegister: (
                     modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 8.dp)
                 )
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    FilterField("Marca") { KarsySelect(marca, MARCAS, { marca = it }) }
-                    FilterField("Modelo") { KarsySelect(modelo, MODELOS, { modelo = it }) }
-                    FilterField("Año") { KarsySelect(anio, ANIOS, { anio = it }) }
-                    FilterField("Tipo") { KarsySelect(tipo, TIPOS, { tipo = it }) }
-                    FilterField("Rango de precio (MXN)") {
+                    FilterField("Marca") {
+                        KarsySelect(marca, options.marcas, { marca = it; modelo = TODOS })
+                    }
+                    FilterField("Modelo") { KarsySelect(modelo, options.modelos(marca), { modelo = it }) }
+                    FilterField("Año") { KarsySelect(anio, options.anios, { anio = it }) }
+                    FilterField("Tipo") { KarsySelect(tipo, options.tipos, { tipo = it }) }
+                    FilterField("Rango de precio") {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             PriceInput(precioMin, { precioMin = it }, "Mín. $0", Modifier.weight(1f))
                             PriceInput(precioMax, { precioMax = it }, "Máx. $2M", Modifier.weight(1f))
@@ -189,8 +206,9 @@ private fun FilterPanel(userMode: UserMode, onDismiss: () -> Unit, onRegister: (
                     ) {
                         OutlinedButton(
                             onClick = {
-                                marca = MARCAS.first(); modelo = MODELOS.first(); anio = ANIOS.first()
-                                tipo = TIPOS.first(); precioMin = ""; precioMax = ""; orden = ORDEN_OPCIONES.first()
+                                val limpio = HomeFilters()
+                                marca = limpio.marca; modelo = limpio.modelo; anio = limpio.anio
+                                tipo = limpio.tipo; precioMin = ""; precioMax = ""; orden = limpio.orden
                             },
                             shape = RoundedCornerShape(10.dp),
                             border = BorderStroke(1.5.dp, KarsyBorder),
@@ -202,7 +220,7 @@ private fun FilterPanel(userMode: UserMode, onDismiss: () -> Unit, onRegister: (
                         }
                         Button(
                             onClick = {
-                                // TODO: aplicar filtros a la consulta de publicaciones (marca, modelo, año, tipo, precio, orden)
+                                onApply(HomeFilters(marca, modelo, anio, tipo, precioMin, precioMax, orden))
                                 onDismiss()
                             },
                             shape = RoundedCornerShape(10.dp),

@@ -23,11 +23,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,12 +47,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.StarBadge
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -62,25 +66,33 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.CarDetail
-import com.pame.karsy.data.repository.CarRepository
-
-/** Foto de ejemplo del vendedor (la misma que usa el mockup). */
-internal fun sellerAvatar(size: Int) =
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=$size&h=$size&fit=crop&auto=format"
+import com.pame.karsy.feature.profile.ProfileAvatar
 
 @Composable
-fun CarDetailScreen(carId: Int, userMode: UserMode, onBack: () -> Unit, onRegister: () -> Unit) {
-    // TODO: cargar desde Supabase (publicaciones + fotos_publicacion + datos de contacto) en CarDetailViewModel.
-    val detail = remember(carId) { CarRepository.getDetail(carId) }
+fun CarDetailScreen(
+    carId: Long,
+    userMode: UserMode,
+    onBack: () -> Unit,
+    onRegister: () -> Unit,
+    onCarClick: (Long) -> Unit,
+    vm: CarDetailViewModel = viewModel(),
+) {
+    LaunchedEffect(carId) { vm.load(carId) }
+
+    val detail = vm.detail
     if (detail == null) {
-        NotFound(onBack)
+        when {
+            vm.loading -> Box(Modifier.fillMaxSize().background(KarsyBg), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = KarsyTeal)
+            }
+            else -> NotFound(onBack, message = vm.error, onRetry = if (vm.error != null) vm::retry else null)
+        }
         return
     }
 
     val isVisitor = userMode == UserMode.VISITANTE
+    val isOwner = detail.sellerId == SessionManager.userId
 
-    // TODO: leer el estado inicial desde public.favoritos del usuario en sesión.
-    var fav by rememberSaveable { mutableStateOf(false) }
     var activeImg by rememberSaveable { mutableIntStateOf(0) }
     var showContact by rememberSaveable { mutableStateOf(false) }
     var showSellerProfile by rememberSaveable { mutableStateOf(false) }
@@ -92,8 +104,7 @@ fun CarDetailScreen(carId: Int, userMode: UserMode, onBack: () -> Unit, onRegist
             toastMessage = "Regístrate para guardar tus favoritos"
             return
         }
-        // TODO: insertar/eliminar en public.favoritos (id_cuenta, id_publicacion).
-        fav = !fav
+        vm.toggleFavorite { toastMessage = it }
     }
 
     fun handleContact() {
@@ -101,8 +112,13 @@ fun CarDetailScreen(carId: Int, userMode: UserMode, onBack: () -> Unit, onRegist
             toastMessage = "Regístrate para contactar al vendedor"
             return
         }
-        // TODO: registrar interacciones_publicacion tipo 'contactar'.
+        vm.loadContact()
         showContact = true
+    }
+
+    fun openSeller() {
+        vm.loadSellerCars()
+        showSellerProfile = true
     }
 
     fun openReport() {
@@ -120,8 +136,8 @@ fun CarDetailScreen(carId: Int, userMode: UserMode, onBack: () -> Unit, onRegist
     ) {
         Column(Modifier.fillMaxSize()) {
             DetailHeader(
-                showActions = userMode != UserMode.ADMIN,
-                fav = fav,
+                showActions = userMode != UserMode.ADMIN && !isOwner,
+                fav = vm.favorite,
                 onBack = onBack,
                 onFav = ::handleFav,
                 onReport = ::openReport,
@@ -138,11 +154,11 @@ fun CarDetailScreen(carId: Int, userMode: UserMode, onBack: () -> Unit, onRegist
                     activeImg = activeImg,
                     onSelect = { activeImg = it },
                 )
-                DetailBody(detail = detail, onOpenSeller = { showSellerProfile = true })
+                DetailBody(detail = detail, onOpenSeller = ::openSeller)
             }
 
-            // Barra inferior con el botón de contacto
-            Column(Modifier.background(KarsyBg)) {
+            // Barra inferior con el botón de contacto (no se muestra en anuncios propios)
+            if (!isOwner) Column(Modifier.background(KarsyBg)) {
                 HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
                 Box(
                     Modifier
@@ -155,7 +171,16 @@ fun CarDetailScreen(carId: Int, userMode: UserMode, onBack: () -> Unit, onRegist
         }
 
         if (showSellerProfile) {
-            SellerProfileView(detail = detail, onBack = { showSellerProfile = false })
+            SellerProfileView(
+                detail = detail,
+                contact = vm.contact,
+                cars = vm.sellerCars,
+                onBack = { showSellerProfile = false },
+                onCarClick = { id ->
+                    showSellerProfile = false
+                    if (id != detail.car.id) onCarClick(id)
+                }
+            )
         }
 
         toastMessage?.let { msg ->
@@ -174,16 +199,18 @@ fun CarDetailScreen(carId: Int, userMode: UserMode, onBack: () -> Unit, onRegist
     if (showContact) {
         ContactSheet(
             detail = detail,
+            contact = vm.contact,
+            loading = vm.contactLoading,
             onDismiss = { showContact = false },
             onOpenProfile = {
                 showContact = false
-                showSellerProfile = true
+                openSeller()
             },
         )
     }
 
     if (showReport) {
-        ReportSheet(onDismiss = { showReport = false })
+        ReportSheet(onSubmit = vm::report, onDismiss = { showReport = false })
     }
 }
 
@@ -264,7 +291,7 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit) 
             .background(Color(0xFFDDE6EC))
     ) {
         AsyncImage(
-            model = gallery[activeImg],
+            model = gallery.getOrNull(activeImg),
             contentDescription = car.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -274,7 +301,7 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit) 
                 .align(Alignment.TopStart)
                 .padding(14.dp))
         }
-        Text(
+        if (gallery.isNotEmpty()) Text(
             "${activeImg + 1}/${gallery.size}",
             color = KarsyWhite,
             fontFamily = DmSans,
@@ -293,7 +320,8 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit) 
         horizontalArrangement = Arrangement.spacedBy(7.dp),
         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 16.dp)
     ) {
-        gallery.forEachIndexed { i, src ->
+        // Máximo 6 miniaturas para que quepan en una fila.
+        gallery.take(6).forEachIndexed { i, src ->
             val shape = RoundedCornerShape(10.dp)
             AsyncImage(
                 model = src,
@@ -320,10 +348,12 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
         "Transmisión" to detail.transmision,
         "Kilometraje" to detail.kilometraje,
         "Cilindros" to detail.cilindros,
-        "Caballos de fuerza" to detail.caballos,
+        "Motor" to detail.motor,
         "Tipo de carro" to detail.tipoCarro,
         "Color" to detail.color,
-        "Cant. de dueños" to detail.cantDuenos,
+        "Dueños anteriores" to detail.cantDuenos,
+        "Combustible" to detail.combustible,
+        "Ubicación" to detail.ubicacion.ifEmpty { "—" },
     )
 
     Column(Modifier.padding(horizontal = 20.dp)) {
@@ -340,7 +370,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                 append(car.price)
                 append(" ")
                 withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = KarsyMid)) {
-                    append("MXN")
+                    append(car.currency)
                 }
             },
             fontFamily = Outfit,
@@ -366,7 +396,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
         }
 
         SectionLabel("Descripción")
-        TextCard(detail.descripcionLarga)
+        TextCard(detail.descripcionLarga.ifBlank { "El vendedor no agregó descripción." })
 
         SectionLabel("Detalles del auto")
         TextCard(detail.detalles)
@@ -383,13 +413,12 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                 .border(1.dp, KarsyBorder, shape)
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
-            AsyncImage(
-                model = sellerAvatar(88),
-                contentDescription = "Ver perfil de ${detail.contactoNombre}",
-                contentScale = ContentScale.Crop,
+            ProfileAvatar(
+                name = detail.contactoNombre,
+                avatarUrl = detail.sellerAvatar,
+                size = 48.dp,
+                initialsSize = 17.sp,
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
                     .border(2.dp, KarsyBorder, CircleShape)
                     .clickable(onClick = onOpenSeller)
             )
@@ -402,7 +431,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                     color = KarsyNavy
                 )
                 Text(
-                    "Ver perfil",
+                    if (detail.sellerType == "lote") "Lote · Ver perfil" else "Particular · Ver perfil",
                     fontFamily = DmSans,
                     fontSize = 11.5.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -458,7 +487,7 @@ private fun TextCard(text: String) {
 }
 
 @Composable
-private fun NotFound(onBack: () -> Unit) {
+private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -> Unit)? = null) {
     BackHandler(onBack = onBack)
     Column(
         Modifier
@@ -479,13 +508,20 @@ private fun NotFound(onBack: () -> Unit) {
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    "Vehículo no encontrado",
+                    if (message == null) "Vehículo no encontrado" else "No se pudo cargar el vehículo",
                     fontFamily = Outfit,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
                     color = KarsyNavy
                 )
+                message?.let {
+                    Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(top = 8.dp))
+                }
                 Spacer(Modifier.height(20.dp))
+                if (onRetry != null) {
+                    PrimaryButton(text = "Reintentar", onClick = onRetry)
+                    Spacer(Modifier.height(10.dp))
+                }
                 PrimaryButton(text = "Regresar", onClick = onBack)
             }
         }

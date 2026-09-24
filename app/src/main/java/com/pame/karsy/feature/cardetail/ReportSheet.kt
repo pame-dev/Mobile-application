@@ -37,6 +37,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,14 +90,21 @@ private val cuentaReasons = listOf(
     "Otra razón" to "",
 )
 
-/** Flujo de reporte en varios pasos: tipo -> motivos -> enviado. */
+/**
+ * Flujo de reporte en varios pasos: tipo -> motivos -> enviado.
+ * Se guarda en public.reportes ligado a la publicación; si el reporte es sobre la cuenta,
+ * el motivo lo indica ("Cuenta del vendedor: …").
+ * [onSubmit] recibe el motivo y un callback con el error (o null si se guardó).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ReportSheet(onDismiss: () -> Unit) {
+internal fun ReportSheet(onSubmit: (String, (String?) -> Unit) -> Unit, onDismiss: () -> Unit) {
     var step by rememberSaveable { mutableStateOf(ReportStep.TYPE) }
     var reportType by rememberSaveable { mutableStateOf<String?>(null) }
     var reason by rememberSaveable { mutableStateOf("") }
     var details by rememberSaveable { mutableStateOf("") }
+    var sending by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -124,22 +132,38 @@ internal fun ReportSheet(onDismiss: () -> Unit) {
                     }
                 )
 
-                ReportStep.REASONS -> ReasonsStep(
-                    isPublicacion = reportType == TYPE_PUBLICACION,
-                    reason = reason,
-                    details = details,
-                    onReason = { reason = it },
-                    onDetails = { details = it },
-                    onBack = { step = ReportStep.TYPE },
-                    onClose = onDismiss,
-                    onSend = {
-                        if (reason.isNotEmpty()) {
-                            // TODO: insertar en public.reportes (id_publicacion o id_cuenta_reportada,
-                            //  id_reportante, motivo_reporte = reason, detalles = details).
-                            step = ReportStep.SUCCESS
+                ReportStep.REASONS -> {
+                    ReasonsStep(
+                        isPublicacion = reportType == TYPE_PUBLICACION,
+                        reason = reason,
+                        details = details,
+                        onReason = { reason = it },
+                        onDetails = { details = it },
+                        onBack = { step = ReportStep.TYPE },
+                        onClose = onDismiss,
+                        onSend = {
+                            if (reason.isNotEmpty() && !sending) {
+                                val prefijo = if (reportType == TYPE_PUBLICACION) "Publicación" else "Cuenta del vendedor"
+                                val motivo = "$prefijo: $reason" + details.trim().let { if (it.isEmpty()) "" else ". $it" }
+                                sending = true
+                                error = null
+                                onSubmit(motivo) { err ->
+                                    sending = false
+                                    if (err == null) step = ReportStep.SUCCESS else error = err
+                                }
+                            }
                         }
+                    )
+                    error?.let {
+                        Text(
+                            it,
+                            fontFamily = DmSans,
+                            fontSize = 12.sp,
+                            color = ReportRed,
+                            modifier = Modifier.padding(top = 10.dp)
+                        )
                     }
-                )
+                }
 
                 ReportStep.SUCCESS -> SuccessStep(onClose = onDismiss)
             }

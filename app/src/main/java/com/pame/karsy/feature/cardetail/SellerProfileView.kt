@@ -44,15 +44,30 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.CarDetail
-import com.pame.karsy.data.repository.CarRepository
+import com.pame.karsy.data.model.SellerContact
+import com.pame.karsy.feature.profile.ImagePlaceholder
+import com.pame.karsy.feature.profile.ProfileAvatar
 
-/** Perfil público del vendedor, mostrado a pantalla completa sobre el detalle. */
+/**
+ * Perfil público del vendedor, mostrado a pantalla completa sobre el detalle.
+ * Datos de contacto_vendedor() y sus publicaciones visibles.
+ */
 @Composable
-internal fun SellerProfileView(detail: CarDetail, onBack: () -> Unit) {
+internal fun SellerProfileView(
+    detail: CarDetail,
+    contact: SellerContact?,
+    cars: List<Car>,
+    onBack: () -> Unit,
+    onCarClick: (Long) -> Unit,
+) {
     BackHandler(onBack = onBack)
-    // TODO: cargar perfil real desde public.cuentas (+ perfiles_lote) y sus publicaciones activas.
-    val posts = listOf(detail.car.imageUrl) + CarRepository.profilePostImages.take(5)
+    val tipo = if (detail.sellerType == "lote") "Lote" else "Particular"
+    val bio = listOf(
+        contact?.descripcion.orEmpty(),
+        contact?.ubicacion.orEmpty(),
+    ).filter { it.isNotBlank() }.joinToString(" · ")
 
     Column(
         Modifier
@@ -120,15 +135,13 @@ internal fun SellerProfileView(detail: CarDetail, onBack: () -> Unit) {
                     Modifier.padding(start = 22.dp, end = 22.dp, top = 44.dp, bottom = 22.dp)
                 ) {
                     Box(Modifier.padding(bottom = 12.dp).size(76.dp)) {
-                        AsyncImage(
-                            model = sellerAvatar(176),
-                            contentDescription = detail.contactoNombre,
-                            contentScale = ContentScale.Crop,
+                        ProfileAvatar(
+                            name = detail.contactoNombre,
+                            avatarUrl = detail.sellerAvatar,
+                            size = 76.dp,
+                            initialsSize = 26.sp,
                             modifier = Modifier
-                                .size(76.dp)
                                 .shadow(4.dp, CircleShape)
-                                .clip(CircleShape)
-                                .background(KarsyWhite)
                                 .border(4.dp, KarsyWhite, CircleShape)
                         )
                         Box(
@@ -152,15 +165,15 @@ internal fun SellerProfileView(detail: CarDetail, onBack: () -> Unit) {
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                     Text(
-                        "@pamela",
+                        "$tipo · ${cars.size} publicaciones",
                         fontFamily = DmSans,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = KarsyTeal,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Text(
-                        "Vendedora de autos confiable 🚗 · Ciudad de México",
+                    if (bio.isNotEmpty()) Text(
+                        bio,
                         fontFamily = DmSans,
                         fontSize = 12.5.sp,
                         lineHeight = 19.sp,
@@ -191,18 +204,31 @@ internal fun SellerProfileView(detail: CarDetail, onBack: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(3.dp),
                     modifier = Modifier.padding(3.dp)
                 ) {
-                    posts.chunked(3).forEachIndexed { rowIdx, row ->
+                    if (cars.isEmpty()) {
+                        Text(
+                            "Sin publicaciones activas.",
+                            fontFamily = DmSans,
+                            fontSize = 12.5.sp,
+                            color = KarsyTextSecondary,
+                            modifier = Modifier.padding(15.dp)
+                        )
+                    }
+                    cars.chunked(3).forEach { row ->
                         Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                            row.forEachIndexed { i, src ->
+                            row.forEach { car ->
                                 AsyncImage(
-                                    model = src,
-                                    contentDescription = "Publicación ${rowIdx * 3 + i + 1} de ${detail.contactoNombre}",
+                                    model = car.imageUrl,
+                                    contentDescription = "${car.title} ${car.year}",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .weight(1f)
                                         .aspectRatio(1f)
+                                        .background(ImagePlaceholder)
+                                        .clickable { onCarClick(car.id) }
                                 )
                             }
+                            // Mantiene el tamaño de las celdas en la última fila.
+                            repeat(3 - row.size) { Box(Modifier.weight(1f)) }
                         }
                     }
                 }
