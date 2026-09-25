@@ -55,7 +55,7 @@ class ProfileViewModel : ViewModel() {
                 .onSuccess {
                     user = updated
                     message = if (updated.email.trim() != original.email.trim())
-                        "Perfil guardado. Supabase puede pedirte confirmar el correo nuevo."
+                        "Perfil guardado. Revisa tu correo nuevo para confirmar el cambio."
                     else "Perfil guardado."
                     onDone()
                 }

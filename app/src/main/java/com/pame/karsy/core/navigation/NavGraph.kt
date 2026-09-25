@@ -32,6 +32,7 @@ import com.pame.karsy.feature.dashboard.DashboardScreen
 import com.pame.karsy.feature.favorites.FavoritesScreen
 import com.pame.karsy.feature.home.HomeScreen
 import com.pame.karsy.feature.onboarding.LoginScreen
+import com.pame.karsy.feature.onboarding.VerifyEmailScreen
 import com.pame.karsy.feature.onboarding.WelcomeScreen
 import com.pame.karsy.feature.profile.HistoryScreen
 import com.pame.karsy.feature.profile.ProfileScreen
@@ -100,6 +101,8 @@ fun KarsyNavGraph(
 
     fun openCar(id: Long) = navController.navigate(Routes.CarDetail.createRoute(id))
     fun goRegister() = navController.navigate(Routes.RegisterType.route)
+    fun goVerifyEmail(email: String, sendCode: Boolean) =
+        navController.navigate(Routes.VerifyEmail.createRoute(email, sendCode))
     fun back() { navController.popBackStack() }
 
     NavHost(
@@ -118,7 +121,22 @@ fun KarsyNavGraph(
             LoginScreen(
                 onBack = ::back,
                 onLogin = ::enterAs,
+                onVerifyEmail = { goVerifyEmail(it, sendCode = true) },
                 onRegister = ::goRegister
+            )
+        }
+        composable(
+            Routes.VerifyEmail.route,
+            arguments = listOf(
+                navArgument(Routes.VerifyEmail.ARG_EMAIL) { type = NavType.StringType },
+                navArgument(Routes.VerifyEmail.ARG_SEND) { type = NavType.BoolType; defaultValue = true },
+            )
+        ) { entry ->
+            VerifyEmailScreen(
+                email = entry.arguments?.getString(Routes.VerifyEmail.ARG_EMAIL).orEmpty(),
+                sendCode = entry.arguments?.getBoolean(Routes.VerifyEmail.ARG_SEND) ?: true,
+                onBack = ::back,
+                onVerified = ::enterAs
             )
         }
 
@@ -130,11 +148,20 @@ fun KarsyNavGraph(
                 onLote = { navController.navigate(Routes.RegisterLote.route) }
             )
         }
+        // Supabase manda el código al crear la cuenta; no se pide otro al entrar.
         composable(Routes.RegisterParticular.route) {
-            RegisterParticularScreen(onBack = ::back, onCreated = ::enterAs)
+            RegisterParticularScreen(
+                onBack = ::back,
+                onCreated = ::enterAs,
+                onVerifyEmail = { goVerifyEmail(it, sendCode = false) }
+            )
         }
         composable(Routes.RegisterLote.route) {
-            RegisterLoteScreen(onBack = ::back, onCreated = ::enterAs)
+            RegisterLoteScreen(
+                onBack = ::back,
+                onCreated = ::enterAs,
+                onVerifyEmail = { goVerifyEmail(it, sendCode = false) }
+            )
         }
 
         // ── Marketplace ──────────────────────────────────────────────

@@ -1,16 +1,19 @@
 package com.pame.karsy.core.supabase
 
+import android.util.Log
 import com.pame.karsy.BuildConfig
+import com.pame.karsy.core.util.UserFacingException
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.exceptions.HttpRequestException
-import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.exception.PostgrestRestException
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.github.jan.supabase.storage.Storage
 import kotlinx.serialization.json.Json
+import java.io.IOException
 
 /**
  * Cliente único de Supabase (Auth + base de datos + Storage).
@@ -51,21 +54,38 @@ object Supabase {
     }
 }
 
-/** Mensaje en español para mostrar al usuario a partir de un error de Supabase. */
+private const val ERROR_GENERICO = "Ocurrió un error. Inténtalo de nuevo."
+
+/**
+ * Mensaje en español para mostrar al usuario. Nunca muestra textos técnicos
+ * (de Supabase, de la BD o de librerías): esos se registran en Logcat.
+ */
 fun Throwable.mensajeUsuario(): String = when (this) {
+    is UserFacingException -> message ?: ERROR_GENERICO
     is AuthRestException -> when (error) {
         "invalid_credentials", "invalid_grant" -> "Correo o contraseña incorrectos."
         "user_already_exists", "email_exists" -> "Ya existe una cuenta con ese correo."
-        "weak_password" -> "Supabase pide al menos 6 caracteres en la contraseña."
+        "weak_password" -> "La contraseña debe tener al menos 6 caracteres."
         "email_not_confirmed" -> "Confirma tu correo antes de iniciar sesión."
+        "otp_expired" -> "El código es incorrecto o ya expiró."
+        "same_password" -> "La nueva contraseña debe ser diferente a la anterior."
         "over_email_send_rate_limit", "over_request_rate_limit" ->
             "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."
         "validation_failed", "email_address_invalid" -> "Revisa que el correo sea válido."
-        else -> errorDescription
+        "email_address_not_authorized" -> "No pudimos enviar el correo a esa dirección. Inténtalo más tarde."
+        else -> generico()
     }
-    // Errores de la BD: los RAISE EXCEPTION de las funciones ya vienen en español.
-    is RestException -> error
-    is HttpRequestException -> "Sin conexión con el servidor. Revisa tu Internet."
-    is IllegalStateException, is IllegalArgumentException -> message ?: "Ocurrió un error."
-    else -> message ?: "Ocurrió un error inesperado."
+    // P0001 = RAISE EXCEPTION de las funciones de la BD, que ya vienen en español.
+    is PostgrestRestException -> when (code) {
+        "P0001" -> error
+        "42501" -> "No tienes permiso para hacer esto."
+        else -> generico()
+    }
+    is HttpRequestException, is IOException -> "Sin conexión con el servidor. Revisa tu Internet."
+    else -> generico()
+}
+
+private fun Throwable.generico(): String {
+    Log.w("Karsy", "Error sin mensaje para el usuario", this)
+    return ERROR_GENERICO
 }

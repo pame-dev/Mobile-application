@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Formato
+import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.CuentaAdminDto
@@ -213,7 +214,7 @@ class AdminViewModel : ViewModel() {
     fun moderate(vehicle: AdminVehicle, approve: Boolean) = perform(
         if (approve) "Publicación aprobada." else "Publicación rechazada."
     ) {
-        val id = vehicle.pendingProposalId ?: throw IllegalStateException("No hay nada pendiente de revisar.")
+        val id = vehicle.pendingProposalId ?: throw UserFacingException("No hay nada pendiente de revisar.")
         AdminRepository.moderateProposal(id, approve, if (approve) null else "No cumple con las reglas de publicación.")
     }
 

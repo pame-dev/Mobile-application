@@ -222,11 +222,12 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+# Karsy: la app pide el código de 6 dígitos al registrarse o al iniciar sesión sin verificar.
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-max_frequency = "1s"
+max_frequency = "60s"
 # Number of characters used in the email OTP.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
@@ -241,6 +242,16 @@ otp_expiry = 3600
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
+
+# Correo con el código de verificación que pide la pantalla "Verifica tu correo".
+[auth.email.template.confirmation]
+subject = "Tu código de verificación de Karsy"
+content_path = "./supabase/templates/confirmacion.html"
+
+# Correo con el código de "¿Olvidaste tu contraseña?".
+[auth.email.template.recovery]
+subject = "Tu código para restablecer tu contraseña de Karsy"
+content_path = "./supabase/templates/recuperacion.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

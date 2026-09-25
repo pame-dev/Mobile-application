@@ -27,6 +27,15 @@ object Formato {
 
     fun entero(valor: Int): String = numeros.format(valor)
 
+    /** "jahir@gmail.com" -> "ja*****@gmail.com"; null si no parece un correo. */
+    fun correoOculto(correo: String): String? {
+        val partes = correo.trim().split("@")
+        if (partes.size < 2 || partes[1].isEmpty()) return null
+        val nombre = partes[0]
+        val visible = nombre.take(2)
+        return visible + "*".repeat(maxOf(5, nombre.length - visible.length)) + "@" + partes[1]
+    }
+
     /** "2026-09-23T20:38:05+00:00" -> "23 sep 2026" */
     fun fechaCorta(iso: String?): String {
         val fecha = local(iso) ?: return "—"
