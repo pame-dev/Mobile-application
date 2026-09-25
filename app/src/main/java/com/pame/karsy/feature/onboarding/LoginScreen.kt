@@ -2,7 +2,6 @@ package com.pame.karsy.feature.onboarding
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,8 +36,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -49,16 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.components.KarsyLogo
+import com.pame.karsy.core.components.OtpInput
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.karsyTextFieldColors
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -84,29 +72,31 @@ import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
-
-private val OtpBorder = Color(0xFFDDE5E9)
+import com.pame.karsy.core.util.Formato
 
 /**
- * Inicio de sesión + flujo de recuperación de contraseña.
- * recoveryStep: 0 = formulario de login, 1 = correo, 2 = código, 3 = nueva contraseña.
+ * Inicio de sesión + flujo de recuperación de contraseña (pasos en [PasswordRecoveryViewModel.step]).
+ * Si el correo de la cuenta no está verificado se llama a [onVerifyEmail].
  */
 @Composable
-fun LoginScreen(onBack: () -> Unit, onLogin: (SessionAccount) -> Unit, onRegister: () -> Unit) {
-    var recoveryStep by rememberSaveable { mutableIntStateOf(0) }
-
-    if (recoveryStep == 0) {
+fun LoginScreen(
+    onBack: () -> Unit,
+    onLogin: (SessionAccount) -> Unit,
+    onVerifyEmail: (String) -> Unit,
+    onRegister: () -> Unit,
+    recovery: PasswordRecoveryViewModel = viewModel(),
+) {
+    if (recovery.step == 0) {
         LoginForm(
+            initialEmail = recovery.email,
             onBack = onBack,
             onLogin = onLogin,
+            onVerifyEmail = onVerifyEmail,
             onRegister = onRegister,
-            onForgot = { recoveryStep = 1 }
+            onForgot = recovery::start
         )
     } else {
-        RecoveryFlow(
-            step = recoveryStep,
-            onStepChange = { recoveryStep = it }
-        )
+        RecoveryFlow(recovery)
     }
 }
 
@@ -116,13 +106,16 @@ fun LoginScreen(onBack: () -> Unit, onLogin: (SessionAccount) -> Unit, onRegiste
 
 @Composable
 private fun LoginForm(
+    initialEmail: String,
     onBack: () -> Unit,
     onLogin: (SessionAccount) -> Unit,
+    onVerifyEmail: (String) -> Unit,
     onRegister: () -> Unit,
-    onForgot: () -> Unit,
+    onForgot: (String) -> Unit,
     vm: LoginViewModel = viewModel(),
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
+    // Al volver de "Olvidé mi contraseña" se conserva el correo que se usó ahí.
+    var email by rememberSaveable { mutableStateOf(initialEmail) }
     var password by rememberSaveable { mutableStateOf("") }
 
     Column(
@@ -193,7 +186,7 @@ private fun LoginForm(
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .clickable(onClick = onForgot)
+                            .clickable { onForgot(email) }
                             .padding(4.dp)
                     )
                 }
@@ -203,7 +196,7 @@ private fun LoginForm(
                 PrimaryButton(
                     text = if (vm.loading) "Iniciando sesión…" else "Iniciar Sesión",
                     enabled = !vm.loading,
-                    onClick = { vm.signIn(email, password, onLogin) }
+                    onClick = { vm.signIn(email, password, onLogin, onVerifyEmail) }
                 )
                 vm.error?.let {
                     Text(
@@ -300,26 +293,9 @@ private fun IconInput(
 // ---------------------------------------------------------------------------------------------
 
 @Composable
-private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
-    var recoveryEmail by rememberSaveable { mutableStateOf("") }
-    val otp = remember { mutableStateListOf("", "", "", "") }
-    var newPassword by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
-    var success by rememberSaveable { mutableStateOf(false) }
-
-    val goBack = { onStepChange(step - 1) }
-    BackHandler(onBack = goBack)
-
-    val maskedEmail = run {
-        val parts = recoveryEmail.split("@")
-        if (parts.size < 2 || parts[1].isEmpty()) {
-            "al******@gmail.com"
-        } else {
-            val name = parts[0]
-            val visible = name.take(2)
-            visible + "*".repeat(maxOf(5, name.length - visible.length)) + "@" + parts[1]
-        }
-    }
+private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
+    val step = vm.step
+    BackHandler(onBack = vm::back)
 
     val title = when (step) {
         1 -> "¿Olvidaste tu contraseña?"
@@ -328,7 +304,8 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
     }
     val subtitle = when (step) {
         1 -> "Ingresa tu correo electrónico asociado a tu cuenta para enviarte un código de verificación."
-        2 -> "Ingresa el código de 4 dígitos enviado a tu correo $maskedEmail."
+        2 -> "Ingresa el código de $EMAIL_CODE_LENGTH dígitos enviado a tu correo " +
+            "${Formato.correoOculto(vm.email) ?: vm.email}. Si no lo ves, revisa tu carpeta de spam."
         else -> "Crea una contraseña segura y fácil de recordar para acceder a tu cuenta."
     }
 
@@ -351,7 +328,7 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
                     .statusBarsPadding()
                     .padding(start = 12.dp, end = 24.dp, top = 8.dp)
             ) {
-                IconButton(onClick = goBack, modifier = Modifier.align(Alignment.CenterStart)) {
+                IconButton(onClick = vm::back, modifier = Modifier.align(Alignment.CenterStart)) {
                     Icon(Icons.Rounded.ChevronLeft, contentDescription = "Regresar", tint = KarsyNavy, modifier = Modifier.size(28.dp))
                 }
                 KarsyLogo(size = 46.dp, modifier = Modifier.align(Alignment.Center))
@@ -386,66 +363,45 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
             Column(Modifier.padding(start = 28.dp, end = 28.dp, top = 32.dp, bottom = 36.dp)) {
                 when (step) {
                     1 -> {
-                        val valid = recoveryEmail.isNotBlank() && recoveryEmail.contains("@")
+                        val valid = vm.email.isNotBlank() && vm.email.contains("@")
                         IconInput(
                             label = "CORREO ELECTRÓNICO",
-                            value = recoveryEmail,
-                            onValueChange = { recoveryEmail = it },
+                            value = vm.email,
+                            onValueChange = { vm.email = it },
                             placeholder = "ejemplo@correo.com",
                             leading = Icons.Outlined.MailOutline,
                             keyboardType = KeyboardType.Email,
                             modifier = Modifier.padding(bottom = 24.dp)
                         )
                         PrimaryButton(
-                            text = "Enviar código",
-                            onClick = {
-                                // TODO: supabase.auth.resetPasswordForEmail(recoveryEmail) / enviar OTP al correo
-                                if (valid) onStepChange(2)
-                            },
+                            text = if (vm.sending) "Enviando código…" else "Enviar código",
+                            enabled = !vm.sending,
+                            onClick = vm::sendCode,
                             modifier = Modifier.alpha(if (valid) 1f else 0.55f)
                         )
                     }
 
                     2 -> {
-                        val complete = otp.all { it.isNotEmpty() }
-                        OtpRow(otp = otp)
+                        val complete = vm.code.all { it.isNotEmpty() }
+                        OtpInput(otp = vm.code, autoFocus = true)
                         Spacer(Modifier.height(22.dp))
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("¿No recibiste el código? ", fontFamily = DmSans, fontSize = 12.5.sp, color = KarsyMid)
-                            Text(
-                                "Reenviar código",
-                                fontFamily = DmSans,
-                                fontSize = 12.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = KarsyTeal,
-                                modifier = Modifier.clickable {
-                                    // TODO: volver a enviar el código de verificación al correo
-                                    for (i in otp.indices) otp[i] = ""
-                                }
-                            )
-                        }
+                        ResendCodeRow(sending = vm.sending, secondsLeft = vm.countdown.seconds, onResend = vm::resend)
                         Spacer(Modifier.height(28.dp))
                         PrimaryButton(
-                            text = "Verificar",
-                            onClick = {
-                                // TODO: supabase.auth.verifyEmailOtp(type = RECOVERY, email, token)
-                                if (complete) onStepChange(3)
-                            },
+                            text = if (vm.loading) "Verificando…" else "Verificar",
+                            enabled = !vm.loading,
+                            onClick = vm::verifyCode,
                             modifier = Modifier.alpha(if (complete) 1f else 0.55f)
                         )
                     }
 
                     else -> {
-                        // Sin reglas de contraseña: solo debe coincidir con la confirmación.
-                        val valid = newPassword.isNotEmpty() && newPassword == confirmPassword
+                        // Supabase pide mínimo 6 caracteres; aquí solo se revisa que coincidan.
+                        val valid = vm.newPassword.isNotEmpty() && vm.newPassword == vm.confirmPassword
                         IconInput(
                             label = "NUEVA CONTRASEÑA",
-                            value = newPassword,
-                            onValueChange = { newPassword = it },
+                            value = vm.newPassword,
+                            onValueChange = { vm.newPassword = it },
                             placeholder = "••••••••••••",
                             leading = Icons.Outlined.Lock,
                             isPassword = true,
@@ -453,22 +409,20 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
                         )
                         IconInput(
                             label = "CONFIRMAR CONTRASEÑA",
-                            value = confirmPassword,
-                            onValueChange = { confirmPassword = it },
+                            value = vm.confirmPassword,
+                            onValueChange = { vm.confirmPassword = it },
                             placeholder = "••••••••••••",
                             leading = Icons.Outlined.Lock,
                             isPassword = true,
                             modifier = Modifier.padding(bottom = 22.dp)
                         )
                         PrimaryButton(
-                            text = "Restablecer contraseña",
-                            onClick = {
-                                // TODO: supabase.auth.updateUser { password = newPassword }
-                                if (valid) success = true
-                            },
+                            text = if (vm.loading) "Guardando…" else "Restablecer contraseña",
+                            enabled = !vm.loading,
+                            onClick = vm::resetPassword,
                             modifier = Modifier.alpha(if (valid) 1f else 0.55f)
                         )
-                        if (confirmPassword.isNotEmpty() && newPassword != confirmPassword) {
+                        if (vm.passwordMismatch) {
                             Text(
                                 "Las contraseñas no coinciden.",
                                 fontFamily = DmSans,
@@ -482,63 +436,23 @@ private fun RecoveryFlow(step: Int, onStepChange: (Int) -> Unit) {
                         }
                     }
                 }
+                vm.error?.let {
+                    Text(
+                        it,
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        color = KarsyError,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                    )
+                }
             }
         }
 
-        if (success) {
-            SuccessOverlay(onLogin = {
-                success = false
-                onStepChange(0)
-            })
-        }
-    }
-}
-
-/** 4 casillas del código de verificación; avanzan/retroceden el foco solas. */
-@Composable
-private fun OtpRow(otp: MutableList<String>) {
-    val focusers = remember { List(otp.size) { FocusRequester() } }
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
-    ) {
-        otp.forEachIndexed { index, digit ->
-            val shape = RoundedCornerShape(14.dp)
-            BasicTextField(
-                value = digit,
-                onValueChange = { raw ->
-                    val v = raw.filter { it.isDigit() }.takeLast(1)
-                    otp[index] = v
-                    if (v.isNotEmpty() && index < otp.lastIndex) focusers[index + 1].requestFocus()
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                textStyle = TextStyle(
-                    fontFamily = Outfit,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
-                    textAlign = TextAlign.Center
-                ),
-                cursorBrush = SolidColor(KarsyTeal),
-                modifier = Modifier
-                    .size(width = 56.dp, height = 58.dp)
-                    .clip(shape)
-                    .background(KarsyBg)
-                    .border(if (digit.isNotEmpty()) 1.8.dp else 1.5.dp, if (digit.isNotEmpty()) KarsyTeal else OtpBorder, shape)
-                    .focusRequester(focusers[index])
-                    .onPreviewKeyEvent {
-                        if (it.type == KeyEventType.KeyDown && it.key == Key.Backspace && otp[index].isEmpty() && index > 0) {
-                            focusers[index - 1].requestFocus()
-                            true
-                        } else false
-                    },
-                decorationBox = { inner ->
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { inner() }
-                }
-            )
+        if (vm.success) {
+            SuccessOverlay(onLogin = vm::finish)
         }
     }
 }

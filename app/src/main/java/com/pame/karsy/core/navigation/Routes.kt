@@ -1,8 +1,17 @@
 package com.pame.karsy.core.navigation
 
+import android.net.Uri
+
 sealed class Routes(val route: String) {
     object Welcome : Routes("welcome")
     object Login : Routes("login")
+
+    /** Código de verificación del correo. send = true genera uno nuevo al entrar. */
+    object VerifyEmail : Routes("verify_email/{email}?send={send}") {
+        const val ARG_EMAIL = "email"
+        const val ARG_SEND = "send"
+        fun createRoute(email: String, sendCode: Boolean) = "verify_email/${Uri.encode(email)}?send=$sendCode"
+    }
 
     object RegisterType : Routes("register_type")
     object RegisterParticular : Routes("register_particular")

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyError
@@ -54,6 +55,7 @@ fun FormInput(
     singleLine: Boolean = true,
     minLines: Int = 1,
     error: String? = null,
+    enabled: Boolean = true,
 ) {
     var internal by rememberSaveable { mutableStateOf("") }
     val text = value ?: internal
@@ -76,6 +78,7 @@ fun FormInput(
             },
             singleLine = singleLine,
             minLines = minLines,
+            enabled = enabled,
             isError = error != null,
             textStyle = TextStyle(fontFamily = DmSans, fontSize = 15.sp, color = KarsyCharcoal),
             visualTransformation = if (isPassword && !show) PasswordVisualTransformation() else VisualTransformation.None,
@@ -120,5 +123,9 @@ fun karsyTextFieldColors(container: androidx.compose.ui.graphics.Color = KarsyWh
         focusedContainerColor = container,
         unfocusedContainerColor = container,
         errorContainerColor = container,
+        // Campo bloqueado (p. ej. WhatsApp igual al teléfono): se lee, pero con fondo gris.
+        disabledContainerColor = KarsyBg,
+        disabledBorderColor = KarsyBorder,
+        disabledTextColor = KarsyCharcoal,
         cursorColor = KarsyTeal,
     )

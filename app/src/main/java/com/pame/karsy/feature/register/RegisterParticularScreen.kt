@@ -32,6 +32,7 @@ import com.pame.karsy.core.theme.KarsyBg
 fun RegisterParticularScreen(
     onBack: () -> Unit,
     onCreated: (SessionAccount) -> Unit,
+    onVerifyEmail: (String) -> Unit,
     vm: RegisterViewModel = viewModel(),
 ) {
     val context = LocalContext.current
@@ -67,10 +68,6 @@ fun RegisterParticularScreen(
                 label = "Correo electrónico", placeholder = "correo@ejemplo.com", keyboardType = KeyboardType.Email,
                 value = vm.correo, onValueChange = { vm.correo = it }, error = vm.errorFor("correo")
             )
-            FormInput(
-                label = "Teléfono", placeholder = "10 dígitos", keyboardType = KeyboardType.Phone,
-                value = vm.telefono, onValueChange = { vm.telefono = it }
-            )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FormInput(
                     label = "Ciudad", placeholder = "Ej. Torreón", modifier = Modifier.weight(1f),
@@ -81,6 +78,9 @@ fun RegisterParticularScreen(
                     value = vm.estado, onValueChange = { vm.estado = it }, error = vm.errorFor("estado")
                 )
             }
+
+            SectionLabel("Contacto")
+            ContactFields(vm, phoneLabel = "Teléfono")
 
             SectionLabel("Seguridad")
             FormInput(
@@ -97,7 +97,7 @@ fun RegisterParticularScreen(
             PrimaryButton(
                 text = if (vm.loading) "Creando perfil…" else "Crear perfil",
                 enabled = !vm.loading,
-                onClick = { vm.submit(esLote = false, context = context, onCreated = onCreated) },
+                onClick = { vm.submit(esLote = false, context = context, onCreated = onCreated, onVerifyEmail = onVerifyEmail) },
                 modifier = Modifier.alpha(if (vm.acceptedTerms) 1f else 0.5f)
             )
             RegisterError(vm.error)

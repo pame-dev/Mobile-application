@@ -74,6 +74,8 @@ data class PerfilLoteDto(
 data class TelefonoDto(
     @SerialName("id_telefono") val idTelefono: Long,
     @SerialName("numero_telefono") val numero: String,
+    @SerialName("permite_llamadas") val permiteLlamadas: Boolean = true,
+    @SerialName("es_whatsapp") val esWhatsapp: Boolean = false,
     @SerialName("es_principal") val esPrincipal: Boolean,
     val activo: Boolean,
 )
@@ -128,7 +130,10 @@ data class ContactoDto(
     @SerialName("foto_perfil") val fotoPerfil: String? = null,
     @SerialName("miembro_desde") val miembroDesde: String? = null,
     val telefono: String? = null,
+    /** El número de [telefono] también es WhatsApp. */
     val whatsapp: Boolean? = null,
+    @SerialName("numero_whatsapp") val numeroWhatsapp: String? = null,
+    @SerialName("medio_principal") val medioPrincipal: String? = null,
     val correo: String? = null,
 )
 

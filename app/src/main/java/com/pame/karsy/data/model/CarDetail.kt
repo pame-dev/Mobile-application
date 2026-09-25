@@ -33,7 +33,11 @@ data class SellerContact(
     val descripcion: String,
     val ubicacion: String,
     val avatarUrl: String?,
+    /** Número para llamadas. */
     val telefono: String?,
-    val whatsapp: Boolean,
+    /** Número de WhatsApp (puede ser el mismo que [telefono]). */
+    val whatsapp: String?,
+    /** Cómo prefiere que lo contacten: "llamada", "whatsapp" o null si no lo indicó. */
+    val medioPrincipal: String?,
     val correo: String?,
 )

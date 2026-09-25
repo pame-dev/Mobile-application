@@ -13,6 +13,7 @@ import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.AuthRepository
+import com.pame.karsy.data.repository.EmailNotVerifiedException
 import com.pame.karsy.data.repository.UserRepository
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
@@ -20,17 +21,24 @@ import kotlinx.serialization.json.put
 
 /**
  * Formulario de registro (particular y lote).
- * Solo se exige llenar los campos que la BD necesita; la contraseña no tiene reglas,
- * solo debe coincidir con la confirmación.
+ * Se exigen los campos que la BD necesita y un teléfono de contacto; la contraseña
+ * solo debe coincidir con la confirmación (el mínimo de 6 caracteres lo marca el servidor).
  */
 class RegisterViewModel : ViewModel() {
     // Datos personales / del responsable
     var nombre by mutableStateOf("")
     var apellido by mutableStateOf("")
     var correo by mutableStateOf("")
-    var telefono by mutableStateOf("")
     var ciudad by mutableStateOf("")
     var estado by mutableStateOf("")
+
+    // Contacto
+    var telefono by mutableStateOf("")
+    /** "¿Usas este mismo número para WhatsApp?" Sí: el campo de WhatsApp muestra el teléfono. */
+    var mismoWhatsapp by mutableStateOf(true)
+    var whatsapp by mutableStateOf("")
+    /** Método de contacto principal: [LLAMADA] o [WHATSAPP]. */
+    var medioContacto by mutableStateOf<String?>(null)
 
     // Solo lote
     var nombreLote by mutableStateOf("")
@@ -52,16 +60,24 @@ class RegisterViewModel : ViewModel() {
     /** Campos obligatorios vacíos después de intentar enviar. */
     var missing by mutableStateOf<Set<String>>(emptySet())
         private set
+    /** Campos llenos pero con un valor que no sirve (campo → mensaje). */
+    private var invalid by mutableStateOf<Map<String, String>>(emptyMap())
 
-    fun errorFor(field: String): String? = if (field in missing) "Campo obligatorio" else null
+    fun errorFor(field: String): String? = if (field in missing) "Campo obligatorio" else invalid[field]
 
     val passwordMismatch: String?
         get() = if (confirmPassword.isNotEmpty() && password != confirmPassword) "Las contraseñas no coinciden." else null
 
-    fun submit(esLote: Boolean, context: Context, onCreated: (SessionAccount) -> Unit) {
+    fun submit(
+        esLote: Boolean,
+        context: Context,
+        onCreated: (SessionAccount) -> Unit,
+        onVerifyEmail: (String) -> Unit,
+    ) {
         if (loading) return
         val requeridos = buildMap {
             put("nombre", nombre); put("apellido", apellido); put("correo", correo)
+            put("telefono", telefono)
             put("ciudad", ciudad); put("estado", estado); put("password", password)
             if (esLote) {
                 put("nombreLote", nombreLote); put("calle", calle); put("numero", numero)
@@ -69,8 +85,25 @@ class RegisterViewModel : ViewModel() {
             }
         }
         missing = requeridos.filterValues { it.isBlank() }.keys
+
+        // Si no usa el mismo número, el WhatsApp es opcional (vacío = no tiene WhatsApp).
+        val numeroTelefono = soloNumero(telefono)
+        val numeroWhatsapp = if (mismoWhatsapp) numeroTelefono else soloNumero(whatsapp)
+        invalid = buildMap {
+            if (telefono.isNotBlank() && !esNumeroValido(numeroTelefono)) put("telefono", "Escribe un número de 10 dígitos.")
+            if (!mismoWhatsapp && whatsapp.isNotBlank() && !esNumeroValido(numeroWhatsapp)) {
+                put("whatsapp", "Escribe un número de 10 dígitos.")
+            }
+            when {
+                medioContacto == null -> put("medio", "Elige cómo prefieres que te contacten.")
+                medioContacto == WHATSAPP && numeroWhatsapp.isEmpty() ->
+                    put("whatsapp", "Escribe tu WhatsApp o elige Llamadas como método principal.")
+            }
+        }
+
         error = when {
             missing.isNotEmpty() -> "Completa los campos obligatorios."
+            invalid.isNotEmpty() -> "Revisa los datos marcados en rojo."
             password != confirmPassword -> "Las contraseñas no coinciden."
             !acceptedTerms -> "Acepta los términos y condiciones para continuar."
             else -> null
@@ -83,7 +116,10 @@ class RegisterViewModel : ViewModel() {
             put("nombre_mostrar", if (esLote) nombreLote.trim() else nombreCompleto)
             put("estado", estado.trim())
             put("municipio", ciudad.trim())
-            put("telefono", telefono.trim())
+            // La BD guarda una sola fila si ambos números son iguales (ver fn_auth_crear_cuenta).
+            put("telefono", numeroTelefono)
+            put("whatsapp", numeroWhatsapp)
+            put("medio_contacto", medioContacto)
             put("descripcion", descripcion.trim())
             if (esLote) {
                 put("responsable", nombreCompleto)
@@ -108,10 +144,33 @@ class RegisterViewModel : ViewModel() {
                     loading = false
                     onCreated(cuenta)
                 }
-                .onFailure {
-                    error = it.mensajeUsuario()
-                    loading = false
+                .onFailure { e ->
+                    if (e is EmailNotVerifiedException) {
+                        // Cuenta creada, pero sin sesión hasta escribir el código del correo:
+                        // el logo se sube al verificarlo.
+                        logo?.let { uri ->
+                            safeCall { Imagenes.jpegBytes(appContext, uri, maxLado = 800) }
+                                .onSuccess { UserRepository.holdAvatarUntilVerified(e.email, it) }
+                        }
+                        loading = false
+                        onVerifyEmail(e.email)
+                    } else {
+                        error = e.mensajeUsuario()
+                        loading = false
+                    }
                 }
         }
+    }
+
+    /** Quita espacios, guiones y paréntesis: "871 123-4567" -> "8711234567". */
+    private fun soloNumero(texto: String) = texto.filter { it.isDigit() || it == '+' }
+
+    /** 10 dígitos, o más si trae lada internacional (+52…). */
+    private fun esNumeroValido(numero: String) = numero.count { it.isDigit() } >= 10
+
+    companion object {
+        // Valores de cuentas.medio_contacto_principal.
+        const val LLAMADA = "llamada"
+        const val WHATSAPP = "whatsapp"
     }
 }

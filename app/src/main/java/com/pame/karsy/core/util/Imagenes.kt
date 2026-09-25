@@ -22,7 +22,7 @@ object Imagenes {
 
             val bitmap = resolver.openInputStream(uri)?.use {
                 BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = muestra })
-            } ?: throw IllegalStateException("No se pudo leer la imagen.")
+            } ?: throw UserFacingException("No se pudo leer la imagen.")
 
             val escala = maxLado.toFloat() / maxOf(bitmap.width, bitmap.height)
             val final = if (escala < 1f) {

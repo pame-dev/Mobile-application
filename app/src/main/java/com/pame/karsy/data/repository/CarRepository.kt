@@ -3,6 +3,7 @@ package com.pame.karsy.data.repository
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.util.Formato
+import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.data.model.SellerContact
@@ -94,7 +95,7 @@ object CarRepository {
     }
 
     suspend fun setFavorite(id: Long, favorite: Boolean) {
-        val uid = SessionManager.userId ?: throw IllegalStateException("Inicia sesión para guardar favoritos.")
+        val uid = SessionManager.userId ?: throw UserFacingException("Inicia sesión para guardar favoritos.")
         if (favorite) {
             db.from("favoritos").insert(FavoritoDto(uid, id))
         } else {
@@ -134,13 +135,15 @@ object CarRepository {
             ubicacion = dto.ubicacion.orEmpty(),
             avatarUrl = Supabase.publicUrl(dto.fotoPerfil),
             telefono = dto.telefono,
-            whatsapp = dto.whatsapp == true,
+            // Antes de la migración contacto_whatsapp solo llega si el teléfono también es WhatsApp.
+            whatsapp = dto.numeroWhatsapp ?: dto.telefono?.takeIf { dto.whatsapp == true },
+            medioPrincipal = dto.medioPrincipal,
             correo = dto.correo,
         )
     }
 
     suspend fun report(id: Long, motivo: String) {
-        val uid = SessionManager.userId ?: throw IllegalStateException("Inicia sesión para reportar.")
+        val uid = SessionManager.userId ?: throw UserFacingException("Inicia sesión para reportar.")
         db.from("reportes").insert(ReporteInsert(id, uid, motivo))
     }
 
@@ -170,7 +173,7 @@ object CarRepository {
 
     /** Sube una foto al bucket y devuelve su ruta (publicaciones/<id_cuenta>/<archivo>). */
     suspend fun uploadPhoto(bytes: ByteArray): String {
-        val uid = SessionManager.userId ?: throw IllegalStateException("Inicia sesión para publicar.")
+        val uid = SessionManager.userId ?: throw UserFacingException("Inicia sesión para publicar.")
         val ruta = "publicaciones/$uid/${UUID.randomUUID()}.jpg"
         db.storage.from(Supabase.BUCKET).upload(ruta, bytes) {
             upsert = false
