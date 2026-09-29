@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
@@ -57,7 +59,7 @@ class VerifyEmailViewModel : ViewModel() {
         if (verifying) return
         val token = code.joinToString("")
         if (token.length < EMAIL_CODE_LENGTH) {
-            error = "Escribe los $EMAIL_CODE_LENGTH dígitos del código."
+            error = texto(R.string.auth_error_code_digits, EMAIL_CODE_LENGTH)
             return
         }
         verifying = true

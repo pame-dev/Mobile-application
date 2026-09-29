@@ -1,5 +1,7 @@
 package com.pame.karsy.data.repository
 
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.util.UserFacingException
@@ -16,7 +18,7 @@ import kotlinx.serialization.json.put
 
 /** La cuenta existe pero su correo no está verificado: la app debe pedir el código. */
 class EmailNotVerifiedException(val email: String) :
-    UserFacingException("Verifica tu correo para continuar.")
+    UserFacingException(texto(R.string.core_error_verify_email))
 
 /**
  * Inicio de sesión y registro con Supabase Auth.
@@ -97,7 +99,7 @@ object AuthRepository {
             // Si el correo ya tiene cuenta verificada, Supabase responde un usuario sin
             // identidades y no manda nada (para no revelar qué correos existen).
             if (user?.identities?.isEmpty() == true) {
-                throw UserFacingException("Ya existe una cuenta con ese correo.")
+                throw UserFacingException(texto(R.string.core_error_email_exists))
             }
             throw EmailNotVerifiedException(email.trim())
         }
@@ -110,7 +112,7 @@ object AuthRepository {
 
     private suspend fun loadAccountOrSignOut(): SessionAccount {
         val user = auth.currentUserOrNull()
-            ?: throw UserFacingException("No se pudo iniciar sesión.")
+            ?: throw UserFacingException(texto(R.string.core_error_sign_in_failed))
 
         val cuenta = Supabase.client.from("cuentas")
             .select { filter { eq("id_cuenta", user.id) } }
@@ -118,11 +120,11 @@ object AuthRepository {
 
         if (cuenta == null) {
             signOut()
-            throw UserFacingException("Este usuario no tiene una cuenta de Karsy.")
+            throw UserFacingException(texto(R.string.core_error_no_karsy_account))
         }
         if (cuenta.estadoCuenta == "suspendida") {
             signOut()
-            throw UserFacingException("Tu cuenta está suspendida. Contacta al administrador.")
+            throw UserFacingException(texto(R.string.core_error_account_suspended))
         }
 
         val esAdmin = Supabase.client.postgrest

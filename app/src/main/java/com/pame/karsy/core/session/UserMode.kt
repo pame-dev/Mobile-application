@@ -1,8 +1,11 @@
 package com.pame.karsy.core.session
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 
 /**
  * Tipo de usuario con el que se navega la app.
@@ -10,11 +13,13 @@ import androidx.compose.runtime.setValue
  * PARTICULAR / LOTE: cuenta registrada (cuentas.tipo_cuenta en Supabase).
  * ADMIN: cuenta con el rol "administrador" (public.es_administrador()).
  */
-enum class UserMode(val label: String) {
-    VISITANTE("Visitante"),
-    PARTICULAR("Particular"),
-    LOTE("Lote"),
-    ADMIN("Administrador");
+enum class UserMode(@StringRes val labelRes: Int) {
+    VISITANTE(R.string.core_mode_guest),
+    PARTICULAR(R.string.core_mode_particular),
+    LOTE(R.string.core_mode_lote),
+    ADMIN(R.string.core_mode_admin);
+
+    val label: String get() = texto(labelRes)
 
     val isLoggedIn: Boolean get() = this != VISITANTE
     val isAdmin: Boolean get() = this == ADMIN

@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.admin
 
 import androidx.compose.ui.graphics.Color
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 
 // Modelos que muestran las secciones del panel de administración.
 // Se llenan desde Supabase en AdminViewModel.
@@ -86,13 +88,15 @@ data class AdminKpi(
 data class AdminAlert(val text: String, val bg: Color, val color: Color, val target: AdminSection)
 
 object AdminOptions {
-    val rejectOptions = listOf(
-        "Pago no verificado" to "El comprobante de pago no coincide o no ha sido acreditado.",
-        "Calidad de imágenes" to "Las fotos del vehículo no cumplen con la calidad o visibilidad requerida.",
-        "Información incompleta" to "La publicación carece de detalles obligatorios o precisos.",
-        "Vehículo no permitido" to "El vehículo no cumple con las políticas de publicación de Karsy.",
-        "Otro motivo" to "Especifica el motivo en los comentarios adicionales.",
-    )
+    // Getter: se resuelve en el idioma actual cada vez que se lee.
+    val rejectOptions: List<Pair<String, String>>
+        get() = listOf(
+            texto(R.string.admin1_reject_payment_title) to texto(R.string.admin1_reject_payment_desc),
+            texto(R.string.admin1_reject_images_title) to texto(R.string.admin1_reject_images_desc),
+            texto(R.string.admin1_reject_incomplete_title) to texto(R.string.admin1_reject_incomplete_desc),
+            texto(R.string.admin1_reject_not_allowed_title) to texto(R.string.admin1_reject_not_allowed_desc),
+            texto(R.string.admin1_reject_other_title) to texto(R.string.admin1_reject_other_desc),
+        )
 }
 
 /** Valores del eje Y (5 líneas) que cubren [max] con números redondos. */

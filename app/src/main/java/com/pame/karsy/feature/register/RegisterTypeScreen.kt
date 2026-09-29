@@ -34,10 +34,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.components.BackTopBar
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.theme.DmSans
@@ -68,19 +70,19 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            RegisterHeader(title = "Registro", subtitle = "Selecciona qué tipo de cliente eres")
+            RegisterHeader(title = stringResource(R.string.auth_register_title), subtitle = stringResource(R.string.auth_register_type_subtitle))
             Column(Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp)) {
                 TypeCard(
                     icon = Icons.Outlined.PersonOutline,
-                    title = "Particular",
-                    desc = "Compra y vende vehículos como persona particular.",
+                    title = stringResource(R.string.auth_type_particular),
+                    desc = stringResource(R.string.auth_type_particular_desc),
                     active = selected == ClientType.PARTICULAR,
                     onClick = { selected = ClientType.PARTICULAR }
                 )
                 TypeCard(
                     icon = Icons.Outlined.BusinessCenter,
-                    title = "Lote",
-                    desc = "Publica y administra vehículos de tu lote o agencia.",
+                    title = stringResource(R.string.auth_type_lote),
+                    desc = stringResource(R.string.auth_type_lote_desc),
                     active = selected == ClientType.LOTE,
                     onClick = { selected = ClientType.LOTE }
                 )
@@ -92,7 +94,7 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
                 .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 32.dp)
         ) {
             PrimaryButton(
-                text = "Continuar",
+                text = stringResource(R.string.auth_continue),
                 onClick = {
                     when (selected) {
                         ClientType.PARTICULAR -> onParticular()
@@ -103,7 +105,7 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
                 modifier = Modifier.alpha(if (selected != null) 1f else 0.5f)
             )
             Text(
-                "Podrás completar tu perfil después.",
+                stringResource(R.string.auth_complete_profile_later),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 color = KarsyMid,

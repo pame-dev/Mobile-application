@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.pame.karsy.R
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -104,7 +106,7 @@ fun EditProfileDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Editar perfil",
+                    stringResource(R.string.profile_edit_profile),
                     fontFamily = Outfit,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
@@ -114,7 +116,7 @@ fun EditProfileDialog(
                 IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Rounded.Close,
-                        contentDescription = "Cerrar",
+                        contentDescription = stringResource(R.string.profile_close_cd),
                         tint = KarsyMid,
                         modifier = Modifier.size(20.dp)
                     )
@@ -149,7 +151,7 @@ fun EditProfileDialog(
                     ) {
                         Icon(
                             Icons.Outlined.PhotoCamera,
-                            contentDescription = "Cambiar foto",
+                            contentDescription = stringResource(R.string.profile_change_photo_cd),
                             tint = KarsyWhite,
                             modifier = Modifier.size(13.dp)
                         )
@@ -159,19 +161,19 @@ fun EditProfileDialog(
             Spacer(Modifier.height(24.dp))
 
             if (isLote) {
-                EditField("Nombre del lote", firstName, { firstName = it })
+                EditField(stringResource(R.string.profile_edit_lot_name), firstName, { firstName = it })
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    EditField("Nombre", firstName, { firstName = it }, Modifier.weight(1f))
-                    EditField("Apellido", lastName, { lastName = it }, Modifier.weight(1f))
+                    EditField(stringResource(R.string.profile_edit_first_name), firstName, { firstName = it }, Modifier.weight(1f))
+                    EditField(stringResource(R.string.profile_edit_last_name), lastName, { lastName = it }, Modifier.weight(1f))
                 }
             }
             Spacer(Modifier.height(14.dp))
-            EditField("Teléfono", phone, { phone = it }, keyboardType = KeyboardType.Phone)
+            EditField(stringResource(R.string.profile_edit_phone), phone, { phone = it }, keyboardType = KeyboardType.Phone)
             Spacer(Modifier.height(14.dp))
-            EditField("Correo electrónico", email, { email = it }, keyboardType = KeyboardType.Email)
+            EditField(stringResource(R.string.profile_edit_email), email, { email = it }, keyboardType = KeyboardType.Email)
             Spacer(Modifier.height(14.dp))
-            EditField("Descripción", bio, { bio = it }, singleLine = false)
+            EditField(stringResource(R.string.profile_edit_bio), bio, { bio = it }, singleLine = false)
 
             Spacer(Modifier.height(20.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -186,7 +188,7 @@ fun EditProfileDialog(
                     contentPadding = PaddingValues(vertical = 12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Cancelar", fontFamily = DmSans, fontSize = 14.sp)
+                    Text(stringResource(R.string.profile_cancel), fontFamily = DmSans, fontSize = 14.sp)
                 }
                 Button(
                     onClick = {
@@ -211,7 +213,7 @@ fun EditProfileDialog(
                     modifier = Modifier.weight(2f)
                 ) {
                     Text(
-                        "Guardar cambios",
+                        stringResource(R.string.profile_edit_save),
                         fontFamily = Outfit,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp

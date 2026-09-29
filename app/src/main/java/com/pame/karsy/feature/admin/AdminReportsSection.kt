@@ -18,9 +18,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.Outfit
@@ -35,15 +38,15 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
 
     AdminSectionScroll {
         AdminSectionHeader(
-            title = "Reportes",
-            description = "Revisa incidencias y reportes enviados por la comunidad de Karsy."
+            title = stringResource(R.string.admin2_section_reports),
+            description = stringResource(R.string.admin2_reports_desc)
         )
         AdminCard {
             AdminFilterBar {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(
-                            "Incidencias",
+                            stringResource(R.string.admin2_incidents),
                             fontFamily = Outfit,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
@@ -51,16 +54,19 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                         )
                         Spacer(Modifier.height(3.dp))
                         Text(
-                            "${reports.size} reportes registrados",
+                            pluralStringResource(R.plurals.admin2_reports_count, reports.size, reports.size),
                             fontFamily = DmSans,
                             fontSize = 12.sp,
                             color = AdminColors.Muted
                         )
                     }
+                    // Los estados vienen de la BD; solo se traduce lo que se muestra.
+                    val statusValues = listOf("Todos", "Pendiente", "Atendido", "Descartado")
+                    val statusLabels = statusValues.map { adminValueLabel(it) }
                     AdminSelect(
-                        value = status,
-                        options = listOf("Todos", "Pendiente", "Atendido", "Descartado"),
-                        onSelect = { status = it }
+                        value = adminValueLabel(status),
+                        options = statusLabels,
+                        onSelect = { label -> status = statusValues[statusLabels.indexOf(label)] }
                     )
                 }
             }
@@ -68,8 +74,8 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
             if (filtered.isEmpty()) {
                 AdminEmptyState(
                     icon = Icons.Outlined.Flag,
-                    title = "Sin reportes",
-                    description = "No hay reportes con este estado."
+                    title = stringResource(R.string.admin2_reports_empty_title),
+                    description = stringResource(R.string.admin2_reports_empty_desc)
                 )
             } else {
                 filtered.forEachIndexed { index, report ->
@@ -78,9 +84,9 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            AdminBadge(report.type, if (report.type == "Usuario") BadgeTone.Info else BadgeTone.Neutral)
+                            AdminBadge(adminValueLabel(report.type), if (report.type == "Usuario") BadgeTone.Info else BadgeTone.Neutral)
                             Spacer(Modifier.weight(1f))
-                            AdminBadge(report.status, reportStatusTone(report.status))
+                            AdminBadge(adminValueLabel(report.status), reportStatusTone(report.status))
                         }
                         Text(
                             report.target,
@@ -94,9 +100,9 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            AdminField("Reportado por", report.reporter, Modifier.weight(1.3f))
-                            AdminField("Fecha", report.date, Modifier.weight(1f))
-                            AdminActionButton("Revisar", onClick = { selected = report })
+                            AdminField(stringResource(R.string.admin2_reported_by), report.reporter, Modifier.weight(1.3f))
+                            AdminField(stringResource(R.string.admin2_date), report.date, Modifier.weight(1f))
+                            AdminActionButton(stringResource(R.string.admin2_review), onClick = { selected = report })
                         }
                     }
                 }
@@ -106,36 +112,36 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
 
     selected?.let { report ->
         AdminDetailModal(
-            title = "Revisión del reporte",
-            subtitle = "Reporte #${report.id.toString().padStart(4, '0')}",
+            title = stringResource(R.string.admin2_report_review_title),
+            subtitle = stringResource(R.string.admin2_report_number, report.id.toString().padStart(4, '0')),
             onDismiss = { selected = null }
         ) {
-            DetailRow("Tipo", report.type)
-            DetailRow("Reportado por", report.reporter)
-            DetailRow("Publicación", report.target)
-            DetailRow("Motivo", report.reason)
-            DetailRow("Estado", report.status)
-            report.resolution?.let { DetailRow("Resolución", it) }
+            DetailRow(stringResource(R.string.admin2_type), adminValueLabel(report.type))
+            DetailRow(stringResource(R.string.admin2_reported_by), report.reporter)
+            DetailRow(stringResource(R.string.admin2_value_publication), report.target)
+            DetailRow(stringResource(R.string.admin2_reason), report.reason)
+            DetailRow(stringResource(R.string.admin2_status), adminValueLabel(report.status))
+            report.resolution?.let { DetailRow(stringResource(R.string.admin2_resolution), it) }
             // Solo un reporte pendiente se puede resolver (admin_resolver_reporte).
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(top = 18.dp)
             ) {
                 if (report.status == "Pendiente") {
-                    AdminActionButton("Marcar atendido", tone = ActionTone.Success, onClick = {
+                    AdminActionButton(stringResource(R.string.admin2_mark_resolved), tone = ActionTone.Success, onClick = {
                         vm.resolveReport(report, disableCar = false)
                         selected = null
                     })
-                    AdminActionButton("Deshabilitar", tone = ActionTone.Danger, onClick = {
+                    AdminActionButton(stringResource(R.string.admin2_disable), tone = ActionTone.Danger, onClick = {
                         vm.resolveReport(report, disableCar = true)
                         selected = null
                     })
-                    AdminActionButton("Descartar", onClick = {
+                    AdminActionButton(stringResource(R.string.admin2_dismiss), onClick = {
                         vm.dismissReport(report)
                         selected = null
                     })
                 } else {
-                    AdminActionButton("Ver publicación", onClick = {
+                    AdminActionButton(stringResource(R.string.admin2_view_publication), onClick = {
                         selected = null
                         onCarClick(report.publicationId)
                     })

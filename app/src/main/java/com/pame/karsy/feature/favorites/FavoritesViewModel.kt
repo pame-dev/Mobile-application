@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
@@ -26,7 +28,10 @@ class FavoritesViewModel : ViewModel() {
     /** 0 = guardados recientemente, 1 = menor precio, 2 = mayor precio. */
     var sortMode by mutableStateOf(0)
         private set
-    val sortLabel: String get() = listOf("Recientes ↕", "Menor precio ↕", "Mayor precio ↕")[sortMode]
+    val sortLabel: String
+        get() = texto(
+            listOf(R.string.home_fav_sort_recent, R.string.home_fav_sort_price_low, R.string.home_fav_sort_price_high)[sortMode]
+        )
 
     fun sorted(list: List<Car>): List<Car> = when (sortMode) {
         1 -> list.sortedBy { it.priceValue }

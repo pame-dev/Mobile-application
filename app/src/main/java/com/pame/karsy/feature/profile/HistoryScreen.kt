@@ -25,10 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -55,7 +57,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
             .background(KarsyBg)
     ) {
         SubHeader(
-            title = "🕘 Historial",
+            title = stringResource(R.string.profile_history_title),
             onBack = onBack,
             modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
         )
@@ -74,7 +76,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
             ProfileCard {
                 if (items.isEmpty()) {
                     Text(
-                        "Aún no has visto ningún vehículo.",
+                        stringResource(R.string.profile_history_empty),
                         fontFamily = DmSans,
                         fontSize = 14.sp,
                         color = KarsyMid,

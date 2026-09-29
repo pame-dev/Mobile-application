@@ -36,11 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
@@ -113,7 +115,7 @@ fun AdminDashboardScreen(
                 ) {
                     Text(msg, fontFamily = DmSans, fontSize = 13.sp, color = KarsyNavy, modifier = Modifier.weight(1f))
                     Text(
-                        "Cerrar",
+                        stringResource(R.string.admin1_close),
                         fontFamily = DmSans,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -149,7 +151,7 @@ private fun AdminTopBar(onMenu: () -> Unit, onHome: () -> Unit) {
                 .statusBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
-            TopBarButton(Icons.Rounded.Menu, "Abrir menú", onMenu)
+            TopBarButton(Icons.Rounded.Menu, stringResource(R.string.admin1_open_menu), onMenu)
             Spacer(Modifier.width(12.dp))
             KarsyLogo(size = 32.dp)
             Spacer(Modifier.width(9.dp))
@@ -162,7 +164,7 @@ private fun AdminTopBar(onMenu: () -> Unit, onHome: () -> Unit) {
                 color = KarsyNavy,
                 modifier = Modifier.weight(1f)
             )
-            TopBarButton(Icons.Outlined.Home, "Volver al inicio", onHome)
+            TopBarButton(Icons.Outlined.Home, stringResource(R.string.admin1_back_home), onHome)
         }
         HorizontalDivider(thickness = 1.dp, color = KarsyBorder)
     }

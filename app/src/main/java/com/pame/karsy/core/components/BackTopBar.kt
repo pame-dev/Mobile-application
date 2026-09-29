@@ -25,10 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyWhite
@@ -55,7 +57,7 @@ fun BackTopBar(
         IconButton(onClick = onBack) {
             Icon(
                 Icons.Rounded.ChevronLeft,
-                contentDescription = "Regresar",
+                contentDescription = stringResource(R.string.core_back),
                 tint = KarsyNavy,
                 modifier = Modifier.size(28.dp)
             )
@@ -97,7 +99,7 @@ fun SubHeader(
                 IconButton(onClick = onBack) {
                     Icon(
                         Icons.AutoMirrored.Rounded.ArrowBackIos,
-                        contentDescription = "Regresar",
+                        contentDescription = stringResource(R.string.core_back),
                         tint = KarsyNavy,
                         modifier = Modifier
                             .size(16.dp)

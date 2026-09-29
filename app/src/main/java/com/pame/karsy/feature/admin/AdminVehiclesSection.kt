@@ -15,9 +15,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 
@@ -35,32 +37,35 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
 
     AdminSectionScroll {
         AdminSectionHeader(
-            title = "Vehículos",
-            description = "Revisa las publicaciones de vehículos y su estado dentro de la plataforma."
+            title = stringResource(R.string.admin2_section_vehicles),
+            description = stringResource(R.string.admin2_vehicles_desc)
         )
         AdminCard {
             AdminFilterBar {
                 AdminSearchBar(
                     value = search,
                     onValueChange = { search = it },
-                    placeholder = "Buscar marca, modelo o vendedor...",
+                    placeholder = stringResource(R.string.admin2_vehicles_search),
                     modifier = Modifier.fillMaxWidth()
                 )
+                // Los estados se comparan en español; solo se traduce lo que se muestra.
+                val statusValues = listOf(
+                    "Todos", "Activo", "Pendiente", "Cambios pendientes", "Rechazado",
+                    "Deshabilitado", "Pausado", "Vendido"
+                )
+                val statusLabels = statusValues.map { adminValueLabel(it) }
                 AdminSelect(
-                    value = status,
-                    options = listOf(
-                        "Todos", "Activo", "Pendiente", "Cambios pendientes", "Rechazado",
-                        "Deshabilitado", "Pausado", "Vendido"
-                    ),
-                    onSelect = { status = it }
+                    value = adminValueLabel(status),
+                    options = statusLabels,
+                    onSelect = { label -> status = statusValues[statusLabels.indexOf(label)] }
                 )
             }
 
             if (filtered.isEmpty()) {
                 AdminEmptyState(
                     icon = Icons.Rounded.Search,
-                    title = "No se encontraron vehículos",
-                    description = "Prueba con otra marca, modelo, vendedor o estado."
+                    title = stringResource(R.string.admin2_vehicles_empty_title),
+                    description = stringResource(R.string.admin2_vehicles_empty_desc)
                 )
             } else {
                 filtered.forEachIndexed { index, vehicle ->
@@ -74,18 +79,18 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                                 color = KarsyNavy,
                                 modifier = Modifier.weight(1f)
                             )
-                            AdminBadge(vehicle.status, vehicleStatusTone(vehicle.status))
+                            AdminBadge(adminValueLabel(vehicle.status), vehicleStatusTone(vehicle.status))
                         }
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            AdminField("Vendedor", vehicle.seller, Modifier.weight(1.6f))
-                            AdminField("Año", vehicle.year.toString(), Modifier.weight(0.7f))
-                            AdminField("Precio", vehicle.price, Modifier.weight(1f), bold = true)
+                            AdminField(stringResource(R.string.admin2_seller), vehicle.seller, Modifier.weight(1.6f))
+                            AdminField(stringResource(R.string.admin2_year), vehicle.year.toString(), Modifier.weight(0.7f))
+                            AdminField(stringResource(R.string.admin2_price), vehicle.price, Modifier.weight(1f), bold = true)
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            AdminActionButton("Revisar", onClick = { selected = vehicle })
+                            AdminActionButton(stringResource(R.string.admin2_review), onClick = { selected = vehicle })
                         }
                     }
                 }
@@ -95,35 +100,35 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
 
     selected?.let { vehicle ->
         AdminDetailModal(
-            title = "Detalle del vehículo",
+            title = stringResource(R.string.admin2_vehicle_detail_title),
             subtitle = vehicle.name,
             onDismiss = { selected = null }
         ) {
-            DetailRow("Vehículo", "${vehicle.name} ${vehicle.year}")
-            DetailRow("Vendedor", vehicle.seller)
-            DetailRow("Precio", vehicle.price)
-            DetailRow("Transmisión", vehicle.transmision)
-            DetailRow("Kilometraje", vehicle.kilometraje)
-            DetailRow("Carrocería", vehicle.tipo)
-            DetailRow("Color", vehicle.color)
-            DetailRow("Estado", vehicle.status)
+            DetailRow(stringResource(R.string.admin2_vehicle), "${vehicle.name} ${vehicle.year}")
+            DetailRow(stringResource(R.string.admin2_seller), vehicle.seller)
+            DetailRow(stringResource(R.string.admin2_price), vehicle.price)
+            DetailRow(stringResource(R.string.admin2_transmission), vehicle.transmision)
+            DetailRow(stringResource(R.string.admin2_mileage), vehicle.kilometraje)
+            DetailRow(stringResource(R.string.admin2_body_type), vehicle.tipo)
+            DetailRow(stringResource(R.string.admin2_color), vehicle.color)
+            DetailRow(stringResource(R.string.admin2_status), adminValueLabel(vehicle.status))
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(top = 18.dp)
             ) {
                 // Propuesta pendiente: aprobar publica el contenido; rechazar lo devuelve al vendedor.
                 if (vehicle.pendingProposalId != null) {
-                    AdminActionButton("Aprobar", tone = ActionTone.Success, onClick = {
+                    AdminActionButton(stringResource(R.string.admin2_approve), tone = ActionTone.Success, onClick = {
                         vm.moderate(vehicle, approve = true)
                         selected = null
                     })
-                    AdminActionButton("Rechazar", tone = ActionTone.Danger, onClick = {
+                    AdminActionButton(stringResource(R.string.admin2_reject), tone = ActionTone.Danger, onClick = {
                         vm.moderate(vehicle, approve = false)
                         selected = null
                     })
                 } else if (vehicle.status != "Rechazado") {
                     AdminActionButton(
-                        if (vehicle.enabledByAdmin) "Deshabilitar" else "Habilitar",
+                        stringResource(if (vehicle.enabledByAdmin) R.string.admin2_disable else R.string.admin2_enable),
                         tone = if (vehicle.enabledByAdmin) ActionTone.Danger else ActionTone.Success,
                         onClick = {
                             vm.setVehicleEnabled(vehicle, enabled = !vehicle.enabledByAdmin)
@@ -131,7 +136,7 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                         }
                     )
                 }
-                AdminActionButton("Ver publicación", onClick = {
+                AdminActionButton(stringResource(R.string.admin2_view_publication), onClick = {
                     selected = null
                     onCarClick(vehicle.id)
                 })

@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -22,7 +24,7 @@ object Imagenes {
 
             val bitmap = resolver.openInputStream(uri)?.use {
                 BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = muestra })
-            } ?: throw UserFacingException("No se pudo leer la imagen.")
+            } ?: throw UserFacingException(texto(R.string.core_error_read_image))
 
             val escala = maxLado.toFloat() / maxOf(bitmap.width, bitmap.height)
             val final = if (escala < 1f) {

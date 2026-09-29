@@ -24,10 +24,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
@@ -61,7 +63,7 @@ fun SuccessOverlay(title: String, onDone: () -> Unit, modifier: Modifier = Modif
             Icon(Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(36.dp))
         }
         Text(
-            "¡Publicado!",
+            stringResource(R.string.publish_success_title),
             fontFamily = Outfit,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -69,7 +71,7 @@ fun SuccessOverlay(title: String, onDone: () -> Unit, modifier: Modifier = Modif
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
-            "Tu $title se envió a revisión. Aparecerá para los compradores en cuanto un administrador lo apruebe.",
+            stringResource(R.string.publish_success_message, title),
             fontFamily = DmSans,
             fontSize = 14.sp,
             color = KarsyWhite.copy(alpha = 0.7f),
@@ -82,7 +84,7 @@ fun SuccessOverlay(title: String, onDone: () -> Unit, modifier: Modifier = Modif
             colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
             contentPadding = PaddingValues(horizontal = 40.dp, vertical = 16.dp)
         ) {
-            Text("Ver mi panel", fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.publish_success_go_dashboard), fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

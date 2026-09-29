@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -55,9 +56,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.theme.DmSans
-import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -68,6 +69,7 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.feature.profile.ProfileAvatar
 
 private val FeaturedYellowBg = Color(0xFFFFF4CC)
 private val FeaturedYellowFg = Color(0xFF8A6415)
@@ -127,8 +129,8 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
 
     AdminSectionScroll {
         AdminSectionHeader(
-            title = "Solicitudes para Destacar",
-            description = "Revisa las solicitudes enviadas por usuarios para mostrar sus vehículos en la sección de Destacados."
+            title = stringResource(R.string.admin1_featured_title),
+            description = stringResource(R.string.admin1_featured_desc)
         )
 
         Row(
@@ -139,12 +141,12 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
                 val active = filter == status
                 val count = requests.count { it.status == status }
                 val label = when (status) {
-                    FeaturedStatus.Pendiente -> "Pendientes"
-                    FeaturedStatus.Aprobada -> "Aprobadas"
-                    FeaturedStatus.Rechazada -> "Rechazadas"
+                    FeaturedStatus.Pendiente -> stringResource(R.string.admin1_filter_pending)
+                    FeaturedStatus.Aprobada -> stringResource(R.string.admin1_filter_approved)
+                    FeaturedStatus.Rechazada -> stringResource(R.string.admin1_filter_rejected)
                 }
                 Text(
-                    "$label ($count)",
+                    stringResource(R.string.admin1_filter_with_count, label, count),
                     fontFamily = DmSans,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -167,7 +169,7 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
         if (visible.isEmpty()) {
             AdminCard {
                 Text(
-                    "No hay solicitudes en esta categoría.",
+                    stringResource(R.string.admin1_featured_empty),
                     fontFamily = DmSans,
                     fontSize = 14.sp,
                     color = KarsyMid,
@@ -187,6 +189,8 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
 
 @Composable
 private fun FeaturedRequestCard(request: FeaturedRequest, onClick: () -> Unit) {
+    val requestPrefix = stringResource(R.string.admin1_user_requested_prefix)
+    val requestSuffix = stringResource(R.string.admin1_user_requested_suffix)
     val shape = RoundedCornerShape(16.dp)
     Column(
         modifier = Modifier
@@ -205,9 +209,9 @@ private fun FeaturedRequestCard(request: FeaturedRequest, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().height(170.dp).background(KarsyBg)
             )
             val (text, bg, fg) = when (request.status) {
-                FeaturedStatus.Aprobada -> Triple("★ Destacado", ApprovedBg, KarsySuccess)
-                FeaturedStatus.Rechazada -> Triple("Rechazada", RejectedBg, RejectedFg)
-                FeaturedStatus.Pendiente -> Triple("★ Solicitado", FeaturedYellowBg, FeaturedYellowFg)
+                FeaturedStatus.Aprobada -> Triple(stringResource(R.string.admin1_badge_featured), ApprovedBg, KarsySuccess)
+                FeaturedStatus.Rechazada -> Triple(stringResource(R.string.admin1_badge_rejected), RejectedBg, RejectedFg)
+                FeaturedStatus.Pendiente -> Triple(stringResource(R.string.admin1_badge_requested), FeaturedYellowBg, FeaturedYellowFg)
             }
             Text(
                 text,
@@ -271,11 +275,11 @@ private fun FeaturedRequestCard(request: FeaturedRequest, onClick: () -> Unit) {
                 Spacer(Modifier.width(4.dp))
                 Text(
                     buildAnnotatedString {
-                        append("El usuario ")
+                        append(requestPrefix)
                         withStyle(SpanStyle(color = KarsyNavy, fontWeight = FontWeight.Bold)) {
                             append(request.user)
                         }
-                        append(" ha solicitado destacar esta publicación.")
+                        append(requestSuffix)
                     },
                     fontFamily = DmSans,
                     fontSize = 12.sp,
@@ -296,6 +300,7 @@ private fun FeaturedRequestDetail(
     onReject: () -> Unit,
     onApprove: () -> Unit,
 ) {
+    val noDescription = stringResource(R.string.admin1_no_description)
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -305,7 +310,7 @@ private fun FeaturedRequestDetail(
                 .then(if (request.status != FeaturedStatus.Pendiente) Modifier.navigationBarsPadding() else Modifier)
         ) {
             Text(
-                "‹ Volver a solicitudes",
+                stringResource(R.string.admin1_back_to_requests_arrow),
                 fontFamily = DmSans,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
@@ -315,8 +320,8 @@ private fun FeaturedRequestDetail(
                     .padding(bottom = 14.dp)
             )
             AdminSectionHeader(
-                title = "Revisión de publicación",
-                description = "Revisa la publicación y decide si cumple con los criterios para aparecer en Destacados."
+                title = stringResource(R.string.admin1_review_title),
+                description = stringResource(R.string.admin1_review_desc)
             )
 
             val shape = RoundedCornerShape(18.dp)
@@ -337,7 +342,7 @@ private fun FeaturedRequestDetail(
                     )
                     if (request.status == FeaturedStatus.Aprobada) {
                         Text(
-                            "★ Destacado",
+                            stringResource(R.string.admin1_badge_featured),
                             fontFamily = DmSans,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.ExtraBold,
@@ -376,7 +381,7 @@ private fun FeaturedRequestDetail(
                     }
                     Spacer(Modifier.height(8.dp))
 
-                    SectionLabel("Ficha técnica")
+                    SectionLabel(stringResource(R.string.admin1_specs))
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier
@@ -386,25 +391,25 @@ private fun FeaturedRequestDetail(
                             .padding(16.dp)
                     ) {
                         Row {
-                            SpecText("Transmisión", request.transmision, Modifier.weight(1f))
-                            SpecText("Kilometraje", request.kilometraje, Modifier.weight(1f))
+                            SpecText(stringResource(R.string.admin1_spec_transmission), request.transmision, Modifier.weight(1f))
+                            SpecText(stringResource(R.string.admin1_spec_mileage), request.kilometraje, Modifier.weight(1f))
                         }
                         Row {
-                            SpecText("Color", request.color, Modifier.weight(1f))
-                            SpecText("Combustible", request.combustible, Modifier.weight(1f))
+                            SpecText(stringResource(R.string.admin1_spec_color), request.color, Modifier.weight(1f))
+                            SpecText(stringResource(R.string.admin1_spec_fuel), request.combustible, Modifier.weight(1f))
                         }
                     }
 
-                    SectionLabel("Descripción")
+                    SectionLabel(stringResource(R.string.admin1_description))
                     Text(
-                        request.description.ifBlank { "Sin descripción." },
+                        request.description.ifBlank { noDescription },
                         fontFamily = DmSans,
                         fontSize = 14.sp,
                         lineHeight = 23.sp,
                         color = KarsyTextSecondary
                     )
 
-                    SectionLabel("Solicitante")
+                    SectionLabel(stringResource(R.string.admin1_requester))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -430,7 +435,7 @@ private fun FeaturedRequestDetail(
                                 color = KarsyNavy
                             )
                             Text(
-                                "Ver perfil",
+                                stringResource(R.string.admin1_view_profile),
                                 fontFamily = DmSans,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
@@ -454,8 +459,8 @@ private fun FeaturedRequestDetail(
                     .navigationBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
-                BottomActionButton("Rechazar", AdminColors.Danger, Modifier.weight(1f), onReject)
-                BottomActionButton("Aprobar y Destacar", KarsyNavy, Modifier.weight(1f), onApprove)
+                BottomActionButton(stringResource(R.string.admin1_reject), AdminColors.Danger, Modifier.weight(1f), onReject)
+                BottomActionButton(stringResource(R.string.admin1_approve_and_feature), KarsyNavy, Modifier.weight(1f), onApprove)
             }
         }
     }
@@ -463,9 +468,10 @@ private fun FeaturedRequestDetail(
 
 @Composable
 private fun SpecText(label: String, value: String, modifier: Modifier = Modifier) {
+    val labelWithColon = stringResource(R.string.admin1_label_colon, label)
     Text(
         buildAnnotatedString {
-            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("$label: ") }
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(labelWithColon) }
             append(value)
         },
         fontFamily = DmSans,
@@ -507,6 +513,9 @@ private fun BottomActionButton(
 
 @Composable
 private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
+    val approvedPrefix = stringResource(R.string.admin1_approved_msg_prefix)
+    val approvedVehicle = stringResource(R.string.admin1_vehicle_with_year, request.vehicle, request.year)
+    val approvedSuffix = stringResource(R.string.admin1_approved_msg_suffix)
     Dialog(onDismissRequest = onDone, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -525,7 +534,7 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
             }
             Spacer(Modifier.height(16.dp))
             Text(
-                "¡Solicitud Aprobada!",
+                stringResource(R.string.admin1_approved_title),
                 fontFamily = Outfit,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -535,11 +544,11 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
             Spacer(Modifier.height(10.dp))
             Text(
                 buildAnnotatedString {
-                    append("La publicación de ")
+                    append(approvedPrefix)
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("${request.vehicle} (${request.year})")
+                        append(approvedVehicle)
                     }
-                    append(" ahora aparece en la sección de Destacados en la app de Karsy.")
+                    append(approvedSuffix)
                 },
                 fontFamily = DmSans,
                 fontSize = 14.sp,
@@ -549,14 +558,14 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Se ha notificado al usuario solicitante.",
+                stringResource(R.string.admin1_approved_notified),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 color = KarsyMid,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(20.dp))
-            BottomActionButton("Volver a solicitudes", KarsyNavy, Modifier.fillMaxWidth(), onDone)
+            BottomActionButton(stringResource(R.string.admin1_back_to_requests), KarsyNavy, Modifier.fillMaxWidth(), onDone)
         }
     }
 }
@@ -589,7 +598,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             }
             Spacer(Modifier.height(14.dp))
             Text(
-                "Rechazar solicitud para destacar",
+                stringResource(R.string.admin1_reject_dialog_title),
                 fontFamily = Outfit,
                 fontSize = 21.sp,
                 fontWeight = FontWeight.Bold,
@@ -599,7 +608,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Selecciona o escribe el motivo por el cual no se aprobó la solicitud para informarle al usuario.",
+                stringResource(R.string.admin1_reject_dialog_desc),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 lineHeight = 19.sp,
@@ -672,7 +681,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                     ) {
                         if (comment.isEmpty()) {
                             Text(
-                                "Añade detalles adicionales para el usuario (opcional)...",
+                                stringResource(R.string.admin1_reject_comment_hint),
                                 fontFamily = DmSans,
                                 fontSize = 13.sp,
                                 color = KarsyMid
@@ -686,10 +695,10 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             Spacer(Modifier.height(18.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 BottomActionButton(
-                    "Cancelar", KarsyBg, Modifier.weight(1f), onCancel, textColor = KarsyMid
+                    stringResource(R.string.admin1_cancel), KarsyBg, Modifier.weight(1f), onCancel, textColor = KarsyMid
                 )
                 BottomActionButton(
-                    "Rechazar y Notificar", AdminColors.Danger, Modifier.weight(1f),
+                    stringResource(R.string.admin1_reject_and_notify), AdminColors.Danger, Modifier.weight(1f),
                     onClick = { onConfirm(reason, comment) },
                     enabled = reason.isNotEmpty()
                 )

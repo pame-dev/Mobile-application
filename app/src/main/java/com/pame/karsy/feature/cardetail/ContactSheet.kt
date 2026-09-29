@@ -22,9 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,10 +43,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -80,6 +82,7 @@ internal fun ContactSheet(
     val telefono = contact?.telefono
     val whatsapp = contact?.whatsapp
     val prefiereWhatsapp = contact?.medioPrincipal == "whatsapp"
+    val mensajeWhatsapp = stringResource(R.string.detail_whatsapp_message, detail.car.title, detail.car.year)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -106,7 +109,7 @@ internal fun ContactSheet(
 
             Box(Modifier.fillMaxWidth().padding(bottom = 18.dp)) {
                 Text(
-                    "Información de contacto",
+                    stringResource(R.string.detail_contact_info_title),
                     textAlign = TextAlign.Center,
                     fontFamily = Outfit,
                     fontSize = 19.sp,
@@ -118,7 +121,7 @@ internal fun ContactSheet(
                     onClick = onDismiss,
                     modifier = Modifier.size(32.dp).align(Alignment.CenterEnd)
                 ) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = KarsyMid, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.detail_close), tint = KarsyMid, modifier = Modifier.size(18.dp))
                 }
             }
 
@@ -157,7 +160,7 @@ internal fun ContactSheet(
                         CircularProgressIndicator(color = KarsyTeal, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
                     } else {
                         Text(
-                            telefono ?: "Sin teléfono registrado",
+                            telefono ?: stringResource(R.string.detail_no_phone),
                             fontFamily = DmSans,
                             fontSize = 12.5.sp,
                             fontWeight = FontWeight.Bold,
@@ -165,14 +168,14 @@ internal fun ContactSheet(
                             modifier = Modifier.padding(bottom = 3.dp)
                         )
                         Text(
-                            whatsapp?.let { "WhatsApp: $it" } ?: "Sin WhatsApp",
+                            whatsapp?.let { stringResource(R.string.detail_whatsapp_number, it) } ?: stringResource(R.string.detail_no_whatsapp),
                             fontFamily = DmSans,
                             fontSize = 12.sp,
                             color = KarsyCharcoal
                         )
                         contact?.medioPrincipal?.let {
                             Text(
-                                if (it == "whatsapp") "Prefiere que le escribas por WhatsApp" else "Prefiere que le llames",
+                                if (it == "whatsapp") stringResource(R.string.detail_prefers_whatsapp) else stringResource(R.string.detail_prefers_call),
                                 fontFamily = DmSans,
                                 fontSize = 11.5.sp,
                                 color = KarsyMid,
@@ -192,16 +195,16 @@ internal fun ContactSheet(
                     .padding(12.dp)
             ) {
                 val llamar: @Composable (Boolean) -> Unit = { primary ->
-                    ContactButton("Llamar al vendedor", Icons.Rounded.Call, primary, enabled = telefono != null) {
+                    ContactButton(stringResource(R.string.detail_call_seller), Icons.Rounded.Call, primary, enabled = telefono != null) {
                         telefono?.let {
                             context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + it.filter { c -> c.isDigit() || c == '+' })))
                         }
                     }
                 }
                 val escribir: @Composable (Boolean) -> Unit = { primary ->
-                    ContactButton("Enviar WhatsApp", Icons.AutoMirrored.Rounded.Chat, primary, enabled = whatsapp != null) {
+                    ContactButton(stringResource(R.string.detail_send_whatsapp), Icons.AutoMirrored.Rounded.Chat, primary, enabled = whatsapp != null) {
                         whatsapp?.let {
-                            openWhatsapp(context, it, "Hola, me interesa tu ${detail.car.title} ${detail.car.year} que vi en Karsy.")
+                            openWhatsapp(context, it, mensajeWhatsapp)
                         }
                     }
                 }

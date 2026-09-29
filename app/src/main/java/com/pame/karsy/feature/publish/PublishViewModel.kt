@@ -9,6 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.Imagenes
@@ -124,19 +126,19 @@ class PublishViewModel : ViewModel() {
             val anioActual = Calendar.getInstance().get(Calendar.YEAR)
             val anioNum = anio.trim().toIntOrNull()
             when {
-                idMarca == null || (marcaEsOtro && marcaOtra.isBlank()) -> "Elige la marca."
-                idModelo == null || (modeloEsOtro && modeloOtro.isBlank()) -> "Elige el modelo."
-                anioNum == null || anioNum !in 1900..(anioActual + 1) -> "Escribe un año válido."
-                (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> "Escribe el precio."
-                idTransmision == null -> "Elige la transmisión."
-                kilometraje.filter(Char::isDigit).isEmpty() -> "Escribe el kilometraje."
-                idCarroceria == null -> "Elige el tipo de carro."
-                idColor == null -> "Elige el color."
+                idMarca == null || (marcaEsOtro && marcaOtra.isBlank()) -> texto(R.string.publish_error_brand)
+                idModelo == null || (modeloEsOtro && modeloOtro.isBlank()) -> texto(R.string.publish_error_model)
+                anioNum == null || anioNum !in 1900..(anioActual + 1) -> texto(R.string.publish_error_year)
+                (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> texto(R.string.publish_error_price)
+                idTransmision == null -> texto(R.string.publish_error_transmission)
+                kilometraje.filter(Char::isDigit).isEmpty() -> texto(R.string.publish_error_mileage)
+                idCarroceria == null -> texto(R.string.publish_error_body_type)
+                idColor == null -> texto(R.string.publish_error_color)
                 else -> null
             }
         }
-        2 -> if (fotosElegidas.isEmpty()) "Agrega al menos una foto." else null
-        3 -> if (descripcion.isBlank()) "Escribe una descripción del vehículo." else null
+        2 -> if (fotosElegidas.isEmpty()) texto(R.string.publish_error_photo) else null
+        3 -> if (descripcion.isBlank()) texto(R.string.publish_error_description) else null
         else -> null
     }
 

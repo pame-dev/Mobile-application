@@ -26,9 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
@@ -76,7 +78,7 @@ fun RegisterToast(
         Column(Modifier.weight(1f)) {
             Text(message, color = KarsyWhite, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             Text(
-                "Crea una cuenta gratis para continuar.",
+                stringResource(R.string.core_register_toast_subtitle),
                 color = Color.White.copy(alpha = 0.6f),
                 fontFamily = DmSans,
                 fontSize = 12.sp
@@ -88,10 +90,10 @@ fun RegisterToast(
             colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Text("Registrarme", fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.core_register_me), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
         IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
-            Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.core_close), tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
         }
     }
 }

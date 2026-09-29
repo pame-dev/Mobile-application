@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
@@ -63,10 +65,10 @@ class RegisterViewModel : ViewModel() {
     /** Campos llenos pero con un valor que no sirve (campo → mensaje). */
     private var invalid by mutableStateOf<Map<String, String>>(emptyMap())
 
-    fun errorFor(field: String): String? = if (field in missing) "Campo obligatorio" else invalid[field]
+    fun errorFor(field: String): String? = if (field in missing) texto(R.string.auth_field_required) else invalid[field]
 
     val passwordMismatch: String?
-        get() = if (confirmPassword.isNotEmpty() && password != confirmPassword) "Las contraseñas no coinciden." else null
+        get() = if (confirmPassword.isNotEmpty() && password != confirmPassword) texto(R.string.auth_passwords_mismatch) else null
 
     fun submit(
         esLote: Boolean,
@@ -90,22 +92,22 @@ class RegisterViewModel : ViewModel() {
         val numeroTelefono = soloNumero(telefono)
         val numeroWhatsapp = if (mismoWhatsapp) numeroTelefono else soloNumero(whatsapp)
         invalid = buildMap {
-            if (telefono.isNotBlank() && !esNumeroValido(numeroTelefono)) put("telefono", "Escribe un número de 10 dígitos.")
+            if (telefono.isNotBlank() && !esNumeroValido(numeroTelefono)) put("telefono", texto(R.string.auth_error_phone_digits))
             if (!mismoWhatsapp && whatsapp.isNotBlank() && !esNumeroValido(numeroWhatsapp)) {
-                put("whatsapp", "Escribe un número de 10 dígitos.")
+                put("whatsapp", texto(R.string.auth_error_phone_digits))
             }
             when {
-                medioContacto == null -> put("medio", "Elige cómo prefieres que te contacten.")
+                medioContacto == null -> put("medio", texto(R.string.auth_error_choose_contact))
                 medioContacto == WHATSAPP && numeroWhatsapp.isEmpty() ->
-                    put("whatsapp", "Escribe tu WhatsApp o elige Llamadas como método principal.")
+                    put("whatsapp", texto(R.string.auth_error_whatsapp_or_calls))
             }
         }
 
         error = when {
-            missing.isNotEmpty() -> "Completa los campos obligatorios."
-            invalid.isNotEmpty() -> "Revisa los datos marcados en rojo."
-            password != confirmPassword -> "Las contraseñas no coinciden."
-            !acceptedTerms -> "Acepta los términos y condiciones para continuar."
+            missing.isNotEmpty() -> texto(R.string.auth_error_complete_required)
+            invalid.isNotEmpty() -> texto(R.string.auth_error_check_red)
+            password != confirmPassword -> texto(R.string.auth_passwords_mismatch)
+            !acceptedTerms -> texto(R.string.auth_error_accept_terms)
             else -> null
         }
         if (error != null) return

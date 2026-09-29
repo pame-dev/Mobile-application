@@ -44,10 +44,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -83,7 +85,8 @@ private val alertIcons: List<ImageVector> = listOf(
 )
 
 private val rangeOptions = listOf("7", "30", "90")
-private fun rangeLabel(range: String) = "Últimos $range días"
+@Composable
+private fun rangeLabel(range: String) = stringResource(R.string.admin2_last_days, range.toInt())
 
 private val UsersColor = Color(0xFF3B82F6)
 private val LotsColor = Color(0xFF8B5CF6)
@@ -97,7 +100,10 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection) -> Unit) {
     AdminSectionScroll {
         // Saludo + selector de rango
         Text(
-            "¡Hola, ${SessionManager.account?.nombre ?: "Administrador"}!",
+            stringResource(
+                R.string.admin2_greeting,
+                SessionManager.account?.nombre ?: stringResource(R.string.admin2_administrator)
+            ),
             fontFamily = Outfit,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -106,7 +112,7 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection) -> Unit) {
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            "Resumen de la actividad en la plataforma.",
+            stringResource(R.string.admin2_home_subtitle),
             fontFamily = DmSans,
             fontSize = 14.sp,
             color = KarsyMid
@@ -268,7 +274,10 @@ private fun GrowthCard(stats: AdminStats, range: String, onRange: (String) -> Un
         Column(Modifier.padding(horizontal = 18.dp, vertical = 20.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
-                    CardTitle("Crecimiento de la plataforma", "Usuarios, lotes y publicaciones acumulados")
+                    CardTitle(
+                        stringResource(R.string.admin2_growth_title),
+                        stringResource(R.string.admin2_growth_subtitle)
+                    )
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -276,7 +285,7 @@ private fun GrowthCard(stats: AdminStats, range: String, onRange: (String) -> Un
                 rangeOptions.forEach { r ->
                     val active = range == r
                     Text(
-                        "${r}d",
+                        stringResource(R.string.admin2_range_short, r.toInt()),
                         fontFamily = DmSans,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -292,9 +301,9 @@ private fun GrowthCard(stats: AdminStats, range: String, onRange: (String) -> Un
             }
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                LegendItem("Usuarios", UsersColor)
-                LegendItem("Lotes", LotsColor)
-                LegendItem("Publicaciones", PostsColor)
+                LegendItem(stringResource(R.string.admin2_section_users), UsersColor)
+                LegendItem(stringResource(R.string.admin2_section_lots), LotsColor)
+                LegendItem(stringResource(R.string.admin2_legend_publications), PostsColor)
             }
             Spacer(Modifier.height(12.dp))
             val maximo = (stats.crecimientoUsuarios + stats.crecimientoPublicaciones + stats.crecimientoLotes)
@@ -329,10 +338,13 @@ private fun InteractionsCard(stats: AdminStats) {
 
     AdminCard {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 20.dp)) {
-            CardTitle("Interés en publicaciones", "Vistas de detalle vs. contactos al vendedor")
+            CardTitle(
+                stringResource(R.string.admin2_interest_title),
+                stringResource(R.string.admin2_interest_subtitle)
+            )
             Spacer(Modifier.height(10.dp))
             Text(
-                "$porcentaje% de las vistas terminan en contacto",
+                stringResource(R.string.admin2_conversion_badge, porcentaje),
                 fontFamily = DmSans,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
@@ -344,8 +356,8 @@ private fun InteractionsCard(stats: AdminStats) {
             )
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                LegendItem("Vistas", KarsyTeal, square = true)
-                LegendItem("Contactos", KarsyBorderMuted, square = true)
+                LegendItem(stringResource(R.string.admin2_views), KarsyTeal, square = true)
+                LegendItem(stringResource(R.string.admin2_contacts), KarsyBorderMuted, square = true)
             }
             Spacer(Modifier.height(14.dp))
             SalesComparisonChart(
@@ -359,9 +371,9 @@ private fun InteractionsCard(stats: AdminStats) {
             HorizontalDivider(thickness = 1.dp, color = KarsyBg)
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SummaryTile("Vistas", totalVia.toString(), KarsyTealLight, KarsyNavy, Modifier.weight(1f))
-                SummaryTile("Contactos", totalFuera.toString(), KarsyBg, KarsyNavy, Modifier.weight(1f))
-                SummaryTile("Conversión", "$porcentaje%", Color(0xFFF0FDF4), AdminColors.Green, Modifier.weight(1f))
+                SummaryTile(stringResource(R.string.admin2_views), totalVia.toString(), KarsyTealLight, KarsyNavy, Modifier.weight(1f))
+                SummaryTile(stringResource(R.string.admin2_contacts), totalFuera.toString(), KarsyBg, KarsyNavy, Modifier.weight(1f))
+                SummaryTile(stringResource(R.string.admin2_conversion), stringResource(R.string.admin2_percent, porcentaje), Color(0xFFF0FDF4), AdminColors.Green, Modifier.weight(1f))
             }
         }
     }
@@ -394,7 +406,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit,
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "Requiere atención",
+                    stringResource(R.string.admin2_needs_attention),
                     fontFamily = Outfit,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
@@ -402,7 +414,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    "Ver todos →",
+                    stringResource(R.string.admin2_see_all),
                     fontFamily = DmSans,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,

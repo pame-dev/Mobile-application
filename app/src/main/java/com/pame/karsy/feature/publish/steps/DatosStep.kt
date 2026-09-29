@@ -30,10 +30,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
@@ -80,53 +82,53 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     PublishStepScaffold(
         step = 1,
         onBack = onBack,
-        buttonText = "Siguiente: Fotos →",
+        buttonText = stringResource(R.string.publish_next_photos),
         onButtonClick = onNext
     ) {
         form.error?.let { StepError(it) }
 
         SectionCard {
-            SectionTitle("INFORMACIÓN DEL VEHÍCULO")
+            SectionTitle(stringResource(R.string.publish_section_vehicle_info))
 
             Column {
-                FieldLabel("MARCA")
+                FieldLabel(stringResource(R.string.publish_label_brand))
                 CatalogDropdown(
                     value = catalogs?.marcas?.firstOrNull { it.id == form.idMarca }?.nombre.orEmpty(),
-                    placeholder = if (catalogs == null) "Cargando marcas…" else "Selecciona una marca",
+                    placeholder = if (catalogs == null) stringResource(R.string.publish_loading_brands) else stringResource(R.string.publish_select_brand),
                     options = catalogs?.marcas.orEmpty().map { it.id to it.nombre },
                     onSelect = form::selectMarca
                 )
                 if (form.marcaEsOtro) {
-                    PublishTextInput(form.marcaOtra, { form.marcaOtra = it.take(60) }, "Escribe la marca")
+                    PublishTextInput(form.marcaOtra, { form.marcaOtra = it.take(60) }, stringResource(R.string.publish_enter_brand))
                 }
             }
 
             Column {
-                FieldLabel("MODELO")
+                FieldLabel(stringResource(R.string.publish_label_model))
                 CatalogDropdown(
                     value = catalogs?.modelos?.firstOrNull { it.id == form.idModelo }?.nombre.orEmpty(),
-                    placeholder = if (form.idMarca == null) "Primero elige la marca" else "Selecciona un modelo",
+                    placeholder = if (form.idMarca == null) stringResource(R.string.publish_choose_brand_first) else stringResource(R.string.publish_select_model),
                     options = catalogs?.modelosDe(form.idMarca).orEmpty().map { it.id to it.nombre },
                     onSelect = { form.idModelo = it }
                 )
                 if (form.modeloEsOtro) {
-                    PublishTextInput(form.modeloOtro, { form.modeloOtro = it.take(60) }, "Escribe el modelo")
+                    PublishTextInput(form.modeloOtro, { form.modeloOtro = it.take(60) }, stringResource(R.string.publish_enter_model))
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
-                    FieldLabel("AÑO")
+                    FieldLabel(stringResource(R.string.publish_label_year))
                     PublishTextInput(form.anio, { form.anio = it }, "2023", numeric = true)
                 }
                 Column(Modifier.weight(1f)) {
-                    FieldLabel("PRECIO ($)")
+                    FieldLabel(stringResource(R.string.publish_label_price))
                     PublishTextInput(form.precio, { form.precio = it }, "685,000", numeric = true)
                 }
             }
 
             Column {
-                FieldLabel("TRANSMISIÓN")
+                FieldLabel(stringResource(R.string.publish_label_transmission))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -155,27 +157,27 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             }
 
             Column {
-                FieldLabel("KILOMETRAJE")
+                FieldLabel(stringResource(R.string.publish_label_mileage))
                 PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18,500 km", numeric = true)
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
-                    FieldLabel("CILINDROS")
+                    FieldLabel(stringResource(R.string.publish_label_cylinders))
                     PublishTextInput(form.cilindros, { form.cilindros = it }, "4", numeric = true)
                 }
                 Column(Modifier.weight(1f)) {
-                    FieldLabel("CABALLOS DE FUERZA")
+                    FieldLabel(stringResource(R.string.publish_label_horsepower))
                     PublishTextInput(form.caballos, { form.caballos = it }, "184 hp", numeric = true)
                 }
             }
         }
 
         SectionCard {
-            SectionTitle("CLASIFICACIÓN")
+            SectionTitle(stringResource(R.string.publish_section_classification))
 
             Column {
-                FieldLabel("TIPO DE CARRO")
+                FieldLabel(stringResource(R.string.publish_label_body_type))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -200,7 +202,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             }
 
             Column {
-                FieldLabel("COLOR")
+                FieldLabel(stringResource(R.string.publish_label_color))
                 FlowRow(
                     modifier = Modifier.padding(top = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -219,9 +221,9 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         }
 
         SectionCard {
-            SectionTitle("INFORMACIÓN ADICIONAL")
+            SectionTitle(stringResource(R.string.publish_section_additional_info))
             Column {
-                FieldLabel("DUEÑOS ANTERIORES")
+                FieldLabel(stringResource(R.string.publish_label_previous_owners))
                 PublishTextInput(form.duenos, { form.duenos = it }, "1", numeric = true)
             }
         }

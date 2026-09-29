@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -90,7 +92,7 @@ fun FormInput(
                     IconButton(onClick = { show = !show }) {
                         Icon(
                             if (show) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-                            contentDescription = if (show) "Ocultar contraseña" else "Mostrar contraseña",
+                            contentDescription = stringResource(if (show) R.string.core_hide_password else R.string.core_show_password),
                             tint = KarsyMid
                         )
                     }

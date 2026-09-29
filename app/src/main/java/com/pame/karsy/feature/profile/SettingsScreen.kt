@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.profile
 
+import android.app.Activity
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,23 +22,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
 
-private data class SettingsItem(val icon: String, val label: String, val desc: String)
+private data class SettingsItem(
+    val icon: String,
+    @StringRes val labelRes: Int,
+    @StringRes val descRes: Int,
+    val isLanguage: Boolean = false,
+)
 
 private val settingsItems = listOf(
-    SettingsItem("🔔", "Notificaciones", "Alertas y avisos de tu cuenta"),
-    SettingsItem("🔒", "Privacidad y seguridad", "Contraseña, accesos y sesiones"),
-    SettingsItem("🌐", "Idioma", "Español (México)"),
-    SettingsItem("📄", "Términos y condiciones", "Políticas de privacidad y uso"),
+    SettingsItem("🔔", R.string.settings_notifications, R.string.settings_notifications_desc),
+    SettingsItem("🔒", R.string.settings_privacy, R.string.settings_privacy_desc),
+    SettingsItem("🌐", R.string.settings_language, R.string.settings_language_current, isLanguage = true),
+    SettingsItem("📄", R.string.settings_terms, R.string.settings_terms_desc),
 )
 
 /** Colores de la tarjeta de "Cerrar sesión" del mockup. */
@@ -46,13 +57,14 @@ private val LogoutRed = Color(0xFFD93025)
 /** Pantalla de configuración (WebConfigView del mockup). */
 @Composable
 fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(KarsyBg)
     ) {
         SubHeader(
-            title = "⚙️ Configuración",
+            title = stringResource(R.string.settings_title),
             onBack = onBack,
             modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
         )
@@ -69,7 +81,12 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                // TODO: abrir la sección correspondiente (notificaciones, seguridad, idioma, términos)
+                                if (item.isLanguage) {
+                                    // Alterna español ↔ inglés; la app se recrea en el idioma nuevo.
+                                    val nuevo = if (Idioma.actual(context) == Idioma.ES) Idioma.EN else Idioma.ES
+                                    (context as? Activity)?.let { Idioma.cambiar(it, nuevo) }
+                                }
+                                // TODO: abrir la sección correspondiente (notificaciones, seguridad, términos)
                             }
                             .padding(horizontal = 18.dp, vertical = 18.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -83,7 +100,7 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                item.label,
+                                stringResource(item.labelRes),
                                 fontFamily = DmSans,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 15.sp,
@@ -91,7 +108,7 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                item.desc,
+                                stringResource(item.descRes),
                                 fontFamily = DmSans,
                                 fontSize = 13.sp,
                                 color = KarsyMid
@@ -114,7 +131,7 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                 ) {
                     Text("🚪", fontSize = 20.sp)
                     Text(
-                        "Cerrar sesión",
+                        stringResource(R.string.settings_logout),
                         fontFamily = DmSans,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp,

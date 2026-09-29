@@ -47,11 +47,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
@@ -92,14 +94,14 @@ fun ProfileScreen(
             .background(KarsyBg)
     ) {
         SubHeader(
-            title = "Mi perfil",
+            title = stringResource(R.string.profile_title),
             onBack = onBack,
             modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
         ) {
             IconButton(onClick = onHistory) {
                 Icon(
                     Icons.Outlined.History,
-                    contentDescription = "Historial",
+                    contentDescription = stringResource(R.string.profile_history_cd),
                     tint = KarsyNavy,
                     modifier = Modifier.size(22.dp)
                 )
@@ -107,7 +109,7 @@ fun ProfileScreen(
             IconButton(onClick = onSettings) {
                 Icon(
                     Icons.Outlined.Settings,
-                    contentDescription = "Configuración",
+                    contentDescription = stringResource(R.string.profile_settings_cd),
                     tint = KarsyNavy,
                     modifier = Modifier.size(22.dp)
                 )
@@ -152,7 +154,7 @@ fun ProfileScreen(
 
             PostsCard(
                 cars = vm.cars,
-                panelLabel = if (userMode.isAdmin) "Panel admin" else "+ Mi panel",
+                panelLabel = if (userMode.isAdmin) stringResource(R.string.profile_panel_admin) else stringResource(R.string.profile_panel_seller),
                 onPanel = onPanel,
                 onCarClick = onCarClick
             )
@@ -229,7 +231,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                     modifier = Modifier.padding(bottom = 4.dp)
                 ) {
                     Text(
-                        "Editar perfil",
+                        stringResource(R.string.profile_edit_profile),
                         fontFamily = DmSans,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold
@@ -251,7 +253,10 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                         modifier = Modifier.weight(1f, fill = false)
                     )
                     if (userMode == UserMode.LOTE || userMode.isAdmin) {
-                        AccountBadge(if (userMode.isAdmin) "Administrador" else "Lote")
+                        AccountBadge(
+                            if (userMode.isAdmin) stringResource(R.string.profile_badge_admin)
+                            else stringResource(R.string.profile_badge_lot)
+                        )
                     }
                 }
                 Spacer(Modifier.height(2.dp))
@@ -330,7 +335,7 @@ private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, 
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                "Mis publicaciones",
+                stringResource(R.string.profile_my_posts),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
@@ -361,7 +366,7 @@ private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, 
         ) {
             if (cars.isEmpty()) {
                 Text(
-                    "Aún no tienes publicaciones.",
+                    stringResource(R.string.profile_no_posts),
                     fontFamily = DmSans,
                     fontSize = 13.sp,
                     color = KarsyMid,
@@ -387,7 +392,7 @@ private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, 
                             )
                             // Estado de moderación / venta cuando no está activo.
                             if (car.status != "Activo") Text(
-                                car.status,
+                                carStatusLabel(car.status),
                                 fontFamily = DmSans,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold,

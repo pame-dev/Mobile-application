@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
@@ -14,6 +16,7 @@ import com.pame.karsy.data.repository.CatalogRepository
 import com.pame.karsy.data.repository.Catalogs
 import kotlinx.coroutines.launch
 
+// Valores internos de "sin filtro" (se comparan en visibleCars); su etiqueta visible está en rememberFilterLabel().
 internal const val TODAS = "Todas"
 internal const val TODOS = "Todos"
 internal const val CUALQUIERA = "Cualquiera"
@@ -60,11 +63,11 @@ class HomeViewModel : ViewModel() {
     val visibleCars: List<Car>
         get() {
             val f = filters
-            val texto = query.trim().lowercase()
+            val busqueda = query.trim().lowercase()
             val min = f.precioMin.filter(Char::isDigit).toDoubleOrNull()
             val max = f.precioMax.filter(Char::isDigit).toDoubleOrNull()
             val lista = cars.filter { car ->
-                (texto.isEmpty() || "${car.brand} ${car.model} ${car.year}".lowercase().contains(texto)) &&
+                (busqueda.isEmpty() || "${car.brand} ${car.model} ${car.year}".lowercase().contains(busqueda)) &&
                     (f.marca == TODAS || car.brand == f.marca) &&
                     (f.modelo == TODOS || car.model == f.modelo) &&
                     (f.anio == CUALQUIERA || car.year.toString() == f.anio) &&
@@ -97,9 +100,9 @@ class HomeViewModel : ViewModel() {
     /** Cantidades reales para el encabezado (vehículos, marcas y modelos). */
     val heroStats: List<Pair<String, String>>
         get() = listOf(
-            cars.size.toString() to "Vehículos",
-            (catalogs?.marcas?.count { !it.esOtro } ?: 0).toString() to "Marcas",
-            (catalogs?.modelos?.count { !it.esOtro } ?: 0).toString() to "Modelos",
+            cars.size.toString() to texto(R.string.home_stat_vehicles),
+            (catalogs?.marcas?.count { !it.esOtro } ?: 0).toString() to texto(R.string.home_stat_brands),
+            (catalogs?.modelos?.count { !it.esOtro } ?: 0).toString() to texto(R.string.home_stat_models),
         )
 
     /** Se llama cada vez que la pantalla aparece (p. ej. al volver del detalle). */

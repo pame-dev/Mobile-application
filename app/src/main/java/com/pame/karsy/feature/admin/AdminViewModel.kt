@@ -1,16 +1,22 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.locale.textoPlural
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.CuentaAdminDto
 import com.pame.karsy.data.remote.DestacadoAdminDto
@@ -18,7 +24,6 @@ import com.pame.karsy.data.remote.ReporteAdminDto
 import com.pame.karsy.data.repository.AdminRepository
 import com.pame.karsy.data.repository.AdminStats
 import com.pame.karsy.data.repository.StatsRepository
-import com.pame.karsy.data.model.Car
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -144,7 +149,7 @@ class AdminViewModel : ViewModel() {
                 FeaturedRequest(
                     id = s.idSolicitud,
                     publicationId = s.idPublicacion,
-                    vehicle = car?.title ?: "Publicación #${s.idPublicacion}",
+                    vehicle = car?.title ?: texto(R.string.admin2_publication_number, s.idPublicacion),
                     year = car?.year ?: 0,
                     price = car?.let { "${it.price} ${it.currency}" } ?: "—",
                     image = car?.imageUrl,
@@ -170,11 +175,11 @@ class AdminViewModel : ViewModel() {
             val s = stats ?: return emptyList()
             val pctActivas = if (s.publicadas == 0) 0 else (s.activas * 100f / s.publicadas).roundToInt()
             return listOf(
-                AdminKpi("Usuarios registrados", Formato.entero(s.usuarios), "+${s.usuariosNuevos}", true, Color(0xFF3B82F6), Color(0xFFEFF6FF)),
-                AdminKpi("Lotes registrados", Formato.entero(s.lotes), "+${s.lotesNuevos}", true, Color(0xFFA855F7), Color(0xFFF5F3FF)),
-                AdminKpi("Vehículos publicados", Formato.entero(s.publicadas), "+${s.publicadasNuevas}", true, Color(0xFF14B8A6), Color(0xFFF0FDFA)),
-                AdminKpi("Publicaciones activas", Formato.entero(s.activas), "$pctActivas%", true, Color(0xFF22C55E), Color(0xFFF0FDF4)),
-                AdminKpi("Publicaciones deshabilitadas", Formato.entero(s.deshabilitadas), "${s.deshabilitadas}", false, Color(0xFFF59E0B), Color(0xFFFFFBEB)),
+                AdminKpi(texto(R.string.admin2_kpi_users), Formato.entero(s.usuarios), "+${s.usuariosNuevos}", true, Color(0xFF3B82F6), Color(0xFFEFF6FF)),
+                AdminKpi(texto(R.string.admin2_kpi_lots), Formato.entero(s.lotes), "+${s.lotesNuevos}", true, Color(0xFFA855F7), Color(0xFFF5F3FF)),
+                AdminKpi(texto(R.string.admin2_kpi_published), Formato.entero(s.publicadas), "+${s.publicadasNuevas}", true, Color(0xFF14B8A6), Color(0xFFF0FDFA)),
+                AdminKpi(texto(R.string.admin2_kpi_active), Formato.entero(s.activas), "$pctActivas%", true, Color(0xFF22C55E), Color(0xFFF0FDF4)),
+                AdminKpi(texto(R.string.admin2_kpi_disabled), Formato.entero(s.deshabilitadas), "${s.deshabilitadas}", false, Color(0xFFF59E0B), Color(0xFFFFFBEB)),
             )
         }
 
@@ -182,11 +187,11 @@ class AdminViewModel : ViewModel() {
         get() {
             val s = stats ?: return emptyList()
             return listOf(
-                AdminAlert("${s.deshabilitadas} publicaciones deshabilitadas", Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos),
-                AdminAlert("${s.suspendidas} cuentas suspendidas", Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios),
-                AdminAlert("${s.lotesNuevos} lotes nuevos en ${range} días", Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Lotes),
-                AdminAlert("${s.propuestasPendientes} publicaciones pendientes de revisión", Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
-                AdminAlert("${s.reportesPendientes} reportes pendientes", Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadas, s.deshabilitadas), Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_suspended, s.suspendidas, s.suspendidas), Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Lotes),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
             )
         }
 
@@ -204,7 +209,7 @@ class AdminViewModel : ViewModel() {
     }
 
     fun setSuspended(accountId: String, suspend: Boolean) = perform(
-        if (suspend) "Cuenta suspendida." else "Cuenta reactivada."
+        texto(if (suspend) R.string.admin2_msg_account_suspended else R.string.admin2_msg_account_reactivated)
     ) {
         AdminRepository.setAccountSuspended(
             accountId, suspend, if (suspend) "Suspendida desde el panel de administración." else "Reactivada desde el panel de administración."
@@ -212,14 +217,14 @@ class AdminViewModel : ViewModel() {
     }
 
     fun moderate(vehicle: AdminVehicle, approve: Boolean) = perform(
-        if (approve) "Publicación aprobada." else "Publicación rechazada."
+        texto(if (approve) R.string.admin2_msg_publication_approved else R.string.admin2_msg_publication_rejected)
     ) {
-        val id = vehicle.pendingProposalId ?: throw UserFacingException("No hay nada pendiente de revisar.")
+        val id = vehicle.pendingProposalId ?: throw UserFacingException(texto(R.string.admin2_msg_nothing_pending))
         AdminRepository.moderateProposal(id, approve, if (approve) null else "No cumple con las reglas de publicación.")
     }
 
     fun setVehicleEnabled(vehicle: AdminVehicle, enabled: Boolean) = perform(
-        if (enabled) "Publicación habilitada." else "Publicación deshabilitada."
+        texto(if (enabled) R.string.admin2_msg_publication_enabled else R.string.admin2_msg_publication_disabled)
     ) {
         AdminRepository.setCarEnabled(
             vehicle.id, enabled, if (enabled) "Habilitada desde el panel." else "Deshabilitada desde el panel."
@@ -227,7 +232,7 @@ class AdminViewModel : ViewModel() {
     }
 
     fun resolveReport(report: AdminReport, disableCar: Boolean) = perform(
-        if (disableCar) "Reporte atendido y publicación deshabilitada." else "Reporte marcado como atendido."
+        texto(if (disableCar) R.string.admin2_msg_report_resolved_disabled else R.string.admin2_msg_report_resolved)
     ) {
         AdminRepository.resolveReport(
             report.id,
@@ -237,13 +242,40 @@ class AdminViewModel : ViewModel() {
         )
     }
 
-    fun dismissReport(report: AdminReport) = perform("Reporte descartado.") {
+    fun dismissReport(report: AdminReport) = perform(texto(R.string.admin2_msg_report_dismissed)) {
         AdminRepository.resolveReport(report.id, "descartado", "El reporte no procede.", false)
     }
 
     fun resolveFeatured(request: FeaturedRequest, approve: Boolean, reason: String? = null) = perform(
-        if (approve) "Publicación destacada por 1 mes." else "Solicitud rechazada."
+        texto(if (approve) R.string.admin2_msg_featured_approved else R.string.admin2_msg_featured_rejected)
     ) {
         AdminRepository.resolveFeatured(request.id, approve, reason)
     }
 }
+
+/**
+ * Etiqueta traducida de los valores internos del panel (estados, tipos y filtros).
+ * Los valores se siguen comparando en español; aquí solo se traduce lo que se muestra.
+ */
+internal fun adminValueLabelRes(value: String): Int? = when (value) {
+    "Todos" -> R.string.admin2_value_all
+    "Activo" -> R.string.admin2_value_active
+    "Suspendido" -> R.string.admin2_value_suspended
+    "Particular" -> R.string.admin2_value_individual
+    "Lote" -> R.string.admin2_value_lot
+    "Pendiente" -> R.string.admin2_value_pending
+    "Cambios pendientes" -> R.string.admin2_value_pending_changes
+    "Rechazado" -> R.string.admin2_value_rejected
+    "Deshabilitado" -> R.string.admin2_value_disabled
+    "Pausado" -> R.string.admin2_value_paused
+    "Vendido" -> R.string.admin2_value_sold
+    "Atendido" -> R.string.admin2_value_resolved
+    "Descartado" -> R.string.admin2_value_dismissed
+    "Usuario" -> R.string.admin2_value_user
+    "Publicación" -> R.string.admin2_value_publication
+    else -> null
+}
+
+@Composable
+internal fun adminValueLabel(value: String): String =
+    adminValueLabelRes(value)?.let { stringResource(it) } ?: value

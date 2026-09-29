@@ -2,6 +2,8 @@ package com.pame.karsy.core.supabase
 
 import android.util.Log
 import com.pame.karsy.BuildConfig
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.util.UserFacingException
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
@@ -54,34 +56,34 @@ object Supabase {
     }
 }
 
-private const val ERROR_GENERICO = "Ocurrió un error. Inténtalo de nuevo."
+private val ERROR_GENERICO: String get() = texto(R.string.core_error_generic)
 
 /**
- * Mensaje en español para mostrar al usuario. Nunca muestra textos técnicos
+ * Mensaje (en el idioma de la app) para mostrar al usuario. Nunca muestra textos técnicos
  * (de Supabase, de la BD o de librerías): esos se registran en Logcat.
  */
 fun Throwable.mensajeUsuario(): String = when (this) {
     is UserFacingException -> message ?: ERROR_GENERICO
     is AuthRestException -> when (error) {
-        "invalid_credentials", "invalid_grant" -> "Correo o contraseña incorrectos."
-        "user_already_exists", "email_exists" -> "Ya existe una cuenta con ese correo."
-        "weak_password" -> "La contraseña debe tener al menos 6 caracteres."
-        "email_not_confirmed" -> "Confirma tu correo antes de iniciar sesión."
-        "otp_expired" -> "El código es incorrecto o ya expiró."
-        "same_password" -> "La nueva contraseña debe ser diferente a la anterior."
+        "invalid_credentials", "invalid_grant" -> texto(R.string.core_error_invalid_credentials)
+        "user_already_exists", "email_exists" -> texto(R.string.core_error_email_exists)
+        "weak_password" -> texto(R.string.core_error_weak_password)
+        "email_not_confirmed" -> texto(R.string.core_error_email_not_confirmed)
+        "otp_expired" -> texto(R.string.core_error_otp_expired)
+        "same_password" -> texto(R.string.core_error_same_password)
         "over_email_send_rate_limit", "over_request_rate_limit" ->
-            "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."
-        "validation_failed", "email_address_invalid" -> "Revisa que el correo sea válido."
-        "email_address_not_authorized" -> "No pudimos enviar el correo a esa dirección. Inténtalo más tarde."
+            texto(R.string.core_error_rate_limit)
+        "validation_failed", "email_address_invalid" -> texto(R.string.core_error_invalid_email)
+        "email_address_not_authorized" -> texto(R.string.core_error_email_not_authorized)
         else -> generico()
     }
     // P0001 = RAISE EXCEPTION de las funciones de la BD, que ya vienen en español.
     is PostgrestRestException -> when (code) {
         "P0001" -> error
-        "42501" -> "No tienes permiso para hacer esto."
+        "42501" -> texto(R.string.core_error_no_permission)
         else -> generico()
     }
-    is HttpRequestException, is IOException -> "Sin conexión con el servidor. Revisa tu Internet."
+    is HttpRequestException, is IOException -> texto(R.string.core_error_no_connection)
     else -> generico()
 }
 

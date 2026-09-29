@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
@@ -39,9 +41,9 @@ class DashboardViewModel : ViewModel() {
     val viewsTrend: String
         get() {
             val s = stats ?: return ""
-            if (s.vistasMesAnterior == 0) return "${s.vistasMes} este mes"
+            if (s.vistasMesAnterior == 0) return texto(R.string.profile_dashboard_trend_this_month, s.vistasMes)
             val pct = ((s.vistasMes - s.vistasMesAnterior) * 100f / s.vistasMesAnterior).roundToInt()
-            return if (pct >= 0) "▲ +$pct% este mes" else "▼ $pct% este mes"
+            return if (pct >= 0) texto(R.string.profile_dashboard_trend_up, pct) else texto(R.string.profile_dashboard_trend_down, pct)
         }
 
     /** Auto para el que se muestra el diálogo "¿Quieres destacar tu vehículo?". */
@@ -83,7 +85,7 @@ class DashboardViewModel : ViewModel() {
                 }
                 .onFailure {
                     val msg = it.mensajeUsuario()
-                    error = if (msg.contains("uq_solicitudes_pendiente")) "Ya hay una solicitud pendiente para este vehículo." else msg
+                    error = if (msg.contains("uq_solicitudes_pendiente")) texto(R.string.profile_dashboard_request_already_pending) else msg
                 }
         }
     }

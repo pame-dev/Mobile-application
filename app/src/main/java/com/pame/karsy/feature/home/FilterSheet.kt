@@ -54,11 +54,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
@@ -73,7 +75,33 @@ import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
+// Valores internos del orden (se comparan en HomeViewModel); no se traducen, solo su etiqueta visible.
 internal val ORDEN_OPCIONES = listOf("Más recientes", "Menor precio", "Mayor precio")
+
+/**
+ * Etiqueta visible de los valores internos de filtros/orden (TODAS, TODOS, CUALQUIERA, ORDEN_OPCIONES).
+ * Cualquier otro valor (marcas, modelos, años, tipos de la BD) se muestra tal cual.
+ */
+@Composable
+internal fun rememberFilterLabel(): (String) -> String {
+    val todas = stringResource(R.string.home_filter_all_fem)
+    val todos = stringResource(R.string.home_filter_all_masc)
+    val cualquiera = stringResource(R.string.home_filter_any)
+    val recientes = stringResource(R.string.home_sort_newest)
+    val menor = stringResource(R.string.home_sort_price_low)
+    val mayor = stringResource(R.string.home_sort_price_high)
+    return { valor ->
+        when (valor) {
+            TODAS -> todas
+            TODOS -> todos
+            CUALQUIERA -> cualquiera
+            ORDEN_OPCIONES[0] -> recientes
+            ORDEN_OPCIONES[1] -> menor
+            ORDEN_OPCIONES[2] -> mayor
+            else -> valor
+        }
+    }
+}
 
 /**
  * Panel lateral derecho con los filtros del marketplace (menú de filtros del mockup).
@@ -140,6 +168,7 @@ private fun FilterPanel(
     var precioMin by rememberSaveable(filters) { mutableStateOf(filters.precioMin) }
     var precioMax by rememberSaveable(filters) { mutableStateOf(filters.precioMax) }
     var orden by rememberSaveable(filters) { mutableStateOf(filters.orden) }
+    val filterLabel = rememberFilterLabel()
 
     Column(
         Modifier
@@ -159,7 +188,7 @@ private fun FilterPanel(
         ) {
             KarsyBrand(logoSize = 30.dp, fontSize = 17.sp)
             IconButton(onClick = onDismiss) {
-                Icon(Icons.Rounded.Close, contentDescription = "Cerrar", tint = KarsyMid, modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.home_close), tint = KarsyMid, modifier = Modifier.size(20.dp))
             }
         }
         HorizontalDivider(color = KarsyBorder)
@@ -176,7 +205,7 @@ private fun FilterPanel(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)
                 )
                 Text(
-                    "FILTROS",
+                    stringResource(R.string.home_filters_title),
                     fontFamily = DmSans,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
@@ -185,20 +214,20 @@ private fun FilterPanel(
                     modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 8.dp)
                 )
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    FilterField("Marca") {
-                        KarsySelect(marca, options.marcas, { marca = it; modelo = TODOS })
+                    FilterField(stringResource(R.string.home_filter_brand)) {
+                        KarsySelect(marca, options.marcas, { marca = it; modelo = TODOS }, label = filterLabel)
                     }
-                    FilterField("Modelo") { KarsySelect(modelo, options.modelos(marca), { modelo = it }) }
-                    FilterField("Año") { KarsySelect(anio, options.anios, { anio = it }) }
-                    FilterField("Tipo") { KarsySelect(tipo, options.tipos, { tipo = it }) }
-                    FilterField("Rango de precio") {
+                    FilterField(stringResource(R.string.home_filter_model)) { KarsySelect(modelo, options.modelos(marca), { modelo = it }, label = filterLabel) }
+                    FilterField(stringResource(R.string.home_filter_year)) { KarsySelect(anio, options.anios, { anio = it }, label = filterLabel) }
+                    FilterField(stringResource(R.string.home_filter_type)) { KarsySelect(tipo, options.tipos, { tipo = it }, label = filterLabel) }
+                    FilterField(stringResource(R.string.home_filter_price_range)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            PriceInput(precioMin, { precioMin = it }, "Mín. $0", Modifier.weight(1f))
-                            PriceInput(precioMax, { precioMax = it }, "Máx. $2M", Modifier.weight(1f))
+                            PriceInput(precioMin, { precioMin = it }, stringResource(R.string.home_price_min_placeholder), Modifier.weight(1f))
+                            PriceInput(precioMax, { precioMax = it }, stringResource(R.string.home_price_max_placeholder), Modifier.weight(1f))
                         }
                     }
-                    FilterField("Ordenar por", bottom = 16) {
-                        KarsySelect(orden, ORDEN_OPCIONES, { orden = it })
+                    FilterField(stringResource(R.string.home_sort_by), bottom = 16) {
+                        KarsySelect(orden, ORDEN_OPCIONES, { orden = it }, label = filterLabel)
                     }
                     Row(
                         Modifier.padding(bottom = 8.dp),
@@ -216,7 +245,7 @@ private fun FilterPanel(
                             contentPadding = PaddingValues(vertical = 10.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Limpiar", fontFamily = DmSans, fontSize = 13.sp)
+                            Text(stringResource(R.string.home_clear), fontFamily = DmSans, fontSize = 13.sp)
                         }
                         Button(
                             onClick = {
@@ -228,7 +257,7 @@ private fun FilterPanel(
                             contentPadding = PaddingValues(vertical = 10.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Aplicar", fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.home_apply), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -242,7 +271,7 @@ private fun FilterPanel(
                         .padding(16.dp)
                 ) {
                     Text(
-                        "Crea una cuenta para acceder a los filtros y funciones exclusivas.",
+                        stringResource(R.string.home_filters_visitor_message),
                         fontFamily = DmSans,
                         fontSize = 13.sp,
                         lineHeight = 19.5.sp,
@@ -256,7 +285,7 @@ private fun FilterPanel(
                         contentPadding = PaddingValues(vertical = 10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Regístrate gratis →", fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.home_register_free), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -318,6 +347,7 @@ internal fun KarsySelect(
     fillWidth: Boolean = true,
     container: Color = KarsyBg,
     textColor: Color = KarsyCharcoal,
+    label: (String) -> String = { it },
 ) {
     var expanded by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(10.dp)
@@ -335,7 +365,7 @@ internal fun KarsySelect(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
-                selected,
+                label(selected),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 color = textColor,
@@ -353,7 +383,7 @@ internal fun KarsySelect(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            opt,
+                            label(opt),
                             fontFamily = DmSans,
                             fontSize = 13.sp,
                             color = if (opt == selected) KarsyTeal else KarsyCharcoal,
