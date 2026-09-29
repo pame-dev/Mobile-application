@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.admin
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,24 +39,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 /** Secciones del panel de administración (barra lateral del mockup). */
-enum class AdminSection(val label: String) {
-    Inicio("Inicio"),
-    Usuarios("Usuarios"),
-    Lotes("Lotes"),
-    Vehiculos("Vehículos"),
-    Reportes("Reportes"),
-    Destacados("Destacados");
+enum class AdminSection(@StringRes val labelRes: Int) {
+    Inicio(R.string.admin2_section_home),
+    Usuarios(R.string.admin2_section_users),
+    Lotes(R.string.admin2_section_lots),
+    Vehiculos(R.string.admin2_section_vehicles),
+    Reportes(R.string.admin2_section_reports),
+    Destacados(R.string.admin2_section_featured);
+
+    val label: String get() = texto(labelRes)
 
     val icon: ImageVector
         get() = when (this) {
@@ -151,14 +157,14 @@ fun AdminDrawerContent(
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
-                        adminName.ifEmpty { "Administrador" },
+                        adminName.ifEmpty { stringResource(R.string.admin2_administrator) },
                         fontFamily = DmSans,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = KarsyWhite.copy(alpha = 0.85f)
                     )
                     Text(
-                        "Cerrar sesión",
+                        stringResource(R.string.admin2_logout),
                         fontFamily = DmSans,
                         fontSize = 12.sp,
                         color = KarsyWhite.copy(alpha = 0.6f),
@@ -201,7 +207,7 @@ private fun DrawerItem(section: AdminSection, badge: Int?, active: Boolean, onCl
         }
         Spacer(Modifier.width(14.dp))
         Text(
-            section.label,
+            stringResource(section.labelRes),
             fontFamily = DmSans,
             fontSize = 14.sp,
             fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,

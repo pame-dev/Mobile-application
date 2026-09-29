@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
@@ -95,7 +97,7 @@ class CarDetailViewModel : ViewModel() {
                 .onSuccess { onDone(null) }
                 .onFailure {
                     val msg = it.mensajeUsuario()
-                    onDone(if (msg.contains("uq_reportes")) "Ya habías reportado esta publicación." else msg)
+                    onDone(if (msg.contains("uq_reportes")) texto(R.string.detail_already_reported) else msg)
                 }
         }
     }

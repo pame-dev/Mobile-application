@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -67,13 +69,16 @@ fun TermsCheckbox(
                 Icon(Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(14.dp))
             }
         }
+        val termsPrefix = stringResource(R.string.core_terms_prefix)
+        val termsLink = stringResource(R.string.core_terms_link)
+        val termsSuffix = stringResource(R.string.core_terms_suffix)
         Text(
             text = buildAnnotatedString {
-                append("Acepto los ")
+                append(termsPrefix)
                 withStyle(SpanStyle(color = KarsyTeal, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)) {
-                    append("términos y condiciones")
+                    append(termsLink)
                 }
-                append(" de KARSY.")
+                append(termsSuffix)
             },
             fontFamily = DmSans,
             fontSize = 12.sp,

@@ -24,11 +24,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.components.OtpInput
 import com.pame.karsy.core.components.PrimaryButton
@@ -72,7 +74,7 @@ fun VerifyEmailScreen(
                 .padding(start = 12.dp, end = 24.dp, top = 8.dp)
         ) {
             IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
-                Icon(Icons.Rounded.ChevronLeft, contentDescription = "Regresar", tint = KarsyNavy, modifier = Modifier.size(28.dp))
+                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
             }
             KarsyLogo(size = 46.dp, modifier = Modifier.align(Alignment.Center))
         }
@@ -84,7 +86,7 @@ fun VerifyEmailScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Verifica tu correo",
+                stringResource(R.string.auth_verify_email_title),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 25.sp,
@@ -94,8 +96,7 @@ fun VerifyEmailScreen(
             )
             Spacer(Modifier.height(9.dp))
             Text(
-                "Ingresa el código de $EMAIL_CODE_LENGTH dígitos que enviamos a " +
-                    "${Formato.correoOculto(email) ?: email}. Si no lo ves, revisa tu carpeta de spam.",
+                stringResource(R.string.auth_verify_email_subtitle, EMAIL_CODE_LENGTH, Formato.correoOculto(email) ?: email),
                 fontFamily = DmSans,
                 fontSize = 13.5.sp,
                 lineHeight = 21.sp,
@@ -110,7 +111,7 @@ fun VerifyEmailScreen(
             ResendCodeRow(sending = vm.sending, secondsLeft = vm.countdown.seconds, onResend = { vm.resend(email) })
             Spacer(Modifier.height(28.dp))
             PrimaryButton(
-                text = if (vm.verifying) "Verificando…" else "Verificar",
+                text = if (vm.verifying) stringResource(R.string.auth_verifying) else stringResource(R.string.auth_verify),
                 enabled = !vm.verifying,
                 onClick = { vm.verify(email, onVerified) },
                 modifier = Modifier.alpha(if (complete) 1f else 0.55f)

@@ -17,12 +17,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -78,20 +80,20 @@ internal fun RegisterError(message: String?) {
 @Composable
 internal fun ContactFields(vm: RegisterViewModel, phoneLabel: String) {
     FormInput(
-        label = phoneLabel, placeholder = "10 dígitos", keyboardType = KeyboardType.Phone,
+        label = phoneLabel, placeholder = stringResource(R.string.auth_phone_placeholder), keyboardType = KeyboardType.Phone,
         value = vm.telefono, onValueChange = { vm.telefono = it }, error = vm.errorFor("telefono")
     )
 
-    FieldQuestion("¿Usas este mismo número para WhatsApp?")
+    FieldQuestion(stringResource(R.string.auth_same_whatsapp_question))
     OptionButtons(
-        options = listOf("Sí", "No"),
+        options = listOf(stringResource(R.string.auth_yes), stringResource(R.string.auth_no)),
         selected = if (vm.mismoWhatsapp) 0 else 1,
         onSelect = { vm.mismoWhatsapp = it == 0 },
         modifier = Modifier.padding(bottom = 16.dp)
     )
     FormInput(
         label = "WhatsApp",
-        placeholder = if (vm.mismoWhatsapp) "Igual a tu teléfono" else "Otro número (opcional)",
+        placeholder = if (vm.mismoWhatsapp) stringResource(R.string.auth_whatsapp_same_as_phone) else stringResource(R.string.auth_whatsapp_other_optional),
         keyboardType = KeyboardType.Phone,
         value = if (vm.mismoWhatsapp) vm.telefono else vm.whatsapp,
         onValueChange = { vm.whatsapp = it },
@@ -99,9 +101,9 @@ internal fun ContactFields(vm: RegisterViewModel, phoneLabel: String) {
         error = vm.errorFor("whatsapp")
     )
 
-    FieldQuestion("Método de contacto principal")
+    FieldQuestion(stringResource(R.string.auth_contact_method_question))
     OptionButtons(
-        options = listOf("WhatsApp", "Llamadas"),
+        options = listOf("WhatsApp", stringResource(R.string.auth_contact_calls)),
         selected = when (vm.medioContacto) {
             RegisterViewModel.WHATSAPP -> 0
             RegisterViewModel.LLAMADA -> 1

@@ -55,6 +55,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -63,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.components.RegisterToast
@@ -104,10 +107,13 @@ fun HomeScreen(
 
     val isVisitor = !userMode.isLoggedIn
     val showHeart = !userMode.isAdmin
+    val favoritesToast = stringResource(R.string.home_toast_register_favorites)
+    val publishToast = stringResource(R.string.home_toast_register_publish)
+    val filterLabel = rememberFilterLabel()
 
     val toggleFavorite: (Long) -> Unit = { id ->
         if (isVisitor) {
-            toastMsg = "Regístrate para guardar tus favoritos"
+            toastMsg = favoritesToast
         } else {
             vm.toggleFavorite(id) { toastMsg = it }
         }
@@ -161,8 +167,8 @@ fun HomeScreen(
                 if (featured.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                     Column(Modifier.padding(top = 8.dp)) {
                         SectionHeader(
-                            title = "Vehículos destacados",
-                            subtitle = "Selección especial de nuestra plataforma",
+                            title = stringResource(R.string.home_featured_title),
+                            subtitle = stringResource(R.string.home_featured_subtitle),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {}
                         LazyRow(
@@ -185,8 +191,8 @@ fun HomeScreen(
                 // Todos los vehículos
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     SectionHeader(
-                        title = "Todos los vehículos",
-                        subtitle = "${allCars.size} vehículos disponibles",
+                        title = stringResource(R.string.home_all_title),
+                        subtitle = pluralStringResource(R.plurals.home_vehicles_available, allCars.size, allCars.size),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         KarsySelect(
@@ -195,7 +201,8 @@ fun HomeScreen(
                             onSelect = { vm.filters = vm.filters.copy(orden = it) },
                             fillWidth = false,
                             container = KarsyWhite,
-                            textColor = KarsyTextSecondary
+                            textColor = KarsyTextSecondary,
+                            label = filterLabel
                         )
                     }
                 }
@@ -206,13 +213,13 @@ fun HomeScreen(
                         }
                     }
                     vm.error != null && allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
-                        EmptyMessage(vm.error!!, action = "Reintentar", onAction = vm::refresh)
+                        EmptyMessage(vm.error!!, action = stringResource(R.string.home_retry), onAction = vm::refresh)
                     }
                     allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
                         EmptyMessage(
-                            if (vm.cars.isEmpty()) "Todavía no hay vehículos publicados."
-                            else "Ningún vehículo coincide con tu búsqueda.",
-                            action = if (vm.cars.isEmpty()) null else "Quitar filtros",
+                            if (vm.cars.isEmpty()) stringResource(R.string.home_empty_no_vehicles)
+                            else stringResource(R.string.home_empty_no_match),
+                            action = if (vm.cars.isEmpty()) null else stringResource(R.string.home_clear_filters),
                             onAction = { vm.filters = HomeFilters(); vm.query = "" }
                         )
                     }
@@ -236,14 +243,14 @@ fun HomeScreen(
             isVisitor -> AddFab(
                 container = KarsyDisabled,
                 content = KarsyMid,
-                description = "Inicia sesión para agregar un vehículo",
-                onClick = { toastMsg = "Regístrate para publicar tu vehículo" },
+                description = stringResource(R.string.home_fab_login_to_add),
+                onClick = { toastMsg = publishToast },
                 modifier = Modifier.align(Alignment.BottomEnd)
             )
             else -> AddFab(
                 container = KarsyTeal,
                 content = KarsyWhite,
-                description = "Agregar vehículo",
+                description = stringResource(R.string.home_fab_add_vehicle),
                 onClick = onPublish,
                 modifier = Modifier.align(Alignment.BottomEnd)
             )
@@ -330,14 +337,14 @@ private fun HomeHeader(
                             .height(38.dp)
                             .shadow(4.dp, RoundedCornerShape(10.dp), spotColor = KarsyNavy.copy(alpha = 0.3f))
                     ) {
-                        Text("Regístrate", fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.home_register), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                     userMode.isAdmin -> {
                         HeaderIconButton(onClick = onAdminPanel) {
-                            Icon(Icons.Outlined.SpaceDashboard, contentDescription = "Panel de administración", tint = KarsyNavy, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyNavy, modifier = Modifier.size(18.dp))
                         }
                         HeaderIconButton(onClick = onProfile) {
-                            Icon(Icons.Outlined.Person, contentDescription = "Mi perfil", tint = KarsyNavy, modifier = Modifier.size(19.dp))
+                            Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = KarsyNavy, modifier = Modifier.size(19.dp))
                         }
                     }
                     else -> {
@@ -345,15 +352,15 @@ private fun HomeHeader(
                             HeartIcon(filled = false, size = 17.dp)
                         }
                         HeaderIconButton(onClick = onProfile) {
-                            Icon(Icons.Outlined.Person, contentDescription = "Mi perfil", tint = KarsyNavy, modifier = Modifier.size(19.dp))
+                            Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = KarsyNavy, modifier = Modifier.size(19.dp))
                         }
                     }
                 }
                 HeaderIconButton(onClick = onToggleMenu, active = menuOpen) {
                     if (menuOpen) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Cerrar filtros", tint = KarsyTeal, modifier = Modifier.size(17.dp))
+                        Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.home_close_filters), tint = KarsyTeal, modifier = Modifier.size(17.dp))
                     } else {
-                        Icon(Icons.Rounded.FilterList, contentDescription = "Filtrar", tint = KarsyNavy, modifier = Modifier.size(19.dp))
+                        Icon(Icons.Rounded.FilterList, contentDescription = stringResource(R.string.home_filter), tint = KarsyNavy, modifier = Modifier.size(19.dp))
                     }
                 }
             }
@@ -393,7 +400,7 @@ private fun HeroSection(stats: List<Pair<String, String>>, query: String, onSear
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "🚗 MARKETPLACE AUTOMOTRIZ #1 EN MÉXICO",
+                stringResource(R.string.home_hero_tagline),
                 fontFamily = DmSans,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -403,7 +410,7 @@ private fun HeroSection(stats: List<Pair<String, String>>, query: String, onSear
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             Text(
-                "Encuentra tu próximo\nvehículo ideal",
+                stringResource(R.string.home_hero_title),
                 fontFamily = Outfit,
                 fontSize = 32.sp,
                 lineHeight = 37.sp,
@@ -414,7 +421,7 @@ private fun HeroSection(stats: List<Pair<String, String>>, query: String, onSear
                 modifier = Modifier.padding(bottom = 14.dp)
             )
             Text(
-                "Miles de vehículos verificados en toda la república mexicana. Compra, vende y negocia con confianza.",
+                stringResource(R.string.home_hero_subtitle),
                 fontFamily = DmSans,
                 fontSize = 14.sp,
                 lineHeight = 22.sp,
@@ -469,7 +476,7 @@ private fun HeroSearch(initial: String, onSearch: (String) -> Unit) {
             decorationBox = { inner ->
                 Box {
                     if (query.isEmpty()) {
-                        Text("Buscar marca, modelo o año...", fontFamily = DmSans, fontSize = 14.sp, color = Color.White.copy(alpha = 0.55f), maxLines = 1)
+                        Text(stringResource(R.string.home_search_placeholder), fontFamily = DmSans, fontSize = 14.sp, color = Color.White.copy(alpha = 0.55f), maxLines = 1)
                     }
                     inner()
                 }
@@ -483,7 +490,7 @@ private fun HeroSearch(initial: String, onSearch: (String) -> Unit) {
                 .padding(horizontal = 18.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("Buscar", fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyWhite)
+            Text(stringResource(R.string.home_search), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyWhite)
         }
     }
 }
@@ -503,9 +510,9 @@ private fun VisitorBanner(onRegister: () -> Unit, modifier: Modifier = Modifier)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("👀", fontSize = 22.sp)
             Column {
-                Text("Estás en modo visitante", fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+                Text(stringResource(R.string.home_visitor_title), fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
                 Text(
-                    "Regístrate para guardar favoritos, contactar vendedores y publicar tu vehículo.",
+                    stringResource(R.string.home_visitor_message),
                     fontFamily = DmSans,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
@@ -520,7 +527,7 @@ private fun VisitorBanner(onRegister: () -> Unit, modifier: Modifier = Modifier)
             contentPadding = PaddingValues(horizontal = 22.dp, vertical = 9.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Crear cuenta gratis →", fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.home_create_account_free), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

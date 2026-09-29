@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
@@ -63,22 +65,22 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
     var imgIndex by rememberSaveable { mutableIntStateOf(0) }
     val carImages = form.fotosElegidas
     val techSpecs = listOf(
-        "Modelo" to form.modeloNombre,
-        "Año" to form.anio.trim(),
-        "Marca" to form.marcaNombre,
-        "Transmisión" to form.transmisionNombre,
-        "Kilometraje" to form.kilometraje.filter(Char::isDigit).toIntOrNull().let { Formato.km(it) },
-        "Cilindros" to form.cilindros.ifBlank { "—" },
-        "Caballos de fuerza" to form.caballos.filter(Char::isDigit).let { if (it.isEmpty()) "—" else "$it hp" },
-        "Tipo de carro" to form.carroceriaNombre,
-        "Color" to form.colorNombre,
-        "Dueños anteriores" to form.duenos.ifBlank { "0" },
+        stringResource(R.string.publish_spec_model) to form.modeloNombre,
+        stringResource(R.string.publish_spec_year) to form.anio.trim(),
+        stringResource(R.string.publish_spec_brand) to form.marcaNombre,
+        stringResource(R.string.publish_spec_transmission) to form.transmisionNombre,
+        stringResource(R.string.publish_spec_mileage) to form.kilometraje.filter(Char::isDigit).toIntOrNull().let { Formato.km(it) },
+        stringResource(R.string.publish_spec_cylinders) to form.cilindros.ifBlank { "—" },
+        stringResource(R.string.publish_spec_horsepower) to form.caballos.filter(Char::isDigit).let { if (it.isEmpty()) "—" else "$it hp" },
+        stringResource(R.string.publish_spec_body_type) to form.carroceriaNombre,
+        stringResource(R.string.publish_spec_color) to form.colorNombre,
+        stringResource(R.string.publish_spec_previous_owners) to form.duenos.ifBlank { "0" },
     )
 
     PublishStepScaffold(
         step = 4,
         onBack = onBack,
-        buttonText = if (form.publishing) "Publicando…" else "Publicar",
+        buttonText = if (form.publishing) stringResource(R.string.publish_publishing) else stringResource(R.string.publish_publish),
         onButtonClick = onPublish,
         contentPadding = PaddingValues(0.dp),
         spacing = 0
@@ -111,13 +113,13 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
             )
             if (carImages.size > 1) CarouselArrow(
                 icon = Icons.Rounded.ChevronLeft,
-                description = "Anterior",
+                description = stringResource(R.string.publish_previous),
                 modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
                 onClick = { imgIndex = (imgIndex - 1 + carImages.size) % carImages.size }
             )
             if (carImages.size > 1) CarouselArrow(
                 icon = Icons.Rounded.ChevronRight,
-                description = "Siguiente",
+                description = stringResource(R.string.publish_next),
                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
                 onClick = { imgIndex = (imgIndex + 1) % carImages.size }
             )
@@ -148,7 +150,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 val selected = imgIndex == i + 1
                 AsyncImage(
                     model = src,
-                    contentDescription = "Miniatura ${i + 1}",
+                    contentDescription = stringResource(R.string.publish_thumbnail, i + 1),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(width = 64.dp, height = 48.dp)
@@ -183,7 +185,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
 
         // Ficha técnica
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp)) {
-            BlockLabel("FICHA TÉCNICA")
+            BlockLabel(stringResource(R.string.publish_block_specs))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -220,16 +222,16 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
 
         // Descripción e imperfecciones
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp)) {
-            BlockLabel("DESCRIPCIÓN")
+            BlockLabel(stringResource(R.string.publish_block_description))
             TextBlock(form.descripcion.trim(), background = KarsyWhite, border = KarsyBorderMuted)
-            Box(Modifier.padding(top = 16.dp)) { BlockLabel("DETALLADO O IMPERFECCIONES") }
+            Box(Modifier.padding(top = 16.dp)) { BlockLabel(stringResource(R.string.publish_block_imperfections)) }
             TextBlock(
-                form.imperfecciones.trim().ifEmpty { "Sin imperfecciones reportadas." },
+                form.imperfecciones.trim().ifEmpty { stringResource(R.string.publish_no_imperfections) },
                 background = Color(0xFFFFFBF0),
                 border = Color(0xFFF5E8B0)
             )
             Text(
-                "Tu publicación se revisará antes de aparecer en el inicio.",
+                stringResource(R.string.publish_review_notice),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 color = KarsyMid,

@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,11 +57,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.components.OtpInput
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.karsyTextFieldColors
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -135,7 +137,7 @@ private fun LoginForm(
                     .padding(start = 12.dp, top = 8.dp)
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = "Regresar", tint = KarsyNavy, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
                 }
             }
 
@@ -148,7 +150,7 @@ private fun LoginForm(
                 KarsyLogo(size = 52.dp)
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Iniciar Sesión",
+                    stringResource(R.string.auth_login_title),
                     fontFamily = Outfit,
                     fontWeight = FontWeight.Bold,
                     fontSize = 26.sp,
@@ -159,16 +161,16 @@ private fun LoginForm(
 
             Column(Modifier.padding(start = 28.dp, end = 28.dp, top = 28.dp)) {
                 IconInput(
-                    label = "CORREO ELECTRÓNICO",
+                    label = stringResource(R.string.auth_email_label),
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = "ejemplo@correo.com",
+                    placeholder = stringResource(R.string.auth_email_placeholder),
                     leading = Icons.Outlined.MailOutline,
                     keyboardType = KeyboardType.Email,
                     modifier = Modifier.padding(bottom = 14.dp)
                 )
                 IconInput(
-                    label = "CONTRASEÑA",
+                    label = stringResource(R.string.auth_password_label),
                     value = password,
                     onValueChange = { password = it },
                     placeholder = "••••••••••••",
@@ -178,7 +180,7 @@ private fun LoginForm(
                 )
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     Text(
-                        "¿Olvidaste tu contraseña?",
+                        stringResource(R.string.auth_forgot_password),
                         fontFamily = DmSans,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
@@ -194,7 +196,7 @@ private fun LoginForm(
 
                 // El destino (admin / lote / particular) lo decide la cuenta en Supabase.
                 PrimaryButton(
-                    text = if (vm.loading) "Iniciando sesión…" else "Iniciar Sesión",
+                    text = if (vm.loading) stringResource(R.string.auth_logging_in) else stringResource(R.string.auth_login_title),
                     enabled = !vm.loading,
                     onClick = { vm.signIn(email, password, onLogin, onVerifyEmail) }
                 )
@@ -221,9 +223,9 @@ private fun LoginForm(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("¿Aún no tienes cuenta? ", fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal)
+            Text(stringResource(R.string.auth_no_account_question), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal)
             Text(
-                "Registrarse",
+                stringResource(R.string.auth_sign_up),
                 fontFamily = DmSans,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -268,7 +270,7 @@ private fun IconInput(
                     IconButton(onClick = { show = !show }) {
                         Icon(
                             if (show) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-                            contentDescription = if (show) "Ocultar contraseña" else "Mostrar contraseña",
+                            contentDescription = if (show) stringResource(R.string.auth_hide_password) else stringResource(R.string.auth_show_password),
                             tint = KarsyMid,
                             modifier = Modifier.size(20.dp)
                         )
@@ -298,15 +300,14 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
     BackHandler(onBack = vm::back)
 
     val title = when (step) {
-        1 -> "¿Olvidaste tu contraseña?"
-        2 -> "Código de verificación"
-        else -> "Nueva contraseña"
+        1 -> stringResource(R.string.auth_forgot_password)
+        2 -> stringResource(R.string.auth_verification_code_title)
+        else -> stringResource(R.string.auth_new_password_title)
     }
     val subtitle = when (step) {
-        1 -> "Ingresa tu correo electrónico asociado a tu cuenta para enviarte un código de verificación."
-        2 -> "Ingresa el código de $EMAIL_CODE_LENGTH dígitos enviado a tu correo " +
-            "${Formato.correoOculto(vm.email) ?: vm.email}. Si no lo ves, revisa tu carpeta de spam."
-        else -> "Crea una contraseña segura y fácil de recordar para acceder a tu cuenta."
+        1 -> stringResource(R.string.auth_recovery_email_subtitle)
+        2 -> stringResource(R.string.auth_recovery_code_subtitle, EMAIL_CODE_LENGTH, Formato.correoOculto(vm.email) ?: vm.email)
+        else -> stringResource(R.string.auth_new_password_subtitle)
     }
 
     Box(
@@ -329,7 +330,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     .padding(start = 12.dp, end = 24.dp, top = 8.dp)
             ) {
                 IconButton(onClick = vm::back, modifier = Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = "Regresar", tint = KarsyNavy, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
                 }
                 KarsyLogo(size = 46.dp, modifier = Modifier.align(Alignment.Center))
             }
@@ -365,16 +366,16 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     1 -> {
                         val valid = vm.email.isNotBlank() && vm.email.contains("@")
                         IconInput(
-                            label = "CORREO ELECTRÓNICO",
+                            label = stringResource(R.string.auth_email_label),
                             value = vm.email,
                             onValueChange = { vm.email = it },
-                            placeholder = "ejemplo@correo.com",
+                            placeholder = stringResource(R.string.auth_email_placeholder),
                             leading = Icons.Outlined.MailOutline,
                             keyboardType = KeyboardType.Email,
                             modifier = Modifier.padding(bottom = 24.dp)
                         )
                         PrimaryButton(
-                            text = if (vm.sending) "Enviando código…" else "Enviar código",
+                            text = if (vm.sending) stringResource(R.string.auth_sending_code) else stringResource(R.string.auth_send_code),
                             enabled = !vm.sending,
                             onClick = vm::sendCode,
                             modifier = Modifier.alpha(if (valid) 1f else 0.55f)
@@ -388,7 +389,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                         ResendCodeRow(sending = vm.sending, secondsLeft = vm.countdown.seconds, onResend = vm::resend)
                         Spacer(Modifier.height(28.dp))
                         PrimaryButton(
-                            text = if (vm.loading) "Verificando…" else "Verificar",
+                            text = if (vm.loading) stringResource(R.string.auth_verifying) else stringResource(R.string.auth_verify),
                             enabled = !vm.loading,
                             onClick = vm::verifyCode,
                             modifier = Modifier.alpha(if (complete) 1f else 0.55f)
@@ -399,7 +400,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                         // Supabase pide mínimo 6 caracteres; aquí solo se revisa que coincidan.
                         val valid = vm.newPassword.isNotEmpty() && vm.newPassword == vm.confirmPassword
                         IconInput(
-                            label = "NUEVA CONTRASEÑA",
+                            label = stringResource(R.string.auth_new_password_label),
                             value = vm.newPassword,
                             onValueChange = { vm.newPassword = it },
                             placeholder = "••••••••••••",
@@ -408,7 +409,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
                         IconInput(
-                            label = "CONFIRMAR CONTRASEÑA",
+                            label = stringResource(R.string.auth_confirm_password_label),
                             value = vm.confirmPassword,
                             onValueChange = { vm.confirmPassword = it },
                             placeholder = "••••••••••••",
@@ -417,14 +418,14 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                             modifier = Modifier.padding(bottom = 22.dp)
                         )
                         PrimaryButton(
-                            text = if (vm.loading) "Guardando…" else "Restablecer contraseña",
+                            text = if (vm.loading) stringResource(R.string.auth_saving) else stringResource(R.string.auth_reset_password),
                             enabled = !vm.loading,
                             onClick = vm::resetPassword,
                             modifier = Modifier.alpha(if (valid) 1f else 0.55f)
                         )
                         if (vm.passwordMismatch) {
                             Text(
-                                "Las contraseñas no coinciden.",
+                                stringResource(R.string.auth_passwords_mismatch),
                                 fontFamily = DmSans,
                                 fontSize = 11.5.sp,
                                 color = KarsyError,
@@ -489,7 +490,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
             }
             Spacer(Modifier.height(17.dp))
             Text(
-                "¡Contraseña actualizada!",
+                stringResource(R.string.auth_password_updated_title),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 21.sp,
@@ -498,7 +499,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
             )
             Spacer(Modifier.height(9.dp))
             Text(
-                "Tu contraseña se ha cambiado con éxito. Ya puedes iniciar sesión con tu nueva credencial.",
+                stringResource(R.string.auth_password_updated_message),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 lineHeight = 20.sp,
@@ -506,7 +507,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(22.dp))
-            PrimaryButton(text = "Iniciar Sesión", onClick = onLogin)
+            PrimaryButton(text = stringResource(R.string.auth_login_title), onClick = onLogin)
         }
     }
 }

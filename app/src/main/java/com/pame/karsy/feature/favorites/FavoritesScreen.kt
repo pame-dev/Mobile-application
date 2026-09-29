@@ -45,6 +45,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.theme.DmSans
@@ -90,7 +93,7 @@ fun FavoritesScreen(
             .fillMaxSize()
             .background(KarsyBg)
     ) {
-        SubHeader(title = "❤️ Favoritos", onBack = onBack)
+        SubHeader(title = stringResource(R.string.home_favorites_title), onBack = onBack)
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 300.dp),
@@ -112,7 +115,7 @@ fun FavoritesScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            "${displayed.size} vehículos guardados",
+                            pluralStringResource(R.plurals.home_vehicles_saved, displayed.size, displayed.size),
                             fontFamily = Outfit,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -184,7 +187,7 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit) {
                 decorationBox = { inner ->
                     Box {
                         if (search.isEmpty()) {
-                            Text("Buscar en favoritos…", fontFamily = DmSans, fontSize = 15.sp, color = KarsyMid, maxLines = 1)
+                            Text(stringResource(R.string.home_favorites_search_placeholder), fontFamily = DmSans, fontSize = 15.sp, color = KarsyMid, maxLines = 1)
                         }
                         inner()
                     }
@@ -203,7 +206,7 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(Icons.Rounded.FilterList, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(18.dp))
-            Text("Filtrar", fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyTeal)
+            Text(stringResource(R.string.home_filter), fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyTeal)
         }
     }
 }
@@ -257,7 +260,7 @@ private fun FavoriteCard(
             ) {
                 Icon(
                     if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                    contentDescription = if (isFavorite) "Quitar de favoritos" else "Agregar a favoritos",
+                    contentDescription = if (isFavorite) stringResource(R.string.home_remove_favorite) else stringResource(R.string.home_add_favorite),
                     tint = KarsyNavy,
                     modifier = Modifier.size(17.dp)
                 )
@@ -294,7 +297,7 @@ private fun FavoriteCard(
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
                     modifier = Modifier.height(34.dp)
                 ) {
-                    Text("Ver más", fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.home_see_more), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -311,7 +314,7 @@ private fun EmptyState() {
     ) {
         Text("🔍", fontSize = 40.sp, modifier = Modifier.padding(bottom = 12.dp))
         Text(
-            "Sin resultados",
+            stringResource(R.string.home_no_results),
             fontFamily = Outfit,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
@@ -319,7 +322,7 @@ private fun EmptyState() {
             modifier = Modifier.padding(bottom = 6.dp)
         )
         Text(
-            "Prueba con otro término de búsqueda.",
+            stringResource(R.string.home_try_another_search),
             fontFamily = DmSans,
             fontSize = 14.sp,
             color = KarsyMid,

@@ -18,9 +18,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
@@ -40,8 +42,8 @@ fun AdminUsersSection(vm: AdminViewModel) {
 
     AdminSectionScroll {
         AdminSectionHeader(
-            title = "Usuarios",
-            description = "Consulta y administra las cuentas registradas en Karsy."
+            title = stringResource(R.string.admin2_section_users),
+            description = stringResource(R.string.admin2_users_desc)
         )
         AdminCard {
             AdminFilterBar {
@@ -52,13 +54,16 @@ fun AdminUsersSection(vm: AdminViewModel) {
                     AdminSearchBar(
                         value = search,
                         onValueChange = { search = it },
-                        placeholder = "Buscar por nombre o correo...",
+                        placeholder = stringResource(R.string.admin2_users_search),
                         modifier = Modifier.weight(1f)
                     )
+                    // Los valores del filtro se comparan en español; solo se traduce lo que se muestra.
+                    val filterValues = listOf("Todos", "Particular", "Lote")
+                    val filterLabels = filterValues.map { adminValueLabel(it) }
                     AdminSelect(
-                        value = filter,
-                        options = listOf("Todos", "Particular", "Lote"),
-                        onSelect = { filter = it }
+                        value = adminValueLabel(filter),
+                        options = filterLabels,
+                        onSelect = { label -> filter = filterValues[filterLabels.indexOf(label)] }
                     )
                 }
             }
@@ -66,8 +71,8 @@ fun AdminUsersSection(vm: AdminViewModel) {
             if (filtered.isEmpty()) {
                 AdminEmptyState(
                     icon = Icons.Rounded.Search,
-                    title = "No se encontraron usuarios",
-                    description = "Prueba con otro nombre, correo o tipo de cuenta."
+                    title = stringResource(R.string.admin2_users_empty_title),
+                    description = stringResource(R.string.admin2_users_empty_desc)
                 )
             } else {
                 filtered.forEachIndexed { index, user ->
@@ -84,14 +89,14 @@ fun AdminUsersSection(vm: AdminViewModel) {
                                 Spacer(Modifier.height(3.dp))
                                 Text(user.email, fontFamily = DmSans, fontSize = 11.sp, color = AdminColors.Muted)
                             }
-                            AdminBadge(user.status, userStatusTone(user.status))
+                            AdminBadge(adminValueLabel(user.status), userStatusTone(user.status))
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            AdminBadge(user.type, if (user.type == "Lote") BadgeTone.Info else BadgeTone.Neutral)
+                            AdminBadge(adminValueLabel(user.type), if (user.type == "Lote") BadgeTone.Info else BadgeTone.Neutral)
                             if (user.isAdmin) AdminBadge("Admin", BadgeTone.Success)
                             Text(
                                 user.date,
@@ -100,7 +105,7 @@ fun AdminUsersSection(vm: AdminViewModel) {
                                 color = AdminColors.TableText,
                                 modifier = Modifier.weight(1f)
                             )
-                            AdminActionButton("Ver detalle", onClick = { selected = user })
+                            AdminActionButton(stringResource(R.string.admin2_view_detail), onClick = { selected = user })
                         }
                     }
                 }
@@ -110,26 +115,30 @@ fun AdminUsersSection(vm: AdminViewModel) {
 
     selected?.let { user ->
         AdminDetailModal(
-            title = "Detalle del usuario",
+            title = stringResource(R.string.admin2_user_detail_title),
             subtitle = user.name,
             onDismiss = { selected = null }
         ) {
-            DetailRow("Nombre", user.name)
-            DetailRow("Correo", user.email)
-            DetailRow("Tipo de cuenta", if (user.isAdmin) "${user.type} · Administrador" else user.type)
-            DetailRow("Estado", user.status)
-            DetailRow("Publicaciones", user.posts.toString())
-            DetailRow("Fecha de registro", user.date)
+            val typeLabel = adminValueLabel(user.type)
+            DetailRow(stringResource(R.string.admin2_name), user.name)
+            DetailRow(stringResource(R.string.admin2_email), user.email)
+            DetailRow(
+                stringResource(R.string.admin2_account_type),
+                if (user.isAdmin) stringResource(R.string.admin2_type_admin, typeLabel) else typeLabel
+            )
+            DetailRow(stringResource(R.string.admin2_status), adminValueLabel(user.status))
+            DetailRow(stringResource(R.string.admin2_legend_publications), user.posts.toString())
+            DetailRow(stringResource(R.string.admin2_registration_date), user.date)
             // Suspender / reactivar (admin_cambiar_estado_cuenta registra la acción en la bitácora).
             if (user.id != SessionManager.userId) {
                 Row(Modifier.padding(top = 18.dp)) {
                     if (user.status == "Suspendido") {
-                        AdminActionButton("Reactivar cuenta", tone = ActionTone.Success, onClick = {
+                        AdminActionButton(stringResource(R.string.admin2_reactivate_account), tone = ActionTone.Success, onClick = {
                             vm.setSuspended(user.id, suspend = false)
                             selected = null
                         })
                     } else {
-                        AdminActionButton("Suspender cuenta", tone = ActionTone.Danger, onClick = {
+                        AdminActionButton(stringResource(R.string.admin2_suspend_account), tone = ActionTone.Danger, onClick = {
                             vm.setSuspended(user.id, suspend = true)
                             selected = null
                         })

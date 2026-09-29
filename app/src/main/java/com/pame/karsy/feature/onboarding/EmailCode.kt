@@ -11,8 +11,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyTeal
@@ -57,17 +59,17 @@ fun ResendCodeRow(sending: Boolean, secondsLeft: Int, onResend: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         when {
-            sending -> Text("Enviando código…", fontFamily = DmSans, fontSize = 12.5.sp, color = KarsyMid)
+            sending -> Text(stringResource(R.string.auth_sending_code), fontFamily = DmSans, fontSize = 12.5.sp, color = KarsyMid)
             secondsLeft > 0 -> Text(
-                "Puedes pedir otro código en $secondsLeft s",
+                stringResource(R.string.auth_resend_wait, secondsLeft),
                 fontFamily = DmSans,
                 fontSize = 12.5.sp,
                 color = KarsyMid
             )
             else -> {
-                Text("¿No recibiste el código? ", fontFamily = DmSans, fontSize = 12.5.sp, color = KarsyMid)
+                Text(stringResource(R.string.auth_no_code_question), fontFamily = DmSans, fontSize = 12.5.sp, color = KarsyMid)
                 Text(
-                    "Reenviar código",
+                    stringResource(R.string.auth_resend_code),
                     fontFamily = DmSans,
                     fontSize = 12.5.sp,
                     fontWeight = FontWeight.Bold,

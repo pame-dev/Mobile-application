@@ -1,5 +1,7 @@
 package com.pame.karsy.data.repository
 
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.util.Formato
@@ -105,7 +107,7 @@ object UserRepository {
 
     /** Sube la foto de perfil (o logo del lote) y la guarda en la cuenta. Devuelve su URL. */
     suspend fun uploadAvatar(bytes: ByteArray): String? {
-        val uid = SessionManager.userId ?: throw UserFacingException("Inicia sesión primero.")
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_first))
         val ruta = "perfiles/$uid/${UUID.randomUUID()}.jpg"
         db.storage.from(Supabase.BUCKET).upload(ruta, bytes) {
             upsert = false

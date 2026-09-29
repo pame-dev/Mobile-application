@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
@@ -81,7 +83,7 @@ fun PublishHeader(title: String, onBack: () -> Unit) {
         ) {
             Icon(
                 Icons.Rounded.ChevronLeft,
-                contentDescription = "Regresar",
+                contentDescription = stringResource(R.string.publish_back),
                 tint = KarsyNavy,
                 modifier = Modifier.size(26.dp)
             )
@@ -100,7 +102,12 @@ fun PublishHeader(title: String, onBack: () -> Unit) {
     }
 }
 
-private val stepLabels = listOf("Datos", "Fotos", "Detalles", "Confirmar")
+private val stepLabels = listOf(
+    R.string.publish_step_data,
+    R.string.publish_step_photos,
+    R.string.publish_step_details,
+    R.string.publish_step_confirm,
+)
 
 /** Indicador de progreso de 4 pasos. [step] va de 1 a 4. */
 @Composable
@@ -111,7 +118,8 @@ fun PublishStepper(step: Int) {
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.Top
     ) {
-        stepLabels.forEachIndexed { i, label ->
+        stepLabels.forEachIndexed { i, labelRes ->
+            val label = stringResource(labelRes)
             val num = i + 1
             val done = num < step
             val active = num == step
@@ -289,7 +297,7 @@ fun PublishStepScaffold(
             .background(KarsyBg)
             .imePadding()
     ) {
-        PublishHeader(title = "Publicar vehículo", onBack = onBack)
+        PublishHeader(title = stringResource(R.string.publish_title), onBack = onBack)
         PublishStepper(step = step)
         Column(
             modifier = Modifier

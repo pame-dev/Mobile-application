@@ -14,8 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
@@ -25,7 +27,7 @@ import com.pame.karsy.core.theme.KarsyWhite
 fun HeartIcon(filled: Boolean, modifier: Modifier = Modifier, size: Dp = 18.dp) {
     Icon(
         imageVector = if (filled) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-        contentDescription = if (filled) "Quitar de favoritos" else "Agregar a favoritos",
+        contentDescription = stringResource(if (filled) R.string.core_remove_favorite else R.string.core_add_favorite),
         tint = if (filled) KarsyTeal else KarsyMid,
         modifier = modifier.size(size)
     )

@@ -18,13 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -42,22 +43,24 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
     PublishStepScaffold(
         step = 3,
         onBack = onBack,
-        buttonText = "Siguiente: Confirmación →",
+        buttonText = stringResource(R.string.publish_next_confirmation),
         onButtonClick = onNext
     ) {
         form.error?.let { StepError(it) }
+        val tipBold = stringResource(R.string.publish_tip_bold, 60)
+        val tipFull = stringResource(R.string.publish_tip_full, tipBold)
         LimitedTextArea(
-            title = "Descripción del auto",
+            title = stringResource(R.string.publish_description_title),
             value = form.descripcion,
             onValueChange = { form.descripcion = it },
-            placeholder = "Una buena descripción aumenta las visitas",
+            placeholder = stringResource(R.string.publish_description_placeholder),
             maxChars = 500
         )
         LimitedTextArea(
-            title = "Detalles o imperfecciones",
+            title = stringResource(R.string.publish_imperfections_title),
             value = form.imperfecciones,
             onValueChange = { form.imperfecciones = it },
-            placeholder = "La transparencia genera confianza en los compradores",
+            placeholder = stringResource(R.string.publish_imperfections_placeholder),
             maxChars = 300
         )
 
@@ -83,9 +86,11 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
             }
             Text(
                 text = buildAnnotatedString {
-                    append("Los anuncios con descripción completa reciben ")
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("60% más contactos") }
-                    append(" que los incompletos.")
+                    append(tipFull)
+                    val boldStart = tipFull.indexOf(tipBold)
+                    if (boldStart >= 0) {
+                        addStyle(SpanStyle(fontWeight = FontWeight.Bold), boldStart, boldStart + tipBold.length)
+                    }
                 },
                 fontFamily = DmSans,
                 fontSize = 12.sp,

@@ -33,10 +33,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
@@ -89,7 +91,7 @@ fun DestacarDialog(carName: String, onConfirm: () -> Unit, onCancel: () -> Unit)
             }
 
             Text(
-                "¿Quieres destacar tu vehículo?",
+                stringResource(R.string.profile_feature_dialog_title),
                 fontFamily = Outfit,
                 fontSize = 19.sp,
                 fontWeight = FontWeight.Bold,
@@ -113,7 +115,7 @@ fun DestacarDialog(carName: String, onConfirm: () -> Unit, onCancel: () -> Unit)
             )
 
             Text(
-                "Haz que tu publicación tenga mayor visibilidad y aparezca en una sección destacada de la plataforma.",
+                stringResource(R.string.profile_feature_dialog_body),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 lineHeight = 21.sp,
@@ -122,7 +124,7 @@ fun DestacarDialog(carName: String, onConfirm: () -> Unit, onCancel: () -> Unit)
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             Text(
-                "Antes de destacarla, un administrador deberá revisar y aprobar tu publicación. Una vez aprobada, tu vehículo podrá aparecer como publicación destacada.",
+                stringResource(R.string.profile_feature_dialog_note),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 lineHeight = 20.sp,
@@ -137,14 +139,14 @@ fun DestacarDialog(carName: String, onConfirm: () -> Unit, onCancel: () -> Unit)
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SheetPrimaryButton(text = "Solicitar destacar", onClick = onConfirm, fontSize = 15)
+                SheetPrimaryButton(text = stringResource(R.string.profile_feature_dialog_confirm), onClick = onConfirm, fontSize = 15)
                 TextButton(
                     onClick = onCancel,
                     shape = RoundedCornerShape(50),
                     contentPadding = PaddingValues(vertical = 13.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Cancelar", fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
+                    Text(stringResource(R.string.profile_cancel), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
                 }
             }
         }

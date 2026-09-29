@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.cardetail
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,11 +46,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -73,21 +76,27 @@ private enum class ReportStep { TYPE, REASONS, SUCCESS }
 private const val TYPE_PUBLICACION = "publicacion"
 private const val TYPE_CUENTA = "cuenta"
 
+/**
+ * Motivo de reporte. [value] es el texto que se guarda en public.reportes (siempre en español,
+ * no se traduce); [labelRes] y [descRes] son solo lo que se muestra.
+ */
+private class ReportReason(val value: String, @StringRes val labelRes: Int, @StringRes val descRes: Int? = null)
+
 private val publicacionReasons = listOf(
-    "Información engañosa o falsa" to "Precio, kilometraje o datos incorrectos.",
-    "Sospecha de fraude o estafa" to "",
-    "Vehículo ya vendido o no disponible" to "",
-    "Fotos de mala calidad, explícitas o robadas" to "",
-    "Publicación duplicada" to "",
-    "Otra razón" to "",
+    ReportReason("Información engañosa o falsa", R.string.detail_reason_misleading, R.string.detail_reason_misleading_desc),
+    ReportReason("Sospecha de fraude o estafa", R.string.detail_reason_fraud),
+    ReportReason("Vehículo ya vendido o no disponible", R.string.detail_reason_sold),
+    ReportReason("Fotos de mala calidad, explícitas o robadas", R.string.detail_reason_bad_photos),
+    ReportReason("Publicación duplicada", R.string.detail_reason_duplicate),
+    ReportReason("Otra razón", R.string.detail_reason_other),
 )
 
 private val cuentaReasons = listOf(
-    "Vendedor sospechoso o posible estafador" to "",
-    "Suplantación de identidad" to "",
-    "Lenguaje ofensivo o acoso en mensajes" to "",
-    "Incumplimiento de tratos o spam" to "",
-    "Otra razón" to "",
+    ReportReason("Vendedor sospechoso o posible estafador", R.string.detail_reason_suspicious_seller),
+    ReportReason("Suplantación de identidad", R.string.detail_reason_impersonation),
+    ReportReason("Lenguaje ofensivo o acoso en mensajes", R.string.detail_reason_harassment),
+    ReportReason("Incumplimiento de tratos o spam", R.string.detail_reason_broken_deals),
+    ReportReason("Otra razón", R.string.detail_reason_other),
 )
 
 /**
@@ -143,6 +152,7 @@ internal fun ReportSheet(onSubmit: (String, (String?) -> Unit) -> Unit, onDismis
                         onClose = onDismiss,
                         onSend = {
                             if (reason.isNotEmpty() && !sending) {
+                                // Prefijo y motivo se guardan en español: el panel de admin los lee así.
                                 val prefijo = if (reportType == TYPE_PUBLICACION) "Publicación" else "Cuenta del vendedor"
                                 val motivo = "$prefijo: $reason" + details.trim().let { if (it.isEmpty()) "" else ". $it" }
                                 sending = true
@@ -181,7 +191,7 @@ private fun CloseButton(onClick: () -> Unit, modifier: Modifier = Modifier, fill
         ),
         modifier = modifier.size(32.dp)
     ) {
-        Icon(Icons.Rounded.Close, contentDescription = "Cerrar", modifier = Modifier.size(18.dp))
+        Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.detail_close), modifier = Modifier.size(18.dp))
     }
 }
 
@@ -193,7 +203,7 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
             .padding(bottom = 18.dp)
     ) {
         Text(
-            "¿Qué deseas reportar?",
+            stringResource(R.string.detail_report_what_title),
             textAlign = TextAlign.Center,
             fontFamily = Outfit,
             fontSize = 19.sp,
@@ -208,10 +218,10 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
     }
 
     listOf(
-        Triple(TYPE_PUBLICACION, "🚘⚠️", "Reportar publicación") to
-            "Información falsa, fotos inapropiadas o posible fraude en este vehículo.",
-        Triple(TYPE_CUENTA, "👤⚠️", "Reportar cuenta") to
-            "Comportamiento sospechoso, suplantación o acoso por parte del vendedor.",
+        Triple(TYPE_PUBLICACION, "🚘⚠️", stringResource(R.string.detail_report_listing)) to
+            stringResource(R.string.detail_report_listing_desc),
+        Triple(TYPE_CUENTA, "👤⚠️", stringResource(R.string.detail_report_account)) to
+            stringResource(R.string.detail_report_account_desc),
     ).forEach { (info, desc) ->
         val (type, icon, title) = info
         val shape = RoundedCornerShape(16.dp)
@@ -258,7 +268,7 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
     }
 
     Text(
-        "Cancelar",
+        stringResource(R.string.detail_cancel),
         textAlign = TextAlign.Center,
         fontFamily = DmSans,
         fontSize = 13.sp,
@@ -293,11 +303,11 @@ private fun ReasonsStep(
             colors = IconButtonDefaults.iconButtonColors(containerColor = KarsyBg, contentColor = KarsyNavy),
             modifier = Modifier.size(32.dp)
         ) {
-            Icon(Icons.Rounded.ChevronLeft, contentDescription = "Regresar", modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), modifier = Modifier.size(20.dp))
         }
         Column(Modifier.weight(1f)) {
             Text(
-                if (isPublicacion) "Razones para reportar esta publicación" else "Razones para reportar al vendedor",
+                if (isPublicacion) stringResource(R.string.detail_reasons_listing_title) else stringResource(R.string.detail_reasons_seller_title),
                 fontFamily = Outfit,
                 fontSize = 18.sp,
                 lineHeight = 22.sp,
@@ -305,7 +315,7 @@ private fun ReasonsStep(
                 color = KarsyNavy
             )
             Text(
-                "Selecciona el motivo que mejor describa el problema.",
+                stringResource(R.string.detail_reasons_subtitle),
                 fontFamily = DmSans,
                 fontSize = 11.5.sp,
                 color = KarsyMid,
@@ -315,7 +325,9 @@ private fun ReasonsStep(
         CloseButton(onClick = onClose, filled = false)
     }
 
-    (if (isPublicacion) publicacionReasons else cuentaReasons).forEach { (r, desc) ->
+    (if (isPublicacion) publicacionReasons else cuentaReasons).forEach { item ->
+        val r = item.value
+        val desc = item.descRes?.let { stringResource(it) }.orEmpty()
         val selected = reason == r
         val shape = RoundedCornerShape(13.dp)
         Row(
@@ -338,7 +350,7 @@ private fun ReasonsStep(
                     .border(if (selected) 5.dp else 2.dp, if (selected) ReportRed else RadioBorder, CircleShape)
             )
             Column {
-                Text(r, fontFamily = DmSans, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
+                Text(stringResource(item.labelRes), fontFamily = DmSans, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
                 if (desc.isNotEmpty()) {
                     Text(
                         desc,
@@ -357,7 +369,7 @@ private fun ReasonsStep(
         onValueChange = onDetails,
         placeholder = {
             Text(
-                "Escribe detalles adicionales que ayuden a la revisión (opcional)...",
+                stringResource(R.string.detail_report_details_placeholder),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 color = KarsyMid
@@ -390,7 +402,7 @@ private fun ReasonsStep(
             .padding(top = 14.dp)
             .shadow(if (enabled) 5.dp else 0.dp, RoundedCornerShape(999.dp), spotColor = ReportRed, ambientColor = ReportRed)
     ) {
-        Text("Enviar reporte", fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.detail_send_report), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -413,7 +425,7 @@ private fun SuccessStep(onClose: () -> Unit) {
             Icon(Icons.Rounded.Check, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(32.dp))
         }
         Text(
-            "Reporte enviado",
+            stringResource(R.string.detail_report_sent_title),
             fontFamily = Outfit,
             fontSize = 19.sp,
             fontWeight = FontWeight.Bold,
@@ -421,7 +433,7 @@ private fun SuccessStep(onClose: () -> Unit) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
-            "Gracias por tu reporte. Nuestro equipo de administración revisará la información a la brevedad.",
+            stringResource(R.string.detail_report_sent_message),
             textAlign = TextAlign.Center,
             fontFamily = DmSans,
             fontSize = 12.5.sp,
@@ -440,7 +452,7 @@ private fun SuccessStep(onClose: () -> Unit) {
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text("Entendido", fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.detail_got_it), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

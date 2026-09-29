@@ -32,10 +32,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -63,7 +66,7 @@ internal fun SellerProfileView(
     onCarClick: (Long) -> Unit,
 ) {
     BackHandler(onBack = onBack)
-    val tipo = if (detail.sellerType == "lote") "Lote" else "Particular"
+    val tipo = if (detail.sellerType == "lote") stringResource(R.string.detail_seller_dealer) else stringResource(R.string.detail_seller_private)
     val bio = listOf(
         contact?.descripcion.orEmpty(),
         contact?.ubicacion.orEmpty(),
@@ -91,11 +94,11 @@ internal fun SellerProfileView(
                         .clickable(onClick = onBack)
                         .padding(vertical = 4.dp, horizontal = 2.dp)
                 ) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = "Regresar", tint = KarsyNavy, modifier = Modifier.size(24.dp))
-                    Text("Inicio", fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = KarsyNavy)
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyNavy, modifier = Modifier.size(24.dp))
+                    Text(stringResource(R.string.detail_home), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = KarsyNavy)
                 }
                 Text(
-                    "Perfil",
+                    stringResource(R.string.detail_profile_title),
                     fontFamily = Outfit,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
@@ -165,7 +168,7 @@ internal fun SellerProfileView(
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                     Text(
-                        "$tipo · ${cars.size} publicaciones",
+                        pluralStringResource(R.plurals.detail_seller_listings, cars.size, tipo, cars.size),
                         fontFamily = DmSans,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -192,7 +195,7 @@ internal fun SellerProfileView(
                     .border(1.dp, KarsyBorder, cardShape)
             ) {
                 Text(
-                    "Publicaciones",
+                    stringResource(R.string.detail_listings_title),
                     fontFamily = Outfit,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
@@ -206,7 +209,7 @@ internal fun SellerProfileView(
                 ) {
                     if (cars.isEmpty()) {
                         Text(
-                            "Sin publicaciones activas.",
+                            stringResource(R.string.detail_no_active_listings),
                             fontFamily = DmSans,
                             fontSize = 12.5.sp,
                             color = KarsyTextSecondary,

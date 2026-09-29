@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.RegisterToast
@@ -98,10 +100,13 @@ fun CarDetailScreen(
     var showSellerProfile by rememberSaveable { mutableStateOf(false) }
     var showReport by rememberSaveable { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
+    val msgRegisterFav = stringResource(R.string.detail_toast_register_fav)
+    val msgRegisterContact = stringResource(R.string.detail_toast_register_contact)
+    val msgRegisterReport = stringResource(R.string.detail_toast_register_report)
 
     fun handleFav() {
         if (isVisitor) {
-            toastMessage = "Regístrate para guardar tus favoritos"
+            toastMessage = msgRegisterFav
             return
         }
         vm.toggleFavorite { toastMessage = it }
@@ -109,7 +114,7 @@ fun CarDetailScreen(
 
     fun handleContact() {
         if (isVisitor) {
-            toastMessage = "Regístrate para contactar al vendedor"
+            toastMessage = msgRegisterContact
             return
         }
         vm.loadContact()
@@ -123,7 +128,7 @@ fun CarDetailScreen(
 
     fun openReport() {
         if (isVisitor) {
-            toastMessage = "Regístrate para realizar un reporte"
+            toastMessage = msgRegisterReport
             return
         }
         showReport = true
@@ -165,7 +170,7 @@ fun CarDetailScreen(
                         .navigationBarsPadding()
                         .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp)
                 ) {
-                    PrimaryButton(text = "Contactar vendedor", onClick = ::handleContact)
+                    PrimaryButton(text = stringResource(R.string.detail_contact_seller), onClick = ::handleContact)
                 }
             }
         }
@@ -232,13 +237,13 @@ private fun DetailHeader(
         IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
             Icon(
                 Icons.Rounded.ChevronLeft,
-                contentDescription = "Regresar",
+                contentDescription = stringResource(R.string.detail_back),
                 tint = KarsyNavy,
                 modifier = Modifier.size(28.dp)
             )
         }
         Text(
-            "Detalle del vehículo",
+            stringResource(R.string.detail_title),
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
             fontSize = 17.sp,
@@ -256,7 +261,7 @@ private fun DetailHeader(
                 HeaderSquareButton(onClick = onReport) {
                     Icon(
                         Icons.Rounded.WarningAmber,
-                        contentDescription = "Reportar publicación o cuenta",
+                        contentDescription = stringResource(R.string.detail_report_content_desc),
                         tint = KarsyMid,
                         modifier = Modifier.size(17.dp)
                     )
@@ -325,7 +330,7 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit) 
             val shape = RoundedCornerShape(10.dp)
             AsyncImage(
                 model = src,
-                contentDescription = "Foto ${i + 1}",
+                contentDescription = stringResource(R.string.detail_photo_n, i + 1),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .weight(1f)
@@ -342,18 +347,18 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit) 
 private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
     val car = detail.car
     val fichaItems = listOf(
-        "Modelo" to car.model,
-        "Año" to car.year.toString(),
-        "Marca" to car.brand,
-        "Transmisión" to detail.transmision,
-        "Kilometraje" to detail.kilometraje,
-        "Cilindros" to detail.cilindros,
-        "Motor" to detail.motor,
-        "Tipo de carro" to detail.tipoCarro,
-        "Color" to detail.color,
-        "Dueños anteriores" to detail.cantDuenos,
-        "Combustible" to detail.combustible,
-        "Ubicación" to detail.ubicacion.ifEmpty { "—" },
+        stringResource(R.string.detail_spec_model) to car.model,
+        stringResource(R.string.detail_spec_year) to car.year.toString(),
+        stringResource(R.string.detail_spec_brand) to car.brand,
+        stringResource(R.string.detail_spec_transmission) to detail.transmision,
+        stringResource(R.string.detail_spec_mileage) to detail.kilometraje,
+        stringResource(R.string.detail_spec_cylinders) to detail.cilindros,
+        stringResource(R.string.detail_spec_engine) to detail.motor,
+        stringResource(R.string.detail_spec_body_type) to detail.tipoCarro,
+        stringResource(R.string.detail_spec_color) to detail.color,
+        stringResource(R.string.detail_spec_previous_owners) to detail.cantDuenos,
+        stringResource(R.string.detail_spec_fuel) to detail.combustible,
+        stringResource(R.string.detail_spec_location) to detail.ubicacion.ifEmpty { "—" },
     )
 
     Column(Modifier.padding(horizontal = 20.dp)) {
@@ -380,7 +385,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
         )
         Spacer(Modifier.height(18.dp))
 
-        SectionLabel("Ficha técnica")
+        SectionLabel(stringResource(R.string.detail_section_specs))
         Column(
             verticalArrangement = Arrangement.spacedBy(9.dp),
             modifier = Modifier.padding(bottom = 20.dp)
@@ -395,13 +400,14 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
             }
         }
 
-        SectionLabel("Descripción")
-        TextCard(detail.descripcionLarga.ifBlank { "El vendedor no agregó descripción." })
+        SectionLabel(stringResource(R.string.detail_section_description))
+        val noDescription = stringResource(R.string.detail_no_description)
+        TextCard(detail.descripcionLarga.ifBlank { noDescription })
 
-        SectionLabel("Detalles del auto")
+        SectionLabel(stringResource(R.string.detail_section_car_details))
         TextCard(detail.detalles)
 
-        SectionLabel("Contacto del vendedor")
+        SectionLabel(stringResource(R.string.detail_section_seller_contact))
         val shape = RoundedCornerShape(14.dp)
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -431,7 +437,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                     color = KarsyNavy
                 )
                 Text(
-                    if (detail.sellerType == "lote") "Lote · Ver perfil" else "Particular · Ver perfil",
+                    if (detail.sellerType == "lote") stringResource(R.string.detail_dealer_view_profile) else stringResource(R.string.detail_private_view_profile),
                     fontFamily = DmSans,
                     fontSize = 11.5.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -497,7 +503,7 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
             .navigationBarsPadding()
     ) {
         IconButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp, top = 8.dp)) {
-            Icon(Icons.Rounded.ChevronLeft, contentDescription = "Regresar", tint = KarsyNavy, modifier = Modifier.size(28.dp))
+            Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
         }
         Box(
             Modifier
@@ -508,7 +514,7 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    if (message == null) "Vehículo no encontrado" else "No se pudo cargar el vehículo",
+                    if (message == null) stringResource(R.string.detail_not_found) else stringResource(R.string.detail_load_error),
                     fontFamily = Outfit,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
@@ -519,10 +525,10 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
                 }
                 Spacer(Modifier.height(20.dp))
                 if (onRetry != null) {
-                    PrimaryButton(text = "Reintentar", onClick = onRetry)
+                    PrimaryButton(text = stringResource(R.string.detail_retry), onClick = onRetry)
                     Spacer(Modifier.height(10.dp))
                 }
-                PrimaryButton(text = "Regresar", onClick = onBack)
+                PrimaryButton(text = stringResource(R.string.detail_back), onClick = onBack)
             }
         }
     }

@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.AuthRepository
@@ -60,7 +62,7 @@ class PasswordRecoveryViewModel : ViewModel() {
     /** Paso 1: manda el código y pasa a escribirlo. */
     fun sendCode() {
         if (!email.contains("@")) {
-            error = "Escribe el correo de tu cuenta."
+            error = texto(R.string.auth_error_account_email)
             return
         }
         // Si regresó al paso 1 sin cambiar el correo, el código de hace unos segundos sigue sirviendo.
@@ -81,7 +83,7 @@ class PasswordRecoveryViewModel : ViewModel() {
         if (loading) return
         val token = code.joinToString("")
         if (token.length < EMAIL_CODE_LENGTH) {
-            error = "Escribe los $EMAIL_CODE_LENGTH dígitos del código."
+            error = texto(R.string.auth_error_code_digits, EMAIL_CODE_LENGTH)
             return
         }
         loading = true
@@ -101,7 +103,7 @@ class PasswordRecoveryViewModel : ViewModel() {
     fun resetPassword() {
         if (loading) return
         if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
-            error = "Escribe tu nueva contraseña y confírmala."
+            error = texto(R.string.auth_error_new_password_required)
             return
         }
         if (newPassword != confirmPassword) return // el aviso "no coinciden" ya está en pantalla

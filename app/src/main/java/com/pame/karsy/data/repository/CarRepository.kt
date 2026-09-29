@@ -1,5 +1,7 @@
 package com.pame.karsy.data.repository
 
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.util.Formato
@@ -95,7 +97,7 @@ object CarRepository {
     }
 
     suspend fun setFavorite(id: Long, favorite: Boolean) {
-        val uid = SessionManager.userId ?: throw UserFacingException("Inicia sesión para guardar favoritos.")
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_favorite))
         if (favorite) {
             db.from("favoritos").insert(FavoritoDto(uid, id))
         } else {
@@ -143,7 +145,7 @@ object CarRepository {
     }
 
     suspend fun report(id: Long, motivo: String) {
-        val uid = SessionManager.userId ?: throw UserFacingException("Inicia sesión para reportar.")
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_report))
         db.from("reportes").insert(ReporteInsert(id, uid, motivo))
     }
 
@@ -165,7 +167,7 @@ object CarRepository {
 
         val autos = carsByIds(vistas.map { it.idPublicacion }).associateBy { it.id }
         return vistas.mapNotNull { v ->
-            autos[v.idPublicacion]?.let { it to "Visto ${Formato.haceCuanto(v.fechaHora).replaceFirstChar { c -> c.lowercase() }}" }
+            autos[v.idPublicacion]?.let { it to texto(R.string.core_history_seen, Formato.haceCuanto(v.fechaHora).replaceFirstChar { c -> c.lowercase() }) }
         }
     }
 
@@ -173,7 +175,7 @@ object CarRepository {
 
     /** Sube una foto al bucket y devuelve su ruta (publicaciones/<id_cuenta>/<archivo>). */
     suspend fun uploadPhoto(bytes: ByteArray): String {
-        val uid = SessionManager.userId ?: throw UserFacingException("Inicia sesión para publicar.")
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_publish))
         val ruta = "publicaciones/$uid/${UUID.randomUUID()}.jpg"
         db.storage.from(Supabase.BUCKET).upload(ruta, bytes) {
             upsert = false
@@ -196,15 +198,15 @@ object CarRepository {
         val anio = a.anio ?: 0
         return Car(
             id = a.idPublicacion,
-            brand = a.marca ?: "Sin marca",
+            brand = a.marca ?: texto(R.string.core_car_no_brand),
             model = a.modelo.orEmpty(),
             year = anio,
             price = Formato.precio(a.precio),
             currency = a.moneda ?: "MXN",
             description = a.descripcion.orEmpty(),
             imageUrl = Supabase.publicUrl(a.fotos.firstOrNull()),
-            badge = if (a.destacado) "Destacado" else null,
-            condition = if (anio >= anioActual - 3) "Seminuevo" else "Usado",
+            badge = if (a.destacado) texto(R.string.core_car_badge_featured) else null,
+            condition = if (anio >= anioActual - 3) texto(R.string.core_car_condition_like_new) else texto(R.string.core_car_condition_used),
             kilometraje = Formato.km(a.kilometraje),
             ownerId = a.idPropietario,
             ownerName = a.propietarioNombre,
@@ -247,7 +249,7 @@ object CarRepository {
             sellerAvatar = Supabase.publicUrl(a.propietarioFoto),
             contactoNombre = a.propietarioNombre,
             detalles = if (a.tieneProblemas == true) a.descripcionProblemas.orEmpty()
-            else "Sin problemas ni detalles reportados por el vendedor.",
+            else texto(R.string.core_car_no_issues),
             descripcionLarga = a.descripcion.orEmpty(),
         )
     }

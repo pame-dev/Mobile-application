@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Imagenes
@@ -31,9 +33,9 @@ class ProfileViewModel : ViewModel() {
 
     val stats: List<Pair<String, String>>
         get() = listOf(
-            cars.size.toString() to "Publicaciones",
-            cars.count { it.status == "Vendido" }.toString() to "Vendidos",
-            cars.count { it.status == "Activo" }.toString() to "Activas",
+            cars.size.toString() to texto(R.string.profile_stat_posts),
+            cars.count { it.status == "Vendido" }.toString() to texto(R.string.profile_stat_sold),
+            cars.count { it.status == "Activo" }.toString() to texto(R.string.profile_stat_active),
         )
 
     fun load() {
@@ -55,8 +57,8 @@ class ProfileViewModel : ViewModel() {
                 .onSuccess {
                     user = updated
                     message = if (updated.email.trim() != original.email.trim())
-                        "Perfil guardado. Revisa tu correo nuevo para confirmar el cambio."
-                    else "Perfil guardado."
+                        texto(R.string.profile_saved_confirm_email)
+                    else texto(R.string.profile_saved)
                     onDone()
                 }
                 .onFailure { message = it.mensajeUsuario() }
@@ -69,7 +71,7 @@ class ProfileViewModel : ViewModel() {
         saving = true
         viewModelScope.launch {
             safeCall { UserRepository.uploadAvatar(Imagenes.jpegBytes(appContext, uri, maxLado = 800)) }
-                .onSuccess { url -> user = user?.copy(avatarUrl = url); message = "Foto actualizada." }
+                .onSuccess { url -> user = user?.copy(avatarUrl = url); message = texto(R.string.profile_photo_updated) }
                 .onFailure { message = it.mensajeUsuario() }
             saving = false
         }

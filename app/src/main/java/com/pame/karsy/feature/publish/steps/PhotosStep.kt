@@ -39,10 +39,12 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
@@ -56,7 +58,11 @@ import com.pame.karsy.feature.publish.PublishViewModel
 private data class PhotoSlot(val label: String, val image: Uri?)
 
 private val slotLabels = listOf(
-    "Foto frontal", "Foto trasera", "Foto lateral izquierda", "Foto lateral derecha", "Foto del tablero",
+    R.string.publish_photo_front,
+    R.string.publish_photo_rear,
+    R.string.publish_photo_left,
+    R.string.publish_photo_right,
+    R.string.publish_photo_dashboard,
 )
 
 /** Paso 2: fotos del vehículo (una por ángulo, se suben a Storage al publicar). */
@@ -70,14 +76,14 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     PublishStepScaffold(
         step = 2,
         onBack = onBack,
-        buttonText = "Siguiente: Detalles →",
+        buttonText = stringResource(R.string.publish_next_details),
         onButtonClick = onNext,
         spacing = 12
     ) {
         form.error?.let { StepError(it) }
-        slotLabels.forEachIndexed { i, label ->
+        slotLabels.forEachIndexed { i, labelRes ->
             PhotoSlotCard(
-                slot = PhotoSlot(label, form.photos[i]),
+                slot = PhotoSlot(stringResource(labelRes), form.photos[i]),
                 isDashboard = i == 4,
                 onPick = {
                     targetSlot = i
@@ -196,7 +202,7 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, onPick: () -> U
         ) {
             Icon(Icons.Outlined.Image, null, tint = KarsyMid, modifier = Modifier.size(18.dp))
             Text(
-                "Elegir de galería",
+                stringResource(R.string.publish_pick_from_gallery),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,

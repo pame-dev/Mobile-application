@@ -1,5 +1,8 @@
 package com.pame.karsy.core.util
 
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.locale.textoPlural
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.text.NumberFormat
@@ -11,11 +14,9 @@ import kotlin.time.Instant
 /** Formatos de texto para mostrar datos de la BD. */
 object Formato {
 
-    private val MESES = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
-    private val MESES_LARGOS = listOf(
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    )
+    // Nombres de meses en el idioma actual (lista separada por comas en strings.xml).
+    private val MESES: List<String> get() = texto(R.string.core_months_short).split(",")
+    private val MESES_LARGOS: List<String> get() = texto(R.string.core_months_long).split(",")
 
     private val numeros = NumberFormat.getIntegerInstance(Locale.US)
 
@@ -54,13 +55,13 @@ object Formato {
         val instante = instante(iso) ?: return ""
         val minutos = (Clock.System.now() - instante).inWholeMinutes
         return when {
-            minutos < 1 -> "Justo ahora"
-            minutos < 60 -> "Hace $minutos min"
-            minutos < 60 * 24 -> (minutos / 60).let { if (it == 1L) "Hace 1 hora" else "Hace $it horas" }
-            minutos < 60 * 48 -> "Ayer"
-            minutos < 60 * 24 * 7 -> "Hace ${minutos / (60 * 24)} días"
-            minutos < 60 * 24 * 14 -> "Hace 1 semana"
-            minutos < 60 * 24 * 30 -> "Hace ${minutos / (60 * 24 * 7)} semanas"
+            minutos < 1 -> texto(R.string.core_time_just_now)
+            minutos < 60 -> texto(R.string.core_time_minutes_ago, minutos.toInt())
+            minutos < 60 * 24 -> (minutos / 60).toInt().let { textoPlural(R.plurals.core_time_hours_ago, it, it) }
+            minutos < 60 * 48 -> texto(R.string.core_time_yesterday)
+            minutos < 60 * 24 * 7 -> (minutos / (60 * 24)).toInt().let { textoPlural(R.plurals.core_time_days_ago, it, it) }
+            minutos < 60 * 24 * 14 -> textoPlural(R.plurals.core_time_weeks_ago, 1, 1)
+            minutos < 60 * 24 * 30 -> (minutos / (60 * 24 * 7)).toInt().let { textoPlural(R.plurals.core_time_weeks_ago, it, it) }
             else -> fechaCorta(iso)
         }
     }

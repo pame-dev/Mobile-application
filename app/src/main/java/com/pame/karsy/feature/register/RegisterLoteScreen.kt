@@ -35,19 +35,21 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.components.BackTopBar
-import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.TermsCheckbox
+import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyMid
@@ -75,8 +77,8 @@ fun RegisterLoteScreen(
     ) {
         BackTopBar(onBack = onBack)
         RegisterHeader(
-            title = "Crear perfil de lote",
-            subtitle = "Registra tu lote para comenzar a publicar vehículos."
+            title = stringResource(R.string.auth_lote_title),
+            subtitle = stringResource(R.string.auth_lote_subtitle)
         )
         Column(
             Modifier
@@ -85,68 +87,68 @@ fun RegisterLoteScreen(
                 .navigationBarsPadding()
                 .padding(start = 24.dp, end = 24.dp, top = 4.dp)
         ) {
-            SectionLabel("Datos del responsable")
+            SectionLabel(stringResource(R.string.auth_section_manager))
             FormInput(
-                label = "Nombre del responsable", placeholder = "Ingresa el nombre",
+                label = stringResource(R.string.auth_manager_first_name), placeholder = stringResource(R.string.auth_manager_first_name_placeholder),
                 value = vm.nombre, onValueChange = { vm.nombre = it }, error = vm.errorFor("nombre")
             )
             FormInput(
-                label = "Apellido del responsable", placeholder = "Ingresa el apellido",
+                label = stringResource(R.string.auth_manager_last_name), placeholder = stringResource(R.string.auth_manager_last_name_placeholder),
                 value = vm.apellido, onValueChange = { vm.apellido = it }, error = vm.errorFor("apellido")
             )
             FormInput(
-                label = "Correo electrónico", placeholder = "correo@ejemplo.com", keyboardType = KeyboardType.Email,
+                label = stringResource(R.string.auth_email), placeholder = stringResource(R.string.auth_register_email_placeholder), keyboardType = KeyboardType.Email,
                 value = vm.correo, onValueChange = { vm.correo = it }, error = vm.errorFor("correo")
             )
 
-            SectionLabel("Contacto")
-            ContactFields(vm, phoneLabel = "Teléfono comercial")
+            SectionLabel(stringResource(R.string.auth_section_contact))
+            ContactFields(vm, phoneLabel = stringResource(R.string.auth_business_phone))
 
-            SectionLabel("Información del lote")
+            SectionLabel(stringResource(R.string.auth_section_lote_info))
             FormInput(
-                label = "Nombre del lote", placeholder = "Ej. Auto Premium",
+                label = stringResource(R.string.auth_lote_name), placeholder = stringResource(R.string.auth_lote_name_placeholder),
                 value = vm.nombreLote, onValueChange = { vm.nombreLote = it }, error = vm.errorFor("nombreLote")
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FormInput(
-                    label = "Calle", placeholder = "Ej. Av. Juárez", modifier = Modifier.weight(2f),
+                    label = stringResource(R.string.auth_street), placeholder = stringResource(R.string.auth_street_placeholder), modifier = Modifier.weight(2f),
                     value = vm.calle, onValueChange = { vm.calle = it }, error = vm.errorFor("calle")
                 )
                 FormInput(
-                    label = "Número", placeholder = "123", modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.auth_street_number), placeholder = "123", modifier = Modifier.weight(1f),
                     value = vm.numero, onValueChange = { vm.numero = it }, error = vm.errorFor("numero")
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FormInput(
-                    label = "Colonia", placeholder = "Ej. Centro", modifier = Modifier.weight(2f),
+                    label = stringResource(R.string.auth_neighborhood), placeholder = stringResource(R.string.auth_neighborhood_placeholder), modifier = Modifier.weight(2f),
                     value = vm.colonia, onValueChange = { vm.colonia = it }, error = vm.errorFor("colonia")
                 )
                 FormInput(
-                    label = "C.P.", placeholder = "27000", keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.auth_zip_code), placeholder = "27000", keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f),
                     value = vm.codigoPostal, onValueChange = { vm.codigoPostal = it }, error = vm.errorFor("codigoPostal")
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FormInput(
-                    label = "Ciudad", placeholder = "Ej. Torreón", modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.auth_city), placeholder = stringResource(R.string.auth_city_placeholder), modifier = Modifier.weight(1f),
                     value = vm.ciudad, onValueChange = { vm.ciudad = it }, error = vm.errorFor("ciudad")
                 )
                 FormInput(
-                    label = "Estado", placeholder = "Ej. Coahuila", modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.auth_state), placeholder = stringResource(R.string.auth_state_placeholder), modifier = Modifier.weight(1f),
                     value = vm.estado, onValueChange = { vm.estado = it }, error = vm.errorFor("estado")
                 )
             }
             FormInput(
-                label = "Descripción del lote",
-                placeholder = "Describe brevemente tu lote, los servicios que ofrece y el tipo de vehículos que maneja.",
+                label = stringResource(R.string.auth_lote_description),
+                placeholder = stringResource(R.string.auth_lote_description_placeholder),
                 singleLine = false,
                 minLines = 4,
                 value = vm.descripcion,
                 onValueChange = { vm.descripcion = it }
             )
 
-            SectionLabel("Foto de perfil")
+            SectionLabel(stringResource(R.string.auth_section_profile_photo))
             PhotoPlaceholder(
                 imageUri = vm.logo,
                 onClick = {
@@ -156,7 +158,7 @@ fun RegisterLoteScreen(
             )
             Spacer(Modifier.height(20.dp))
             Text(
-                "Logo del lote o imagen de perfil",
+                stringResource(R.string.auth_lote_logo_hint),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 color = KarsyMid,
@@ -166,20 +168,20 @@ fun RegisterLoteScreen(
                     .padding(bottom = 4.dp)
             )
 
-            SectionLabel("Seguridad")
+            SectionLabel(stringResource(R.string.auth_section_security))
             FormInput(
-                label = "Contraseña", placeholder = "Ingresa una contraseña", isPassword = true,
+                label = stringResource(R.string.auth_password), placeholder = stringResource(R.string.auth_password_placeholder), isPassword = true,
                 value = vm.password, onValueChange = { vm.password = it }, error = vm.errorFor("password")
             )
             FormInput(
-                label = "Confirmar contraseña", placeholder = "Repite tu contraseña", isPassword = true,
+                label = stringResource(R.string.auth_confirm_password), placeholder = stringResource(R.string.auth_confirm_password_placeholder), isPassword = true,
                 value = vm.confirmPassword, onValueChange = { vm.confirmPassword = it }, error = vm.passwordMismatch
             )
 
             Spacer(Modifier.height(24.dp))
             TermsCheckbox(checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it })
             PrimaryButton(
-                text = if (vm.loading) "Creando perfil…" else "Crear perfil",
+                text = if (vm.loading) stringResource(R.string.auth_creating_profile) else stringResource(R.string.auth_create_profile),
                 enabled = !vm.loading,
                 onClick = { vm.submit(esLote = true, context = context, onCreated = onCreated, onVerifyEmail = onVerifyEmail) },
                 modifier = Modifier.alpha(if (vm.acceptedTerms) 1f else 0.5f)
@@ -196,7 +198,7 @@ private fun PhotoPlaceholder(imageUri: Uri?, onClick: () -> Unit, modifier: Modi
     if (imageUri != null) {
         AsyncImage(
             model = imageUri,
-            contentDescription = "Logo del lote",
+            contentDescription = stringResource(R.string.auth_lote_logo),
             contentScale = ContentScale.Crop,
             modifier = modifier
                 .size(100.dp)
@@ -227,7 +229,7 @@ private fun PhotoPlaceholder(imageUri: Uri?, onClick: () -> Unit, modifier: Modi
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(22.dp))
             Text(
-                "Agregar\nfoto",
+                stringResource(R.string.auth_add_photo),
                 fontFamily = DmSans,
                 fontSize = 11.sp,
                 lineHeight = 14.sp,

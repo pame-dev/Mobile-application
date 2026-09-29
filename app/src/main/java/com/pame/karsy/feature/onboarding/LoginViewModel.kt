@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pame.karsy.R
+import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
@@ -30,7 +32,7 @@ class LoginViewModel : ViewModel() {
     ) {
         if (loading) return
         if (email.isBlank() || password.isEmpty()) {
-            error = "Escribe tu correo y tu contraseña."
+            error = texto(R.string.auth_error_email_password_required)
             return
         }
         loading = true

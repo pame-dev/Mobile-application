@@ -48,12 +48,14 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -67,6 +69,7 @@ import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
+import com.pame.karsy.feature.profile.carStatusLabel
 
 /** Panel del vendedor ("Mi Panel"): métricas, interés semanal y vehículos publicados. */
 @Composable
@@ -156,13 +159,13 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
         ) {
             Icon(
                 Icons.Rounded.ChevronLeft,
-                contentDescription = "Volver al perfil",
+                contentDescription = stringResource(R.string.profile_dashboard_back_cd),
                 tint = KarsyNavy,
                 modifier = Modifier.size(32.dp)
             )
         }
         Text(
-            "Mi Panel",
+            stringResource(R.string.profile_dashboard_title),
             fontFamily = Outfit,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
@@ -198,7 +201,7 @@ private fun StatsRow(stats: SellerStats, trend: String) {
                 .padding(16.dp)
         ) {
             // No hay tabla de ventas: la métrica principal son las vistas de detalle.
-            CardLabel("VISTAS TOTALES")
+            CardLabel(stringResource(R.string.profile_dashboard_total_views))
             Text(
                 stats.vistas.toString(),
                 fontFamily = Outfit,
@@ -229,8 +232,20 @@ private fun StatsRow(stats: SellerStats, trend: String) {
             modifier = Modifier.width(110.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SmallStatCard("PUBLICADOS", stats.publicadas.toString(), KarsyNavy, "Vehículos", Modifier.weight(1f))
-            SmallStatCard("CONSULTAS", stats.contactos.toString(), KarsyTeal, "Contactos", Modifier.weight(1f))
+            SmallStatCard(
+                stringResource(R.string.profile_dashboard_published),
+                stats.publicadas.toString(),
+                KarsyNavy,
+                stringResource(R.string.profile_dashboard_vehicles),
+                Modifier.weight(1f)
+            )
+            SmallStatCard(
+                stringResource(R.string.profile_dashboard_inquiries),
+                stats.contactos.toString(),
+                KarsyTeal,
+                stringResource(R.string.profile_dashboard_contacts),
+                Modifier.weight(1f)
+            )
         }
     }
 }
@@ -280,7 +295,7 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
             .padding(16.dp)
     ) {
         Text(
-            "Interés en la semana",
+            stringResource(R.string.profile_dashboard_weekly_interest),
             fontFamily = DmSans,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
@@ -288,7 +303,7 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
             modifier = Modifier.padding(bottom = 4.dp)
         )
         Text(
-            "Favoritos agregados por día",
+            stringResource(R.string.profile_dashboard_favorites_per_day),
             fontFamily = DmSans,
             fontSize = 11.sp,
             color = KarsyMid,
@@ -337,7 +352,7 @@ private fun MyListingsSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Mis Vehículos Publicados",
+                stringResource(R.string.profile_dashboard_my_listings),
                 fontFamily = Outfit,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
@@ -346,7 +361,7 @@ private fun MyListingsSection(
             )
             // Acceso a "Publicar vehículo" (no aparece en el mockup, pero la ruta lo requiere).
             Text(
-                "+ Publicar",
+                stringResource(R.string.profile_dashboard_publish),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -360,7 +375,7 @@ private fun MyListingsSection(
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (listings.isEmpty()) {
                 Text(
-                    "Todavía no publicas ningún vehículo. Toca \"+ Publicar\" para crear el primero.",
+                    stringResource(R.string.profile_dashboard_no_listings),
                     fontFamily = DmSans,
                     fontSize = 13.sp,
                     color = KarsyMid
@@ -400,7 +415,7 @@ private fun ListingCard(car: Car, onDestacar: (Car) -> Unit, onCarClick: (Long) 
                     .background(ImagePlaceholder)
             )
             Text(
-                car.status,
+                carStatusLabel(car.status),
                 fontFamily = DmSans,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -449,9 +464,9 @@ private fun ListingCard(car: Car, onDestacar: (Car) -> Unit, onCarClick: (Long) 
             ) {
                 Text(
                     when {
-                        car.featured -> "Destacado"
-                        car.featuredPending -> "Solicitud enviada"
-                        else -> "Destacar"
+                        car.featured -> stringResource(R.string.profile_dashboard_featured)
+                        car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
+                        else -> stringResource(R.string.profile_dashboard_feature)
                     },
                     fontFamily = Outfit,
                     fontSize = 11.sp,

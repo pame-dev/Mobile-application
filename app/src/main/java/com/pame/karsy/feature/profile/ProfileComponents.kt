@@ -23,11 +23,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCheckBorder
@@ -82,6 +84,21 @@ internal fun RowChevron() {
 
 /** Degradado navy → teal de la portada del perfil. */
 internal val ProfileCoverBrush = Brush.linearGradient(listOf(KarsyNavy, KarsyTeal))
+
+/**
+ * Etiqueta traducida del estado de una publicación. car.status conserva el valor en español
+ * (se compara en otras pantallas); aquí solo se traduce lo que se muestra.
+ */
+@Composable
+internal fun carStatusLabel(status: String): String = when (status) {
+    "Activo" -> stringResource(R.string.profile_status_active)
+    "Pendiente" -> stringResource(R.string.profile_status_pending)
+    "Rechazado" -> stringResource(R.string.profile_status_rejected)
+    "Deshabilitado" -> stringResource(R.string.profile_status_disabled)
+    "Vendido" -> stringResource(R.string.profile_status_sold)
+    "Pausado" -> stringResource(R.string.profile_status_paused)
+    else -> status
+}
 
 /** Iniciales para el avatar cuando la cuenta no tiene foto. */
 internal fun initialsOf(name: String): String =
