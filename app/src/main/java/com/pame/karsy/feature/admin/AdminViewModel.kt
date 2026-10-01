@@ -222,19 +222,23 @@ class AdminViewModel : ViewModel() {
         message = null
     }
 
-    fun setSuspended(accountId: String, suspend: Boolean) = perform(
-        texto(if (suspend) R.string.admin2_msg_account_suspended else R.string.admin2_msg_account_reactivated)
+    /** Al suspender, [reason] es obligatorio y queda en la bitácora. */
+    fun setSuspended(accountId: String, suspend: Boolean, reason: String? = null, onSuccess: () -> Unit = {}) = perform(
+        texto(if (suspend) R.string.admin2_msg_account_suspended else R.string.admin2_msg_account_reactivated),
+        onSuccess
     ) {
         AdminRepository.setAccountSuspended(
-            accountId, suspend, if (suspend) "Suspendida desde el panel de administración." else "Reactivada desde el panel de administración."
+            accountId, suspend, if (suspend) reason?.trim() else "Reactivada desde el panel de administración."
         )
     }
 
-    fun moderate(vehicle: AdminVehicle, approve: Boolean) = perform(
-        texto(if (approve) R.string.admin2_msg_publication_approved else R.string.admin2_msg_publication_rejected)
+    /** Al rechazar, [reason] es obligatorio: es lo que verá el vendedor. */
+    fun moderate(vehicle: AdminVehicle, approve: Boolean, reason: String? = null, onSuccess: () -> Unit = {}) = perform(
+        texto(if (approve) R.string.admin2_msg_publication_approved else R.string.admin2_msg_publication_rejected),
+        onSuccess
     ) {
         val id = vehicle.pendingProposalId ?: throw UserFacingException(texto(R.string.admin2_msg_nothing_pending))
-        AdminRepository.moderateProposal(id, approve, if (approve) null else "No cumple con las reglas de publicación.")
+        AdminRepository.moderateProposal(id, approve, if (approve) null else reason?.trim())
     }
 
     /** Al deshabilitar, [reason] es obligatorio: es lo que verá el dueño. */
@@ -252,11 +256,11 @@ class AdminViewModel : ViewModel() {
         AdminRepository.resolveReport(reportId, "atendido", reason.trim(), disableCar = true)
     }
 
-    /** El reporte no procede: la publicación sigue habilitada. */
-    fun dismissReport(reportId: Long, onSuccess: () -> Unit) = perform(
+    /** El reporte no procede: la publicación sigue habilitada; [reason] explica por qué. */
+    fun dismissReport(reportId: Long, reason: String, onSuccess: () -> Unit) = perform(
         texto(R.string.admin2_msg_report_dismissed), onSuccess
     ) {
-        AdminRepository.resolveReport(reportId, "descartado", "El reporte no procede.", disableCar = false)
+        AdminRepository.resolveReport(reportId, "descartado", reason.trim(), disableCar = false)
     }
 
     fun resolveFeatured(request: FeaturedRequest, approve: Boolean, reason: String? = null) = perform(
