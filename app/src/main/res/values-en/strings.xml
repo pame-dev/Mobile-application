@@ -168,6 +168,7 @@
     <string name="home_fab_login_to_add">Log in to add a vehicle</string>
     <string name="home_fab_add_vehicle">Add vehicle</string>
     <string name="home_register">Sign up</string>
+    <string name="home_login">Log in</string>
     <string name="home_admin_panel">Admin dashboard</string>
     <string name="home_my_profile">My profile</string>
     <string name="home_close_filters">Close filters</string>
@@ -261,6 +262,9 @@
     <string name="detail_report_account">Report account</string>
     <string name="detail_report_account_desc">Suspicious behavior, impersonation or harassment by the seller.</string>
     <string name="detail_cancel">Cancel</string>
+    <string name="detail_disabled_title">Your listing was disabled</string>
+    <string name="detail_disabled_reason">Reason: %1$s</string>
+    <string name="detail_disabled_no_reason">An administrator disabled this listing; other users can no longer see it.</string>
     <string name="detail_reasons_listing_title">Reasons for reporting this listing</string>
     <string name="detail_reasons_seller_title">Reasons for reporting the seller</string>
     <string name="detail_reasons_subtitle">Select the reason that best describes the problem.</string>
@@ -285,6 +289,10 @@
     <string name="profile_dashboard_contacts">Contacts</string>
     <string name="profile_dashboard_weekly_interest">Interest this week</string>
     <string name="profile_dashboard_favorites_per_day">Favorites added per day</string>
+    <plurals name="profile_dashboard_favorites_total">
+        <item quantity="one">%1$d favorite this week</item>
+        <item quantity="other">%1$d favorites this week</item>
+    </plurals>
     <string name="profile_dashboard_my_listings">My Listed Vehicles</string>
     <string name="profile_dashboard_publish">+ Post</string>
     <string name="profile_dashboard_no_listings">You haven\'t listed any vehicles yet. Tap \"+ Post\" to create your first one.</string>
@@ -483,6 +491,7 @@
     <string name="admin2_logout">Log out</string>
     <string name="admin2_last_days">Last %1$d days</string>
     <string name="admin2_range_short">%1$dd</string>
+    <string name="admin2_range_days">%1$d days</string>
     <string name="admin2_greeting">Hi, %1$s!</string>
     <string name="admin2_home_subtitle">Overview of platform activity.</string>
     <string name="admin2_growth_title">Platform growth</string>
@@ -503,6 +512,7 @@
     <string name="admin2_kpi_published">Listed vehicles</string>
     <string name="admin2_kpi_active">Active listings</string>
     <string name="admin2_kpi_disabled">Disabled listings</string>
+    <string name="admin2_kpi_status_detail">%1$s active · %2$s disabled</string>
     <string name="admin2_msg_account_suspended">Account suspended.</string>
     <string name="admin2_msg_account_reactivated">Account reactivated.</string>
     <string name="admin2_msg_publication_approved">Listing approved.</string>
@@ -586,6 +596,15 @@
     <string name="admin2_report_number">Report #%1$s</string>
     <string name="admin2_type">Type</string>
     <string name="admin2_reason">Reason</string>
+    <string name="admin2_review_keep">Keep enabled</string>
+    <string name="admin2_review_disable">Disable listing</string>
+    <string name="admin2_disable_dialog_title">Why are you disabling this listing?</string>
+    <string name="admin2_disable_dialog_desc">The owner will see this comment on their listing. Be clear about what they need to fix.</string>
+    <string name="admin2_disable_dialog_hint">E.g. The photos don\'t match the advertised vehicle.</string>
+    <string name="admin2_disable_dialog_min">At least %1$d characters (%2$d/%1$d)</string>
+    <string name="admin2_disable_dialog_count">%1$d characters</string>
+    <string name="admin2_disable_dialog_working">Disabling…</string>
+    <string name="admin2_disable_confirm">Disable</string>
     <string name="admin2_resolution">Resolution</string>
     <string name="admin2_mark_resolved">Mark resolved</string>
     <string name="admin2_dismiss">Dismiss</string>

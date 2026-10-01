@@ -43,6 +43,8 @@ data class AnuncioDto(
     @SerialName("id_ultima_propuesta") val idUltimaPropuesta: Long? = null,
     @SerialName("estado_ultima_propuesta") val estadoUltimaPropuesta: String? = null,
     @SerialName("motivo_rechazo_propuesta") val motivoRechazo: String? = null,
+    /** Comentario del admin al deshabilitar; null si está habilitada. */
+    @SerialName("motivo_deshabilitacion") val motivoDeshabilitacion: String? = null,
     val destacado: Boolean = false,
     @SerialName("destacado_pendiente") val destacadoPendiente: Boolean = false,
     val fotos: List<String> = emptyList(),

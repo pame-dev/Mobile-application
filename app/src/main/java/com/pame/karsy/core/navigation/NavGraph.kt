@@ -17,6 +17,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.pame.karsy.core.session.SessionAccount
@@ -27,6 +28,9 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.feature.admin.AdminDashboardScreen
+import com.pame.karsy.feature.admin.AdminViewModel
+import com.pame.karsy.feature.admin.ReportReviewBar
+import com.pame.karsy.feature.admin.ReportReviewNotice
 import com.pame.karsy.feature.cardetail.CarDetailScreen
 import com.pame.karsy.feature.dashboard.DashboardScreen
 import com.pame.karsy.feature.favorites.FavoritesScreen
@@ -173,7 +177,8 @@ fun KarsyNavGraph(
                 onProfile = { navController.navigate(Routes.Profile.route) },
                 onAdminPanel = { navController.navigate(Routes.AdminDashboard.route) },
                 onPublish = { navController.navigate(Routes.PublishFlow.route) },
-                onRegister = ::goRegister
+                onRegister = ::goRegister,
+                onLogin = { navController.navigate(Routes.Login.route) }
             )
         }
         composable(
@@ -235,7 +240,38 @@ fun KarsyNavGraph(
 
         // ── Administración ───────────────────────────────────────────
         composable(Routes.AdminDashboard.route) {
-            AdminDashboardScreen(onBack = ::back, onCarClick = ::openCar, onLogout = ::logout)
+            AdminDashboardScreen(
+                onBack = ::back,
+                onCarClick = ::openCar,
+                onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
+                onLogout = ::logout
+            )
+        }
+        // Comparte el AdminViewModel del panel: al resolver, la lista de reportes se recarga sola.
+        composable(
+            Routes.AdminReportReview.route,
+            arguments = listOf(navArgument(Routes.AdminReportReview.ARG) { type = NavType.LongType })
+        ) { entry ->
+            val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
+            val adminVm: AdminViewModel = viewModel(panelEntry)
+            val reportId = entry.arguments?.getLong(Routes.AdminReportReview.ARG) ?: 0L
+            val report = adminVm.reports.firstOrNull { it.id == reportId }
+            if (report == null) {
+                // Ya resuelto o la lista aún no carga: regresa al panel.
+                LaunchedEffect(adminVm.loading) { if (!adminVm.loading) back() }
+            } else {
+                CarDetailScreen(
+                    carId = report.publicationId,
+                    userMode = userMode,
+                    onBack = ::back,
+                    onRegister = ::goRegister,
+                    onCarClick = ::openCar,
+                    topNotice = { ReportReviewNotice(report) },
+                    bottomBar = if (report.status == "Pendiente") {
+                        { ReportReviewBar(adminVm, report, onDone = ::back) }
+                    } else null
+                )
+            }
         }
     }
 }

@@ -1,5 +1,13 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PersonOff
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,7 +33,6 @@ import com.pame.karsy.data.repository.AdminRepository
 import com.pame.karsy.data.repository.AdminStats
 import com.pame.karsy.data.repository.StatsRepository
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 /**
  * Datos y acciones del panel de administración. Todo sale de Supabase; las acciones
@@ -126,19 +133,23 @@ class AdminViewModel : ViewModel() {
         }
 
     val reports: List<AdminReport>
-        get() = reportRows.map { r ->
-            val esCuenta = r.motivo.startsWith("Cuenta del vendedor")
-            AdminReport(
-                id = r.idReporte,
-                publicationId = r.idPublicacion,
-                type = if (esCuenta) "Usuario" else "Publicación",
-                reporter = r.reportante,
-                target = r.publicacion,
-                reason = r.motivo,
-                resolution = r.motivoResolucion,
-                date = Formato.fechaCorta(r.fecha),
-                status = r.estado.replaceFirstChar { it.uppercase() },
-            )
+        get() {
+            val fotos = cars.associate { it.first.id to it.first.imageUrl }
+            return reportRows.map { r ->
+                val esCuenta = r.motivo.startsWith("Cuenta del vendedor")
+                AdminReport(
+                    id = r.idReporte,
+                    publicationId = r.idPublicacion,
+                    type = if (esCuenta) "Usuario" else "Publicación",
+                    reporter = r.reportante,
+                    target = r.publicacion,
+                    imageUrl = fotos[r.idPublicacion],
+                    reason = r.motivo,
+                    resolution = r.motivoResolucion,
+                    date = Formato.fechaCorta(r.fecha),
+                    status = r.estado.replaceFirstChar { it.uppercase() },
+                )
+            }
         }
 
     val featuredRequests: List<FeaturedRequest>
@@ -170,16 +181,14 @@ class AdminViewModel : ViewModel() {
             }
         }
 
+    /** Usuarios, lotes y publicados; el estado activas/deshabilitadas va en su propia tarjeta. */
     val kpis: List<AdminKpi>
         get() {
             val s = stats ?: return emptyList()
-            val pctActivas = if (s.publicadas == 0) 0 else (s.activas * 100f / s.publicadas).roundToInt()
             return listOf(
-                AdminKpi(texto(R.string.admin2_kpi_users), Formato.entero(s.usuarios), "+${s.usuariosNuevos}", true, Color(0xFF3B82F6), Color(0xFFEFF6FF)),
-                AdminKpi(texto(R.string.admin2_kpi_lots), Formato.entero(s.lotes), "+${s.lotesNuevos}", true, Color(0xFFA855F7), Color(0xFFF5F3FF)),
-                AdminKpi(texto(R.string.admin2_kpi_published), Formato.entero(s.publicadas), "+${s.publicadasNuevas}", true, Color(0xFF14B8A6), Color(0xFFF0FDFA)),
-                AdminKpi(texto(R.string.admin2_kpi_active), Formato.entero(s.activas), "$pctActivas%", true, Color(0xFF22C55E), Color(0xFFF0FDF4)),
-                AdminKpi(texto(R.string.admin2_kpi_disabled), Formato.entero(s.deshabilitadas), "${s.deshabilitadas}", false, Color(0xFFF59E0B), Color(0xFFFFFBEB)),
+                AdminKpi(texto(R.string.admin2_kpi_users), Formato.entero(s.usuarios), "+${s.usuariosNuevos}", Icons.Outlined.Person, Color(0xFF3B82F6), Color(0xFFEFF6FF)),
+                AdminKpi(texto(R.string.admin2_kpi_lots), Formato.entero(s.lotes), "+${s.lotesNuevos}", Icons.Outlined.Storefront, Color(0xFFA855F7), Color(0xFFF5F3FF)),
+                AdminKpi(texto(R.string.admin2_kpi_published), Formato.entero(s.publicadas), "+${s.publicadasNuevas}", Icons.Outlined.DirectionsCar, Color(0xFF14B8A6), Color(0xFFF0FDFA)),
             )
         }
 
@@ -187,25 +196,30 @@ class AdminViewModel : ViewModel() {
         get() {
             val s = stats ?: return emptyList()
             return listOf(
-                AdminAlert(textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadas, s.deshabilitadas), Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_suspended, s.suspendidas, s.suspendidas), Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Lotes),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadas, s.deshabilitadas), Icons.Outlined.Description, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_suspended, s.suspendidas, s.suspendidas), Icons.Outlined.PersonOff, Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Icons.Outlined.Storefront, Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Lotes),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Icons.Outlined.Shield, Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Icons.Outlined.Flag, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
             )
         }
 
     // ── Acciones ─────────────────────────────────────────────────────────────
 
-    private fun perform(okMessage: String, action: suspend () -> Unit) {
+    /** Ejecuta una acción admin; [onSuccess] corre solo si la BD la aceptó. */
+    private fun perform(okMessage: String, onSuccess: () -> Unit = {}, action: suspend () -> Unit) {
         if (working) return
         working = true
         viewModelScope.launch {
             safeCall { action() }
-                .onSuccess { message = okMessage; loadAll() }
+                .onSuccess { message = okMessage; loadAll(); onSuccess() }
                 .onFailure { message = it.mensajeUsuario() }
             working = false
         }
+    }
+
+    fun dismissMessage() {
+        message = null
     }
 
     fun setSuspended(accountId: String, suspend: Boolean) = perform(
@@ -223,27 +237,26 @@ class AdminViewModel : ViewModel() {
         AdminRepository.moderateProposal(id, approve, if (approve) null else "No cumple con las reglas de publicación.")
     }
 
-    fun setVehicleEnabled(vehicle: AdminVehicle, enabled: Boolean) = perform(
-        texto(if (enabled) R.string.admin2_msg_publication_enabled else R.string.admin2_msg_publication_disabled)
+    /** Al deshabilitar, [reason] es obligatorio: es lo que verá el dueño. */
+    fun setVehicleEnabled(vehicle: AdminVehicle, enabled: Boolean, reason: String? = null, onSuccess: () -> Unit = {}) = perform(
+        texto(if (enabled) R.string.admin2_msg_publication_enabled else R.string.admin2_msg_publication_disabled),
+        onSuccess
     ) {
-        AdminRepository.setCarEnabled(
-            vehicle.id, enabled, if (enabled) "Habilitada desde el panel." else "Deshabilitada desde el panel."
-        )
+        AdminRepository.setCarEnabled(vehicle.id, enabled, if (enabled) "Habilitada desde el panel." else reason)
     }
 
-    fun resolveReport(report: AdminReport, disableCar: Boolean) = perform(
-        texto(if (disableCar) R.string.admin2_msg_report_resolved_disabled else R.string.admin2_msg_report_resolved)
+    /** Deshabilita la publicación reportada; [reason] es el comentario que verá el dueño. */
+    fun disableFromReport(reportId: Long, reason: String, onSuccess: () -> Unit) = perform(
+        texto(R.string.admin2_msg_report_resolved_disabled), onSuccess
     ) {
-        AdminRepository.resolveReport(
-            report.id,
-            "atendido",
-            if (disableCar) "Se deshabilitó la publicación reportada." else "Reporte revisado por administración.",
-            disableCar
-        )
+        AdminRepository.resolveReport(reportId, "atendido", reason.trim(), disableCar = true)
     }
 
-    fun dismissReport(report: AdminReport) = perform(texto(R.string.admin2_msg_report_dismissed)) {
-        AdminRepository.resolveReport(report.id, "descartado", "El reporte no procede.", false)
+    /** El reporte no procede: la publicación sigue habilitada. */
+    fun dismissReport(reportId: Long, onSuccess: () -> Unit) = perform(
+        texto(R.string.admin2_msg_report_dismissed), onSuccess
+    ) {
+        AdminRepository.resolveReport(reportId, "descartado", "El reporte no procede.", disableCar = false)
     }
 
     fun resolveFeatured(request: FeaturedRequest, approve: Boolean, reason: String? = null) = perform(

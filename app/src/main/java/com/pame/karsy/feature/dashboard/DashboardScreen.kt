@@ -39,7 +39,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -48,8 +50,13 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -307,31 +314,66 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
             fontFamily = DmSans,
             fontSize = 11.sp,
             color = KarsyMid,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            pluralStringResource(
+                R.plurals.profile_dashboard_favorites_total,
+                favWeekly.sum().toInt(),
+                favWeekly.sum().toInt()
+            ),
+            fontFamily = DmSans,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = KarsyTeal,
             modifier = Modifier.padding(bottom = 12.dp)
         )
+        val textMeasurer = rememberTextMeasurer()
+        val valueStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+        val dayStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(90.dp)
+                .height(130.dp)
         ) {
-            val chartH = size.height - 16.dp.toPx()
-            drawSparkline(favWeekly, size.width, chartH, strokeWidth = 2.5.dp, fillAlpha = 0.28f)
-            val points = sparklinePoints(favWeekly, size.width, chartH, 6.dp.toPx())
-            val maxV = favWeekly.maxOrNull() ?: 0f
-            points.forEachIndexed { i, p ->
-                val isMax = maxV > 0f && favWeekly[i] == maxV
-                if (isMax) drawCircle(KarsyTeal.copy(alpha = 0.2f), radius = 8.dp.toPx(), center = p)
-                drawCircle(KarsyTeal, radius = if (isMax) 5.dp.toPx() else 3.5.dp.toPx(), center = p)
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            weekDays.forEach { d ->
-                Text(d, fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
+            // Barras desde 0 para que la altura sea proporcional a la cantidad real de favoritos
+            val count = maxOf(favWeekly.size, weekDays.size)
+            if (count == 0) return@Canvas
+            val valueSpace = 16.dp.toPx()
+            val bottom = size.height - 20.dp.toPx()
+            val plotH = bottom - valueSpace
+            val maxV = (favWeekly.maxOrNull() ?: 0f).coerceAtLeast(1f)
+            val slot = size.width / count
+            val barW = minOf(28.dp.toPx(), slot * 0.55f)
+            drawLine(KarsyBg, Offset(0f, bottom), Offset(size.width, bottom), strokeWidth = 1.dp.toPx())
+            for (i in 0 until count) {
+                val v = favWeekly.getOrElse(i) { 0f }
+                val center = slot * i + slot / 2f
+                val barH = v / maxV * plotH
+                val isMax = v > 0f && v == favWeekly.maxOrNull()
+                if (barH > 0f) {
+                    drawRoundRect(
+                        color = if (isMax) KarsyTeal else KarsyTeal.copy(alpha = 0.45f),
+                        topLeft = Offset(center - barW / 2f, bottom - barH),
+                        size = Size(barW, barH),
+                        cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx())
+                    )
+                }
+                val valueLayout = textMeasurer.measure(v.toInt().toString(), valueStyle)
+                drawText(
+                    valueLayout,
+                    topLeft = Offset(
+                        center - valueLayout.size.width / 2f,
+                        bottom - barH - 3.dp.toPx() - valueLayout.size.height
+                    )
+                )
+                weekDays.getOrNull(i)?.let { d ->
+                    val dayLayout = textMeasurer.measure(d, dayStyle)
+                    drawText(
+                        dayLayout,
+                        topLeft = Offset(center - dayLayout.size.width / 2f, bottom + 4.dp.toPx())
+                    )
+                }
             }
         }
     }
@@ -448,6 +490,19 @@ private fun ListingCard(car: Car, onDestacar: (Car) -> Unit, onCarClick: (Long) 
                 color = KarsyTeal,
                 modifier = Modifier.padding(top = 4.dp)
             )
+            // Motivo del admin; el texto completo se ve al abrir la publicación.
+            car.disabledReason?.let { reason ->
+                Text(
+                    stringResource(R.string.detail_disabled_reason, reason),
+                    fontFamily = DmSans,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    color = KarsyError,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
             Spacer(Modifier.weight(1f))
             // Solo un anuncio activo puede destacarse, y una solicitud a la vez.
             val puedeDestacar = car.status == "Activo" && !car.featured && !car.featuredPending

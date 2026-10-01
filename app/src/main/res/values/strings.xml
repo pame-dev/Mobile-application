@@ -170,6 +170,7 @@
     <string name="home_fab_login_to_add">Inicia sesión para agregar un vehículo</string>
     <string name="home_fab_add_vehicle">Agregar vehículo</string>
     <string name="home_register">Regístrate</string>
+    <string name="home_login">Iniciar sesión</string>
     <string name="home_admin_panel">Panel de administración</string>
     <string name="home_my_profile">Mi perfil</string>
     <string name="home_close_filters">Cerrar filtros</string>
@@ -263,6 +264,9 @@
     <string name="detail_report_account">Reportar cuenta</string>
     <string name="detail_report_account_desc">Comportamiento sospechoso, suplantación o acoso por parte del vendedor.</string>
     <string name="detail_cancel">Cancelar</string>
+    <string name="detail_disabled_title">Tu publicación fue deshabilitada</string>
+    <string name="detail_disabled_reason">Motivo: %1$s</string>
+    <string name="detail_disabled_no_reason">Administración deshabilitó esta publicación; ya no es visible para otros usuarios.</string>
     <string name="detail_reasons_listing_title">Razones para reportar esta publicación</string>
     <string name="detail_reasons_seller_title">Razones para reportar al vendedor</string>
     <string name="detail_reasons_subtitle">Selecciona el motivo que mejor describa el problema.</string>
@@ -287,6 +291,10 @@
     <string name="profile_dashboard_contacts">Contactos</string>
     <string name="profile_dashboard_weekly_interest">Interés en la semana</string>
     <string name="profile_dashboard_favorites_per_day">Favoritos agregados por día</string>
+    <plurals name="profile_dashboard_favorites_total">
+        <item quantity="one">%1$d favorito esta semana</item>
+        <item quantity="other">%1$d favoritos esta semana</item>
+    </plurals>
     <string name="profile_dashboard_my_listings">Mis Vehículos Publicados</string>
     <string name="profile_dashboard_publish">+ Publicar</string>
     <string name="profile_dashboard_no_listings">Todavía no publicas ningún vehículo. Toca \"+ Publicar\" para crear el primero.</string>
@@ -485,6 +493,7 @@
     <string name="admin2_logout">Cerrar sesión</string>
     <string name="admin2_last_days">Últimos %1$d días</string>
     <string name="admin2_range_short">%1$dd</string>
+    <string name="admin2_range_days">%1$d días</string>
     <string name="admin2_greeting">¡Hola, %1$s!</string>
     <string name="admin2_home_subtitle">Resumen de la actividad en la plataforma.</string>
     <string name="admin2_growth_title">Crecimiento de la plataforma</string>
@@ -505,6 +514,7 @@
     <string name="admin2_kpi_published">Vehículos publicados</string>
     <string name="admin2_kpi_active">Publicaciones activas</string>
     <string name="admin2_kpi_disabled">Publicaciones deshabilitadas</string>
+    <string name="admin2_kpi_status_detail">%1$s activas · %2$s deshabilitadas</string>
     <string name="admin2_msg_account_suspended">Cuenta suspendida.</string>
     <string name="admin2_msg_account_reactivated">Cuenta reactivada.</string>
     <string name="admin2_msg_publication_approved">Publicación aprobada.</string>
@@ -588,6 +598,15 @@
     <string name="admin2_report_number">Reporte #%1$s</string>
     <string name="admin2_type">Tipo</string>
     <string name="admin2_reason">Motivo</string>
+    <string name="admin2_review_keep">No deshabilitar</string>
+    <string name="admin2_review_disable">Deshabilitar publicación</string>
+    <string name="admin2_disable_dialog_title">¿Por qué deshabilitas esta publicación?</string>
+    <string name="admin2_disable_dialog_desc">El dueño verá este comentario en su publicación. Sé claro sobre qué debe corregir.</string>
+    <string name="admin2_disable_dialog_hint">Ej. Las fotos no corresponden al vehículo anunciado.</string>
+    <string name="admin2_disable_dialog_min">Mínimo %1$d caracteres (%2$d/%1$d)</string>
+    <string name="admin2_disable_dialog_count">%1$d caracteres</string>
+    <string name="admin2_disable_dialog_working">Deshabilitando…</string>
+    <string name="admin2_disable_confirm">Deshabilitar</string>
     <string name="admin2_resolution">Resolución</string>
     <string name="admin2_mark_resolved">Marcar atendido</string>
     <string name="admin2_dismiss">Descartar</string>
