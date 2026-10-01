@@ -196,6 +196,8 @@
     <string name="home_fav_sort_recent">Recent ↕</string>
     <string name="home_fav_sort_price_low">Price: low ↕</string>
     <string name="home_fav_sort_price_high">Price: high ↕</string>
+    <string name="favorites_empty_title">You don\'t have any saved vehicles yet</string>
+    <string name="favorites_empty_subtitle">Tap the heart on a vehicle to save it here.</string>
 
     <!-- Detalle del auto -->
     <string name="detail_toast_register_fav">Sign up to save your favorites</string>

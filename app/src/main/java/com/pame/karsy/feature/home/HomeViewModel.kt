@@ -42,6 +42,37 @@ data class FilterOptions(
     fun modelos(marca: String): List<String> = listOf(TODOS) + modelosPorMarca[marca].orEmpty()
 }
 
+/** Búsqueda y filtros del panel (sin ordenar). Lo usan el catálogo y Favoritos. */
+internal fun List<Car>.filtrar(f: HomeFilters, query: String): List<Car> {
+    val busqueda = query.trim().lowercase()
+    val min = f.precioMin.filter(Char::isDigit).toDoubleOrNull()
+    val max = f.precioMax.filter(Char::isDigit).toDoubleOrNull()
+    return filter { car ->
+        (busqueda.isEmpty() || "${car.brand} ${car.model} ${car.year}".lowercase().contains(busqueda)) &&
+            (f.marca == TODAS || car.brand == f.marca) &&
+            (f.modelo == TODOS || car.model == f.modelo) &&
+            (f.anio == CUALQUIERA || car.year.toString() == f.anio) &&
+            (f.tipo == TODOS || car.bodyType == f.tipo) &&
+            (min == null || car.priceValue >= min) &&
+            (max == null || car.priceValue <= max)
+    }
+}
+
+/** Opciones del panel: marcas, modelos y tipos del catálogo; años de los autos dados. */
+internal fun filterOptionsOf(catalogs: Catalogs?, cars: List<Car>): FilterOptions {
+    val c = catalogs ?: return FilterOptions()
+    val marcas = c.marcas.filterNot { it.esOtro }
+    return FilterOptions(
+        marcas = listOf(TODAS) + marcas.map { it.nombre },
+        modelosPorMarca = marcas.associate { m ->
+            m.nombre to c.modelosDe(m.id).filterNot { it.esOtro }.map { it.nombre }
+        },
+        anios = listOf(CUALQUIERA) + cars.map { it.year }.filter { it > 0 }
+            .distinct().sortedDescending().map { it.toString() },
+        tipos = listOf(TODOS) + c.carrocerias.filterNot { it.esOtro }.map { it.nombre },
+    )
+}
+
 class HomeViewModel : ViewModel() {
     var cars by mutableStateOf<List<Car>>(emptyList())
         private set
@@ -62,40 +93,15 @@ class HomeViewModel : ViewModel() {
     /** Anuncios con búsqueda, filtros y orden aplicados. */
     val visibleCars: List<Car>
         get() {
-            val f = filters
-            val busqueda = query.trim().lowercase()
-            val min = f.precioMin.filter(Char::isDigit).toDoubleOrNull()
-            val max = f.precioMax.filter(Char::isDigit).toDoubleOrNull()
-            val lista = cars.filter { car ->
-                (busqueda.isEmpty() || "${car.brand} ${car.model} ${car.year}".lowercase().contains(busqueda)) &&
-                    (f.marca == TODAS || car.brand == f.marca) &&
-                    (f.modelo == TODOS || car.model == f.modelo) &&
-                    (f.anio == CUALQUIERA || car.year.toString() == f.anio) &&
-                    (f.tipo == TODOS || car.bodyType == f.tipo) &&
-                    (min == null || car.priceValue >= min) &&
-                    (max == null || car.priceValue <= max)
-            }
-            return when (f.orden) {
+            val lista = cars.filtrar(filters, query)
+            return when (filters.orden) {
                 "Menor precio" -> lista.sortedBy { it.priceValue }
                 "Mayor precio" -> lista.sortedByDescending { it.priceValue }
                 else -> lista.sortedByDescending { it.publishedAt }
             }
         }
 
-    val filterOptions: FilterOptions
-        get() {
-            val c = catalogs ?: return FilterOptions()
-            val marcas = c.marcas.filterNot { it.esOtro }
-            return FilterOptions(
-                marcas = listOf(TODAS) + marcas.map { it.nombre },
-                modelosPorMarca = marcas.associate { m ->
-                    m.nombre to c.modelosDe(m.id).filterNot { it.esOtro }.map { it.nombre }
-                },
-                anios = listOf(CUALQUIERA) + cars.map { it.year }.filter { it > 0 }
-                    .distinct().sortedDescending().map { it.toString() },
-                tipos = listOf(TODOS) + c.carrocerias.filterNot { it.esOtro }.map { it.nombre },
-            )
-        }
+    val filterOptions: FilterOptions get() = filterOptionsOf(catalogs, cars)
 
     /** Cantidades reales para el encabezado (vehículos, marcas y modelos). */
     val heroStats: List<Pair<String, String>>
