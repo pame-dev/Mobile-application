@@ -206,6 +206,7 @@
     <string name="detail_contact_seller">Contact seller</string>
     <string name="detail_back">Back</string>
     <string name="detail_title">Vehicle details</string>
+    <string name="detail_photo_counter">%1$d of %2$d</string>
     <string name="detail_report_content_desc">Report listing or account</string>
     <string name="detail_photo_n">Photo %1$d</string>
     <string name="detail_spec_model">Model</string>
