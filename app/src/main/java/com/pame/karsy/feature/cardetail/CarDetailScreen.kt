@@ -105,6 +105,7 @@ fun CarDetailScreen(
     var showContact by rememberSaveable { mutableStateOf(false) }
     var showSellerProfile by rememberSaveable { mutableStateOf(false) }
     var showReport by rememberSaveable { mutableStateOf(false) }
+    var showViewer by rememberSaveable { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
     val msgRegisterFav = stringResource(R.string.detail_toast_register_fav)
     val msgRegisterContact = stringResource(R.string.detail_toast_register_contact)
@@ -169,6 +170,7 @@ fun CarDetailScreen(
                     detail = detail,
                     activeImg = activeImg,
                     onSelect = { activeImg = it },
+                    onOpenFullscreen = { showViewer = true },
                 )
                 DetailBody(detail = detail, onOpenSeller = ::openSeller)
             }
@@ -196,6 +198,19 @@ fun CarDetailScreen(
                 onCarClick = { id ->
                     showSellerProfile = false
                     if (id != detail.car.id) onCarClick(id)
+                }
+            )
+        }
+
+        if (showViewer && detail.gallery.isNotEmpty()) {
+            ImageViewer(
+                images = detail.gallery,
+                startIndex = activeImg,
+                contentDescription = detail.car.title,
+                // Al cerrar, la galería del detalle se queda en la última foto vista.
+                onClose = { last ->
+                    activeImg = last
+                    showViewer = false
                 }
             )
         }
@@ -333,7 +348,7 @@ private fun HeaderSquareButton(onClick: () -> Unit, content: @Composable () -> U
 }
 
 @Composable
-private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit) {
+private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, onOpenFullscreen: () -> Unit) {
     val gallery = detail.gallery
     val car = detail.car
     Box(
@@ -341,6 +356,7 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit) 
             .fillMaxWidth()
             .height(300.dp)
             .background(Color(0xFFDDE6EC))
+            .clickable(enabled = gallery.isNotEmpty(), onClick = onOpenFullscreen)
     ) {
         AsyncImage(
             model = gallery.getOrNull(activeImg),

@@ -208,6 +208,7 @@
     <string name="detail_contact_seller">Contactar vendedor</string>
     <string name="detail_back">Regresar</string>
     <string name="detail_title">Detalle del vehículo</string>
+    <string name="detail_photo_counter">%1$d de %2$d</string>
     <string name="detail_report_content_desc">Reportar publicación o cuenta</string>
     <string name="detail_photo_n">Foto %1$d</string>
     <string name="detail_spec_model">Modelo</string>
