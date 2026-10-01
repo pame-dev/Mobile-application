@@ -194,7 +194,7 @@ fun KarsyNavGraph(
             )
         }
         composable(Routes.Favorites.route) {
-            FavoritesScreen(onBack = ::back, onCarClick = ::openCar)
+            FavoritesScreen(userMode = userMode, onBack = ::back, onCarClick = ::openCar)
         }
 
         // ── Perfil ───────────────────────────────────────────────────

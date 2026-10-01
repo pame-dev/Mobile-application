@@ -198,6 +198,8 @@
     <string name="home_fav_sort_recent">Recientes ↕</string>
     <string name="home_fav_sort_price_low">Menor precio ↕</string>
     <string name="home_fav_sort_price_high">Mayor precio ↕</string>
+    <string name="favorites_empty_title">Aún no tienes vehículos guardados en favoritos</string>
+    <string name="favorites_empty_subtitle">Toca el corazón de un vehículo para guardarlo aquí.</string>
 
     <!-- Detalle del auto -->
     <string name="detail_toast_register_fav">Regístrate para guardar tus favoritos</string>

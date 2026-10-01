@@ -117,6 +117,8 @@ fun FilterSheet(
     onApply: (HomeFilters) -> Unit,
     onDismiss: () -> Unit,
     onRegister: () -> Unit,
+    /** Además de limpiar el borrador, "Limpiar" llama esto (Favoritos lo usa para quitar los filtros al instante). */
+    onClear: () -> Unit = {},
 ) {
     if (visible) BackHandler(onBack = onDismiss)
 
@@ -145,7 +147,8 @@ fun FilterSheet(
                 options = options,
                 onApply = onApply,
                 onDismiss = onDismiss,
-                onRegister = onRegister
+                onRegister = onRegister,
+                onClear = onClear
             )
         }
     }
@@ -159,6 +162,7 @@ private fun FilterPanel(
     onApply: (HomeFilters) -> Unit,
     onDismiss: () -> Unit,
     onRegister: () -> Unit,
+    onClear: () -> Unit,
 ) {
     // Borrador local: solo se aplica al tocar "Aplicar".
     var marca by rememberSaveable(filters) { mutableStateOf(filters.marca) }
@@ -238,6 +242,7 @@ private fun FilterPanel(
                                 val limpio = HomeFilters()
                                 marca = limpio.marca; modelo = limpio.modelo; anio = limpio.anio
                                 tipo = limpio.tipo; precioMin = ""; precioMax = ""; orden = limpio.orden
+                                onClear()
                             },
                             shape = RoundedCornerShape(10.dp),
                             border = BorderStroke(1.5.dp, KarsyBorder),
