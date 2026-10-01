@@ -3,7 +3,8 @@ package com.pame.karsy.feature.admin
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
@@ -28,6 +29,8 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
     var search by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("Todos") }
     var selected by remember { mutableStateOf<AdminVehicle?>(null) }
+    // Publicación a la que se le está escribiendo el motivo de deshabilitación.
+    var disabling by remember { mutableStateOf<AdminVehicle?>(null) }
 
     val filtered = vm.vehicles.filter { vehicle ->
         val matchesSearch = "${vehicle.name} ${vehicle.seller}".contains(search, ignoreCase = true)
@@ -71,6 +74,8 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                 filtered.forEachIndexed { index, vehicle ->
                     AdminListRow(isLast = index == filtered.lastIndex) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            AdminThumbnail(vehicle.imageUrl)
+                            Spacer(Modifier.width(12.dp))
                             Text(
                                 vehicle.name,
                                 fontFamily = DmSans,
@@ -79,7 +84,8 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                                 color = KarsyNavy,
                                 modifier = Modifier.weight(1f)
                             )
-                            AdminBadge(adminValueLabel(vehicle.status), vehicleStatusTone(vehicle.status))
+                            Spacer(Modifier.width(8.dp))
+                            AdminStatusBadge(vehicle.status)
                         }
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -104,6 +110,7 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
             subtitle = vehicle.name,
             onDismiss = { selected = null }
         ) {
+            AdminDetailImage(vehicle.imageUrl)
             DetailRow(stringResource(R.string.admin2_vehicle), "${vehicle.name} ${vehicle.year}")
             DetailRow(stringResource(R.string.admin2_seller), vehicle.seller)
             DetailRow(stringResource(R.string.admin2_price), vehicle.price)
@@ -112,42 +119,50 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
             DetailRow(stringResource(R.string.admin2_body_type), vehicle.tipo)
             DetailRow(stringResource(R.string.admin2_color), vehicle.color)
             DetailRow(stringResource(R.string.admin2_status), adminValueLabel(vehicle.status))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 18.dp)
-            ) {
+            AdminSheetActions {
                 // Propuesta pendiente: aprobar publica el contenido; rechazar lo devuelve al vendedor.
                 if (vehicle.pendingProposalId != null) {
-                    AdminActionButton(stringResource(R.string.admin2_approve), tone = ActionTone.Success, onClick = {
+                    AdminSheetButton(stringResource(R.string.admin2_approve), AdminButtonStyle.Positive) {
                         vm.moderate(vehicle, approve = true)
                         selected = null
-                    })
-                    AdminActionButton(stringResource(R.string.admin2_reject), tone = ActionTone.Danger, onClick = {
+                    }
+                    AdminSheetButton(stringResource(R.string.admin2_reject), AdminButtonStyle.Destructive) {
                         vm.moderate(vehicle, approve = false)
                         selected = null
-                    })
+                    }
                 } else if (vehicle.status != "Rechazado") {
-                    AdminActionButton(
+                    AdminSheetButton(
                         stringResource(if (vehicle.enabledByAdmin) R.string.admin2_disable else R.string.admin2_enable),
-                        tone = if (vehicle.enabledByAdmin) ActionTone.Danger else ActionTone.Success,
-                        onClick = {
-                            vm.setVehicleEnabled(vehicle, enabled = !vehicle.enabledByAdmin)
+                        if (vehicle.enabledByAdmin) AdminButtonStyle.Destructive else AdminButtonStyle.Positive
+                    ) {
+                        if (vehicle.enabledByAdmin) {
+                            vm.dismissMessage()
+                            disabling = vehicle
+                        } else {
+                            vm.setVehicleEnabled(vehicle, enabled = true)
                             selected = null
                         }
-                    )
+                    }
                 }
-                AdminActionButton(stringResource(R.string.admin2_view_publication), onClick = {
+                AdminSheetButton(stringResource(R.string.admin2_view_publication), AdminButtonStyle.Secondary) {
                     selected = null
                     onCarClick(vehicle.id)
-                })
+                }
             }
         }
     }
-}
 
-private fun vehicleStatusTone(status: String) = when (status) {
-    "Activo" -> BadgeTone.Success
-    "Pendiente", "Cambios pendientes" -> BadgeTone.Warning
-    "Vendido", "Pausado" -> BadgeTone.Info
-    else -> BadgeTone.Danger
+    disabling?.let { vehicle ->
+        DisableReasonDialog(
+            working = vm.working,
+            error = vm.message,
+            onConfirm = { reason ->
+                vm.setVehicleEnabled(vehicle, enabled = false, reason = reason) {
+                    disabling = null
+                    selected = null
+                }
+            },
+            onDismiss = { if (!vm.working) disabling = null }
+        )
+    }
 }

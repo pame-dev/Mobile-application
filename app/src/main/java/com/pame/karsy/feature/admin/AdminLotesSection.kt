@@ -3,7 +3,8 @@ package com.pame.karsy.feature.admin
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
@@ -23,6 +24,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.feature.profile.ProfileAvatar
 
 @Composable
 fun AdminLotesSection(vm: AdminViewModel) {
@@ -58,6 +60,8 @@ fun AdminLotesSection(vm: AdminViewModel) {
                 filtered.forEachIndexed { index, lot ->
                     AdminListRow(isLast = index == filtered.lastIndex) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            ProfileAvatar(name = lot.name, avatarUrl = null, size = 40.dp, initialsSize = 14.sp)
+                            Spacer(Modifier.width(12.dp))
                             Text(
                                 lot.name,
                                 fontFamily = DmSans,
@@ -66,7 +70,7 @@ fun AdminLotesSection(vm: AdminViewModel) {
                                 color = KarsyNavy,
                                 modifier = Modifier.weight(1f)
                             )
-                            AdminBadge(adminValueLabel(lot.status), if (lot.status == "Activo") BadgeTone.Success else BadgeTone.Warning)
+                            AdminStatusBadge(lot.status)
                         }
                         Row(
                             verticalAlignment = Alignment.Bottom,
@@ -98,16 +102,15 @@ fun AdminLotesSection(vm: AdminViewModel) {
             DetailRow(stringResource(R.string.admin2_active_vehicles), lot.vehicles.toString())
             DetailRow(stringResource(R.string.admin2_status), adminValueLabel(lot.status))
             if (lot.id != SessionManager.userId) {
-                Row(Modifier.padding(top = 18.dp)) {
+                AdminSheetActions {
                     val suspendido = lot.status == "Suspendido"
-                    AdminActionButton(
+                    AdminSheetButton(
                         stringResource(if (suspendido) R.string.admin2_reactivate_lot else R.string.admin2_suspend_lot),
-                        tone = if (suspendido) ActionTone.Success else ActionTone.Danger,
-                        onClick = {
-                            vm.setSuspended(lot.id, suspend = !suspendido)
-                            selected = null
-                        }
-                    )
+                        if (suspendido) AdminButtonStyle.Positive else AdminButtonStyle.Destructive
+                    ) {
+                        vm.setSuspended(lot.id, suspend = !suspendido)
+                        selected = null
+                    }
                 }
             }
         }

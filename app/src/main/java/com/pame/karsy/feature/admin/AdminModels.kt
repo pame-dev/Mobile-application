@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.admin
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
 
@@ -50,6 +51,7 @@ data class AdminReport(
     val type: String,
     val reporter: String,
     val target: String,
+    val imageUrl: String?,
     val reason: String,
     val resolution: String?,
     val date: String,
@@ -76,16 +78,23 @@ data class FeaturedRequest(
     val description: String,
 )
 
+/** [change] es lo nuevo en el rango elegido; null cuando no aplica un cambio. */
 data class AdminKpi(
     val label: String,
     val value: String,
-    val change: String,
-    val positive: Boolean,
+    val change: String?,
+    val icon: ImageVector,
     val color: Color,
     val bg: Color,
 )
 
-data class AdminAlert(val text: String, val bg: Color, val color: Color, val target: AdminSection)
+data class AdminAlert(
+    val text: String,
+    val icon: ImageVector,
+    val bg: Color,
+    val color: Color,
+    val target: AdminSection,
+)
 
 object AdminOptions {
     // Getter: se resuelve en el idioma actual cada vez que se lee.

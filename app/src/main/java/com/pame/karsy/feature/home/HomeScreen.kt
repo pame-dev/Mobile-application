@@ -93,6 +93,7 @@ fun HomeScreen(
     onAdminPanel: () -> Unit,
     onPublish: () -> Unit,
     onRegister: () -> Unit,
+    onLogin: () -> Unit,
     vm: HomeViewModel = viewModel(),
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
@@ -134,7 +135,11 @@ fun HomeScreen(
                 userMode = userMode,
                 menuOpen = menuOpen,
                 onToggleMenu = { menuOpen = !menuOpen },
-                onRegister = goRegister,
+                onLogin = {
+                    toastMsg = null
+                    menuOpen = false
+                    onLogin()
+                },
                 onFavorites = onFavorites,
                 onProfile = onProfile,
                 onAdminPanel = onAdminPanel
@@ -305,7 +310,7 @@ private fun HomeHeader(
     userMode: UserMode,
     menuOpen: Boolean,
     onToggleMenu: () -> Unit,
-    onRegister: () -> Unit,
+    onLogin: () -> Unit,
     onFavorites: () -> Unit,
     onProfile: () -> Unit,
     onAdminPanel: () -> Unit,
@@ -329,7 +334,7 @@ private fun HomeHeader(
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 when {
                     !userMode.isLoggedIn -> Button(
-                        onClick = onRegister,
+                        onClick = onLogin,
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
                         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
@@ -337,7 +342,7 @@ private fun HomeHeader(
                             .height(38.dp)
                             .shadow(4.dp, RoundedCornerShape(10.dp), spotColor = KarsyNavy.copy(alpha = 0.3f))
                     ) {
-                        Text(stringResource(R.string.home_register), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                     userMode.isAdmin -> {
                         HeaderIconButton(onClick = onAdminPanel) {

@@ -16,11 +16,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,6 +79,10 @@ fun CarDetailScreen(
     onBack: () -> Unit,
     onRegister: () -> Unit,
     onCarClick: (Long) -> Unit,
+    /** Contenido extra arriba de la galería (p. ej. el reporte que revisa el admin). */
+    topNotice: (@Composable () -> Unit)? = null,
+    /** Reemplaza la barra de contacto (p. ej. las acciones del admin al revisar un reporte). */
+    bottomBar: (@Composable () -> Unit)? = null,
     vm: CarDetailViewModel = viewModel(),
 ) {
     LaunchedEffect(carId) { vm.load(carId) }
@@ -154,6 +160,11 @@ fun CarDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 20.dp)
             ) {
+                topNotice?.invoke()
+                // El dueño ve por qué administración deshabilitó su publicación.
+                if (isOwner && detail.car.status == "Deshabilitado") {
+                    DisabledNotice(reason = detail.car.disabledReason)
+                }
                 Gallery(
                     detail = detail,
                     activeImg = activeImg,
@@ -163,7 +174,8 @@ fun CarDetailScreen(
             }
 
             // Barra inferior con el botón de contacto (no se muestra en anuncios propios)
-            if (!isOwner) Column(Modifier.background(KarsyBg)) {
+            if (bottomBar != null) bottomBar()
+            else if (!isOwner) Column(Modifier.background(KarsyBg)) {
                 HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
                 Box(
                     Modifier
@@ -216,6 +228,41 @@ fun CarDetailScreen(
 
     if (showReport) {
         ReportSheet(onSubmit = vm::report, onDismiss = { showReport = false })
+    }
+}
+
+@Composable
+private fun DisabledNotice(reason: String?) {
+    val danger = Color(0xFFB42318)
+    Column(
+        Modifier
+            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFFFEF3F2))
+            .border(1.dp, danger.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
+            .padding(14.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.Block, contentDescription = null, tint = danger, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(R.string.detail_disabled_title),
+                fontFamily = Outfit,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = danger
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            if (reason != null) stringResource(R.string.detail_disabled_reason, reason)
+            else stringResource(R.string.detail_disabled_no_reason),
+            fontFamily = DmSans,
+            fontSize = 13.sp,
+            lineHeight = 18.sp,
+            color = KarsyCharcoal
+        )
     }
 }
 

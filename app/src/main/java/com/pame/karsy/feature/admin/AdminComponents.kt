@@ -49,8 +49,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
+import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -268,8 +275,8 @@ fun AdminActionButton(
             .clip(RoundedCornerShape(8.dp))
             .background(tone.bg)
             .border(1.dp, tone.border, RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 7.dp)
+            .clickable(onClick = onClick, role = Role.Button)
+            .padding(horizontal = 12.dp, vertical = 9.dp)
     )
 }
 
@@ -376,6 +383,11 @@ fun DetailRow(label: String, value: String) {
     HorizontalDivider(thickness = 1.dp, color = AdminColors.RowDivider)
 }
 
+/**
+ * Detalle de un elemento en bottom sheet: encabezado con cerrar y contenido desplazable.
+ * Las acciones van al final con [AdminSheetActions].
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDetailModal(
     title: String,
@@ -383,21 +395,23 @@ fun AdminDetailModal(
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = KarsyWhite,
+        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+    ) {
         Column(
             modifier = Modifier
-                .padding(20.dp)
                 .fillMaxWidth()
-                .heightIn(max = 560.dp)
-                .clip(RoundedCornerShape(18.dp))
-                .background(KarsyWhite)
                 .verticalScroll(rememberScrollState())
-                .padding(22.dp)
+                .padding(start = 22.dp, end = 22.dp, bottom = 20.dp)
+                .navigationBarsPadding()
         ) {
             Row(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(title, fontFamily = Outfit, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
@@ -407,11 +421,11 @@ fun AdminDetailModal(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(9.dp))
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .background(KarsyBg)
-                        .border(1.dp, KarsyBorder, RoundedCornerShape(9.dp))
-                        .clickable(onClick = onDismiss)
+                        .border(1.dp, KarsyBorder, RoundedCornerShape(10.dp))
+                        .clickable(onClick = onDismiss, role = Role.Button)
                 ) {
                     Icon(
                         Icons.Rounded.Close,
@@ -424,6 +438,117 @@ fun AdminDetailModal(
             content()
         }
     }
+}
+
+/** Jerarquía de botones en el detalle: principal lleno, destructivo con borde rojo, secundario como texto. */
+enum class AdminButtonStyle { Primary, Positive, Destructive, Secondary }
+
+@Composable
+fun AdminSheetButton(
+    text: String,
+    style: AdminButtonStyle,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    val (bg, fg, border) = when (style) {
+        AdminButtonStyle.Primary -> Triple(KarsyNavy, KarsyWhite, KarsyNavy)
+        AdminButtonStyle.Positive -> Triple(BadgeTone.Success.fg, KarsyWhite, BadgeTone.Success.fg)
+        AdminButtonStyle.Destructive -> Triple(KarsyWhite, BadgeTone.Danger.fg, BadgeTone.Danger.fg.copy(alpha = 0.55f))
+        AdminButtonStyle.Secondary -> Triple(Color.Transparent, KarsyNavy, Color.Transparent)
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(shape)
+            .background(bg)
+            .border(1.5.dp, border, shape)
+            .clickable(onClick = onClick, role = Role.Button)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text,
+            fontFamily = DmSans,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = fg,
+            maxLines = 1
+        )
+    }
+}
+
+/** Contenedor de las acciones al pie del detalle, apiladas a todo lo ancho. */
+@Composable
+fun AdminSheetActions(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        content = content
+    )
+}
+
+/**
+ * Tono del badge según el estado, igual en todas las secciones:
+ * pendiente ámbar, activo verde, rechazado/suspendido/deshabilitado rojo, pausado gris.
+ */
+internal fun adminStatusTone(status: String): BadgeTone = when (status) {
+    "Activo", "Atendido" -> BadgeTone.Success
+    "Pendiente", "Cambios pendientes" -> BadgeTone.Warning
+    "Rechazado", "Suspendido", "Deshabilitado" -> BadgeTone.Danger
+    "Vendido" -> BadgeTone.Info
+    else -> BadgeTone.Neutral
+}
+
+@Composable
+fun AdminStatusBadge(status: String, modifier: Modifier = Modifier) {
+    AdminBadge(adminValueLabel(status), adminStatusTone(status), modifier)
+}
+
+/** Miniatura cuadrada redondeada de una publicación; ícono de auto si no hay foto. */
+@Composable
+fun AdminThumbnail(imageUrl: String?, modifier: Modifier = Modifier, size: Dp = 52.dp) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(10.dp))
+            .background(KarsyBg)
+    ) {
+        if (imageUrl != null) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Icon(
+                Icons.Outlined.DirectionsCar,
+                contentDescription = null,
+                tint = AdminColors.Muted,
+                modifier = Modifier.size(size * 0.45f)
+            )
+        }
+    }
+}
+
+/** Foto grande del vehículo en el detalle. */
+@Composable
+fun AdminDetailImage(imageUrl: String?) {
+    if (imageUrl == null) return
+    AsyncImage(
+        model = imageUrl,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 10f)
+            .clip(RoundedCornerShape(14.dp))
+            .background(KarsyBg)
+    )
+    Spacer(Modifier.height(12.dp))
 }
 
 /** Contenedor desplazable común de cada sección. */

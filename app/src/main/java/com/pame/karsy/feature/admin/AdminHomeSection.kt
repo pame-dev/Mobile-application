@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,35 +18,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.DirectionsCar
-import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.PauseCircle
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.PersonOff
-import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.Storefront
-import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.WarningAmber
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -63,30 +49,13 @@ import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.Formato
 import com.pame.karsy.data.repository.AdminStats
 import com.pame.karsy.feature.admin.charts.ChartSeries
 import com.pame.karsy.feature.admin.charts.GrowthChart
 import com.pame.karsy.feature.admin.charts.SalesComparisonChart
 
-private val kpiIcons: List<ImageVector> = listOf(
-    Icons.Outlined.Person,
-    Icons.Outlined.Storefront,
-    Icons.Outlined.DirectionsCar,
-    Icons.Outlined.CheckCircle,
-    Icons.Outlined.PauseCircle,
-)
-
-private val alertIcons: List<ImageVector> = listOf(
-    Icons.Outlined.Description,
-    Icons.Outlined.PersonOff,
-    Icons.Outlined.Storefront,
-    Icons.Outlined.Shield,
-    Icons.Outlined.Flag,
-)
-
 private val rangeOptions = listOf("7", "30", "90")
-@Composable
-private fun rangeLabel(range: String) = stringResource(R.string.admin2_last_days, range.toInt())
 
 private val UsersColor = Color(0xFF3B82F6)
 private val LotsColor = Color(0xFF8B5CF6)
@@ -118,131 +87,173 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection) -> Unit) {
             color = KarsyMid
         )
         Spacer(Modifier.height(14.dp))
-        RangeSelector(range = range, onSelect = vm::changeRange)
+        // Único selector de rango: afecta KPIs, alertas y gráficas
+        RangeChips(range = range, onSelect = vm::changeRange)
         Spacer(Modifier.height(20.dp))
 
-        // KPIs en cuadrícula de 2 columnas (el cambio es lo nuevo en el rango elegido)
+        // Pendientes primero: es lo que el admin tiene que atender
+        if (stats != null) {
+            AlertsCard(alerts = vm.alerts, onOpen = onNavigate, onSeeAll = { onNavigate(AdminSection.Reportes) })
+            Spacer(Modifier.height(20.dp))
+        }
+
+        // KPIs en cuadrícula 2×2: tres totales + estado de las publicaciones
         val kpis = vm.kpis
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            kpis.indices.chunked(2).forEach { rowIdx ->
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    rowIdx.forEach { i ->
-                        KpiCard(kpis[i], kpiIcons[i], Modifier.weight(1f))
-                    }
-                    if (rowIdx.size == 1) Spacer(Modifier.weight(1f))
+        if (stats != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.height(IntrinsicSize.Max)) {
+                    kpis.getOrNull(0)?.let { KpiCard(it, Modifier.weight(1f).fillMaxHeight()) }
+                    kpis.getOrNull(1)?.let { KpiCard(it, Modifier.weight(1f).fillMaxHeight()) }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.height(IntrinsicSize.Max)) {
+                    kpis.getOrNull(2)?.let { KpiCard(it, Modifier.weight(1f).fillMaxHeight()) }
+                    PublicationStatusCard(stats, Modifier.weight(1f).fillMaxHeight())
                 }
             }
-        }
-        Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-        if (stats != null) {
-            GrowthCard(stats = stats, range = range, onRange = vm::changeRange)
+            GrowthCard(stats = stats)
             Spacer(Modifier.height(16.dp))
             InteractionsCard(stats = stats)
-            Spacer(Modifier.height(20.dp))
-            AlertsCard(alerts = vm.alerts, onOpen = onNavigate, onSeeAll = { onNavigate(AdminSection.Reportes) })
         }
     }
 }
 
 @Composable
-private fun RangeSelector(range: String, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(KarsyWhite)
-                .border(1.dp, KarsyBorder, RoundedCornerShape(10.dp))
-                .clickable { expanded = true }
-                .padding(horizontal = 14.dp, vertical = 9.dp)
-        ) {
-            Icon(
-                Icons.Outlined.CalendarToday,
-                contentDescription = null,
-                tint = KarsyTextSecondary,
-                modifier = Modifier.size(14.dp)
-            )
-            Spacer(Modifier.width(8.dp))
+private fun RangeChips(range: String, onSelect: (String) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(KarsyWhite)
+            .border(1.dp, KarsyBorder, RoundedCornerShape(12.dp))
+            .padding(4.dp)
+    ) {
+        rangeOptions.forEach { r ->
+            val active = range == r
             Text(
-                rangeLabel(range),
+                stringResource(R.string.admin2_range_days, r.toInt()),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = KarsyCharcoal
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (active) KarsyWhite else KarsyTextSecondary,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(if (active) KarsyNavy else Color.Transparent)
+                    .clickable(role = Role.Tab) { onSelect(r) }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             )
-            Spacer(Modifier.width(6.dp))
-            Icon(
-                Icons.Rounded.ExpandMore,
-                contentDescription = null,
-                tint = KarsyTextSecondary,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, containerColor = KarsyWhite) {
-            rangeOptions.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            rangeLabel(option),
-                            fontFamily = DmSans,
-                            fontSize = 13.sp,
-                            color = KarsyCharcoal,
-                            fontWeight = if (option == range) FontWeight.Bold else FontWeight.Normal
-                        )
-                    },
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    }
-                )
-            }
         }
     }
 }
 
 @Composable
-private fun KpiCard(kpi: AdminKpi, icon: ImageVector, modifier: Modifier = Modifier) {
+private fun KpiIcon(icon: ImageVector, color: Color, bg: Color) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(32.dp)
+            .clip(RoundedCornerShape(9.dp))
+            .background(bg)
+    ) {
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(17.dp))
+    }
+}
+
+@Composable
+private fun KpiCard(kpi: AdminKpi, modifier: Modifier = Modifier) {
     AdminCard(modifier = modifier, shape = RoundedCornerShape(14.dp)) {
-        Column(Modifier.padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 12.dp)) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(kpi.bg)
-            ) {
-                Icon(icon, contentDescription = null, tint = kpi.color, modifier = Modifier.size(17.dp))
+        Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                KpiIcon(kpi.icon, kpi.color, kpi.bg)
+                Spacer(Modifier.weight(1f))
+                kpi.change?.let { change ->
+                    Text(
+                        change,
+                        fontFamily = DmSans,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BadgeTone.Success.fg,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(BadgeTone.Success.bg)
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
+            Text(
+                kpi.value,
+                fontFamily = Outfit,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyNavy
+            )
+            Spacer(Modifier.height(2.dp))
             Text(
                 kpi.label,
                 fontFamily = DmSans,
                 fontSize = 11.sp,
                 lineHeight = 15.sp,
-                color = KarsyMid,
-                minLines = 2
+                color = KarsyMid
             )
-            Spacer(Modifier.height(6.dp))
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    kpi.value,
-                    fontFamily = Outfit,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    "${if (kpi.positive) "↑" else "↓"} ${kpi.change}",
-                    fontFamily = DmSans,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (kpi.positive) AdminColors.Green else AdminColors.BadgeRed,
-                    maxLines = 1
+        }
+    }
+}
+
+/** Activas vs. deshabilitadas en una sola tarjeta, con barra de proporción. */
+@Composable
+private fun PublicationStatusCard(stats: AdminStats, modifier: Modifier = Modifier) {
+    val total = stats.activas + stats.deshabilitadas
+    val fraction = if (total == 0) 0f else stats.activas.toFloat() / total
+    AdminCard(modifier = modifier, shape = RoundedCornerShape(14.dp)) {
+        Column(Modifier.padding(14.dp)) {
+            KpiIcon(Icons.Outlined.CheckCircle, AdminColors.Green, Color(0xFFF0FDF4))
+            Spacer(Modifier.height(12.dp))
+            Text(
+                stringResource(R.string.admin2_percent, Math.round(fraction * 100)),
+                fontFamily = Outfit,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyNavy
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                stringResource(R.string.admin2_kpi_active),
+                fontFamily = DmSans,
+                fontSize = 11.sp,
+                lineHeight = 15.sp,
+                color = KarsyMid
+            )
+            Spacer(Modifier.height(10.dp))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(if (total == 0) KarsyBg else Color(0xFFF59E0B).copy(alpha = 0.35f))
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(fraction)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(AdminColors.Green)
                 )
             }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(
+                    R.string.admin2_kpi_status_detail,
+                    Formato.entero(stats.activas),
+                    Formato.entero(stats.deshabilitadas)
+                ),
+                fontFamily = DmSans,
+                fontSize = 10.sp,
+                lineHeight = 14.sp,
+                color = KarsyTextSecondary
+            )
         }
     }
 }
@@ -269,7 +280,7 @@ private fun LegendItem(label: String, color: Color, square: Boolean = false) {
 }
 
 @Composable
-private fun GrowthCard(stats: AdminStats, range: String, onRange: (String) -> Unit) {
+private fun GrowthCard(stats: AdminStats) {
     AdminCard {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 20.dp)) {
             Row(verticalAlignment = Alignment.Top) {
@@ -277,25 +288,6 @@ private fun GrowthCard(stats: AdminStats, range: String, onRange: (String) -> Un
                     CardTitle(
                         stringResource(R.string.admin2_growth_title),
                         stringResource(R.string.admin2_growth_subtitle)
-                    )
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                rangeOptions.forEach { r ->
-                    val active = range == r
-                    Text(
-                        stringResource(R.string.admin2_range_short, r.toInt()),
-                        fontFamily = DmSans,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (active) KarsyWhite else KarsyTextSecondary,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (active) AdminColors.Blue else KarsyWhite)
-                            .border(1.dp, KarsyBorder, RoundedCornerShape(8.dp))
-                            .clickable { onRange(r) }
-                            .padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
             }
@@ -423,7 +415,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit,
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                alerts.forEachIndexed { i, alert ->
+                alerts.forEach { alert ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -440,7 +432,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit,
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(KarsyWhite)
                         ) {
-                            Icon(alertIcons[i], contentDescription = null, tint = alert.color, modifier = Modifier.size(16.dp))
+                            Icon(alert.icon, contentDescription = null, tint = alert.color, modifier = Modifier.size(16.dp))
                         }
                         Spacer(Modifier.width(10.dp))
                         Text(

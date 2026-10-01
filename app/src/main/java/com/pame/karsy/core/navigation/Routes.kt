@@ -32,4 +32,10 @@ sealed class Routes(val route: String) {
     object PublishFlow : Routes("publish_flow")
     object Dashboard : Routes("dashboard")
     object AdminDashboard : Routes("admin_dashboard")
+
+    /** Publicación reportada abierta desde el panel, con las acciones de moderación abajo. */
+    object AdminReportReview : Routes("admin_report_review/{reportId}") {
+        const val ARG = "reportId"
+        fun createRoute(reportId: Long) = "admin_report_review/$reportId"
+    }
 }

@@ -218,6 +218,8 @@ object CarRepository {
             publishedAt = a.fechaPrimeraPublicacion ?: a.fechaCreacion,
             featured = a.destacado,
             featuredPending = a.destacadoPendiente,
+            disabledReason = a.motivoDeshabilitacion
+                ?.takeIf { a.estadoAdministrativo == "deshabilitada_administrador" },
         )
     }
 

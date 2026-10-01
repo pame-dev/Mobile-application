@@ -63,6 +63,7 @@ import kotlinx.coroutines.launch
 fun AdminDashboardScreen(
     onBack: () -> Unit,
     onCarClick: (Long) -> Unit,
+    onReviewReport: (Long) -> Unit,
     onLogout: () -> Unit,
     vm: AdminViewModel = viewModel(),
 ) {
@@ -120,7 +121,7 @@ fun AdminDashboardScreen(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = KarsyTeal,
-                        modifier = Modifier.clickable { vm.message = null }
+                        modifier = Modifier.clickable { vm.dismissMessage() }
                     )
                 }
             }
@@ -133,7 +134,7 @@ fun AdminDashboardScreen(
                     AdminSection.Usuarios -> AdminUsersSection(vm)
                     AdminSection.Lotes -> AdminLotesSection(vm)
                     AdminSection.Vehiculos -> AdminVehiclesSection(vm, onCarClick)
-                    AdminSection.Reportes -> AdminReportsSection(vm, onCarClick)
+                    AdminSection.Reportes -> AdminReportsSection(vm, onCarClick, onReviewReport)
                     AdminSection.Destacados -> AdminFeaturedSection(vm)
                 }
             }

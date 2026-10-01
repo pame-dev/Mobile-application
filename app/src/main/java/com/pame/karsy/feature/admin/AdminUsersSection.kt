@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
@@ -26,6 +27,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.feature.profile.ProfileAvatar
 
 @Composable
 fun AdminUsersSection(vm: AdminViewModel) {
@@ -77,7 +79,9 @@ fun AdminUsersSection(vm: AdminViewModel) {
             } else {
                 filtered.forEachIndexed { index, user ->
                     AdminListRow(isLast = index == filtered.lastIndex) {
-                        Row(verticalAlignment = Alignment.Top) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            ProfileAvatar(name = user.name, avatarUrl = null, size = 40.dp, initialsSize = 14.sp)
+                            Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     user.name,
@@ -89,7 +93,7 @@ fun AdminUsersSection(vm: AdminViewModel) {
                                 Spacer(Modifier.height(3.dp))
                                 Text(user.email, fontFamily = DmSans, fontSize = 11.sp, color = AdminColors.Muted)
                             }
-                            AdminBadge(adminValueLabel(user.status), userStatusTone(user.status))
+                            AdminStatusBadge(user.status)
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -97,7 +101,7 @@ fun AdminUsersSection(vm: AdminViewModel) {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             AdminBadge(adminValueLabel(user.type), if (user.type == "Lote") BadgeTone.Info else BadgeTone.Neutral)
-                            if (user.isAdmin) AdminBadge("Admin", BadgeTone.Success)
+                            if (user.isAdmin) AdminBadge("Admin", BadgeTone.Info)
                             Text(
                                 user.date,
                                 fontFamily = DmSans,
@@ -131,23 +135,20 @@ fun AdminUsersSection(vm: AdminViewModel) {
             DetailRow(stringResource(R.string.admin2_registration_date), user.date)
             // Suspender / reactivar (admin_cambiar_estado_cuenta registra la acción en la bitácora).
             if (user.id != SessionManager.userId) {
-                Row(Modifier.padding(top = 18.dp)) {
+                AdminSheetActions {
                     if (user.status == "Suspendido") {
-                        AdminActionButton(stringResource(R.string.admin2_reactivate_account), tone = ActionTone.Success, onClick = {
+                        AdminSheetButton(stringResource(R.string.admin2_reactivate_account), AdminButtonStyle.Positive) {
                             vm.setSuspended(user.id, suspend = false)
                             selected = null
-                        })
+                        }
                     } else {
-                        AdminActionButton(stringResource(R.string.admin2_suspend_account), tone = ActionTone.Danger, onClick = {
+                        AdminSheetButton(stringResource(R.string.admin2_suspend_account), AdminButtonStyle.Destructive) {
                             vm.setSuspended(user.id, suspend = true)
                             selected = null
-                        })
+                        }
                     }
                 }
             }
         }
     }
 }
-
-private fun userStatusTone(status: String) =
-    if (status == "Activo") BadgeTone.Success else BadgeTone.Warning

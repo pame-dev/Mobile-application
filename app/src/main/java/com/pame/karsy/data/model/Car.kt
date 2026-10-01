@@ -28,6 +28,8 @@ data class Car(
     val publishedAt: String = "",
     val featured: Boolean = false,
     val featuredPending: Boolean = false,
+    /** Por qué administración deshabilitó la publicación (solo lo ven el dueño y el admin). */
+    val disabledReason: String? = null,
 ) {
     val title: String get() = "$brand $model"
 }
