@@ -30,6 +30,8 @@ import com.pame.karsy.feature.profile.ProfileAvatar
 fun AdminLotesSection(vm: AdminViewModel) {
     var search by rememberSaveable { mutableStateOf("") }
     var selected by remember { mutableStateOf<AdminLot?>(null) }
+    // Lote que se va a suspender (abre el diálogo de motivo).
+    var suspending by remember { mutableStateOf<AdminLot?>(null) }
 
     val filtered = vm.lots.filter { lot ->
         "${lot.name} ${lot.responsible} ${lot.city}".contains(search, ignoreCase = true)
@@ -108,11 +110,31 @@ fun AdminLotesSection(vm: AdminViewModel) {
                         stringResource(if (suspendido) R.string.admin2_reactivate_lot else R.string.admin2_suspend_lot),
                         if (suspendido) AdminButtonStyle.Positive else AdminButtonStyle.Destructive
                     ) {
-                        vm.setSuspended(lot.id, suspend = !suspendido)
-                        selected = null
+                        if (suspendido) {
+                            vm.setSuspended(lot.id, suspend = false)
+                            selected = null
+                        } else {
+                            vm.dismissMessage()
+                            suspending = lot
+                        }
                     }
                 }
             }
         }
+    }
+
+    suspending?.let { lot ->
+        AdminReasonDialog(
+            working = vm.working,
+            error = vm.message,
+            texts = ReasonDialogTexts.SuspendLot,
+            onConfirm = { reason ->
+                vm.setSuspended(lot.id, suspend = true, reason = reason) {
+                    suspending = null
+                    selected = null
+                }
+            },
+            onDismiss = { if (!vm.working) suspending = null }
+        )
     }
 }

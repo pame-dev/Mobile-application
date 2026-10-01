@@ -31,6 +31,8 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
     var selected by remember { mutableStateOf<AdminVehicle?>(null) }
     // Publicación a la que se le está escribiendo el motivo de deshabilitación.
     var disabling by remember { mutableStateOf<AdminVehicle?>(null) }
+    // Propuesta que se va a rechazar (abre el diálogo de motivo).
+    var rejecting by remember { mutableStateOf<AdminVehicle?>(null) }
 
     val filtered = vm.vehicles.filter { vehicle ->
         val matchesSearch = "${vehicle.name} ${vehicle.seller}".contains(search, ignoreCase = true)
@@ -127,8 +129,8 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
                         selected = null
                     }
                     AdminSheetButton(stringResource(R.string.admin2_reject), AdminButtonStyle.Destructive) {
-                        vm.moderate(vehicle, approve = false)
-                        selected = null
+                        vm.dismissMessage()
+                        rejecting = vehicle
                     }
                 } else if (vehicle.status != "Rechazado") {
                     AdminSheetButton(
@@ -152,8 +154,23 @@ fun AdminVehiclesSection(vm: AdminViewModel, onCarClick: (Long) -> Unit) {
         }
     }
 
+    rejecting?.let { vehicle ->
+        AdminReasonDialog(
+            working = vm.working,
+            error = vm.message,
+            texts = ReasonDialogTexts.RejectProposal,
+            onConfirm = { reason ->
+                vm.moderate(vehicle, approve = false, reason = reason) {
+                    rejecting = null
+                    selected = null
+                }
+            },
+            onDismiss = { if (!vm.working) rejecting = null }
+        )
+    }
+
     disabling?.let { vehicle ->
-        DisableReasonDialog(
+        AdminReasonDialog(
             working = vm.working,
             error = vm.message,
             onConfirm = { reason ->

@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.admin
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -45,8 +46,8 @@ import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
-/** Mínimo de caracteres del comentario al deshabilitar (la BD valida lo mismo). */
-internal const val MIN_DISABLE_REASON = 10
+/** Mínimo de caracteres del motivo de una acción administrativa (la BD valida lo mismo). */
+internal const val MIN_ADMIN_REASON = 10
 
 /** Datos del reporte arriba de la publicación que se está revisando. */
 @Composable
@@ -99,7 +100,8 @@ fun ReportReviewNotice(report: AdminReport) {
  */
 @Composable
 fun ReportReviewBar(vm: AdminViewModel, report: AdminReport, onDone: () -> Unit) {
-    var showDialog by rememberSaveable { mutableStateOf(false) }
+    // Diálogo abierto: deshabilitar la publicación o descartar el reporte (ambos piden motivo).
+    var dialog by rememberSaveable { mutableStateOf<ReportDecision?>(null) }
     // Solo se muestra el error de una acción lanzada desde esta pantalla.
     var acted by rememberSaveable { mutableStateOf(false) }
 
@@ -111,7 +113,7 @@ fun ReportReviewBar(vm: AdminViewModel, report: AdminReport, onDone: () -> Unit)
                 .navigationBarsPadding()
                 .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
         ) {
-            if (acted && !showDialog && !vm.working) vm.message?.let {
+            if (acted && dialog == null && !vm.working) vm.message?.let {
                 Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -120,10 +122,8 @@ fun ReportReviewBar(vm: AdminViewModel, report: AdminReport, onDone: () -> Unit)
                     AdminButtonStyle.Primary,
                     Modifier.weight(1f)
                 ) {
-                    if (vm.working) return@AdminSheetButton
-                    acted = true
                     vm.dismissMessage()
-                    vm.dismissReport(report.id, onDone)
+                    dialog = ReportDecision.Dismiss
                 }
                 AdminSheetButton(
                     stringResource(R.string.admin2_review_disable),
@@ -131,47 +131,79 @@ fun ReportReviewBar(vm: AdminViewModel, report: AdminReport, onDone: () -> Unit)
                     Modifier.weight(1f)
                 ) {
                     vm.dismissMessage()
-                    showDialog = true
+                    dialog = ReportDecision.Disable
                 }
             }
         }
     }
 
-    if (showDialog) {
-        DisableReasonDialog(
+    dialog?.let { decision ->
+        AdminReasonDialog(
             working = vm.working,
             error = vm.message.takeIf { acted },
+            texts = if (decision == ReportDecision.Disable) ReasonDialogTexts.Disable else ReasonDialogTexts.DismissReport,
             onConfirm = { reason ->
                 acted = true
                 vm.dismissMessage()
-                vm.disableFromReport(report.id, reason) {
-                    showDialog = false
+                val done = {
+                    dialog = null
                     onDone()
                 }
+                if (decision == ReportDecision.Disable) vm.disableFromReport(report.id, reason, done)
+                else vm.dismissReport(report.id, reason, done)
             },
-            onDismiss = { if (!vm.working) showDialog = false }
+            onDismiss = { if (!vm.working) dialog = null }
         )
     }
 }
 
-/** Pide el comentario obligatorio para deshabilitar una publicación. */
+private enum class ReportDecision { Disable, Dismiss }
+
+/** Textos del diálogo de motivo; por defecto, los de deshabilitar una publicación. */
+data class ReasonDialogTexts(
+    @StringRes val title: Int = R.string.admin2_disable_dialog_title,
+    @StringRes val description: Int = R.string.admin2_disable_dialog_desc,
+    @StringRes val hint: Int = R.string.admin2_disable_dialog_hint,
+    @StringRes val confirm: Int = R.string.admin2_disable_confirm,
+    @StringRes val working: Int = R.string.admin2_disable_dialog_working,
+) {
+    companion object {
+        val Disable = ReasonDialogTexts()
+        val RejectProposal = ReasonDialogTexts(
+            R.string.admin2_reject_dialog_title, R.string.admin2_reject_dialog_desc,
+            R.string.admin2_reject_dialog_hint, R.string.admin2_reject_confirm, R.string.admin2_reject_dialog_working,
+        )
+        val SuspendAccount = ReasonDialogTexts(
+            R.string.admin2_suspend_dialog_title, R.string.admin2_suspend_dialog_desc,
+            R.string.admin2_suspend_dialog_hint, R.string.admin2_suspend_confirm, R.string.admin2_suspend_dialog_working,
+        )
+        val SuspendLot = SuspendAccount.copy(title = R.string.admin2_suspend_lot_dialog_title)
+        val DismissReport = ReasonDialogTexts(
+            R.string.admin2_dismiss_dialog_title, R.string.admin2_dismiss_dialog_desc,
+            R.string.admin2_dismiss_dialog_hint, R.string.admin2_dismiss_confirm, R.string.admin2_dismiss_dialog_working,
+        )
+    }
+}
+
+/** Pide el motivo obligatorio de una acción administrativa (rechazar, deshabilitar, suspender…). */
 @Composable
-fun DisableReasonDialog(
+fun AdminReasonDialog(
     working: Boolean,
     error: String?,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
+    texts: ReasonDialogTexts = ReasonDialogTexts.Disable,
 ) {
     var reason by rememberSaveable { mutableStateOf("") }
     val length = reason.trim().length
-    val valid = length >= MIN_DISABLE_REASON
+    val valid = length >= MIN_ADMIN_REASON
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = KarsyWhite,
         title = {
             Text(
-                stringResource(R.string.admin2_disable_dialog_title),
+                stringResource(texts.title),
                 fontFamily = Outfit,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -181,7 +213,7 @@ fun DisableReasonDialog(
         text = {
             Column {
                 Text(
-                    stringResource(R.string.admin2_disable_dialog_desc),
+                    stringResource(texts.description),
                     fontFamily = DmSans,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
@@ -192,7 +224,7 @@ fun DisableReasonDialog(
                     value = reason,
                     onValueChange = { if (it.length <= 500) reason = it },
                     placeholder = {
-                        Text(stringResource(R.string.admin2_disable_dialog_hint), fontFamily = DmSans, fontSize = 13.sp)
+                        Text(stringResource(texts.hint), fontFamily = DmSans, fontSize = 13.sp)
                     },
                     textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, color = KarsyCharcoal),
                     enabled = !working,
@@ -208,7 +240,7 @@ fun DisableReasonDialog(
                 Spacer(Modifier.height(6.dp))
                 Text(
                     if (valid) stringResource(R.string.admin2_disable_dialog_count, length)
-                    else stringResource(R.string.admin2_disable_dialog_min, MIN_DISABLE_REASON, length),
+                    else stringResource(R.string.admin2_disable_dialog_min, MIN_ADMIN_REASON, length),
                     fontFamily = DmSans,
                     fontSize = 11.sp,
                     color = if (valid) AdminColors.Muted else BadgeTone.Warning.fg
@@ -222,7 +254,7 @@ fun DisableReasonDialog(
         confirmButton = {
             TextButton(onClick = { onConfirm(reason.trim()) }, enabled = valid && !working) {
                 Text(
-                    stringResource(if (working) R.string.admin2_disable_dialog_working else R.string.admin2_disable_confirm),
+                    stringResource(if (working) texts.working else texts.confirm),
                     fontFamily = DmSans,
                     fontWeight = FontWeight.Bold,
                     color = if (valid && !working) BadgeTone.Danger.fg else AdminColors.Muted

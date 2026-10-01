@@ -34,6 +34,8 @@ fun AdminUsersSection(vm: AdminViewModel) {
     var search by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf("Todos") }
     var selected by remember { mutableStateOf<AdminUser?>(null) }
+    // Cuenta que se va a suspender (abre el diálogo de motivo).
+    var suspending by remember { mutableStateOf<AdminUser?>(null) }
 
     val filtered = vm.users.filter { user ->
         val matchesSearch = user.name.contains(search, ignoreCase = true) ||
@@ -143,12 +145,27 @@ fun AdminUsersSection(vm: AdminViewModel) {
                         }
                     } else {
                         AdminSheetButton(stringResource(R.string.admin2_suspend_account), AdminButtonStyle.Destructive) {
-                            vm.setSuspended(user.id, suspend = true)
-                            selected = null
+                            vm.dismissMessage()
+                            suspending = user
                         }
                     }
                 }
             }
         }
+    }
+
+    suspending?.let { user ->
+        AdminReasonDialog(
+            working = vm.working,
+            error = vm.message,
+            texts = ReasonDialogTexts.SuspendAccount,
+            onConfirm = { reason ->
+                vm.setSuspended(user.id, suspend = true, reason = reason) {
+                    suspending = null
+                    selected = null
+                }
+            },
+            onDismiss = { if (!vm.working) suspending = null }
+        )
     }
 }
