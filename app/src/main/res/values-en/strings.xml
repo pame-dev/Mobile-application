@@ -125,6 +125,8 @@
     <string name="auth_type_lote_desc">List and manage vehicles for your lot or dealership.</string>
     <string name="auth_continue">Continue</string>
     <string name="auth_complete_profile_later">You can complete your profile later.</string>
+    <string name="auth_have_account_question">"Already have an account? "</string>
+    <string name="auth_sign_in_here">Sign in here</string>
 
     <!-- Inicio y favoritos -->
     <!-- Filters (FilterSheet) -->
