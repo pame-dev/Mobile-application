@@ -14,3 +14,6 @@
 .cxx
 local.properties
 node_modules/
+# Respaldos de la BD (contienen datos personales)
+respaldos/
+respaldo_*.sql
