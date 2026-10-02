@@ -178,7 +178,8 @@ fun KarsyNavGraph(
                 onAdminPanel = { navController.navigate(Routes.AdminDashboard.route) },
                 onPublish = { navController.navigate(Routes.PublishFlow.route) },
                 onRegister = ::goRegister,
-                onLogin = { navController.navigate(Routes.Login.route) }
+                onLogin = { navController.navigate(Routes.Login.route) },
+                onLogout = ::logout
             )
         }
         composable(

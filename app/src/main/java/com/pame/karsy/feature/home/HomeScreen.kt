@@ -69,6 +69,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.components.RegisterToast
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -94,9 +95,12 @@ fun HomeScreen(
     onPublish: () -> Unit,
     onRegister: () -> Unit,
     onLogin: () -> Unit,
+    onLogout: () -> Unit,
     vm: HomeViewModel = viewModel(),
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
+    var accountMenuOpen by rememberSaveable { mutableStateOf(false) }
+    var confirmLogout by rememberSaveable { mutableStateOf(false) }
     var toastMsg by remember { mutableStateOf<String?>(null) }
 
     // Recarga anuncios y favoritos cada vez que se vuelve a esta pantalla.
@@ -141,8 +145,21 @@ fun HomeScreen(
                     onLogin()
                 },
                 onFavorites = onFavorites,
-                onProfile = onProfile,
-                onAdminPanel = onAdminPanel
+                onAdminPanel = onAdminPanel,
+                accountMenu = {
+                    val account = SessionManager.account
+                    AccountMenu(
+                        expanded = accountMenuOpen,
+                        name = account?.nombre.orEmpty(),
+                        email = account?.correo.orEmpty(),
+                        avatarUrl = vm.avatarUrl,
+                        onDismiss = { accountMenuOpen = false },
+                        onProfile = onProfile,
+                        onLogout = { confirmLogout = true }
+                    )
+                },
+                accountMenuOpen = accountMenuOpen,
+                onToggleAccountMenu = { accountMenuOpen = !accountMenuOpen }
             )
 
             LazyVerticalGrid(
@@ -279,6 +296,15 @@ fun HomeScreen(
             onDismiss = { menuOpen = false },
             onRegister = goRegister
         )
+
+        LogoutConfirmDialog(
+            visible = confirmLogout,
+            onCancel = { confirmLogout = false },
+            onConfirm = {
+                confirmLogout = false
+                onLogout()
+            }
+        )
     }
 }
 
@@ -312,9 +338,20 @@ private fun HomeHeader(
     onToggleMenu: () -> Unit,
     onLogin: () -> Unit,
     onFavorites: () -> Unit,
-    onProfile: () -> Unit,
     onAdminPanel: () -> Unit,
+    accountMenuOpen: Boolean,
+    onToggleAccountMenu: () -> Unit,
+    accountMenu: @Composable () -> Unit,
 ) {
+    // Ícono de perfil: abre/cierra el menú de la cuenta, que se ancla justo debajo.
+    val profileButton = @Composable {
+        Box {
+            HeaderIconButton(onClick = onToggleAccountMenu, active = accountMenuOpen) {
+                Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = if (accountMenuOpen) KarsyTeal else KarsyNavy, modifier = Modifier.size(19.dp))
+            }
+            accountMenu()
+        }
+    }
     Column(
         Modifier
             .fillMaxWidth()
@@ -348,17 +385,13 @@ private fun HomeHeader(
                         HeaderIconButton(onClick = onAdminPanel) {
                             Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyNavy, modifier = Modifier.size(18.dp))
                         }
-                        HeaderIconButton(onClick = onProfile) {
-                            Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = KarsyNavy, modifier = Modifier.size(19.dp))
-                        }
+                        profileButton()
                     }
                     else -> {
                         HeaderIconButton(onClick = onFavorites) {
                             HeartIcon(filled = false, size = 17.dp)
                         }
-                        HeaderIconButton(onClick = onProfile) {
-                            Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = KarsyNavy, modifier = Modifier.size(19.dp))
-                        }
+                        profileButton()
                     }
                 }
                 HeaderIconButton(onClick = onToggleMenu, active = menuOpen) {
