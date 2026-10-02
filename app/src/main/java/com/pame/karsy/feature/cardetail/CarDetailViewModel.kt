@@ -36,6 +36,10 @@ class CarDetailViewModel : ViewModel() {
 
     private var loadedId: Long? = null
 
+    /** Mientras se pausa o reactiva una publicación propia. */
+    var updatingStatus by mutableStateOf(false)
+        private set
+
     fun load(id: Long) {
         if (loadedId == id) return
         loadedId = id
@@ -51,6 +55,22 @@ class CarDetailViewModel : ViewModel() {
                     favorite = id in safeCall { CarRepository.favoriteIds() }.getOrDefault(emptySet())
                 }
             }
+        }
+    }
+
+    /** El dueño deshabilita (pausa) o vuelve a habilitar su publicación. */
+    fun setPaused(paused: Boolean, onDone: (error: String?) -> Unit) {
+        val id = detail?.car?.id ?: return
+        if (updatingStatus) return
+        updatingStatus = true
+        viewModelScope.launch {
+            safeCall {
+                CarRepository.setPaused(id, paused)
+                CarRepository.detail(id)
+            }
+                .onSuccess { detail = it ?: detail; onDone(null) }
+                .onFailure { onDone(it.mensajeUsuario()) }
+            updatingStatus = false
         }
     }
 

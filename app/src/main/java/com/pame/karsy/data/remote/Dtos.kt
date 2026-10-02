@@ -21,10 +21,13 @@ data class AnuncioDto(
     @SerialName("municipio_ubicacion") val municipioUbicacion: String? = null,
     @SerialName("id_marca") val idMarca: Long? = null,
     val marca: String? = null,
+    @SerialName("id_modelo") val idModelo: Long? = null,
     val modelo: String? = null,
     val anio: Int? = null,
     val kilometraje: Int? = null,
+    @SerialName("id_color") val idColor: Long? = null,
     val color: String? = null,
+    @SerialName("id_transmision") val idTransmision: Long? = null,
     val transmision: String? = null,
     @SerialName("id_carroceria") val idCarroceria: Long? = null,
     val carroceria: String? = null,
@@ -48,6 +51,13 @@ data class AnuncioDto(
     val destacado: Boolean = false,
     @SerialName("destacado_pendiente") val destacadoPendiente: Boolean = false,
     val fotos: List<String> = emptyList(),
+)
+
+/** Fila de favoritos_mis_publicaciones(). */
+@Serializable
+data class FavoritosConteoDto(
+    @SerialName("id_publicacion") val idPublicacion: Long,
+    val total: Int,
 )
 
 @Serializable

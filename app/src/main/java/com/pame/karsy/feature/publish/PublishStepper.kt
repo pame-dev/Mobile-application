@@ -284,6 +284,7 @@ fun PublishPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier =
 @Composable
 fun PublishStepScaffold(
     step: Int,
+    form: PublishViewModel,
     onBack: () -> Unit,
     buttonText: String,
     onButtonClick: () -> Unit,
@@ -297,7 +298,10 @@ fun PublishStepScaffold(
             .background(KarsyBg)
             .imePadding()
     ) {
-        PublishHeader(title = stringResource(R.string.publish_title), onBack = onBack)
+        PublishHeader(
+            title = stringResource(if (form.isEditing) R.string.publish_edit_title else R.string.publish_title),
+            onBack = onBack
+        )
         PublishStepper(step = step)
         Column(
             modifier = Modifier

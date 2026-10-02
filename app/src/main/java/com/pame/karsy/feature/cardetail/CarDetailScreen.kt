@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,13 +28,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +63,7 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.PrimaryButton
+import com.pame.karsy.core.components.SecondaryButton
 import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.StarBadge
@@ -64,13 +73,16 @@ import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.feature.profile.ProfileAvatar
+import kotlinx.coroutines.launch
 
 @Composable
 fun CarDetailScreen(
@@ -83,9 +95,18 @@ fun CarDetailScreen(
     topNotice: (@Composable () -> Unit)? = null,
     /** Reemplaza la barra de contacto (p. ej. las acciones del admin al revisar un reporte). */
     bottomBar: (@Composable () -> Unit)? = null,
+    /** Abre el formulario para corregir y reenviar una publicación rechazada propia. */
+    onEditPublication: (Long) -> Unit = {},
     vm: CarDetailViewModel = viewModel(),
 ) {
-    LaunchedEffect(carId) { vm.load(carId) }
+    // Al volver de corregirla se recarga para mostrar que ya está en revisión.
+    var returningFromEdit by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(carId) {
+        if (returningFromEdit) {
+            returningFromEdit = false
+            vm.retry()
+        } else vm.load(carId)
+    }
 
     val detail = vm.detail
     if (detail == null) {
@@ -106,7 +127,22 @@ fun CarDetailScreen(
     var showSellerProfile by rememberSaveable { mutableStateOf(false) }
     var showReport by rememberSaveable { mutableStateOf(false) }
     var showViewer by rememberSaveable { mutableStateOf(false) }
+    var confirmPause by rememberSaveable { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
+    val msgPaused = stringResource(R.string.detail_owner_paused)
+    val msgResumed = stringResource(R.string.detail_owner_resumed)
+
+    fun setPaused(paused: Boolean) {
+        vm.setPaused(paused) { error ->
+            confirmPause = false
+            toastMessage = error ?: if (paused) msgPaused else msgResumed
+        }
+    }
+
+    fun editPublication() {
+        returningFromEdit = true
+        onEditPublication(detail.car.id)
+    }
     val msgRegisterFav = stringResource(R.string.detail_toast_register_fav)
     val msgRegisterContact = stringResource(R.string.detail_toast_register_contact)
     val msgRegisterReport = stringResource(R.string.detail_toast_register_report)
@@ -166,6 +202,17 @@ fun CarDetailScreen(
                 if (isOwner && detail.car.status == "Deshabilitado") {
                     DisabledNotice(reason = detail.car.disabledReason)
                 }
+                // Rechazada (o rechazados sus cambios): el dueño ve el motivo y puede corregirla.
+                if (isOwner && detail.car.rejectedReason != null) {
+                    DisabledNotice(
+                        reason = detail.car.rejectedReason,
+                        title = stringResource(
+                            if (detail.car.approved) R.string.detail_changes_rejected_title else R.string.detail_rejected_title
+                        ),
+                        actionLabel = stringResource(R.string.profile_dashboard_fix_resubmit),
+                        onAction = ::editPublication
+                    )
+                }
                 Gallery(
                     detail = detail,
                     activeImg = activeImg,
@@ -175,9 +222,16 @@ fun CarDetailScreen(
                 DetailBody(detail = detail, onOpenSeller = ::openSeller)
             }
 
-            // Barra inferior con el botón de contacto (no se muestra en anuncios propios)
+            // Barra inferior: contacto para compradores; editar / deshabilitar para el dueño.
             if (bottomBar != null) bottomBar()
-            else if (!isOwner) Column(Modifier.background(KarsyBg)) {
+            else if (isOwner) OwnerActionsBar(
+                car = detail.car,
+                updating = vm.updatingStatus,
+                onEdit = ::editPublication,
+                onPause = { confirmPause = true },
+                onResume = { setPaused(false) },
+            )
+            else Column(Modifier.background(KarsyBg)) {
                 HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
                 Box(
                     Modifier
@@ -198,6 +252,25 @@ fun CarDetailScreen(
                 onCarClick = { id ->
                     showSellerProfile = false
                     if (id != detail.car.id) onCarClick(id)
+                }
+            )
+        }
+
+        if (confirmPause) {
+            AlertDialog(
+                onDismissRequest = { if (!vm.updatingStatus) confirmPause = false },
+                containerColor = KarsyWhite,
+                title = { Text(stringResource(R.string.detail_owner_pause_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyNavy) },
+                text = { Text(stringResource(R.string.detail_owner_pause_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                confirmButton = {
+                    TextButton(onClick = { setPaused(true) }, enabled = !vm.updatingStatus) {
+                        Text(stringResource(R.string.detail_owner_pause), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyError)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { confirmPause = false }, enabled = !vm.updatingStatus) {
+                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyNavy)
+                    }
                 }
             )
         }
@@ -246,8 +319,63 @@ fun CarDetailScreen(
     }
 }
 
+/**
+ * Acciones del dueño sobre su publicación: editarla (los cambios pasan por revisión)
+ * y deshabilitarla / habilitarla. Mientras hay una versión en revisión no se edita.
+ */
 @Composable
-private fun DisabledNotice(reason: String?) {
+private fun OwnerActionsBar(
+    car: Car,
+    updating: Boolean,
+    onEdit: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+) {
+    // Pausar solo aplica a una publicación aprobada que el dueño controla.
+    val canToggle = car.approved && car.status in listOf("Activo", "Pausado")
+    // Una rechazada se corrige desde el aviso de arriba.
+    val canEdit = car.status != "Vendido" && car.rejectedReason == null
+    if (!canToggle && !canEdit) return
+
+    Column(Modifier.background(KarsyBg)) {
+        HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .navigationBarsPadding()
+                .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp)
+        ) {
+            if (canToggle) {
+                if (car.status == "Pausado") PrimaryButton(
+                    text = stringResource(R.string.detail_owner_resume),
+                    onClick = onResume,
+                    enabled = !updating,
+                    containerColor = KarsyTeal,
+                    modifier = Modifier.weight(1f)
+                ) else SecondaryButton(
+                    text = stringResource(R.string.detail_owner_pause),
+                    onClick = { if (!updating) onPause() },
+                    contentColor = KarsyError,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            if (canEdit) PrimaryButton(
+                text = stringResource(if (car.inReview) R.string.detail_owner_in_review else R.string.detail_owner_edit),
+                onClick = onEdit,
+                enabled = !car.inReview,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DisabledNotice(
+    reason: String?,
+    title: String = stringResource(R.string.detail_disabled_title),
+    actionLabel: String? = null,
+    onAction: () -> Unit = {},
+) {
     val danger = Color(0xFFB42318)
     Column(
         Modifier
@@ -262,7 +390,7 @@ private fun DisabledNotice(reason: String?) {
             Icon(Icons.Rounded.Block, contentDescription = null, tint = danger, modifier = Modifier.size(17.dp))
             Spacer(Modifier.width(8.dp))
             Text(
-                stringResource(R.string.detail_disabled_title),
+                title,
                 fontFamily = Outfit,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
@@ -278,6 +406,19 @@ private fun DisabledNotice(reason: String?) {
             lineHeight = 18.sp,
             color = KarsyCharcoal
         )
+        if (actionLabel != null) {
+            Button(
+                onClick = onAction,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth()
+                    .height(42.dp)
+            ) {
+                Text(actionLabel, fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }
 
@@ -351,19 +492,29 @@ private fun HeaderSquareButton(onClick: () -> Unit, content: @Composable () -> U
 private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, onOpenFullscreen: () -> Unit) {
     val gallery = detail.gallery
     val car = detail.car
+    val scope = rememberCoroutineScope()
+    val pager = rememberPagerState(initialPage = activeImg) { gallery.size }
+    // La foto que se ve es la seleccionada; al cerrar el visor se sincroniza al revés.
+    LaunchedEffect(pager.currentPage) { onSelect(pager.currentPage) }
+    LaunchedEffect(activeImg) { if (pager.currentPage != activeImg) pager.scrollToPage(activeImg) }
+
     Box(
         Modifier
             .fillMaxWidth()
             .height(300.dp)
             .background(Color(0xFFDDE6EC))
-            .clickable(enabled = gallery.isNotEmpty(), onClick = onOpenFullscreen)
     ) {
-        AsyncImage(
-            model = gallery.getOrNull(activeImg),
-            contentDescription = car.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+        // Se desliza entre fotos; al tocar se abre a pantalla completa.
+        HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
+            AsyncImage(
+                model = gallery[page],
+                contentDescription = car.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = onOpenFullscreen)
+            )
+        }
         car.badge?.let {
             StarBadge(text = it, modifier = Modifier
                 .align(Alignment.TopStart)
@@ -384,23 +535,25 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
         )
     }
 
+    // Todas las miniaturas (hasta 15) en una fila que se desplaza.
     Row(
         horizontalArrangement = Arrangement.spacedBy(7.dp),
-        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 16.dp)
     ) {
-        // Máximo 6 miniaturas para que quepan en una fila.
-        gallery.take(6).forEachIndexed { i, src ->
+        gallery.forEachIndexed { i, src ->
             val shape = RoundedCornerShape(10.dp)
             AsyncImage(
                 model = src,
                 contentDescription = stringResource(R.string.detail_photo_n, i + 1),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .weight(1f)
-                    .height(54.dp)
+                    .size(width = 64.dp, height = 54.dp)
                     .clip(shape)
                     .border(2.dp, if (i == activeImg) KarsyNavy else Color.Transparent, shape)
-                    .clickable { onSelect(i) }
+                    .clickable { scope.launch { pager.animateScrollToPage(i) } }
             )
         }
     }

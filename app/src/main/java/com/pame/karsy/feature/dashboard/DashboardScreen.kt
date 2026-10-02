@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -83,6 +84,7 @@ import com.pame.karsy.feature.profile.carStatusLabel
 fun DashboardScreen(
     onBack: () -> Unit,
     onNewPublication: () -> Unit,
+    onEditPublication: (Long) -> Unit,
     onCarClick: (Long) -> Unit,
     vm: DashboardViewModel = viewModel(),
 ) {
@@ -121,7 +123,9 @@ fun DashboardScreen(
                 }
                 MyListingsSection(
                     listings = vm.myListings,
+                    favoriteCounts = vm.favoriteCounts,
                     onDestacar = vm::askDestacar,
+                    onEdit = onEditPublication,
                     onNewPublication = onNewPublication,
                     onCarClick = onCarClick
                 )
@@ -382,7 +386,9 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
 @Composable
 private fun MyListingsSection(
     listings: List<Car>,
+    favoriteCounts: Map<Long, Int>,
     onDestacar: (Car) -> Unit,
+    onEdit: (Long) -> Unit,
     onNewPublication: () -> Unit,
     onCarClick: (Long) -> Unit,
 ) {
@@ -429,7 +435,7 @@ private fun MyListingsSection(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     rowItems.forEach { car ->
-                        ListingCard(car, onDestacar, onCarClick, Modifier.weight(1f).fillMaxHeight())
+                        ListingCard(car, favoriteCounts[car.id] ?: 0, onDestacar, onEdit, onCarClick, Modifier.weight(1f).fillMaxHeight())
                     }
                     if (rowItems.size == 1) Spacer(Modifier.weight(1f))
                 }
@@ -439,7 +445,14 @@ private fun MyListingsSection(
 }
 
 @Composable
-private fun ListingCard(car: Car, onDestacar: (Car) -> Unit, onCarClick: (Long) -> Unit, modifier: Modifier) {
+private fun ListingCard(
+    car: Car,
+    favorites: Int,
+    onDestacar: (Car) -> Unit,
+    onEdit: (Long) -> Unit,
+    onCarClick: (Long) -> Unit,
+    modifier: Modifier,
+) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
@@ -490,8 +503,19 @@ private fun ListingCard(car: Car, onDestacar: (Car) -> Unit, onCarClick: (Long) 
                 color = KarsyTeal,
                 modifier = Modifier.padding(top = 4.dp)
             )
-            // Motivo del admin; el texto completo se ve al abrir la publicación.
-            car.disabledReason?.let { reason ->
+            // Usuarios que la guardaron en favoritos.
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                Icon(Icons.Rounded.Favorite, contentDescription = null, tint = KarsyError, modifier = Modifier.size(13.dp))
+                Text(
+                    pluralStringResource(R.plurals.profile_dashboard_favorites, favorites, favorites),
+                    fontFamily = DmSans,
+                    fontSize = 11.sp,
+                    color = KarsyMid,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
+            // Motivo del admin; el texto completo se ve al abrir la publicación (o al corregirla).
+            (car.disabledReason ?: car.rejectedReason)?.let { reason ->
                 Text(
                     stringResource(R.string.detail_disabled_reason, reason),
                     fontFamily = DmSans,
@@ -504,29 +528,50 @@ private fun ListingCard(car: Car, onDestacar: (Car) -> Unit, onCarClick: (Long) 
                 )
             }
             Spacer(Modifier.weight(1f))
-            // Solo un anuncio activo puede destacarse, y una solicitud a la vez.
-            val puedeDestacar = car.status == "Activo" && !car.featured && !car.featuredPending
-            Button(
-                onClick = { onDestacar(car) },
-                enabled = puedeDestacar,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                modifier = Modifier
-                    .padding(top = 10.dp)
-                    .fillMaxWidth()
-                    .height(34.dp)
-            ) {
-                Text(
-                    when {
-                        car.featured -> stringResource(R.string.profile_dashboard_featured)
-                        car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
-                        else -> stringResource(R.string.profile_dashboard_feature)
-                    },
-                    fontFamily = Outfit,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            // Rechazada: en lugar de destacar, se corrige y se reenvía a revisión.
+            if (car.rejectedReason != null) {
+                Button(
+                    onClick = { onEdit(car.id) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .fillMaxWidth()
+                        .height(34.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.profile_dashboard_fix_resubmit),
+                        fontFamily = Outfit,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                // Solo un anuncio activo puede destacarse, y una solicitud a la vez.
+                val puedeDestacar = car.status == "Activo" && !car.featured && !car.featuredPending
+                Button(
+                    onClick = { onDestacar(car) },
+                    enabled = puedeDestacar,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .fillMaxWidth()
+                        .height(34.dp)
+                ) {
+                    Text(
+                        when {
+                            car.featured -> stringResource(R.string.profile_dashboard_featured)
+                            car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
+                            else -> stringResource(R.string.profile_dashboard_feature)
+                        },
+                        fontFamily = Outfit,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

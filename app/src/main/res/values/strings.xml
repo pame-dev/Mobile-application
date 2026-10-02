@@ -271,6 +271,16 @@
     <string name="detail_report_account_desc">Comportamiento sospechoso, suplantación o acoso por parte del vendedor.</string>
     <string name="detail_cancel">Cancelar</string>
     <string name="detail_disabled_title">Tu publicación fue deshabilitada</string>
+    <string name="detail_rejected_title">Tu publicación fue rechazada</string>
+    <string name="detail_changes_rejected_title">Administración rechazó tus cambios</string>
+    <string name="detail_owner_edit">Editar</string>
+    <string name="detail_owner_in_review">En revisión</string>
+    <string name="detail_owner_pause">Deshabilitar</string>
+    <string name="detail_owner_resume">Habilitar</string>
+    <string name="detail_owner_pause_title">¿Deshabilitar publicación?</string>
+    <string name="detail_owner_pause_desc">Dejará de aparecer para los compradores. Puedes volver a habilitarla cuando quieras.</string>
+    <string name="detail_owner_paused">Publicación deshabilitada: ya no aparece para los compradores.</string>
+    <string name="detail_owner_resumed">Publicación habilitada de nuevo.</string>
     <string name="detail_disabled_reason">Motivo: %1$s</string>
     <string name="detail_disabled_no_reason">Administración deshabilitó esta publicación; ya no es visible para otros usuarios.</string>
     <string name="detail_reasons_listing_title">Razones para reportar esta publicación</string>
@@ -307,6 +317,11 @@
     <string name="profile_dashboard_featured">Destacado</string>
     <string name="profile_dashboard_request_sent">Solicitud enviada</string>
     <string name="profile_dashboard_feature">Destacar</string>
+    <string name="profile_dashboard_fix_resubmit">Corregir y reenviar</string>
+    <plurals name="profile_dashboard_favorites">
+        <item quantity="one">%1$d favorito</item>
+        <item quantity="other">%1$d favoritos</item>
+    </plurals>
     <string name="profile_dashboard_trend_this_month">%1$d este mes</string>
     <string name="profile_dashboard_trend_up">▲ +%1$d%% este mes</string>
     <string name="profile_dashboard_trend_down">▼ %1$d%% este mes</string>
@@ -369,6 +384,12 @@
     <string name="publish_success_title">¡Publicado!</string>
     <string name="publish_success_message">Tu %1$s se envió a revisión. Aparecerá para los compradores en cuanto un administrador lo apruebe.</string>
     <string name="publish_success_go_dashboard">Ver mi panel</string>
+    <string name="publish_edit_title">Editar publicación</string>
+    <string name="publish_edit_rejected_title">Administración rechazó tu publicación</string>
+    <string name="publish_edit_not_found">No encontramos la publicación que quieres corregir.</string>
+    <string name="publish_resubmit_success_title">¡Reenviada!</string>
+    <string name="publish_resubmit_success_message">Tu %1$s se envió de nuevo a revisión. Aparecerá para los compradores en cuanto un administrador la apruebe.</string>
+    <string name="publish_edit_success_message">Los cambios de tu %1$s se enviaron a revisión. Mientras tanto, los compradores siguen viendo la versión anterior.</string>
     <string name="publish_error_brand">Elige la marca.</string>
     <string name="publish_error_model">Elige el modelo.</string>
     <string name="publish_error_year">Escribe un año válido.</string>
@@ -426,6 +447,14 @@
     <string name="publish_spec_previous_owners">Dueños anteriores</string>
     <string name="publish_publishing">Publicando…</string>
     <string name="publish_publish">Publicar</string>
+    <string name="publish_resubmitting">Reenviando…</string>
+    <string name="publish_resubmit">Reenviar a revisión</string>
+    <string name="publish_send_changes">Enviar cambios a revisión</string>
+    <string name="publish_extra_photos">Fotos adicionales</string>
+    <string name="publish_photos_count">%1$d/%2$d fotos</string>
+    <string name="publish_add_more_photos">Agregar más fotos (máx. %1$d)</string>
+    <string name="publish_photos_limit">Llegaste al máximo de %1$d fotos</string>
+    <string name="publish_remove_photo">Quitar foto</string>
     <string name="publish_previous">Anterior</string>
     <string name="publish_next">Siguiente</string>
     <string name="publish_thumbnail">Miniatura %1$d</string>

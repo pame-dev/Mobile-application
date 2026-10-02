@@ -42,6 +42,7 @@ import com.pame.karsy.feature.publish.PublishViewModel
 fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     PublishStepScaffold(
         step = 3,
+        form = form,
         onBack = onBack,
         buttonText = stringResource(R.string.publish_next_confirmation),
         onButtonClick = onNext

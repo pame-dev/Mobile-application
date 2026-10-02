@@ -29,7 +29,11 @@ sealed class Routes(val route: String) {
     object History : Routes("history")
     object Settings : Routes("settings")
 
-    object PublishFlow : Routes("publish_flow")
+    /** Publicar; con editId corrige y reenvía una publicación rechazada. */
+    object PublishFlow : Routes("publish_flow?editId={editId}") {
+        const val ARG_EDIT = "editId"
+        fun createRoute(editId: Long? = null) = if (editId == null) "publish_flow" else "publish_flow?editId=$editId"
+    }
     object Dashboard : Routes("dashboard")
     object AdminDashboard : Routes("admin_dashboard")
 

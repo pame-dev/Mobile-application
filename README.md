@@ -48,3 +48,17 @@ de Supabase (Dashboard) hay que configurar:
 
 Para instalarlo
 .\gradlew.bat installDebug
+
+
+bajar db:
+npx supabase link --project-ref rkuikrlejybrxrlmzsms
+subir db:
+npx supabase db push
+
+
+para correrla en cel:
+
+~/Android/Sdk/platform-tools/adb devices
+
+
+./gradlew installDebug

@@ -7,14 +7,19 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.navigation.Routes
+import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.CatalogRepository
 import com.pame.karsy.data.repository.Catalogs
@@ -28,8 +33,26 @@ import java.util.Calendar
  * Los datos del formulario viven aquí para no perderse al ir y volver entre pasos.
  * Al publicar se suben las fotos a Storage y se llama a crear_publicacion(), que deja
  * la publicación en revisión (propuesta pendiente) hasta que un admin la apruebe.
+ *
+ * Con el argumento editId el formulario se precarga con una publicación propia
+ * (aprobada o rechazada) y al terminar se llama a editar_publicacion(), que manda
+ * los cambios a revisión.
  */
-class PublishViewModel : ViewModel() {
+class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+
+    /** Publicación propia que se está editando; null al publicar una nueva. */
+    val editId: Long? = savedStateHandle.get<Long>(Routes.PublishFlow.ARG_EDIT)?.takeIf { it > 0 }
+    val isEditing: Boolean get() = editId != null
+
+    /** Mientras se cargan los datos de la publicación a editar. */
+    var loadingEdit by mutableStateOf(editId != null)
+        private set
+    /** Motivo con el que administración rechazó la publicación que se corrige. */
+    var rejectedReason by mutableStateOf<String?>(null)
+        private set
+    /** La publicación editada ya estaba aprobada: sigue visible mientras se revisan los cambios. */
+    var editingApproved by mutableStateOf(false)
+        private set
 
     var step by mutableIntStateOf(1)
         private set
@@ -61,7 +84,11 @@ class PublishViewModel : ViewModel() {
     var duenos by mutableStateOf("")
 
     // Paso 2: una foto por ángulo (frontal, trasera, izquierda, derecha, tablero)
+    // y hasta completar MAX_FOTOS con fotos adicionales.
     val photos = mutableStateListOf<Uri?>(null, null, null, null, null)
+    val extraPhotos = mutableStateListOf<Uri>()
+    /** Fotos que ya estaban en Storage (al corregir): no se vuelven a subir. */
+    private val rutasExistentes = mutableMapOf<Uri, String>()
 
     // Paso 3: Detalles
     var descripcion by mutableStateOf("")
@@ -72,6 +99,45 @@ class PublishViewModel : ViewModel() {
             safeCall { CatalogRepository.get() }
                 .onSuccess { catalogs = it }
                 .onFailure { error = it.mensajeUsuario() }
+            // Los catálogos van primero: se usan para saber si la marca/modelo es "Otros".
+            editId?.let { id ->
+                safeCall { CarRepository.ownListing(id) }
+                    .onSuccess { a -> if (a != null) prefill(a) else error = texto(R.string.publish_edit_not_found) }
+                    .onFailure { error = it.mensajeUsuario() }
+                loadingEdit = false
+            }
+        }
+    }
+
+    /** Llena el formulario con los datos que tenía la publicación. */
+    private fun prefill(a: AnuncioDto) {
+        rejectedReason = a.motivoRechazo?.takeIf { a.estadoUltimaPropuesta == "rechazada" }
+        editingApproved = a.aprobada
+        idMarca = a.idMarca
+        idModelo = a.idModelo
+        if (marcaEsOtro) marcaOtra = a.marca.orEmpty()
+        if (modeloEsOtro) modeloOtro = a.modelo.orEmpty()
+        anio = a.anio?.toString().orEmpty()
+        precio = a.precio?.toLong()?.toString().orEmpty()
+        idTransmision = a.idTransmision
+        kilometraje = a.kilometraje?.toString().orEmpty()
+        cilindros = a.cilindros?.toString().orEmpty()
+        idCarroceria = a.idCarroceria
+        idColor = a.idColor
+        duenos = a.propietariosAnteriores?.toString().orEmpty()
+
+        // Al publicar, los caballos de fuerza se agregaron al final de la descripción.
+        val desc = a.descripcion.orEmpty()
+        val potencia = POTENCIA.find(desc)
+        caballos = potencia?.groupValues?.get(1).orEmpty()
+        descripcion = potencia?.let { desc.removeRange(it.range) } ?: desc
+        imperfecciones = a.descripcionProblemas.orEmpty()
+
+        // Las primeras van a los ángulos y el resto a fotos adicionales.
+        a.fotos.take(MAX_FOTOS).forEachIndexed { i, ruta ->
+            val uri = Supabase.publicUrl(ruta)?.toUri() ?: return@forEachIndexed
+            rutasExistentes[uri] = ruta
+            if (i < photos.size) photos[i] = uri else extraPhotos += uri
         }
     }
 
@@ -95,7 +161,17 @@ class PublishViewModel : ViewModel() {
 
     val titulo: String get() = listOf(marcaNombre, modeloNombre, anio.trim()).filter { it.isNotEmpty() }.joinToString(" ")
     val precioTexto: String get() = Formato.precio(precio.filter(Char::isDigit).toDoubleOrNull())
-    val fotosElegidas: List<Uri> get() = photos.filterNotNull()
+    val fotosElegidas: List<Uri> get() = photos.filterNotNull() + extraPhotos
+    /** Cuántas fotos adicionales caben todavía. */
+    val extraPhotosLeft: Int get() = MAX_FOTOS - fotosElegidas.size
+
+    fun addExtraPhotos(uris: List<Uri>) {
+        extraPhotos += uris.filter { it !in extraPhotos }.take(extraPhotosLeft)
+    }
+
+    fun removeExtraPhoto(uri: Uri) {
+        extraPhotos.remove(uri)
+    }
 
     fun selectMarca(id: Long) {
         if (id != idMarca) {
@@ -145,7 +221,7 @@ class PublishViewModel : ViewModel() {
     // ── Publicar ─────────────────────────────────────────────────────────────
 
     fun publish(context: Context) {
-        if (publishing) return
+        if (publishing || loadingEdit) return
         error = (1..3).firstNotNullOfOrNull { validate(it) }
         if (error != null) return
 
@@ -154,7 +230,7 @@ class PublishViewModel : ViewModel() {
         viewModelScope.launch {
             safeCall {
                 val rutas = fotosElegidas.map { uri ->
-                    CarRepository.uploadPhoto(Imagenes.jpegBytes(appContext, uri))
+                    rutasExistentes[uri] ?: CarRepository.uploadPhoto(Imagenes.jpegBytes(appContext, uri))
                 }
                 // "Caballos de fuerza" no tiene columna en la BD: se agrega a la descripción.
                 val potencia = caballos.filter(Char::isDigit)
@@ -179,11 +255,21 @@ class PublishViewModel : ViewModel() {
                     put("cilindros", cilindros.filter(Char::isDigit).toIntOrNull())
                     put("descripcion_problemas", imperfecciones.trim())
                 }
-                CarRepository.publish(datos, rutas)
+                val id = editId
+                if (id != null) CarRepository.edit(id, datos, rutas)
+                else CarRepository.publish(datos, rutas)
             }
                 .onSuccess { published = true }
                 .onFailure { error = it.mensajeUsuario() }
             publishing = false
         }
+    }
+
+    companion object {
+        /** Máximo de fotos por publicación (editar_publicacion valida lo mismo). */
+        const val MAX_FOTOS = 15
+
+        /** Sufijo "Potencia: N hp" que publish() agrega a la descripción. */
+        private val POTENCIA = Regex("""\n\nPotencia: (\d+) hp$""")
     }
 }

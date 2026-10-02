@@ -30,6 +30,15 @@ data class Car(
     val featuredPending: Boolean = false,
     /** Por qué administración deshabilitó la publicación (solo lo ven el dueño y el admin). */
     val disabledReason: String? = null,
+    /**
+     * Por qué administración rechazó la publicación (o los últimos cambios de una ya
+     * aprobada); el dueño puede corregirla y reenviarla.
+     */
+    val rejectedReason: String? = null,
+    /** Hay una versión esperando revisión del admin (nueva o con cambios). */
+    val inReview: Boolean = false,
+    /** Ya se aprobó alguna vez (es visible salvo que esté pausada/deshabilitada/vendida). */
+    val approved: Boolean = false,
 ) {
     val title: String get() = "$brand $model"
 }
