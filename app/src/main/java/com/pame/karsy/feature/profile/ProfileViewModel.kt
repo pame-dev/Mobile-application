@@ -15,6 +15,7 @@ import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.User
+import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.UserRepository
 import kotlinx.coroutines.launch
@@ -29,6 +30,12 @@ class ProfileViewModel : ViewModel() {
         private set
     var message by mutableStateOf<String?>(null)
     var saving by mutableStateOf(false)
+        private set
+    /** Error al guardar el perfil (se muestra dentro del diálogo). */
+    var editError by mutableStateOf<String?>(null)
+        private set
+    /** Error al cambiar la contraseña (se muestra dentro del diálogo). */
+    var passwordError by mutableStateOf<String?>(null)
         private set
 
     val stats: List<Pair<String, String>>
@@ -51,19 +58,47 @@ class ProfileViewModel : ViewModel() {
 
     fun save(updated: User, onDone: () -> Unit) {
         val original = user ?: return
+        if (saving) return
         saving = true
+        editError = null
         viewModelScope.launch {
             safeCall { UserRepository.updateProfile(original, updated) }
                 .onSuccess {
                     user = updated
-                    message = if (updated.email.trim() != original.email.trim())
-                        texto(R.string.profile_saved_confirm_email)
-                    else texto(R.string.profile_saved)
+                    message = texto(R.string.profile_saved)
                     onDone()
                 }
-                .onFailure { message = it.mensajeUsuario() }
+                .onFailure { editError = it.mensajeUsuario() }
             saving = false
         }
+    }
+
+    /** Cambia la contraseña solo si [current] es la contraseña actual. */
+    fun changePassword(current: String, new: String, confirm: String, onDone: () -> Unit) {
+        if (saving) return
+        passwordError = when {
+            current.isEmpty() -> texto(R.string.profile_password_enter_current)
+            new.length < 6 -> texto(R.string.core_error_weak_password)
+            new != confirm -> texto(R.string.auth_passwords_mismatch)
+            new == current -> texto(R.string.core_error_same_password)
+            else -> null
+        }
+        if (passwordError != null) return
+        saving = true
+        viewModelScope.launch {
+            safeCall { AuthRepository.changePassword(current, new) }
+                .onSuccess {
+                    message = texto(R.string.profile_password_changed)
+                    onDone()
+                }
+                .onFailure { passwordError = it.mensajeUsuario() }
+            saving = false
+        }
+    }
+
+    fun clearDialogErrors() {
+        editError = null
+        passwordError = null
     }
 
     fun uploadAvatar(context: Context, uri: Uri) {

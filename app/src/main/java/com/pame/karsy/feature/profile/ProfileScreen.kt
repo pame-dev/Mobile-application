@@ -84,6 +84,7 @@ fun ProfileScreen(
     val context = LocalContext.current
     val user = vm.user
     var editOpen by rememberSaveable { mutableStateOf(false) }
+    var passwordOpen by rememberSaveable { mutableStateOf(false) }
     val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) vm.uploadAvatar(context, uri)
     }
@@ -127,7 +128,10 @@ fun ProfileScreen(
                 ProfileHeaderCard(
                     user = user,
                     userMode = userMode,
-                    onEdit = { editOpen = true }
+                    onEdit = {
+                        vm.clearDialogErrors()
+                        editOpen = true
+                    }
                 )
                 Spacer(Modifier.height(16.dp))
             } else if (vm.loading) {
@@ -165,10 +169,30 @@ fun ProfileScreen(
         EditProfileDialog(
             user = user,
             saving = vm.saving,
+            error = vm.editError,
             onDismiss = { editOpen = false },
             onSave = { updated -> vm.save(updated) { editOpen = false } },
             onPickPhoto = {
                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onChangePassword = {
+                vm.clearDialogErrors()
+                passwordOpen = true
+            }
+        )
+    }
+
+    // Se abre encima del diálogo de editar perfil.
+    if (passwordOpen) {
+        ChangePasswordDialog(
+            saving = vm.saving,
+            error = vm.passwordError,
+            onDismiss = { passwordOpen = false },
+            onConfirm = { current, new, confirm ->
+                vm.changePassword(current, new, confirm) {
+                    passwordOpen = false
+                    editOpen = false
+                }
             }
         )
     }

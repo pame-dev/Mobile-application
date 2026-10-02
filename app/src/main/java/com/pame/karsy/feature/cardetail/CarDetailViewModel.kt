@@ -74,6 +74,22 @@ class CarDetailViewModel : ViewModel() {
         }
     }
 
+    /** El dueño pide destacar su publicación (lo aprueba un admin). */
+    fun requestFeatured(onDone: (error: String?) -> Unit) {
+        val current = detail ?: return
+        viewModelScope.launch {
+            safeCall { CarRepository.requestFeatured(current.car.id) }
+                .onSuccess {
+                    detail = current.copy(car = current.car.copy(featuredPending = true))
+                    onDone(null)
+                }
+                .onFailure {
+                    val msg = it.mensajeUsuario()
+                    onDone(if (msg.contains("uq_solicitudes_pendiente")) texto(R.string.profile_dashboard_request_already_pending) else msg)
+                }
+        }
+    }
+
     fun retry() {
         loadedId?.let { loadedId = null; load(it) }
     }

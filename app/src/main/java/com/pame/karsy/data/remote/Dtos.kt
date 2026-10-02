@@ -71,6 +71,7 @@ data class CuentaDto(
     @SerialName("municipio_perfil_ubi") val municipio: String,
     @SerialName("estado_cuenta") val estadoCuenta: String,
     @SerialName("fecha_creacion") val fechaCreacion: String,
+    @SerialName("medio_contacto_principal") val medioContactoPrincipal: String? = null,
 )
 
 @Serializable
@@ -78,6 +79,10 @@ data class PerfilLoteDto(
     @SerialName("id_cuenta") val idCuenta: String,
     @SerialName("nombre_comercial") val nombreComercial: String,
     @SerialName("descripcion_lote") val descripcionLote: String? = null,
+    val calle: String = "",
+    val numero: String = "",
+    val colonia: String = "",
+    @SerialName("codigo_postal") val codigoPostal: String = "",
     val municipio: String,
     val estado: String,
 )
@@ -96,8 +101,9 @@ data class TelefonoDto(
 data class TelefonoInsert(
     @SerialName("id_cuenta") val idCuenta: String,
     @SerialName("numero_telefono") val numero: String,
-    @SerialName("es_principal") val esPrincipal: Boolean = true,
-    @SerialName("es_whatsapp") val esWhatsapp: Boolean = true,
+    @SerialName("permite_llamadas") val permiteLlamadas: Boolean,
+    @SerialName("es_whatsapp") val esWhatsapp: Boolean,
+    @SerialName("es_principal") val esPrincipal: Boolean,
 )
 
 @Serializable

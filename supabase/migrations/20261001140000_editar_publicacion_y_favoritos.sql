@@ -150,3 +150,24 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.favoritos_mis_publicaciones() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.favoritos_mis_publicaciones() TO authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- Solo se puede pedir destacar una publicación visible (aprobada, activa y
+-- habilitada). Antes bastaba con ser el dueño, así que llegaban solicitudes de
+-- publicaciones rechazadas o en revisión.
+-- ----------------------------------------------------------------------------
+DROP POLICY solicitudes_crear ON public.solicitudes_destacado;
+CREATE POLICY solicitudes_crear ON public.solicitudes_destacado
+    FOR INSERT TO authenticated
+    WITH CHECK (
+        public.es_propietario_publicacion(id_publicacion)
+        AND estado_solicitud = 'pendiente'
+        AND EXISTS (
+            SELECT 1 FROM public.publicaciones p
+            WHERE p.id_publicacion = solicitudes_destacado.id_publicacion
+              AND p.fecha_primera_publicacion IS NOT NULL
+              AND p.estado_publicacion = 'activa'
+              AND p.estado_administrativo = 'habilitada'
+        )
+    );

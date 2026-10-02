@@ -183,6 +183,7 @@
     <string name="home_hero_subtitle">Miles de vehículos verificados en toda la república mexicana. Compra, vende y negocia con confianza.</string>
     <string name="home_search_placeholder">Buscar marca, modelo o año...</string>
     <string name="home_search">Buscar</string>
+    <string name="home_search_clear">Borrar búsqueda</string>
     <string name="home_visitor_title">Estás en modo visitante</string>
     <string name="home_visitor_message">Regístrate para guardar favoritos, contactar vendedores y publicar tu vehículo.</string>
     <string name="home_create_account_free">Crear cuenta gratis →</string>
@@ -344,9 +345,36 @@
     <string name="profile_edit_first_name">Nombre</string>
     <string name="profile_edit_last_name">Apellido</string>
     <string name="profile_edit_phone">Teléfono</string>
+    <string name="profile_edit_whatsapp">WhatsApp</string>
+    <string name="profile_phones_main_title">Medio de contacto principal</string>
+    <string name="profile_phones_main_needs_phone">Para que la llamada sea el principal, escribe un teléfono.</string>
+    <string name="profile_phones_main_needs_whatsapp">Para que WhatsApp sea el principal, escribe un número de WhatsApp.</string>
+    <string name="profile_phones_empty">Escribe al menos un teléfono o un WhatsApp.</string>
     <string name="profile_edit_email">Correo electrónico</string>
     <string name="profile_edit_bio">Descripción</string>
     <string name="profile_edit_save">Guardar cambios</string>
+    <string name="profile_phones_calls">Llamadas</string>
+    <string name="profile_phones_whatsapp">WhatsApp</string>
+    <string name="profile_password_changed">Contraseña actualizada.</string>
+    <string name="profile_password_wrong_current">La contraseña actual no es correcta.</string>
+    <string name="profile_password_enter_current">Escribe tu contraseña actual.</string>
+    <string name="profile_password_save">Cambiar contraseña</string>
+    <string name="profile_password_confirm">Confirmar contraseña nueva</string>
+    <string name="profile_password_new_hint">Mínimo 6 caracteres</string>
+    <string name="profile_password_new">Contraseña nueva</string>
+    <string name="profile_password_current">Contraseña actual</string>
+    <string name="profile_password_desc">Por seguridad, escribe primero tu contraseña actual.</string>
+    <string name="profile_change_password">Cambiar contraseña</string>
+    <string name="profile_edit_saving">Guardando…</string>
+    <string name="profile_edit_missing">Completa nombre, ciudad y estado (y la dirección del lote).</string>
+    <string name="profile_edit_zip">C.P.</string>
+    <string name="profile_edit_colony">Colonia</string>
+    <string name="profile_edit_number">Número</string>
+    <string name="profile_edit_street">Calle</string>
+    <string name="profile_edit_state">Estado</string>
+    <string name="profile_edit_city">Ciudad</string>
+    <string name="profile_edit_email_locked">El correo no se puede cambiar.</string>
+    <string name="profile_edit_responsible">Responsable</string>
     <!-- Historial -->
     <string name="profile_history_title">🕘 Historial</string>
     <string name="profile_history_empty">Aún no has visto ningún vehículo.</string>
@@ -363,7 +391,6 @@
     <string name="profile_stat_posts">Publicaciones</string>
     <string name="profile_stat_sold">Vendidos</string>
     <string name="profile_stat_active">Activas</string>
-    <string name="profile_saved_confirm_email">Perfil guardado. Revisa tu correo nuevo para confirmar el cambio.</string>
     <string name="profile_saved">Perfil guardado.</string>
     <string name="profile_photo_updated">Foto actualizada.</string>
     <!-- Estado de la publicación (solo etiqueta visible) -->
@@ -680,6 +707,10 @@
     <plurals name="admin2_alert_pending_reports">
         <item quantity="one">%1$d reporte pendiente</item>
         <item quantity="other">%1$d reportes pendientes</item>
+    </plurals>
+    <plurals name="admin2_alert_pending_featured">
+        <item quantity="one">%1$d solicitud de destacado pendiente</item>
+        <item quantity="other">%1$d solicitudes de destacado pendientes</item>
     </plurals>
     <plurals name="admin2_reports_count">
         <item quantity="one">%1$d reporte registrado</item>

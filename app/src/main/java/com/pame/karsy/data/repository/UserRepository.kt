@@ -16,10 +16,17 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.storage.storage
 import io.ktor.http.ContentType
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import java.util.UUID
 
 /** Perfil de la cuenta en sesión (public.cuentas + perfiles_lote + teléfono + correo). */
 object UserRepository {
+
+    /** Valores de cuentas.medio_contacto_principal. */
+    const val LLAMADA = "llamada"
+    const val WHATSAPP = "whatsapp"
 
     private val db get() = Supabase.client
 
@@ -31,7 +38,9 @@ object UserRepository {
             db.from("perfiles_lote").select { filter { eq("id_cuenta", uid) } }
                 .decodeSingleOrNull<PerfilLoteDto>()
         } else null
-        val telefono = callPhone(uid)
+        val telefonos = activePhones(uid)
+        val telefono = telefonos.firstOrNull { it.permiteLlamadas }
+        val whatsapp = telefonos.firstOrNull { it.esWhatsapp }
         val correo = SessionManager.account?.correo?.takeIf { it.isNotBlank() }
             ?: db.postgrest.rpc("mi_correo").decodeAsOrNull<String>().orEmpty()
 
@@ -45,49 +54,57 @@ object UserRepository {
             avatarUrl = Supabase.publicUrl(cuenta.fotoPerfil),
             memberSince = Formato.mesAnio(cuenta.fechaCreacion),
             accountType = cuenta.tipoCuenta,
+            estado = cuenta.estado,
+            municipio = cuenta.municipio,
+            // El responsable del lote se guardó en los metadatos de Auth al registrarse.
+            responsable = db.auth.currentUserOrNull()?.userMetadata?.get("responsable")
+                ?.jsonPrimitive?.contentOrNull.orEmpty(),
+            calle = lote?.calle.orEmpty(),
+            numero = lote?.numero.orEmpty(),
+            colonia = lote?.colonia.orEmpty(),
+            codigoPostal = lote?.codigoPostal.orEmpty(),
+            whatsapp = whatsapp?.numero.orEmpty(),
+            medioPrincipal = when {
+                telefono == null -> WHATSAPP
+                whatsapp == null -> LLAMADA
+                else -> cuenta.medioContactoPrincipal ?: LLAMADA
+            },
         )
     }
 
     /**
-     * Guarda nombre, descripción y teléfono. Si cambia el correo se pide a Supabase Auth
-     * (puede requerir confirmarlo desde el correo nuevo).
+     * Guarda nombre, descripción, ubicación y teléfono; en un lote también su nombre
+     * comercial, dirección y responsable. El correo no se cambia desde el perfil.
      */
     suspend fun updateProfile(original: User, updated: User) {
         val uid = updated.id
         db.from("cuentas").update({
             set("nombre_mostrar", updated.displayName.trim())
             set("descripcion_corta", updated.bio.trim().ifEmpty { null }?.take(300))
+            set("estado_perfil_ubi", updated.estado.trim())
+            set("municipio_perfil_ubi", updated.municipio.trim())
         }) { filter { eq("id_cuenta", uid) } }
 
-        if (updated.phone.trim() != original.phone.trim()) {
-            val telefonos = activePhones(uid)
-            val actual = telefonos.firstOrNull { it.permiteLlamadas }
-            val nuevo = updated.phone.trim()
-            when {
-                nuevo.isEmpty() && actual != null ->
-                    db.from("telefonos_contacto").update({ set("activo", false) }) {
-                        filter { eq("id_telefono", actual.idTelefono) }
-                    }
-                nuevo.isNotEmpty() && actual != null ->
-                    db.from("telefonos_contacto").update({ set("numero_telefono", nuevo) }) {
-                        filter { eq("id_telefono", actual.idTelefono) }
-                    }
-                // Número nuevo para llamadas: también es WhatsApp y principal solo si no hay otro.
-                nuevo.isNotEmpty() ->
-                    db.from("telefonos_contacto").insert(
-                        TelefonoInsert(
-                            idCuenta = uid,
-                            numero = nuevo,
-                            esPrincipal = telefonos.none { it.esPrincipal },
-                            esWhatsapp = telefonos.none { it.esWhatsapp },
-                        )
-                    )
+        if (updated.accountType == "lote") {
+            db.from("perfiles_lote").update({
+                set("nombre_comercial", updated.displayName.trim())
+                set("descripcion_lote", updated.bio.trim().ifEmpty { null })
+                set("calle", updated.calle.trim())
+                set("numero", updated.numero.trim())
+                set("colonia", updated.colonia.trim())
+                set("codigo_postal", updated.codigoPostal.trim())
+                set("estado", updated.estado.trim())
+                set("municipio", updated.municipio.trim())
+            }) { filter { eq("id_cuenta", uid) } }
+            if (updated.responsable.trim() != original.responsable.trim()) {
+                db.auth.updateUser { data { put("responsable", updated.responsable.trim()) } }
             }
         }
 
-        if (updated.email.trim() != original.email.trim() && updated.email.isNotBlank()) {
-            db.auth.updateUser { email = updated.email.trim() }
-        }
+        if (updated.phone.trim() != original.phone.trim() ||
+            updated.whatsapp.trim() != original.whatsapp.trim() ||
+            updated.medioPrincipal != original.medioPrincipal
+        ) savePhones(uid, updated.phone.trim(), updated.whatsapp.trim(), updated.medioPrincipal)
         SessionManager.updateName(updated.displayName.trim())
     }
 
@@ -120,9 +137,44 @@ object UserRepository {
         return Supabase.publicUrl(ruta)
     }
 
-    /** Número para llamadas: es el que muestra y edita el perfil (el WhatsApp puede ser otro). */
-    private suspend fun callPhone(uid: String): TelefonoDto? =
-        activePhones(uid).firstOrNull { it.permiteLlamadas }
+    /**
+     * Deja los teléfonos como los arma el registro (fn_auth_crear_cuenta): una fila si
+     * llamadas y WhatsApp usan el mismo número, o una por número; es_principal marca el
+     * del medio preferido, que también se guarda en cuentas.medio_contacto_principal.
+     * Un número quitado se desactiva (no se borra) y se reactiva si vuelve a agregarse.
+     */
+    private suspend fun savePhones(uid: String, llamadas: String, whatsapp: String, medio: String) {
+        data class Deseado(val numero: String, val llamadas: Boolean, val whatsapp: Boolean, val principal: Boolean)
+        val deseados = if (llamadas.isNotEmpty() && llamadas == whatsapp) {
+            listOf(Deseado(llamadas, llamadas = true, whatsapp = true, principal = true))
+        } else listOfNotNull(
+            Deseado(llamadas, llamadas = true, whatsapp = false, principal = medio == LLAMADA).takeIf { llamadas.isNotEmpty() },
+            Deseado(whatsapp, llamadas = false, whatsapp = true, principal = medio == WHATSAPP).takeIf { whatsapp.isNotEmpty() },
+        )
+        // Primero lo que puede fallar por permisos, para no dejar los teléfonos a medias.
+        db.from("cuentas").update({ set("medio_contacto_principal", medio) }) { filter { eq("id_cuenta", uid) } }
+        val existentes = db.from("telefonos_contacto").select { filter { eq("id_cuenta", uid) } }.decodeList<TelefonoDto>()
+
+        // Primero nadie es principal (uq_telefonos_contacto_principal) y se apagan los que ya no van.
+        db.from("telefonos_contacto").update({ set("es_principal", false) }) { filter { eq("id_cuenta", uid) } }
+        existentes.filter { e -> e.activo && deseados.none { it.numero == e.numero } }.forEach { e ->
+            db.from("telefonos_contacto").update({ set("activo", false) }) { filter { eq("id_telefono", e.idTelefono) } }
+        }
+        // El principal al final, cuando los demás ya no lo son.
+        deseados.sortedBy { it.principal }.forEach { d ->
+            val fila = existentes.firstOrNull { it.numero == d.numero }
+            if (fila != null) {
+                db.from("telefonos_contacto").update({
+                    set("permite_llamadas", d.llamadas)
+                    set("es_whatsapp", d.whatsapp)
+                    set("es_principal", d.principal)
+                    set("activo", true)
+                }) { filter { eq("id_telefono", fila.idTelefono) } }
+            } else {
+                db.from("telefonos_contacto").insert(TelefonoInsert(uid, d.numero, d.llamadas, d.whatsapp, d.principal))
+            }
+        }
+    }
 
     private suspend fun activePhones(uid: String): List<TelefonoDto> =
         db.from("telefonos_contacto").select { filter { eq("id_cuenta", uid) } }

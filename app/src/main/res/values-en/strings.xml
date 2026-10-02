@@ -181,6 +181,7 @@
     <string name="home_hero_subtitle">Thousands of verified vehicles all across Mexico. Buy, sell, and negotiate with confidence.</string>
     <string name="home_search_placeholder">Search make, model, or year...</string>
     <string name="home_search">Search</string>
+    <string name="home_search_clear">Clear search</string>
     <string name="home_visitor_title">You\'re browsing as a guest</string>
     <string name="home_visitor_message">Sign up to save favorites, contact sellers, and list your vehicle.</string>
     <string name="home_create_account_free">Create a free account →</string>
@@ -342,9 +343,36 @@
     <string name="profile_edit_first_name">First name</string>
     <string name="profile_edit_last_name">Last name</string>
     <string name="profile_edit_phone">Phone</string>
+    <string name="profile_edit_whatsapp">WhatsApp</string>
+    <string name="profile_phones_main_title">Main contact method</string>
+    <string name="profile_phones_main_needs_phone">To make calls the main method, enter a phone number.</string>
+    <string name="profile_phones_main_needs_whatsapp">To make WhatsApp the main method, enter a WhatsApp number.</string>
+    <string name="profile_phones_empty">Enter at least a phone or a WhatsApp number.</string>
     <string name="profile_edit_email">Email</string>
     <string name="profile_edit_bio">Description</string>
     <string name="profile_edit_save">Save changes</string>
+    <string name="profile_phones_calls">Calls</string>
+    <string name="profile_phones_whatsapp">WhatsApp</string>
+    <string name="profile_password_changed">Password updated.</string>
+    <string name="profile_password_wrong_current">The current password isn\'t correct.</string>
+    <string name="profile_password_enter_current">Enter your current password.</string>
+    <string name="profile_password_save">Change password</string>
+    <string name="profile_password_confirm">Confirm new password</string>
+    <string name="profile_password_new_hint">At least 6 characters</string>
+    <string name="profile_password_new">New password</string>
+    <string name="profile_password_current">Current password</string>
+    <string name="profile_password_desc">For security, enter your current password first.</string>
+    <string name="profile_change_password">Change password</string>
+    <string name="profile_edit_saving">Saving…</string>
+    <string name="profile_edit_missing">Fill in name, city and state (and the lot address).</string>
+    <string name="profile_edit_zip">ZIP</string>
+    <string name="profile_edit_colony">Neighborhood</string>
+    <string name="profile_edit_number">Number</string>
+    <string name="profile_edit_street">Street</string>
+    <string name="profile_edit_state">State</string>
+    <string name="profile_edit_city">City</string>
+    <string name="profile_edit_email_locked">The email can\'t be changed.</string>
+    <string name="profile_edit_responsible">Person in charge</string>
     <!-- History -->
     <string name="profile_history_title">🕘 History</string>
     <string name="profile_history_empty">You haven\'t viewed any vehicles yet.</string>
@@ -361,7 +389,6 @@
     <string name="profile_stat_posts">Listings</string>
     <string name="profile_stat_sold">Sold</string>
     <string name="profile_stat_active">Active</string>
-    <string name="profile_saved_confirm_email">Profile saved. Check your new email to confirm the change.</string>
     <string name="profile_saved">Profile saved.</string>
     <string name="profile_photo_updated">Photo updated.</string>
     <!-- Listing status (display label only) -->
@@ -678,6 +705,10 @@
     <plurals name="admin2_alert_pending_reports">
         <item quantity="one">%1$d pending report</item>
         <item quantity="other">%1$d pending reports</item>
+    </plurals>
+    <plurals name="admin2_alert_pending_featured">
+        <item quantity="one">%1$d pending featured request</item>
+        <item quantity="other">%1$d pending featured requests</item>
     </plurals>
     <plurals name="admin2_reports_count">
         <item quantity="one">%1$d report on file</item>

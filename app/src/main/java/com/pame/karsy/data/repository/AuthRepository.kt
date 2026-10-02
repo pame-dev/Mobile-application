@@ -77,6 +77,27 @@ object AuthRepository {
         signOut()
     }
 
+    /**
+     * Cambia la contraseña desde el perfil. Primero comprueba la actual iniciando sesión
+     * con ella (Supabase no la pide para cambiarla); si no coincide no se cambia nada.
+     */
+    suspend fun changePassword(currentPassword: String, newPassword: String) {
+        val email = auth.currentUserOrNull()?.email
+            ?: throw UserFacingException(texto(R.string.core_error_login_first))
+        try {
+            auth.signInWith(Email) {
+                this.email = email
+                this.password = currentPassword
+            }
+        } catch (e: AuthRestException) {
+            if (e.error == "invalid_credentials" || e.error == "invalid_grant") {
+                throw UserFacingException(texto(R.string.profile_password_wrong_current))
+            }
+            throw e
+        }
+        auth.updateUser { password = newPassword }
+    }
+
     /** Sesión guardada de una apertura anterior de la app (o null). */
     suspend fun restoreSession(): SessionAccount? {
         auth.awaitInitialization()

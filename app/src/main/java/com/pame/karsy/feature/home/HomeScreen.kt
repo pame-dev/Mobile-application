@@ -18,6 +18,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.material3.IconButton
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import kotlinx.coroutines.delay
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -108,6 +118,16 @@ fun HomeScreen(
 
     val featured = vm.featured
     val allCars = vm.visibleCars
+    val searching = vm.query.isNotBlank()
+    val gridState = rememberLazyGridState()
+    val keyboard = LocalSoftwareKeyboardController.current
+    val scope = rememberCoroutineScope()
+    // Al presionar "Buscar" baja a los resultados (después del encabezado y el aviso de visitante).
+    val showResults = {
+        keyboard?.hide()
+        scope.launch { gridState.animateScrollToItem(if (!userMode.isLoggedIn) 2 else 1) }
+        Unit
+    }
     val favoriteIds = vm.favoriteIds
 
     val isVisitor = !userMode.isLoggedIn
@@ -163,6 +183,7 @@ fun HomeScreen(
             )
 
             LazyVerticalGrid(
+                state = gridState,
                 columns = GridCells.Adaptive(minSize = 280.dp),
                 contentPadding = PaddingValues(bottom = 120.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -175,7 +196,8 @@ fun HomeScreen(
                     HeroSection(
                         stats = vm.heroStats,
                         query = vm.query,
-                        onSearch = { vm.query = it }
+                        onQueryChange = { vm.query = it },
+                        onSearch = showResults
                     )
                 }
 
@@ -186,14 +208,19 @@ fun HomeScreen(
                 }
 
                 // Vehículos destacados (solicitudes de destacado aprobadas y vigentes)
-                if (featured.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
+                // Mientras se busca se ocultan para que los resultados queden arriba.
+                if (featured.isNotEmpty() && !searching) item(span = { GridItemSpan(maxLineSpan) }) {
                     Column(Modifier.padding(top = 8.dp)) {
                         SectionHeader(
                             title = stringResource(R.string.home_featured_title),
                             subtitle = stringResource(R.string.home_featured_subtitle),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {}
+                        val featuredState = rememberLazyListState()
+                        AutoScroll(featuredState, itemCount = featured.size)
                         LazyRow(
+                            state = featuredState,
+                            flingBehavior = rememberSnapFlingBehavior(featuredState),
                             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
@@ -422,7 +449,12 @@ private fun HeaderIconButton(onClick: () -> Unit, active: Boolean = false, conte
 }
 
 @Composable
-private fun HeroSection(stats: List<Pair<String, String>>, query: String, onSearch: (String) -> Unit) {
+private fun HeroSection(
+    stats: List<Pair<String, String>>,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -467,7 +499,7 @@ private fun HeroSection(stats: List<Pair<String, String>>, query: String, onSear
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
-            HeroSearch(initial = query, onSearch = onSearch)
+            HeroSearch(query = query, onQueryChange = onQueryChange, onSearch = onSearch)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
                 modifier = Modifier.padding(top = 24.dp)
@@ -483,9 +515,9 @@ private fun HeroSection(stats: List<Pair<String, String>>, query: String, onSear
     }
 }
 
+/** Filtra mientras se escribe; "Buscar" (o la tecla del teclado) baja a los resultados. */
 @Composable
-private fun HeroSearch(initial: String, onSearch: (String) -> Unit) {
-    var query by rememberSaveable { mutableStateOf(initial) }
+private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     Row(
         Modifier
@@ -498,14 +530,10 @@ private fun HeroSearch(initial: String, onSearch: (String) -> Unit) {
     ) {
         BasicTextField(
             value = query,
-            onValueChange = {
-                query = it
-                // Al borrar el texto se vuelve a mostrar todo sin tocar "Buscar".
-                if (it.isEmpty()) onSearch("")
-            },
+            onValueChange = onQueryChange,
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { onSearch(query) }),
+            keyboardActions = KeyboardActions(onSearch = { onSearch() }),
             textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyWhite),
             cursorBrush = SolidColor(KarsyTeal),
             modifier = Modifier
@@ -520,11 +548,21 @@ private fun HeroSearch(initial: String, onSearch: (String) -> Unit) {
                 }
             }
         )
+        if (query.isNotEmpty()) {
+            IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = stringResource(R.string.home_search_clear),
+                    tint = Color.White.copy(alpha = 0.75f),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
         Box(
             Modifier
                 .fillMaxHeight()
                 .background(KarsyTeal)
-                .clickable { onSearch(query) }
+                .clickable(onClick = onSearch)
                 .padding(horizontal = 18.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -610,5 +648,28 @@ private fun AddFab(
         contentAlignment = Alignment.Center
     ) {
         Icon(Icons.Rounded.Add, contentDescription = description, tint = content, modifier = Modifier.size(28.dp))
+    }
+}
+
+/** Intervalo entre cambios automáticos del carrusel de destacados. */
+private const val AUTO_SCROLL_MS = 4_000L
+
+/**
+ * Avanza el carrusel una tarjeta cada [AUTO_SCROLL_MS] y al llegar al final vuelve
+ * al inicio. Si el usuario lo desliza, la cuenta empieza de nuevo al soltarlo.
+ */
+@Composable
+private fun AutoScroll(state: LazyListState, itemCount: Int) {
+    if (itemCount < 2) return
+    // Solo el arrastre del usuario pausa el carrusel; el desplazamiento automático no
+    // (si se usara isScrollInProgress, el propio avance cancelaría su animación).
+    val dragging by state.interactionSource.collectIsDraggedAsState()
+    LaunchedEffect(state, itemCount, dragging) {
+        if (dragging) return@LaunchedEffect
+        while (true) {
+            delay(AUTO_SCROLL_MS)
+            val next = if (state.canScrollForward) state.firstVisibleItemIndex + 1 else 0
+            state.animateScrollToItem(next.coerceAtMost(itemCount - 1))
+        }
     }
 }

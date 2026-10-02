@@ -2,6 +2,9 @@ package com.pame.karsy.feature.cardetail
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +33,7 @@ import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -63,7 +67,6 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.PrimaryButton
-import com.pame.karsy.core.components.SecondaryButton
 import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.StarBadge
@@ -80,6 +83,8 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.feature.dashboard.DestacarDialog
+import com.pame.karsy.feature.dashboard.SolicitudEnviadaDialog
 import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.feature.profile.ProfileAvatar
 import kotlinx.coroutines.launch
@@ -128,6 +133,8 @@ fun CarDetailScreen(
     var showReport by rememberSaveable { mutableStateOf(false) }
     var showViewer by rememberSaveable { mutableStateOf(false) }
     var confirmPause by rememberSaveable { mutableStateOf(false) }
+    var askFeature by rememberSaveable { mutableStateOf(false) }
+    var featureSent by rememberSaveable { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
     val msgPaused = stringResource(R.string.detail_owner_paused)
     val msgResumed = stringResource(R.string.detail_owner_resumed)
@@ -230,6 +237,7 @@ fun CarDetailScreen(
                 onEdit = ::editPublication,
                 onPause = { confirmPause = true },
                 onResume = { setPaused(false) },
+                onFeature = { askFeature = true },
             )
             else Column(Modifier.background(KarsyBg)) {
                 HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -273,6 +281,21 @@ fun CarDetailScreen(
                     }
                 }
             )
+        }
+
+        // Mismos diálogos que en Mi Panel para pedir que se destaque.
+        if (askFeature) {
+            DestacarDialog(
+                carName = "${detail.car.title} ${detail.car.year}",
+                onConfirm = {
+                    askFeature = false
+                    vm.requestFeatured { error -> if (error == null) featureSent = true else toastMessage = error }
+                },
+                onCancel = { askFeature = false }
+            )
+        }
+        if (featureSent) {
+            SolicitudEnviadaDialog(carName = "${detail.car.title} ${detail.car.year}", onClose = { featureSent = false })
         }
 
         if (showViewer && detail.gallery.isNotEmpty()) {
@@ -320,8 +343,8 @@ fun CarDetailScreen(
 }
 
 /**
- * Acciones del dueño sobre su publicación: editarla (los cambios pasan por revisión)
- * y deshabilitarla / habilitarla. Mientras hay una versión en revisión no se edita.
+ * Acciones del dueño sobre su publicación: deshabilitarla / habilitarla, pedir que se
+ * destaque y editarla (los cambios pasan por revisión; mientras tanto no se edita).
  */
 @Composable
 private fun OwnerActionsBar(
@@ -330,43 +353,110 @@ private fun OwnerActionsBar(
     onEdit: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
+    onFeature: () -> Unit,
 ) {
-    // Pausar solo aplica a una publicación aprobada que el dueño controla.
+    // Pausar y destacar solo aplican a una publicación aprobada que el dueño controla.
     val canToggle = car.approved && car.status in listOf("Activo", "Pausado")
+    val showFeature = car.approved && car.status == "Activo"
     // Una rechazada se corrige desde el aviso de arriba.
     val canEdit = car.status != "Vendido" && car.rejectedReason == null
-    if (!canToggle && !canEdit) return
+    if (!canToggle && !showFeature && !canEdit) return
 
     Column(Modifier.background(KarsyBg)) {
         HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .navigationBarsPadding()
-                .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)
         ) {
             if (canToggle) {
-                if (car.status == "Pausado") PrimaryButton(
-                    text = stringResource(R.string.detail_owner_resume),
-                    onClick = onResume,
+                val paused = car.status == "Pausado"
+                OwnerButton(
+                    text = stringResource(if (paused) R.string.detail_owner_resume else R.string.detail_owner_pause),
+                    onClick = if (paused) onResume else onPause,
                     enabled = !updating,
-                    containerColor = KarsyTeal,
-                    modifier = Modifier.weight(1f)
-                ) else SecondaryButton(
-                    text = stringResource(R.string.detail_owner_pause),
-                    onClick = { if (!updating) onPause() },
-                    contentColor = KarsyError,
+                    filled = paused,
+                    color = if (paused) KarsyTeal else KarsyError,
                     modifier = Modifier.weight(1f)
                 )
             }
-            if (canEdit) PrimaryButton(
+            if (showFeature) OwnerButton(
+                text = stringResource(
+                    when {
+                        car.featured -> R.string.profile_dashboard_featured
+                        car.featuredPending -> R.string.profile_dashboard_request_sent
+                        else -> R.string.profile_dashboard_feature
+                    }
+                ),
+                onClick = onFeature,
+                // Una solicitud a la vez.
+                enabled = !car.featured && !car.featuredPending,
+                color = FeatureGold,
+                modifier = Modifier.weight(1f)
+            )
+            if (canEdit) OwnerButton(
                 text = stringResource(if (car.inReview) R.string.detail_owner_in_review else R.string.detail_owner_edit),
                 onClick = onEdit,
                 enabled = !car.inReview,
+                filled = true,
                 modifier = Modifier.weight(1f)
             )
         }
     }
+}
+
+private val FeatureGold = Color(0xFFB7791F)
+
+/** Botón compacto de la barra del dueño: relleno o con borde del color dado. */
+@Composable
+private fun OwnerButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    filled: Boolean = false,
+    color: Color = KarsyNavy,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    val content = @Composable {
+        Text(
+            text,
+            fontFamily = Outfit,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+    val sizing = modifier.height(40.dp)
+    val padding = PaddingValues(horizontal = 6.dp)
+    if (filled) Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = shape,
+        contentPadding = padding,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = color,
+            contentColor = KarsyWhite,
+            disabledContainerColor = KarsyBorder,
+            disabledContentColor = KarsyMid,
+        ),
+        modifier = sizing
+    ) { content() }
+    else OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        shape = shape,
+        contentPadding = padding,
+        border = BorderStroke(1.5.dp, if (enabled) color.copy(alpha = 0.6f) else KarsyBorder),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = KarsyWhite,
+            contentColor = color,
+            disabledContentColor = KarsyMid,
+        ),
+        modifier = sizing
+    ) { content() }
 }
 
 @Composable
