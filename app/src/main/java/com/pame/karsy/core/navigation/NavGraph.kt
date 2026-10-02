@@ -149,7 +149,12 @@ fun KarsyNavGraph(
             RegisterTypeScreen(
                 onBack = ::back,
                 onParticular = { navController.navigate(Routes.RegisterParticular.route) },
-                onLote = { navController.navigate(Routes.RegisterLote.route) }
+                onLote = { navController.navigate(Routes.RegisterLote.route) },
+                onLogin = {
+                    navController.navigate(Routes.Login.route) {
+                        popUpTo(Routes.Welcome.route)
+                    }
+                }
             )
         }
         // Supabase manda el código al crear la cuenta; no se pide otro al entrar.

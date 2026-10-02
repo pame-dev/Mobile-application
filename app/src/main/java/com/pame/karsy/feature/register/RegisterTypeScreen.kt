@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
@@ -45,6 +46,7 @@ import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
+import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
@@ -56,7 +58,7 @@ private enum class ClientType { PARTICULAR, LOTE }
 
 /** Elección del tipo de cuenta: Particular o Lote. Se navega al pulsar "Continuar". */
 @Composable
-fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () -> Unit) {
+fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () -> Unit, onLogin: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf<ClientType?>(null) }
 
     Column(
@@ -114,6 +116,24 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
                     .fillMaxWidth()
                     .padding(top = 14.dp)
             )
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(R.string.auth_have_account_question), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal)
+                Text(
+                    stringResource(R.string.auth_sign_in_here),
+                    fontFamily = DmSans,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KarsyTeal,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable(onClick = onLogin)
+                )
+            }
         }
     }
 }
