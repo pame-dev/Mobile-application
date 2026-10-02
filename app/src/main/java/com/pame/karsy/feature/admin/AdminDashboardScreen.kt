@@ -27,6 +27,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -70,6 +72,15 @@ fun AdminDashboardScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var section by rememberSaveable { mutableStateOf(AdminSection.Inicio) }
+
+    // Recarga al volver a la app / a esta pantalla y al cambiar de sección, para que
+    // lo que manden los usuarios (solicitudes de destacado, reportes, publicaciones)
+    // aparezca sin tener que cerrar sesión.
+    LifecycleResumeEffect(Unit) {
+        vm.refresh()
+        onPauseOrDispose { }
+    }
+    LaunchedEffect(section) { vm.refresh() }
 
     // Atrás desde una sección vuelve a Inicio (el menú abierto lo maneja ModalDrawerSheet).
     BackHandler(enabled = section != AdminSection.Inicio && drawerState.isClosed) {

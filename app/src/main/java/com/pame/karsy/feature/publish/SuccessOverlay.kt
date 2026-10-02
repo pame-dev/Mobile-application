@@ -41,7 +41,14 @@ import com.pame.karsy.core.theme.Outfit
  * La publicación queda como propuesta pendiente hasta que un administrador la aprueba.
  */
 @Composable
-fun SuccessOverlay(title: String, onDone: () -> Unit, modifier: Modifier = Modifier) {
+fun SuccessOverlay(
+    title: String,
+    onDone: () -> Unit,
+    modifier: Modifier = Modifier,
+    resubmitted: Boolean = false,
+    /** Se editó una publicación ya aprobada: sigue visible con la versión anterior. */
+    approvedEdit: Boolean = false,
+) {
     BackHandler(onBack = onDone)
     Column(
         modifier = modifier
@@ -63,7 +70,7 @@ fun SuccessOverlay(title: String, onDone: () -> Unit, modifier: Modifier = Modif
             Icon(Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(36.dp))
         }
         Text(
-            stringResource(R.string.publish_success_title),
+            stringResource(if (resubmitted) R.string.publish_resubmit_success_title else R.string.publish_success_title),
             fontFamily = Outfit,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -71,7 +78,14 @@ fun SuccessOverlay(title: String, onDone: () -> Unit, modifier: Modifier = Modif
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
-            stringResource(R.string.publish_success_message, title),
+            stringResource(
+                when {
+                    approvedEdit -> R.string.publish_edit_success_message
+                    resubmitted -> R.string.publish_resubmit_success_message
+                    else -> R.string.publish_success_message
+                },
+                title
+            ),
             fontFamily = DmSans,
             fontSize = 14.sp,
             color = KarsyWhite.copy(alpha = 0.7f),

@@ -28,6 +28,9 @@ class DashboardViewModel : ViewModel() {
         private set
     var myListings by mutableStateOf<List<Car>>(emptyList())
         private set
+    /** Cuántos usuarios guardaron en favoritos cada publicación (por id). */
+    var favoriteCounts by mutableStateOf<Map<Long, Int>>(emptyMap())
+        private set
     var avatarUrl by mutableStateOf<String?>(null)
         private set
     var loading by mutableStateOf(true)
@@ -61,6 +64,7 @@ class DashboardViewModel : ViewModel() {
                 .onSuccess { stats = it; error = null }
                 .onFailure { error = it.mensajeUsuario() }
             myListings = safeCall { CarRepository.ownerCars(uid) }.getOrDefault(myListings)
+            favoriteCounts = safeCall { CarRepository.favoriteCounts() }.getOrDefault(favoriteCounts)
             if (avatarUrl == null) avatarUrl = safeCall { UserRepository.currentUser()?.avatarUrl }.getOrNull()
             loading = false
         }

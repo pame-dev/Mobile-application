@@ -12,6 +12,7 @@ import com.pame.karsy.data.model.SellerContact
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.ContactoDto
 import com.pame.karsy.data.remote.FavoritoDto
+import com.pame.karsy.data.remote.FavoritosConteoDto
 import com.pame.karsy.data.remote.InteraccionDto
 import com.pame.karsy.data.remote.InteraccionInsert
 import com.pame.karsy.data.remote.ReporteInsert
@@ -184,6 +185,34 @@ object CarRepository {
         return ruta
     }
 
+    /** Datos de una publicación propia para precargar el formulario al corregirla. */
+    suspend fun ownListing(id: Long): AnuncioDto? =
+        db.from(VISTA).select { filter { eq("id_publicacion", id) } }.decodeSingleOrNull<AnuncioDto>()
+
+    /**
+     * Edita una publicación propia (o corrige una rechazada): los cambios quedan
+     * en revisión hasta que un admin los apruebe (función editar_publicacion).
+     */
+    suspend fun edit(id: Long, datos: JsonObject, fotos: List<String>) {
+        db.postgrest.rpc("editar_publicacion", buildJsonObject {
+            put("p_id_publicacion", id)
+            put("p_datos", datos)
+            put("p_fotos", buildJsonArray { fotos.forEach { add(it) } })
+        })
+    }
+
+    /** Pausa (deshabilita) o reactiva una publicación propia; no afecta lo que decida el admin. */
+    suspend fun setPaused(id: Long, paused: Boolean) {
+        db.from("publicaciones").update({ set("estado_publicacion", if (paused) "deshabilitada" else "activa") }) {
+            filter { eq("id_publicacion", id) }
+        }
+    }
+
+    /** Cuántos usuarios guardaron en favoritos cada publicación de la cuenta en sesión. */
+    suspend fun favoriteCounts(): Map<Long, Int> =
+        db.postgrest.rpc("favoritos_mis_publicaciones").decodeList<FavoritosConteoDto>()
+            .associate { it.idPublicacion to it.total }
+
     /** Crea la publicación con su propuesta pendiente (función crear_publicacion). */
     suspend fun publish(datos: JsonObject, fotos: List<String>): Long =
         db.postgrest.rpc("crear_publicacion", buildJsonObject {
@@ -220,6 +249,9 @@ object CarRepository {
             featuredPending = a.destacadoPendiente,
             disabledReason = a.motivoDeshabilitacion
                 ?.takeIf { a.estadoAdministrativo == "deshabilitada_administrador" },
+            rejectedReason = a.motivoRechazo?.takeIf { a.estadoUltimaPropuesta == "rechazada" },
+            inReview = a.estadoUltimaPropuesta == "pendiente",
+            approved = a.aprobada,
         )
     }
 

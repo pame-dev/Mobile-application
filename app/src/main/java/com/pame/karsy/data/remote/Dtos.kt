@@ -21,10 +21,13 @@ data class AnuncioDto(
     @SerialName("municipio_ubicacion") val municipioUbicacion: String? = null,
     @SerialName("id_marca") val idMarca: Long? = null,
     val marca: String? = null,
+    @SerialName("id_modelo") val idModelo: Long? = null,
     val modelo: String? = null,
     val anio: Int? = null,
     val kilometraje: Int? = null,
+    @SerialName("id_color") val idColor: Long? = null,
     val color: String? = null,
+    @SerialName("id_transmision") val idTransmision: Long? = null,
     val transmision: String? = null,
     @SerialName("id_carroceria") val idCarroceria: Long? = null,
     val carroceria: String? = null,
@@ -50,6 +53,13 @@ data class AnuncioDto(
     val fotos: List<String> = emptyList(),
 )
 
+/** Fila de favoritos_mis_publicaciones(). */
+@Serializable
+data class FavoritosConteoDto(
+    @SerialName("id_publicacion") val idPublicacion: Long,
+    val total: Int,
+)
+
 @Serializable
 data class CuentaDto(
     @SerialName("id_cuenta") val idCuenta: String,
@@ -61,6 +71,7 @@ data class CuentaDto(
     @SerialName("municipio_perfil_ubi") val municipio: String,
     @SerialName("estado_cuenta") val estadoCuenta: String,
     @SerialName("fecha_creacion") val fechaCreacion: String,
+    @SerialName("medio_contacto_principal") val medioContactoPrincipal: String? = null,
 )
 
 @Serializable
@@ -68,6 +79,10 @@ data class PerfilLoteDto(
     @SerialName("id_cuenta") val idCuenta: String,
     @SerialName("nombre_comercial") val nombreComercial: String,
     @SerialName("descripcion_lote") val descripcionLote: String? = null,
+    val calle: String = "",
+    val numero: String = "",
+    val colonia: String = "",
+    @SerialName("codigo_postal") val codigoPostal: String = "",
     val municipio: String,
     val estado: String,
 )
@@ -86,8 +101,9 @@ data class TelefonoDto(
 data class TelefonoInsert(
     @SerialName("id_cuenta") val idCuenta: String,
     @SerialName("numero_telefono") val numero: String,
-    @SerialName("es_principal") val esPrincipal: Boolean = true,
-    @SerialName("es_whatsapp") val esWhatsapp: Boolean = true,
+    @SerialName("permite_llamadas") val permiteLlamadas: Boolean,
+    @SerialName("es_whatsapp") val esWhatsapp: Boolean,
+    @SerialName("es_principal") val esPrincipal: Boolean,
 )
 
 @Serializable

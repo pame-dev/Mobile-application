@@ -16,6 +16,7 @@ import com.pame.karsy.data.repository.CatalogRepository
 import com.pame.karsy.data.repository.Catalogs
 import com.pame.karsy.data.repository.UserRepository
 import kotlinx.coroutines.launch
+import java.text.Normalizer
 
 // Valores internos de "sin filtro" (se comparan en visibleCars); su etiqueta visible está en rememberFilterLabel().
 internal const val TODAS = "Todas"
@@ -43,13 +44,29 @@ data class FilterOptions(
     fun modelos(marca: String): List<String> = listOf(TODOS) + modelosPorMarca[marca].orEmpty()
 }
 
+/** Minúsculas y sin acentos, para que "cafe" encuentre "Café". */
+private fun String.normalizado(): String =
+    Normalizer.normalize(lowercase(), Normalizer.Form.NFD).replace(ACENTOS, "")
+
+private val ACENTOS = Regex("\\p{Mn}+")
+
+/**
+ * Cada palabra de la búsqueda debe aparecer en marca, modelo, año, tipo, vendedor o
+ * descripción, en cualquier orden: "versa 2020 nissan" encuentra "Nissan Versa 2020".
+ */
+private fun Car.coincide(palabras: List<String>): Boolean {
+    if (palabras.isEmpty()) return true
+    val texto = "$brand $model $year $bodyType $ownerName $description".normalizado()
+    return palabras.all { it in texto }
+}
+
 /** Búsqueda y filtros del panel (sin ordenar). Lo usan el catálogo y Favoritos. */
 internal fun List<Car>.filtrar(f: HomeFilters, query: String): List<Car> {
-    val busqueda = query.trim().lowercase()
+    val palabras = query.normalizado().split(' ').filter { it.isNotBlank() }
     val min = f.precioMin.filter(Char::isDigit).toDoubleOrNull()
     val max = f.precioMax.filter(Char::isDigit).toDoubleOrNull()
     return filter { car ->
-        (busqueda.isEmpty() || "${car.brand} ${car.model} ${car.year}".lowercase().contains(busqueda)) &&
+        car.coincide(palabras) &&
             (f.marca == TODAS || car.brand == f.marca) &&
             (f.modelo == TODOS || car.model == f.modelo) &&
             (f.anio == CUALQUIERA || car.year.toString() == f.anio) &&

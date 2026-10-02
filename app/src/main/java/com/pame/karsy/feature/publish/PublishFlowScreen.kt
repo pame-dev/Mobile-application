@@ -7,11 +7,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.core.theme.KarsyBg
+import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.feature.publish.steps.ConfirmStep
 import com.pame.karsy.feature.publish.steps.DatosStep
 import com.pame.karsy.feature.publish.steps.DetailsStep
@@ -36,7 +39,10 @@ fun PublishFlowScreen(onBack: () -> Unit, onFinished: () -> Unit) {
             .fillMaxSize()
             .background(KarsyBg)
     ) {
-        when (vm.step) {
+        if (vm.loadingEdit) {
+            // Cargando los datos de la publicación rechazada que se va a corregir.
+            CircularProgressIndicator(color = KarsyTeal, modifier = Modifier.align(Alignment.Center))
+        } else when (vm.step) {
             1 -> DatosStep(form = vm, onNext = vm::next, onBack = goBack)
             2 -> PhotosStep(form = vm, onNext = vm::next, onBack = goBack)
             3 -> DetailsStep(form = vm, onNext = vm::next, onBack = goBack)
@@ -45,7 +51,7 @@ fun PublishFlowScreen(onBack: () -> Unit, onFinished: () -> Unit) {
 
         AnimatedVisibility(visible = vm.published, enter = fadeIn(), exit = fadeOut()) {
             // NavGraph saca este flujo de la pila al navegar al panel.
-            SuccessOverlay(title = vm.titulo, onDone = onFinished)
+            SuccessOverlay(title = vm.titulo, onDone = onFinished, resubmitted = vm.isEditing, approvedEdit = vm.editingApproved)
         }
     }
 }

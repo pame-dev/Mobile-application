@@ -81,11 +81,13 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
 
     PublishStepScaffold(
         step = 1,
+        form = form,
         onBack = onBack,
         buttonText = stringResource(R.string.publish_next_photos),
         onButtonClick = onNext
     ) {
         form.error?.let { StepError(it) }
+        form.rejectedReason?.let { RejectedNotice(it) }
 
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_vehicle_info))
@@ -231,6 +233,34 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
 }
 
 /** Mensaje de validación arriba del formulario. */
+/** Motivo del rechazo, arriba del formulario al corregir una publicación. */
+@Composable
+private fun RejectedNotice(reason: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(KarsyErrorLight)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+    ) {
+        Text(
+            stringResource(R.string.publish_edit_rejected_title),
+            fontFamily = DmSans,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = KarsyError
+        )
+        Text(
+            reason,
+            fontFamily = DmSans,
+            fontSize = 13.sp,
+            lineHeight = 18.sp,
+            color = KarsyCharcoal,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
 @Composable
 internal fun StepError(message: String) {
     Text(

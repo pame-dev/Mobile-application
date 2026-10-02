@@ -10,6 +10,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Icon
@@ -36,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -72,9 +78,14 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) form.photos[targetSlot] = uri
     }
+    // El límite del selector es fijo; addExtraPhotos recorta a las que todavía caben.
+    val extrasPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(PublishViewModel.MAX_FOTOS - slotLabels.size)
+    ) { uris -> form.addExtraPhotos(uris) }
 
     PublishStepScaffold(
         step = 2,
+        form = form,
         onBack = onBack,
         buttonText = stringResource(R.string.publish_next_details),
         onButtonClick = onNext,
@@ -89,6 +100,114 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     targetSlot = i
                     picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }
+            )
+        }
+        ExtraPhotosCard(
+            photos = form.extraPhotos,
+            total = form.fotosElegidas.size,
+            canAdd = form.extraPhotosLeft > 0,
+            onAdd = { extrasPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onRemove = form::removeExtraPhoto
+        )
+    }
+}
+
+/** Fotos adicionales a las de los ángulos, hasta completar el máximo por publicación. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ExtraPhotosCard(
+    photos: List<Uri>,
+    total: Int,
+    canAdd: Boolean,
+    onAdd: () -> Unit,
+    onRemove: (Uri) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(KarsyWhite)
+            .padding(12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.publish_extra_photos),
+                fontFamily = DmSans,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = KarsyCharcoal,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                stringResource(R.string.publish_photos_count, total, PublishViewModel.MAX_FOTOS),
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                color = KarsyMid
+            )
+        }
+        if (photos.isNotEmpty()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = 4,
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
+                photos.forEach { uri ->
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(KarsyBg)
+                    ) {
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.55f))
+                                .clickable { onRemove(uri) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Rounded.Close,
+                                contentDescription = stringResource(R.string.publish_remove_photo),
+                                tint = KarsyWhite,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
+                // Huecos para que las miniaturas de la última fila no se estiren.
+                repeat((4 - photos.size % 4) % 4) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+        Row(
+            modifier = Modifier
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
+                .clickable(enabled = canAdd, onClick = onAdd)
+                .padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Rounded.Add, null, tint = if (canAdd) KarsyTeal else KarsyMid, modifier = Modifier.size(18.dp))
+            Text(
+                stringResource(if (canAdd) R.string.publish_add_more_photos else R.string.publish_photos_limit, PublishViewModel.MAX_FOTOS),
+                fontFamily = DmSans,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (canAdd) KarsyCharcoal else KarsyMid,
+                modifier = Modifier.padding(start = 8.dp)
             )
         }
     }

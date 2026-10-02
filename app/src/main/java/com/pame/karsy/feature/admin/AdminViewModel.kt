@@ -7,6 +7,7 @@ import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonOff
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +60,11 @@ class AdminViewModel : ViewModel() {
 
     init {
         loadAll()
+    }
+
+    /** Recarga todo salvo que ya haya una carga en curso. */
+    fun refresh() {
+        if (!loading) loadAll()
     }
 
     fun loadAll() {
@@ -201,6 +207,7 @@ class AdminViewModel : ViewModel() {
                 AdminAlert(textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Icons.Outlined.Storefront, Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Lotes),
                 AdminAlert(textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Icons.Outlined.Shield, Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
                 AdminAlert(textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Icons.Outlined.Flag, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
+                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_featured, s.destacadosPendientes, s.destacadosPendientes), Icons.Outlined.StarOutline, Color(0xFFFFFBEB), Color(0xFFD97706), AdminSection.Destacados),
             )
         }
 

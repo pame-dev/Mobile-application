@@ -176,7 +176,7 @@ fun KarsyNavGraph(
                 onFavorites = { navController.navigate(Routes.Favorites.route) },
                 onProfile = { navController.navigate(Routes.Profile.route) },
                 onAdminPanel = { navController.navigate(Routes.AdminDashboard.route) },
-                onPublish = { navController.navigate(Routes.PublishFlow.route) },
+                onPublish = { navController.navigate(Routes.PublishFlow.createRoute()) },
                 onRegister = ::goRegister,
                 onLogin = { navController.navigate(Routes.Login.route) },
                 onLogout = ::logout
@@ -191,7 +191,8 @@ fun KarsyNavGraph(
                 userMode = userMode,
                 onBack = ::back,
                 onRegister = ::goRegister,
-                onCarClick = ::openCar
+                onCarClick = ::openCar,
+                onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) }
             )
         }
         composable(Routes.Favorites.route) {
@@ -221,11 +222,17 @@ fun KarsyNavGraph(
         }
 
         // ── Publicar y panel del vendedor ────────────────────────────
-        composable(Routes.PublishFlow.route) {
+        composable(
+            Routes.PublishFlow.route,
+            arguments = listOf(navArgument(Routes.PublishFlow.ARG_EDIT) { type = NavType.LongType; defaultValue = -1L })
+        ) { entry ->
+            val editando = (entry.arguments?.getLong(Routes.PublishFlow.ARG_EDIT) ?: -1L) > 0
             PublishFlowScreen(
                 onBack = ::back,
                 onFinished = {
-                    navController.navigate(Routes.Dashboard.route) {
+                    // Al corregir se llegó desde el panel: basta con regresar a él.
+                    if (editando) back()
+                    else navController.navigate(Routes.Dashboard.route) {
                         popUpTo(Routes.PublishFlow.route) { inclusive = true }
                     }
                 }
@@ -234,7 +241,8 @@ fun KarsyNavGraph(
         composable(Routes.Dashboard.route) {
             DashboardScreen(
                 onBack = ::back,
-                onNewPublication = { navController.navigate(Routes.PublishFlow.route) },
+                onNewPublication = { navController.navigate(Routes.PublishFlow.createRoute()) },
+                onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) },
                 onCarClick = ::openCar
             )
         }

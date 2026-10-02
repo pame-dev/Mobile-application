@@ -181,6 +181,7 @@
     <string name="home_hero_subtitle">Thousands of verified vehicles all across Mexico. Buy, sell, and negotiate with confidence.</string>
     <string name="home_search_placeholder">Search make, model, or year...</string>
     <string name="home_search">Search</string>
+    <string name="home_search_clear">Clear search</string>
     <string name="home_visitor_title">You\'re browsing as a guest</string>
     <string name="home_visitor_message">Sign up to save favorites, contact sellers, and list your vehicle.</string>
     <string name="home_create_account_free">Create a free account →</string>
@@ -269,6 +270,16 @@
     <string name="detail_report_account_desc">Suspicious behavior, impersonation or harassment by the seller.</string>
     <string name="detail_cancel">Cancel</string>
     <string name="detail_disabled_title">Your listing was disabled</string>
+    <string name="detail_rejected_title">Your listing was rejected</string>
+    <string name="detail_changes_rejected_title">An admin rejected your changes</string>
+    <string name="detail_owner_edit">Edit</string>
+    <string name="detail_owner_in_review">In review</string>
+    <string name="detail_owner_pause">Disable</string>
+    <string name="detail_owner_resume">Enable</string>
+    <string name="detail_owner_pause_title">Disable listing?</string>
+    <string name="detail_owner_pause_desc">Buyers won\'t see it anymore. You can enable it again whenever you want.</string>
+    <string name="detail_owner_paused">Listing disabled: buyers no longer see it.</string>
+    <string name="detail_owner_resumed">Listing enabled again.</string>
     <string name="detail_disabled_reason">Reason: %1$s</string>
     <string name="detail_disabled_no_reason">An administrator disabled this listing; other users can no longer see it.</string>
     <string name="detail_reasons_listing_title">Reasons for reporting this listing</string>
@@ -305,6 +316,11 @@
     <string name="profile_dashboard_featured">Featured</string>
     <string name="profile_dashboard_request_sent">Request sent</string>
     <string name="profile_dashboard_feature">Feature</string>
+    <string name="profile_dashboard_fix_resubmit">Fix and resubmit</string>
+    <plurals name="profile_dashboard_favorites">
+        <item quantity="one">%1$d favorite</item>
+        <item quantity="other">%1$d favorites</item>
+    </plurals>
     <string name="profile_dashboard_trend_this_month">%1$d this month</string>
     <string name="profile_dashboard_trend_up">▲ +%1$d%% this month</string>
     <string name="profile_dashboard_trend_down">▼ %1$d%% this month</string>
@@ -327,9 +343,36 @@
     <string name="profile_edit_first_name">First name</string>
     <string name="profile_edit_last_name">Last name</string>
     <string name="profile_edit_phone">Phone</string>
+    <string name="profile_edit_whatsapp">WhatsApp</string>
+    <string name="profile_phones_main_title">Main contact method</string>
+    <string name="profile_phones_main_needs_phone">To make calls the main method, enter a phone number.</string>
+    <string name="profile_phones_main_needs_whatsapp">To make WhatsApp the main method, enter a WhatsApp number.</string>
+    <string name="profile_phones_empty">Enter at least a phone or a WhatsApp number.</string>
     <string name="profile_edit_email">Email</string>
     <string name="profile_edit_bio">Description</string>
     <string name="profile_edit_save">Save changes</string>
+    <string name="profile_phones_calls">Calls</string>
+    <string name="profile_phones_whatsapp">WhatsApp</string>
+    <string name="profile_password_changed">Password updated.</string>
+    <string name="profile_password_wrong_current">The current password isn\'t correct.</string>
+    <string name="profile_password_enter_current">Enter your current password.</string>
+    <string name="profile_password_save">Change password</string>
+    <string name="profile_password_confirm">Confirm new password</string>
+    <string name="profile_password_new_hint">At least 6 characters</string>
+    <string name="profile_password_new">New password</string>
+    <string name="profile_password_current">Current password</string>
+    <string name="profile_password_desc">For security, enter your current password first.</string>
+    <string name="profile_change_password">Change password</string>
+    <string name="profile_edit_saving">Saving…</string>
+    <string name="profile_edit_missing">Fill in name, city and state (and the lot address).</string>
+    <string name="profile_edit_zip">ZIP</string>
+    <string name="profile_edit_colony">Neighborhood</string>
+    <string name="profile_edit_number">Number</string>
+    <string name="profile_edit_street">Street</string>
+    <string name="profile_edit_state">State</string>
+    <string name="profile_edit_city">City</string>
+    <string name="profile_edit_email_locked">The email can\'t be changed.</string>
+    <string name="profile_edit_responsible">Person in charge</string>
     <!-- History -->
     <string name="profile_history_title">🕘 History</string>
     <string name="profile_history_empty">You haven\'t viewed any vehicles yet.</string>
@@ -346,7 +389,6 @@
     <string name="profile_stat_posts">Listings</string>
     <string name="profile_stat_sold">Sold</string>
     <string name="profile_stat_active">Active</string>
-    <string name="profile_saved_confirm_email">Profile saved. Check your new email to confirm the change.</string>
     <string name="profile_saved">Profile saved.</string>
     <string name="profile_photo_updated">Photo updated.</string>
     <!-- Listing status (display label only) -->
@@ -367,6 +409,12 @@
     <string name="publish_success_title">Published!</string>
     <string name="publish_success_message">Your %1$s was submitted for review. It\'ll be visible to buyers as soon as an admin approves it.</string>
     <string name="publish_success_go_dashboard">Go to my dashboard</string>
+    <string name="publish_edit_title">Edit listing</string>
+    <string name="publish_edit_rejected_title">An admin rejected your listing</string>
+    <string name="publish_edit_not_found">We couldn\'t find the listing you want to fix.</string>
+    <string name="publish_resubmit_success_title">Resubmitted!</string>
+    <string name="publish_resubmit_success_message">Your %1$s was sent back for review. It\'ll be visible to buyers as soon as an admin approves it.</string>
+    <string name="publish_edit_success_message">The changes to your %1$s were sent for review. Meanwhile, buyers still see the previous version.</string>
     <string name="publish_error_brand">Choose the make.</string>
     <string name="publish_error_model">Choose the model.</string>
     <string name="publish_error_year">Enter a valid year.</string>
@@ -424,6 +472,14 @@
     <string name="publish_spec_previous_owners">Previous owners</string>
     <string name="publish_publishing">Publishing…</string>
     <string name="publish_publish">Publish</string>
+    <string name="publish_resubmitting">Resubmitting…</string>
+    <string name="publish_resubmit">Resubmit for review</string>
+    <string name="publish_send_changes">Send changes for review</string>
+    <string name="publish_extra_photos">Additional photos</string>
+    <string name="publish_photos_count">%1$d/%2$d photos</string>
+    <string name="publish_add_more_photos">Add more photos (max. %1$d)</string>
+    <string name="publish_photos_limit">You reached the maximum of %1$d photos</string>
+    <string name="publish_remove_photo">Remove photo</string>
     <string name="publish_previous">Previous</string>
     <string name="publish_next">Next</string>
     <string name="publish_thumbnail">Thumbnail %1$d</string>
@@ -649,6 +705,10 @@
     <plurals name="admin2_alert_pending_reports">
         <item quantity="one">%1$d pending report</item>
         <item quantity="other">%1$d pending reports</item>
+    </plurals>
+    <plurals name="admin2_alert_pending_featured">
+        <item quantity="one">%1$d pending featured request</item>
+        <item quantity="other">%1$d pending featured requests</item>
     </plurals>
     <plurals name="admin2_reports_count">
         <item quantity="one">%1$d report on file</item>
