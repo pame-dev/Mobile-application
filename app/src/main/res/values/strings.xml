@@ -173,6 +173,9 @@
     <string name="home_login">Iniciar sesión</string>
     <string name="home_admin_panel">Panel de administración</string>
     <string name="home_my_profile">Mi perfil</string>
+    <string name="home_logout_title">¿Cerrar sesión?</string>
+    <string name="home_logout_message">¿Estás seguro de que deseas salir de tu cuenta de Karsy? Tendrás que iniciar sesión de nuevo para gestionar tus vehículos.</string>
+    <string name="home_logout_confirm">Sí, salir</string>
     <string name="home_close_filters">Cerrar filtros</string>
     <string name="home_filter">Filtrar</string>
     <string name="home_hero_tagline">🚗 MARKETPLACE AUTOMOTRIZ #1 EN MÉXICO</string>
