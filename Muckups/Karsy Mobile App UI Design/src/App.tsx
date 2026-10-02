@@ -723,6 +723,38 @@ function RegisterTypeScreen() {
         >
           Podrás completar tu perfil después.
         </p>
+        <div style={{ paddingTop: 24, textAlign: "center" }}>
+          <span
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 14,
+              color: "#333333",
+            }}
+          >
+            ¿Ya tienes una cuenta?{" "}
+          </span>
+          <button
+            onClick={() =>
+              document
+                .getElementById("pantalla-login")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 14,
+              fontWeight: 600,
+              color: "#52A3AA",
+              padding: 0,
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+            }}
+          >
+            Inicia sesión aquí
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -11029,7 +11061,9 @@ export default function App() {
             >
               Pantalla 2 — Inicio de Sesión
             </span>
-            <LoginScreen />
+            <div id="pantalla-login">
+              <LoginScreen />
+            </div>
           </div>
 
           <div
