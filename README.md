@@ -52,6 +52,7 @@ Para instalarlo
 
 bajar db:
 npx supabase link --project-ref rkuikrlejybrxrlmzsms
+
 subir db:
 npx supabase db push
 
@@ -62,3 +63,14 @@ para correrla en cel:
 
 
 ./gradlew installDebug
+
+haver respaldos de la db manuales:
+
+supabase db dump -f respaldo_esquema.sql              # estructura
+supabase db dump --data-only -f respaldo_datos.sql    # datos (publicaciones, cuentas, etc.)
+
+
+
+sudo apt install postgresql-common
+sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+sudo apt install postgresql-client-17
