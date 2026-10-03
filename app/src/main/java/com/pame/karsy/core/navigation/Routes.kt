@@ -28,6 +28,7 @@ sealed class Routes(val route: String) {
     object Profile : Routes("profile")
     object History : Routes("history")
     object Settings : Routes("settings")
+    object Terms : Routes("terms")
 
     /** Publicar; con editId corrige y reenvía una publicación rechazada. */
     object PublishFlow : Routes("publish_flow?editId={editId}") {

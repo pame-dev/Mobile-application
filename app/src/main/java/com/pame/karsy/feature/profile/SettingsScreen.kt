@@ -41,13 +41,14 @@ private data class SettingsItem(
     @StringRes val labelRes: Int,
     @StringRes val descRes: Int,
     val isLanguage: Boolean = false,
+    val isTerms: Boolean = false,
 )
 
 private val settingsItems = listOf(
     SettingsItem("🔔", R.string.settings_notifications, R.string.settings_notifications_desc),
     SettingsItem("🔒", R.string.settings_privacy, R.string.settings_privacy_desc),
     SettingsItem("🌐", R.string.settings_language, R.string.settings_language_current, isLanguage = true),
-    SettingsItem("📄", R.string.settings_terms, R.string.settings_terms_desc),
+    SettingsItem("📄", R.string.settings_terms, R.string.settings_terms_desc, isTerms = true),
 )
 
 /** Colores de la tarjeta de "Cerrar sesión" del mockup. */
@@ -56,7 +57,7 @@ private val LogoutRed = Color(0xFFD93025)
 
 /** Pantalla de configuración (WebConfigView del mockup). */
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit, onTerms: () -> Unit) {
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -86,7 +87,8 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                                     val nuevo = if (Idioma.actual(context) == Idioma.ES) Idioma.EN else Idioma.ES
                                     (context as? Activity)?.let { Idioma.cambiar(it, nuevo) }
                                 }
-                                // TODO: abrir la sección correspondiente (notificaciones, seguridad, términos)
+                                if (item.isTerms) onTerms()
+                                // TODO: abrir la sección correspondiente (notificaciones, seguridad)
                             }
                             .padding(horizontal = 18.dp, vertical = 18.dp),
                         verticalAlignment = Alignment.CenterVertically,

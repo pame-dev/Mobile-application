@@ -782,4 +782,27 @@
     <string name="core_error_login_to_report">Sign in to report.</string>
     <string name="core_error_login_to_publish">Sign in to publish.</string>
     <string name="core_error_login_first">Sign in first.</string>
+
+    <!-- Terms and conditions (Settings) -->
+    <string name="terms_title">📄 Terms and conditions</string>
+    <string name="terms_last_update">Last updated: October 2026</string>
+    <string name="terms_intro">Welcome to Karsy. By creating an account or using the app you agree to these terms and conditions. Please read them carefully.</string>
+    <string name="terms_s1_title">1. About Karsy</string>
+    <string name="terms_s1_body">Karsy is a platform that connects vehicle buyers and sellers in Mexico. Karsy does not own the listed vehicles and does not take part in the sale; it only makes it easier for both parties to get in touch.</string>
+    <string name="terms_s2_title">2. User accounts</string>
+    <string name="terms_s2_body">You can sign up as an Individual or as a Dealer. You agree to provide real, up-to-date information and to keep your password private. You are responsible for all activity on your account.</string>
+    <string name="terms_s3_title">3. Listings</string>
+    <string name="terms_s3_body">Listings must describe the vehicle truthfully: price, mileage, condition and real photos of the vehicle. Every listing is reviewed by the admin team before buyers can see it and may be rejected if it does not follow these rules.</string>
+    <string name="terms_s4_title">4. Featured listings</string>
+    <string name="terms_s4_body">You can request that your vehicle appear in the featured section. An administrator will review the request and may approve or reject it, stating the reason.</string>
+    <string name="terms_s5_title">5. Contact and deals between users</string>
+    <string name="terms_s5_body">Agreements, payments and deliveries happen directly between buyer and seller. We recommend checking the vehicle\'s paperwork, verifying the seller\'s identity and not paying in advance before seeing the vehicle.</string>
+    <string name="terms_s6_title">6. Prohibited conduct</string>
+    <string name="terms_s6_body">You may not post false information, photos that do not match the vehicle or offensive content, impersonate someone else, send spam or try to scam other users.</string>
+    <string name="terms_s7_title">7. Reports and moderation</string>
+    <string name="terms_s7_body">Any user can report a listing or an account. The Karsy team will review every report and may disable listings or suspend accounts that do not follow these terms.</string>
+    <string name="terms_s8_title">8. Privacy</string>
+    <string name="terms_s8_body">We use your name, email, phone and WhatsApp to run your account and so interested buyers can contact you. Your phone and WhatsApp are only shown on your listings. We do not sell your information to third parties.</string>
+    <string name="terms_s9_title">9. Changes to these terms</string>
+    <string name="terms_s9_body">Karsy may update these terms at any time. We will let you know in the app when there are important changes. If you keep using Karsy after a change, you accept the updated terms.</string>
 </resources>
