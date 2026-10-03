@@ -73,7 +73,7 @@ private val WelcomeLoginBlue = Color(0xFF56799F)
 
 /** Pantalla de bienvenida: carrusel de fotos a pantalla completa y accesos principales. */
 @Composable
-fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Unit) {
+fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Unit, onTerms: () -> Unit) {
     val images = CarRepository.welcomeCarousel
     var current by rememberSaveable { mutableIntStateOf(0) }
     val context = LocalContext.current
@@ -199,9 +199,7 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
                 lineHeight = 16.sp,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.clickable {
-                    // TODO: abrir la pantalla/enlace de Términos y Condiciones
-                }
+                modifier = Modifier.clickable(onClick = onTerms)
             )
         }
     }
@@ -327,3 +325,4 @@ private fun UkFlag() {
         drawRect(red, Offset((w - cross) / 2f, 0f), Size(cross, h))
     }
 }
+

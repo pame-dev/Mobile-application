@@ -119,7 +119,8 @@ fun KarsyNavGraph(
             WelcomeScreen(
                 onLogin = { navController.navigate(Routes.Login.route) },
                 onRegister = ::goRegister,
-                onGuest = ::enterAsGuest
+                onGuest = ::enterAsGuest,
+                onTerms = { navController.navigate(Routes.Terms.route) }
             )
         }
         composable(Routes.Login.route) {
@@ -297,3 +298,4 @@ fun KarsyNavGraph(
         }
     }
 }
+
