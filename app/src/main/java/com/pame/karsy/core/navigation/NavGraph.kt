@@ -41,6 +41,7 @@ import com.pame.karsy.feature.onboarding.WelcomeScreen
 import com.pame.karsy.feature.profile.HistoryScreen
 import com.pame.karsy.feature.profile.ProfileScreen
 import com.pame.karsy.feature.profile.SettingsScreen
+import com.pame.karsy.feature.profile.TermsScreen
 import com.pame.karsy.feature.publish.PublishFlowScreen
 import com.pame.karsy.feature.register.RegisterLoteScreen
 import com.pame.karsy.feature.register.RegisterParticularScreen
@@ -71,15 +72,19 @@ fun KarsyNavGraph(
 
     /**
      * Entra a la app según el rol de la cuenta y borra el historial de onboarding:
-     * admin → panel de administración, particular y lote → inicio.
-     * El inicio queda debajo del panel para regresar con "atrás".
+     * admin → panel de administración, lote → su panel de vendedor,
+     * particular → inicio. El inicio queda debajo para regresar con "atrás".
      */
     fun enterAs(account: SessionAccount) {
         SessionManager.login(account)
         navController.navigate(Routes.Home.route) {
             popUpTo(navController.graph.id) { inclusive = true }
         }
-        if (account.mode == UserMode.ADMIN) navController.navigate(Routes.AdminDashboard.route)
+        when (account.mode) {
+            UserMode.ADMIN -> navController.navigate(Routes.AdminDashboard.route)
+            UserMode.LOTE -> navController.navigate(Routes.Dashboard.route)
+            else -> Unit
+        }
     }
 
     fun enterAsGuest() {
@@ -219,7 +224,14 @@ fun KarsyNavGraph(
             HistoryScreen(onBack = ::back, onCarClick = ::openCar)
         }
         composable(Routes.Settings.route) {
-            SettingsScreen(onBack = ::back, onLogout = ::logout)
+            SettingsScreen(
+                onBack = ::back,
+                onLogout = ::logout,
+                onTerms = { navController.navigate(Routes.Terms.route) }
+            )
+        }
+        composable(Routes.Terms.route) {
+            TermsScreen(onBack = ::back)
         }
 
         // ── Publicar y panel del vendedor ────────────────────────────
