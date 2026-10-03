@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +36,9 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
 
+/** Borde casi imperceptible de la tarjeta (entre el blanco y KarsyBorder). */
+private val CardOutline = Color(0xFFE8EDF1)
+
 /** Tarjeta de la cuadrícula "Todos los vehículos" (VehicleCard del mockup). */
 @Composable
 fun VehicleCard(
@@ -48,9 +53,12 @@ fun VehicleCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(6.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.08f), spotColor = KarsyNavy.copy(alpha = 0.14f))
+            // Sombra suave + borde fino para que la tarjeta blanca se distinga del fondo de la lista,
+            // también en el borde inferior.
+            .shadow(10.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.16f), spotColor = KarsyNavy.copy(alpha = 0.22f))
             .clip(shape)
             .background(KarsyWhite)
+            .border(1.dp, CardOutline, shape)
             .clickable(onClick = onClick)
     ) {
         Box(

@@ -173,6 +173,23 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     PublishTextInput(form.caballos, { form.caballos = it }, "184 hp", numeric = true)
                 }
             }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    FieldLabel(stringResource(R.string.publish_label_engine))
+                    PublishTextInput(form.motor, { form.motor = it.take(PublishViewModel.MOTOR_MAX) }, "2.0 L Turbo")
+                }
+                Column(Modifier.weight(1f)) {
+                    FieldLabel(stringResource(R.string.publish_label_fuel))
+                    val combustibles = PublishViewModel.COMBUSTIBLES
+                    CatalogDropdown(
+                        value = form.combustible,
+                        placeholder = stringResource(R.string.publish_select_fuel),
+                        options = combustibles.mapIndexed { i, c -> i.toLong() to c },
+                        onSelect = { form.combustible = combustibles[it.toInt()] }
+                    )
+                }
+            }
         }
 
         SectionCard {
