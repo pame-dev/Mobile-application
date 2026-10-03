@@ -441,6 +441,9 @@
     <string name="publish_label_mileage">MILEAGE</string>
     <string name="publish_label_cylinders">CYLINDERS</string>
     <string name="publish_label_horsepower">HORSEPOWER</string>
+    <string name="publish_label_engine">ENGINE</string>
+    <string name="publish_label_fuel">FUEL</string>
+    <string name="publish_select_fuel">Select</string>
     <string name="publish_label_body_type">BODY TYPE</string>
     <string name="publish_label_color">COLOR</string>
     <string name="publish_label_previous_owners">PREVIOUS OWNERS</string>
@@ -469,6 +472,8 @@
     <string name="publish_spec_mileage">Mileage</string>
     <string name="publish_spec_cylinders">Cylinders</string>
     <string name="publish_spec_horsepower">Horsepower</string>
+    <string name="publish_spec_engine">Engine</string>
+    <string name="publish_spec_fuel">Fuel</string>
     <string name="publish_spec_body_type">Body type</string>
     <string name="publish_spec_color">Color</string>
     <string name="publish_spec_previous_owners">Previous owners</string>

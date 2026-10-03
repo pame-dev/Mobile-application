@@ -94,6 +94,9 @@ import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
+/** Fondo de la lista de publicaciones: un poco más oscuro que KarsyBg para que resalten las tarjetas blancas. */
+private val HomeListBg = Color(0xFFE9EEF2)
+
 /** Pantalla principal del marketplace (WebHomeScreen del mockup). */
 @Composable
 fun HomeScreen(
@@ -152,7 +155,7 @@ fun HomeScreen(
     Box(
         Modifier
             .fillMaxSize()
-            .background(KarsyBg)
+            .background(HomeListBg)
     ) {
         Column(Modifier.fillMaxSize()) {
             HomeHeader(
@@ -286,9 +289,8 @@ fun HomeScreen(
             }
         }
 
-        // Botón flotante "+"
+        // Botón flotante "+" (particulares, lotes y administradores pueden publicar)
         when {
-            userMode.isAdmin -> Unit
             isVisitor -> AddFab(
                 container = KarsyDisabled,
                 content = KarsyMid,

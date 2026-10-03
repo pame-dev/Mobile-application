@@ -443,6 +443,9 @@
     <string name="publish_label_mileage">KILOMETRAJE</string>
     <string name="publish_label_cylinders">CILINDROS</string>
     <string name="publish_label_horsepower">CABALLOS DE FUERZA</string>
+    <string name="publish_label_engine">MOTOR</string>
+    <string name="publish_label_fuel">COMBUSTIBLE</string>
+    <string name="publish_select_fuel">Selecciona</string>
     <string name="publish_label_body_type">TIPO DE CARRO</string>
     <string name="publish_label_color">COLOR</string>
     <string name="publish_label_previous_owners">DUEÑOS ANTERIORES</string>
@@ -471,6 +474,8 @@
     <string name="publish_spec_mileage">Kilometraje</string>
     <string name="publish_spec_cylinders">Cilindros</string>
     <string name="publish_spec_horsepower">Caballos de fuerza</string>
+    <string name="publish_spec_engine">Motor</string>
+    <string name="publish_spec_fuel">Combustible</string>
     <string name="publish_spec_body_type">Tipo de carro</string>
     <string name="publish_spec_color">Color</string>
     <string name="publish_spec_previous_owners">Dueños anteriores</string>

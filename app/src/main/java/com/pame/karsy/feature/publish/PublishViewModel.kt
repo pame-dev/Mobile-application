@@ -79,6 +79,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var kilometraje by mutableStateOf("")
     var cilindros by mutableStateOf("")
     var caballos by mutableStateOf("")
+    /** Cilindrada / tipo de motor en texto libre (columna cilindrada), p. ej. "2.0 L Turbo". */
+    var motor by mutableStateOf("")
+    /** Uno de [COMBUSTIBLES] o vacío (columna tipo_combustible). */
+    var combustible by mutableStateOf("")
     var idCarroceria by mutableStateOf<Long?>(null)
     var idColor by mutableStateOf<Long?>(null)
     var duenos by mutableStateOf("")
@@ -122,6 +126,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         idTransmision = a.idTransmision
         kilometraje = a.kilometraje?.toString().orEmpty()
         cilindros = a.cilindros?.toString().orEmpty()
+        motor = a.cilindrada.orEmpty()
+        combustible = a.combustible.orEmpty()
         idCarroceria = a.idCarroceria
         idColor = a.idColor
         duenos = a.propietariosAnteriores?.toString().orEmpty()
@@ -253,6 +259,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     put("id_carroceria", idCarroceria)
                     put("numero_propietarios_anteriores", duenos.filter(Char::isDigit).toIntOrNull() ?: 0)
                     put("cilindros", cilindros.filter(Char::isDigit).toIntOrNull())
+                    put("cilindrada", motor.trim().ifEmpty { null })
+                    put("tipo_combustible", combustible.ifEmpty { null })
                     put("descripcion_problemas", imperfecciones.trim())
                 }
                 val id = editId
@@ -268,6 +276,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     companion object {
         /** Máximo de fotos por publicación (editar_publicacion valida lo mismo). */
         const val MAX_FOTOS = 15
+
+        /** Opciones de combustible; se guardan tal cual en tipo_combustible. */
+        val COMBUSTIBLES = listOf("Gasolina", "Diésel", "Híbrido", "Eléctrico")
+
+        /** Largo máximo de publicaciones.cilindrada (VARCHAR(30)). */
+        const val MOTOR_MAX = 30
 
         /** Sufijo "Potencia: N hp" que publish() agrega a la descripción. */
         private val POTENCIA = Regex("""\n\nPotencia: (\d+) hp$""")
