@@ -39,6 +39,7 @@ import com.pame.karsy.feature.onboarding.LoginScreen
 import com.pame.karsy.feature.onboarding.VerifyEmailScreen
 import com.pame.karsy.feature.onboarding.WelcomeScreen
 import com.pame.karsy.feature.profile.HistoryScreen
+import com.pame.karsy.feature.profile.NotificationsScreen
 import com.pame.karsy.feature.profile.ProfileScreen
 import com.pame.karsy.feature.profile.SettingsScreen
 import com.pame.karsy.feature.profile.TermsScreen
@@ -228,11 +229,15 @@ fun KarsyNavGraph(
             SettingsScreen(
                 onBack = ::back,
                 onLogout = ::logout,
-                onTerms = { navController.navigate(Routes.Terms.route) }
+                onTerms = { navController.navigate(Routes.Terms.route) },
+                onNotifications = { navController.navigate(Routes.Notifications.route) }
             )
         }
         composable(Routes.Terms.route) {
             TermsScreen(onBack = ::back)
+        }
+        composable(Routes.Notifications.route) {
+            NotificationsScreen(onBack = ::back, onCarClick = ::openCar)
         }
 
         // ── Publicar y panel del vendedor ────────────────────────────
@@ -275,7 +280,7 @@ fun KarsyNavGraph(
             Routes.AdminReportReview.route,
             arguments = listOf(navArgument(Routes.AdminReportReview.ARG) { type = NavType.LongType })
         ) { entry ->
-            val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
+            val panelEntry = remember(entry) { navController.getBackStack Entry(Routes.AdminDashboard.route) }
             val adminVm: AdminViewModel = viewModel(panelEntry)
             val reportId = entry.arguments?.getLong(Routes.AdminReportReview.ARG) ?: 0L
             val report = adminVm.reports.firstOrNull { it.id == reportId }

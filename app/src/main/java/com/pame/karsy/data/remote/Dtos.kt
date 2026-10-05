@@ -233,3 +233,14 @@ data class DestacadoAdminDto(
     val solicitante: String,
     @SerialName("solicitante_foto") val solicitanteFoto: String? = null,
 )
+
+/** Fila de public.notificaciones (bandeja del usuario, la llenan triggers). */
+@Serializable
+data class NotificacionDto(
+    @SerialName("id_notificacion") val id: Long,
+    val tipo: String,
+    @SerialName("id_publicacion") val idPublicacion: Long? = null,
+    @SerialName("titulo_vehiculo") val tituloVehiculo: String? = null,
+    val leida: Boolean = false,
+    @SerialName("fecha_creacion") val fecha: String,
+)
