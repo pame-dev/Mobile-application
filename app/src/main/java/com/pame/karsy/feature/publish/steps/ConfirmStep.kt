@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Publish
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
@@ -73,6 +75,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
     val scope = rememberCoroutineScope()
     val goTo = { page: Int -> scope.launch { pager.animateScrollToPage(page) }; Unit }
     var showViewer by rememberSaveable { mutableStateOf(false) }
+    var confirmPublish by rememberSaveable { mutableStateOf(false) }
     val techSpecs = listOf(
         stringResource(R.string.publish_spec_model) to form.modeloNombre,
         stringResource(R.string.publish_spec_year) to form.anio.trim(),
@@ -102,7 +105,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                     else -> R.string.publish_publish
                 }
             ),
-            onButtonClick = onPublish,
+            onButtonClick = { if (!form.publishing) confirmPublish = true },
             contentPadding = PaddingValues(0.dp),
             spacing = 0
         ) {
@@ -278,6 +281,20 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 }
             )
         }
+
+        ConfirmDialog(
+            visible = confirmPublish,
+            icon = Icons.Rounded.Publish,
+            accent = KarsyTeal,
+            title = stringResource(if (form.isEditing) R.string.publish_confirm_edit_title else R.string.publish_confirm_title),
+            message = stringResource(if (form.isEditing) R.string.publish_confirm_edit_message else R.string.publish_confirm_message),
+            confirmText = stringResource(if (form.isEditing) R.string.publish_confirm_edit_yes else R.string.publish_confirm_yes),
+            onCancel = { confirmPublish = false },
+            onConfirm = {
+                confirmPublish = false
+                onPublish()
+            }
+        )
     }
 }
 

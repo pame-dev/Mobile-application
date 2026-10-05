@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -35,6 +40,7 @@ import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.feature.home.LogoutConfirmDialog
 
 private data class SettingsItem(
     val icon: String,
@@ -60,89 +66,101 @@ private val LogoutRed = Color(0xFFD93025)
 @Composable
 fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit, onTerms: () -> Unit, onNotifications: () -> Unit) {
     val context = LocalContext.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(KarsyBg)
-    ) {
-        SubHeader(
-            title = stringResource(R.string.settings_title),
-            onBack = onBack,
-            modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
-        )
+    var confirmLogout by rememberSaveable { mutableStateOf(false) }
+    Box(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
+                .background(KarsyBg)
         ) {
-            ProfileCard {
-                settingsItems.forEachIndexed { idx, item ->
+            SubHeader(
+                title = stringResource(R.string.settings_title),
+                onBack = onBack,
+                modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .navigationBarsPadding()
+                    .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
+            ) {
+                ProfileCard {
+                    settingsItems.forEachIndexed { idx, item ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (item.isLanguage) {
+                                        // Alterna español ↔ inglés; la app se recrea en el idioma nuevo.
+                                        val nuevo = if (Idioma.actual(context) == Idioma.ES) Idioma.EN else Idioma.ES
+                                        (context as? Activity)?.let { Idioma.cambiar(it, nuevo) }
+                                    }
+                                    if (item.isTerms) onTerms()
+                                    if (item.isNotifications) onNotifications()
+                                    // TODO: abrir la sección de seguridad
+                                }
+                                .padding(horizontal = 18.dp, vertical = 18.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                item.icon,
+                                fontSize = 22.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.width(36.dp)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(item.labelRes),
+                                    fontFamily = DmSans,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 15.sp,
+                                    color = KarsyCharcoal
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    stringResource(item.descRes),
+                                    fontFamily = DmSans,
+                                    fontSize = 13.sp,
+                                    color = KarsyMid
+                                )
+                            }
+                            RowChevron()
+                        }
+                        if (idx < settingsItems.lastIndex) RowDivider()
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
+                ProfileCard(radius = 16.dp, borderColor = LogoutBorder, elevation = 0.dp) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                if (item.isLanguage) {
-                                    // Alterna español ↔ inglés; la app se recrea en el idioma nuevo.
-                                    val nuevo = if (Idioma.actual(context) == Idioma.ES) Idioma.EN else Idioma.ES
-                                    (context as? Activity)?.let { Idioma.cambiar(it, nuevo) }
-                                }
-                                if (item.isTerms) onTerms()
-                                if (item.isNotifications) onNotifications()
-                                // TODO: abrir la sección de seguridad
-                            }
-                            .padding(horizontal = 18.dp, vertical = 18.dp),
+                            .clickable { confirmLogout = true }
+                            .padding(horizontal = 18.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
+                        Text("🚪", fontSize = 20.sp)
                         Text(
-                            item.icon,
-                            fontSize = 22.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.width(36.dp)
+                            stringResource(R.string.settings_logout),
+                            fontFamily = DmSans,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp,
+                            color = LogoutRed
                         )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                stringResource(item.labelRes),
-                                fontFamily = DmSans,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 15.sp,
-                                color = KarsyCharcoal
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                stringResource(item.descRes),
-                                fontFamily = DmSans,
-                                fontSize = 13.sp,
-                                color = KarsyMid
-                            )
-                        }
-                        RowChevron()
                     }
-                    if (idx < settingsItems.lastIndex) RowDivider()
-                }
-            }
-            Spacer(Modifier.height(20.dp))
-            ProfileCard(radius = 16.dp, borderColor = LogoutBorder, elevation = 0.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onLogout)
-                        .padding(horizontal = 18.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Text("🚪", fontSize = 20.sp)
-                    Text(
-                        stringResource(R.string.settings_logout),
-                        fontFamily = DmSans,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp,
-                        color = LogoutRed
-                    )
                 }
             }
         }
+
+        LogoutConfirmDialog(
+            visible = confirmLogout,
+            onCancel = { confirmLogout = false },
+            onConfirm = {
+                confirmLogout = false
+                onLogout()
+            }
+        )
     }
 }
