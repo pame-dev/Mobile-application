@@ -369,6 +369,9 @@
     <string name="profile_change_password">Cambiar contraseña</string>
     <string name="profile_edit_saving">Guardando…</string>
     <string name="profile_edit_missing">Completa nombre, ciudad y estado (y la dirección del lote).</string>
+    <string name="profile_edit_confirm_title">¿Guardar cambios?</string>
+    <string name="profile_edit_confirm_message">Se actualizará la información de tu perfil con los datos que ingresaste.</string>
+    <string name="profile_edit_confirm_yes">Sí, guardar</string>
     <string name="profile_edit_zip">C.P.</string>
     <string name="profile_edit_colony">Colonia</string>
     <string name="profile_edit_number">Número</string>
@@ -497,6 +500,16 @@
     <string name="publish_block_imperfections">DETALLADO O IMPERFECCIONES</string>
     <string name="publish_no_imperfections">Sin imperfecciones reportadas.</string>
     <string name="publish_review_notice">Tu publicación se revisará antes de aparecer en el inicio.</string>
+    <string name="publish_confirm_title">¿Publicar tu vehículo?</string>
+    <string name="publish_confirm_message">Revisa que los datos y las fotos sean correctos. Tu publicación se enviará a revisión antes de aparecer en el inicio.</string>
+    <string name="publish_confirm_yes">Sí, publicar</string>
+    <string name="publish_confirm_edit_title">¿Enviar cambios?</string>
+    <string name="publish_confirm_edit_message">Tu publicación se enviará de nuevo a revisión con los cambios que hiciste.</string>
+    <string name="publish_confirm_edit_yes">Sí, enviar</string>
+    <string name="publish_exit_title">¿Salir sin publicar?</string>
+    <string name="publish_exit_message">Si sales ahora, se borrarán los datos y las fotos que hayas agregado.</string>
+    <string name="publish_exit_edit_message">Si sales ahora, se perderán los cambios que hayas hecho.</string>
+    <string name="publish_exit_yes">Sí, salir</string>
 
     <!-- Administración (1) -->
     <string name="admin1_close">Cerrar</string>

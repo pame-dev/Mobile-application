@@ -4,12 +4,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -37,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -54,6 +58,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -105,213 +110,250 @@ fun EditProfileDialog(
     var colonia by rememberSaveable { mutableStateOf(user.colonia) }
     var codigoPostal by rememberSaveable { mutableStateOf(user.codigoPostal) }
     var missing by rememberSaveable { mutableStateOf(false) }
+    var confirmSave by rememberSaveable { mutableStateOf(false) }
+
+    fun buildName() = if (isLote) firstName.trim()
+    else listOf(firstName.trim(), lastName.trim()).filter { it.isNotEmpty() }.joinToString(" ")
+
+    fun editedUser() = user.copy(
+        displayName = buildName(),
+        phone = phone.trim(),
+        whatsapp = whatsapp.trim(),
+        medioPrincipal = medio,
+        bio = bio.trim(),
+        municipio = municipio.trim(),
+        estado = estado.trim(),
+        location = "${municipio.trim()}, ${estado.trim()}",
+        responsable = responsable.trim(),
+        calle = calle.trim(),
+        numero = numero.trim(),
+        colonia = colonia.trim(),
+        codigoPostal = codigoPostal.trim(),
+    )
 
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         val shape = RoundedCornerShape(20.dp)
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 24.dp)
-                .imePadding()
-                .fillMaxWidth()
-                .shadow(24.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
-                .clip(shape)
-                .background(KarsyWhite)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp)
+        // Ocupa toda la ventana del Dialog para que el modal de confirmación quede encima.
+        Box(
+            Modifier
+                .fillMaxSize()
+                // Tocar fuera de la tarjeta cierra, como el Dialog normal.
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    stringResource(R.string.profile_edit_profile),
-                    fontFamily = Outfit,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = KarsyNavy,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        Icons.Rounded.Close,
-                        contentDescription = stringResource(R.string.profile_close_cd),
-                        tint = KarsyMid,
-                        modifier = Modifier.size(20.dp)
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
+                    .imePadding()
+                    .fillMaxWidth()
+                    .shadow(24.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
+                    .clip(shape)
+                    .background(KarsyWhite)
+                    // Evita que un toque dentro de la tarjeta la cierre.
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {}
                     )
-                }
-            }
-            Spacer(Modifier.height(24.dp))
-
-            // Avatar con botón de cámara
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
             ) {
-                Box {
-                    ProfileAvatar(
-                        name = user.displayName,
-                        avatarUrl = user.avatarUrl,
-                        size = 80.dp,
-                        initialsSize = 26.sp,
-                        modifier = Modifier.border(3.dp, KarsyTeal, CircleShape)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(R.string.profile_edit_profile),
+                        fontFamily = Outfit,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = KarsyNavy,
+                        modifier = Modifier.weight(1f)
                     )
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .size(26.dp)
-                            .clip(CircleShape)
-                            .background(KarsyWhite)
-                            .padding(2.dp)
-                            .clip(CircleShape)
-                            .background(KarsyTeal)
-                            .clickable(onClick = onPickPhoto),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
                         Icon(
-                            Icons.Outlined.PhotoCamera,
-                            contentDescription = stringResource(R.string.profile_change_photo_cd),
-                            tint = KarsyWhite,
-                            modifier = Modifier.size(13.dp)
+                            Icons.Rounded.Close,
+                            contentDescription = stringResource(R.string.profile_close_cd),
+                            tint = KarsyMid,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+
+                // Avatar con botón de cámara
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box {
+                        ProfileAvatar(
+                            name = user.displayName,
+                            avatarUrl = user.avatarUrl,
+                            size = 80.dp,
+                            initialsSize = 26.sp,
+                            modifier = Modifier.border(3.dp, KarsyTeal, CircleShape)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .size(26.dp)
+                                .clip(CircleShape)
+                                .background(KarsyWhite)
+                                .padding(2.dp)
+                                .clip(CircleShape)
+                                .background(KarsyTeal)
+                                .clickable(onClick = onPickPhoto),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.PhotoCamera,
+                                contentDescription = stringResource(R.string.profile_change_photo_cd),
+                                tint = KarsyWhite,
+                                modifier = Modifier.size(13.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+
+                if (isLote) {
+                    EditField(stringResource(R.string.profile_edit_lot_name), firstName, { firstName = it })
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        EditField(stringResource(R.string.profile_edit_first_name), firstName, { firstName = it }, Modifier.weight(1f))
+                        EditField(stringResource(R.string.profile_edit_last_name), lastName, { lastName = it }, Modifier.weight(1f))
+                    }
+                }
+                if (isLote) {
+                    Spacer(Modifier.height(14.dp))
+                    EditField(stringResource(R.string.profile_edit_responsible), responsable, { responsable = it })
+                }
+                Spacer(Modifier.height(14.dp))
+                EditField(stringResource(R.string.profile_edit_phone), phone, { phone = it }, keyboardType = KeyboardType.Phone)
+                Spacer(Modifier.height(14.dp))
+                EditField(stringResource(R.string.profile_edit_whatsapp), whatsapp, { whatsapp = it }, keyboardType = KeyboardType.Phone)
+                Spacer(Modifier.height(10.dp))
+                MainContactPicker(selected = medio, onSelect = { medio = it })
+                phonesError?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp)) }
+                Spacer(Modifier.height(14.dp))
+                // El correo identifica la cuenta: se muestra pero no se edita.
+                EditField(stringResource(R.string.profile_edit_email), user.email, {}, enabled = false)
+                Text(
+                    stringResource(R.string.profile_edit_email_locked),
+                    fontFamily = DmSans,
+                    fontSize = 11.sp,
+                    color = KarsyMid,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                Spacer(Modifier.height(14.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    EditField(stringResource(R.string.profile_edit_city), municipio, { municipio = it }, Modifier.weight(1f))
+                    EditField(stringResource(R.string.profile_edit_state), estado, { estado = it }, Modifier.weight(1f))
+                }
+                if (isLote) {
+                    Spacer(Modifier.height(14.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        EditField(stringResource(R.string.profile_edit_street), calle, { calle = it }, Modifier.weight(2f))
+                        EditField(stringResource(R.string.profile_edit_number), numero, { numero = it }, Modifier.weight(1f))
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        EditField(stringResource(R.string.profile_edit_colony), colonia, { colonia = it }, Modifier.weight(2f))
+                        EditField(
+                            stringResource(R.string.profile_edit_zip), codigoPostal, { codigoPostal = it }, Modifier.weight(1f),
+                            keyboardType = KeyboardType.Number
+                        )
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
+                EditField(stringResource(R.string.profile_edit_bio), bio, { bio = it }, singleLine = false)
+
+                Spacer(Modifier.height(14.dp))
+                OutlinedButton(
+                    onClick = onChangePassword,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.5.dp, KarsyBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = KarsyNavy),
+                    contentPadding = PaddingValues(vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.profile_change_password), fontFamily = DmSans, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                }
+
+                (if (missing) stringResource(R.string.profile_edit_missing) else error)?.let {
+                    Spacer(Modifier.height(12.dp))
+                    Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
+                }
+
+                Spacer(Modifier.height(20.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.5.dp, KarsyBorder),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = KarsyWhite,
+                            contentColor = KarsyTextSecondary
+                        ),
+                        contentPadding = PaddingValues(vertical = 12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.profile_cancel), fontFamily = DmSans, fontSize = 14.sp)
+                    }
+                    Button(
+                        onClick = {
+                            val name = buildName()
+                            // La BD exige nombre y ubicación (y la dirección completa de un lote).
+                            val required = listOf(name, municipio, estado) +
+                                if (isLote) listOf(calle, numero, colonia, codigoPostal) else emptyList()
+                            missing = required.any { it.isBlank() }
+                            phonesError = validatePhones(phone.trim(), whatsapp.trim(), medio)
+                            // Si todo es válido, se pide confirmación antes de guardar.
+                            if (!saving && !missing && phonesError == null) confirmSave = true
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = KarsyNavy,
+                            contentColor = KarsyWhite
+                        ),
+                        contentPadding = PaddingValues(vertical = 12.dp),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                        modifier = Modifier.weight(2f)
+                    ) {
+                        Text(
+                            stringResource(if (saving) R.string.profile_edit_saving else R.string.profile_edit_save),
+                            fontFamily = Outfit,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp
                         )
                     }
                 }
             }
-            Spacer(Modifier.height(24.dp))
-
-            if (isLote) {
-                EditField(stringResource(R.string.profile_edit_lot_name), firstName, { firstName = it })
-            } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    EditField(stringResource(R.string.profile_edit_first_name), firstName, { firstName = it }, Modifier.weight(1f))
-                    EditField(stringResource(R.string.profile_edit_last_name), lastName, { lastName = it }, Modifier.weight(1f))
-                }
-            }
-            if (isLote) {
-                Spacer(Modifier.height(14.dp))
-                EditField(stringResource(R.string.profile_edit_responsible), responsable, { responsable = it })
-            }
-            Spacer(Modifier.height(14.dp))
-            EditField(stringResource(R.string.profile_edit_phone), phone, { phone = it }, keyboardType = KeyboardType.Phone)
-            Spacer(Modifier.height(14.dp))
-            EditField(stringResource(R.string.profile_edit_whatsapp), whatsapp, { whatsapp = it }, keyboardType = KeyboardType.Phone)
-            Spacer(Modifier.height(10.dp))
-            MainContactPicker(selected = medio, onSelect = { medio = it })
-            phonesError?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp)) }
-            Spacer(Modifier.height(14.dp))
-            // El correo identifica la cuenta: se muestra pero no se edita.
-            EditField(stringResource(R.string.profile_edit_email), user.email, {}, enabled = false)
-            Text(
-                stringResource(R.string.profile_edit_email_locked),
-                fontFamily = DmSans,
-                fontSize = 11.sp,
-                color = KarsyMid,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-            Spacer(Modifier.height(14.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                EditField(stringResource(R.string.profile_edit_city), municipio, { municipio = it }, Modifier.weight(1f))
-                EditField(stringResource(R.string.profile_edit_state), estado, { estado = it }, Modifier.weight(1f))
-            }
-            if (isLote) {
-                Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    EditField(stringResource(R.string.profile_edit_street), calle, { calle = it }, Modifier.weight(2f))
-                    EditField(stringResource(R.string.profile_edit_number), numero, { numero = it }, Modifier.weight(1f))
-                }
-                Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    EditField(stringResource(R.string.profile_edit_colony), colonia, { colonia = it }, Modifier.weight(2f))
-                    EditField(
-                        stringResource(R.string.profile_edit_zip), codigoPostal, { codigoPostal = it }, Modifier.weight(1f),
-                        keyboardType = KeyboardType.Number
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-            EditField(stringResource(R.string.profile_edit_bio), bio, { bio = it }, singleLine = false)
-
-            Spacer(Modifier.height(14.dp))
-            OutlinedButton(
-                onClick = onChangePassword,
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.5.dp, KarsyBorder),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = KarsyNavy),
-                contentPadding = PaddingValues(vertical = 12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.profile_change_password), fontFamily = DmSans, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-            }
-
-            (if (missing) stringResource(R.string.profile_edit_missing) else error)?.let {
-                Spacer(Modifier.height(12.dp))
-                Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
-            }
-
-            Spacer(Modifier.height(20.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.5.dp, KarsyBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = KarsyWhite,
-                        contentColor = KarsyTextSecondary
-                    ),
-                    contentPadding = PaddingValues(vertical = 12.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.profile_cancel), fontFamily = DmSans, fontSize = 14.sp)
-                }
-                Button(
-                    onClick = {
-                        val name = if (isLote) firstName.trim()
-                        else listOf(firstName.trim(), lastName.trim()).filter { it.isNotEmpty() }.joinToString(" ")
-                        // La BD exige nombre y ubicación (y la dirección completa de un lote).
-                        val required = listOf(name, municipio, estado) +
-                            if (isLote) listOf(calle, numero, colonia, codigoPostal) else emptyList()
-                        missing = required.any { it.isBlank() }
-                        phonesError = validatePhones(phone.trim(), whatsapp.trim(), medio)
-                        if (!saving && !missing && phonesError == null) onSave(
-                            user.copy(
-                                displayName = name,
-                                phone = phone.trim(),
-                                whatsapp = whatsapp.trim(),
-                                medioPrincipal = medio,
-                                bio = bio.trim(),
-                                municipio = municipio.trim(),
-                                estado = estado.trim(),
-                                location = "${municipio.trim()}, ${estado.trim()}",
-                                responsable = responsable.trim(),
-                                calle = calle.trim(),
-                                numero = numero.trim(),
-                                colonia = colonia.trim(),
-                                codigoPostal = codigoPostal.trim(),
-                            )
-                        )
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = KarsyNavy,
-                        contentColor = KarsyWhite
-                    ),
-                    contentPadding = PaddingValues(vertical = 12.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
-                    modifier = Modifier.weight(2f)
-                ) {
-                    Text(
-                        stringResource(if (saving) R.string.profile_edit_saving else R.string.profile_edit_save),
-                        fontFamily = Outfit,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp
-                    )
-                }
-            }
         }
+
+        ConfirmDialog(
+            visible = confirmSave,
+            icon = Icons.Rounded.Save,
+            accent = KarsyNavy,
+            title = stringResource(R.string.profile_edit_confirm_title),
+            message = stringResource(R.string.profile_edit_confirm_message),
+            confirmText = stringResource(R.string.profile_edit_confirm_yes),
+            onCancel = { confirmSave = false },
+            onConfirm = {
+                confirmSave = false
+                onSave(editedUser())
+            }
+        )
     }
 }
 

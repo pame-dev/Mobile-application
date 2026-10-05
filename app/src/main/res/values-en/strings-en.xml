@@ -367,6 +367,9 @@
     <string name="profile_change_password">Change password</string>
     <string name="profile_edit_saving">Saving…</string>
     <string name="profile_edit_missing">Fill in name, city and state (and the lot address).</string>
+    <string name="profile_edit_confirm_title">Save changes?</string>
+    <string name="profile_edit_confirm_message">Your profile information will be updated with the details you entered.</string>
+    <string name="profile_edit_confirm_yes">Yes, save</string>
     <string name="profile_edit_zip">ZIP</string>
     <string name="profile_edit_colony">Neighborhood</string>
     <string name="profile_edit_number">Number</string>
@@ -495,6 +498,16 @@
     <string name="publish_block_imperfections">DETAILS OR IMPERFECTIONS</string>
     <string name="publish_no_imperfections">No imperfections reported.</string>
     <string name="publish_review_notice">Your listing will be reviewed before it appears on the home screen.</string>
+    <string name="publish_confirm_title">Publish your vehicle?</string>
+    <string name="publish_confirm_message">Make sure the details and photos are correct. Your listing will be reviewed before it appears on the home screen.</string>
+    <string name="publish_confirm_yes">Yes, publish</string>
+    <string name="publish_confirm_edit_title">Send changes?</string>
+    <string name="publish_confirm_edit_message">Your listing will be sent for review again with the changes you made.</string>
+    <string name="publish_confirm_edit_yes">Yes, send</string>
+    <string name="publish_exit_title">Leave without publishing?</string>
+    <string name="publish_exit_message">If you leave now, the details and photos you added will be deleted.</string>
+    <string name="publish_exit_edit_message">If you leave now, the changes you made will be lost.</string>
+    <string name="publish_exit_yes">Yes, leave</string>
 
     <!-- Administración (1) -->
     <string name="admin1_close">Close</string>
