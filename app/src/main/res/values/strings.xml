@@ -812,4 +812,14 @@
     <string name="terms_s8_body">Usamos tu nombre, correo, teléfono y WhatsApp para operar tu cuenta y para que los compradores interesados puedan contactarte. Tu teléfono y WhatsApp solo se muestran en tus publicaciones. No vendemos tu información a terceros.</string>
     <string name="terms_s9_title">9. Cambios a estos términos</string>
     <string name="terms_s9_body">Karsy puede actualizar estos términos en cualquier momento. Te avisaremos dentro de la aplicación cuando haya cambios importantes. Si continúas usando Karsy después de un cambio, aceptas los términos actualizados.</string>
+    <!-- Notificaciones del usuario (Configuración → Notificaciones) -->
+    <string name="notif_title">Notificaciones</string>
+    <string name="notif_empty">Aún no tienes notificaciones.</string>
+    <string name="notif_vehicle_fallback">tu vehículo</string>
+    <string name="notif_favorite">A alguien le gustó tu publicación \"%1$s\" y la agregó a sus favoritos.</string>
+    <string name="notif_sent">Tu publicación \"%1$s\" se envió al administrador y la está revisando.</string>
+    <string name="notif_approved">¡Tu publicación \"%1$s\" fue aprobada! Ya está visible para todos.</string>
+    <string name="notif_featured_mine">Tu publicación \"%1$s\" ahora es destacada.</string>
+    <string name="notif_featured_new">Nueva publicación destacada: \"%1$s\". ¡Échale un vistazo!</string>
+    <string name="notif_generic">Tienes un aviso sobre \"%1$s\".</string>
 </resources>

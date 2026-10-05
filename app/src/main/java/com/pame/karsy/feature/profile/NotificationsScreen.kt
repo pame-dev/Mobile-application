@@ -1,0 +1,176 @@
+package com.pame.karsy.feature.profile
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.HourglassTop
+import androidx.compose.material.icons.rounded.NewReleases
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.pame.karsy.R
+import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyBg
+import com.pame.karsy.core.theme.KarsyCharcoal
+import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyWhite
+import com.pame.karsy.core.util.Formato
+import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.remote.NotificacionDto
+import com.pame.karsy.data.repository.NotificationRepository
+
+/** Ícono, colores y texto de cada tipo de aviso (mismo estilo que las alertas del admin). */
+private data class NotifStyle(val icon: ImageVector, val color: Color, val bg: Color, @StringRes val textRes: Int)
+
+private fun styleFor(tipo: String): NotifStyle = when (tipo) {
+    "favorito" -> NotifStyle(Icons.Rounded.Favorite, Color(0xFFEF4444), Color(0xFFFEF2F2), R.string.notif_favorite)
+    "propuesta_enviada" -> NotifStyle(Icons.Rounded.HourglassTop, Color(0xFFD97706), Color(0xFFFFFBEB), R.string.notif_sent)
+    "publicacion_aprobada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4), R.string.notif_approved)
+    "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, Color(0xFF8B5CF6), Color(0xFFF5F3FF), R.string.notif_featured_mine)
+    "nuevo_destacado" -> NotifStyle(Icons.Rounded.NewReleases, Color(0xFF3B82F6), Color(0xFFEFF6FF), R.string.notif_featured_new)
+    else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg, R.string.notif_generic)
+}
+
+/**
+ * Bandeja de notificaciones del usuario, abierta desde Configuración.
+ * Al abrirla, los avisos nuevos se marcan como leídos (se ven resaltados esta vez).
+ */
+@Composable
+fun NotificationsScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
+    val notifications by produceState<List<NotificacionDto>?>(initialValue = null) {
+        value = safeCall { NotificationRepository.mine() }.getOrDefault(emptyList())
+        if (value.orEmpty().any { !it.leida }) safeCall { NotificationRepository.markAllRead() }
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(KarsyBg)
+    ) {
+        SubHeader(
+            title = stringResource(R.string.notif_title),
+            onBack = onBack,
+            modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
+        ) {
+            val items = notifications
+            if (items == null) {
+                CircularProgressIndicator(color = KarsyTeal, modifier = Modifier.align(Alignment.CenterHorizontally))
+                return@Column
+            }
+            ProfileCard {
+                if (items.isEmpty()) {
+                    Text(
+                        stringResource(R.string.notif_empty),
+                        fontFamily = DmSans,
+                        fontSize = 14.sp,
+                        color = KarsyMid,
+                        modifier = Modifier.padding(20.dp)
+                    )
+                    return@ProfileCard
+                }
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
+                ) {
+                    items.forEach { n -> NotificationRow(n, onCarClick) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
+    val style = styleFor(n.tipo)
+    val vehiculo = n.tituloVehiculo?.takeIf { it.isNotBlank() } ?: stringResource(R.string.notif_vehicle_fallback)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(style.bg)
+            .then(if (n.leida) Modifier else Modifier.border(1.dp, style.color.copy(alpha = 0.35f), RoundedCornerShape(10.dp)))
+            .clickable(enabled = n.idPublicacion != null) { n.idPublicacion?.let(onCarClick) }
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(30.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(KarsyWhite)
+        ) {
+            Icon(style.icon, contentDescription = null, tint = style.color, modifier = Modifier.size(16.dp))
+        }
+        Spacer(Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                stringResource(style.textRes, vehiculo),
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                fontWeight = if (n.leida) FontWeight.Medium else FontWeight.SemiBold,
+                lineHeight = 17.sp,
+                color = KarsyCharcoal
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                Formato.haceCuanto(n.fecha),
+                fontFamily = DmSans,
+                fontSize = 11.sp,
+                color = KarsyMid
+            )
+        }
+        if (!n.leida) {
+            Spacer(Modifier.width(8.dp))
+            Box(
+                Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(style.color)
+            )
+        }
+    }
+}

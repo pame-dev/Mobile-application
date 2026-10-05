@@ -29,6 +29,7 @@ sealed class Routes(val route: String) {
     object History : Routes("history")
     object Settings : Routes("settings")
     object Terms : Routes("terms")
+    object Notifications : Routes("notifications")
 
     /** Publicar; con editId corrige y reenvía una publicación rechazada. */
     object PublishFlow : Routes("publish_flow?editId={editId}") {
@@ -44,3 +45,4 @@ sealed class Routes(val route: String) {
         fun createRoute(reportId: Long) = "admin_report_review/$reportId"
     }
 }
+
