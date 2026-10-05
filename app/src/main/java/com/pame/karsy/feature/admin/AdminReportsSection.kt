@@ -22,11 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.core.theme.Outfit
 
 /**
@@ -35,11 +37,18 @@ import com.pame.karsy.core.theme.Outfit
  */
 @Composable
 fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReviewReport: (Long) -> Unit) {
-    var status by rememberSaveable { mutableStateOf("Todos") }
+    // Por defecto, lo que falta atender.
+    var status by rememberSaveable { mutableStateOf("Pendiente") }
     var selected by remember { mutableStateOf<AdminReport?>(null) }
 
     val reports = vm.reports
-    val filtered = reports.filter { status == "Todos" || it.status == status }
+    val filtered = reports.filter {
+        when (status) {
+            "Pendiente" -> it.status == "Pendiente"
+            "Resuelto" -> it.status != "Pendiente"
+            else -> true
+        }
+    }
 
     AdminSectionScroll {
         AdminSectionHeader(
@@ -48,31 +57,12 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
         )
         AdminCard {
             AdminFilterBar {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.admin2_incidents),
-                            fontFamily = Outfit,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = KarsyNavy
-                        )
-                        Spacer(Modifier.height(3.dp))
-                        Text(
-                            pluralStringResource(R.plurals.admin2_reports_count, reports.size, reports.size),
-                            fontFamily = DmSans,
-                            fontSize = 12.sp,
-                            color = AdminColors.Muted
-                        )
-                    }
-                    // Los estados vienen de la BD; solo se traduce lo que se muestra.
-                    val statusValues = listOf("Todos", "Pendiente", "Atendido", "Descartado")
-                    val statusLabels = statusValues.map { adminValueLabel(it) }
-                    AdminSelect(
-                        value = adminValueLabel(status),
-                        options = statusLabels,
-                        onSelect = { label -> status = statusValues[statusLabels.indexOf(label)] }
-                    )
+                AdminListHeader(
+                    title = stringResource(R.string.admin2_incidents),
+                    count = pluralStringResource(R.plurals.admin2_reports_count, reports.size, reports.size)
+                ) {
+                    // El tipo (usuario / publicación) ya se ve en cada fila; aquí solo importa si falta atenderlo.
+                    AdminValueSelect(status, listOf("Pendiente", "Resuelto", "Todos")) { status = it }
                 }
             }
 
@@ -94,15 +84,32 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
                             AdminStatusBadge(report.status)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            AdminThumbnail(report.imageUrl, size = 44.dp)
+                            // Reporte de cuenta: se muestra al vendedor; de publicación: el auto.
+                            val isAccount = report.type == "Usuario" && report.ownerName != null
+                            if (isAccount) {
+                                ProfileAvatar(name = report.ownerName.orEmpty(), avatarUrl = null, size = 44.dp, initialsSize = 15.sp)
+                            } else {
+                                AdminThumbnail(report.imageUrl, size = 44.dp)
+                            }
                             Spacer(Modifier.width(12.dp))
-                            Text(
-                                report.target,
-                                fontFamily = DmSans,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = KarsyNavy
-                            )
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    if (isAccount) report.ownerName.orEmpty() else report.target,
+                                    fontFamily = DmSans,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = KarsyNavy
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    report.reason,
+                                    fontFamily = DmSans,
+                                    fontSize = 12.sp,
+                                    color = AdminColors.TableText,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                         Row(
                             verticalAlignment = Alignment.Bottom,

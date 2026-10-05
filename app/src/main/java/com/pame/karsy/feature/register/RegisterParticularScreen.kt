@@ -35,6 +35,7 @@ fun RegisterParticularScreen(
     onBack: () -> Unit,
     onCreated: (SessionAccount) -> Unit,
     onVerifyEmail: (String) -> Unit,
+    onTerms: () -> Unit = {},
     vm: RegisterViewModel = viewModel(),
 ) {
     val context = LocalContext.current
@@ -95,7 +96,7 @@ fun RegisterParticularScreen(
             )
 
             Spacer(Modifier.height(24.dp))
-            TermsCheckbox(checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it })
+            TermsCheckbox(checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it }, onOpenTerms = onTerms)
             PrimaryButton(
                 text = if (vm.loading) stringResource(R.string.auth_creating_profile) else stringResource(R.string.auth_create_profile),
                 enabled = !vm.loading,

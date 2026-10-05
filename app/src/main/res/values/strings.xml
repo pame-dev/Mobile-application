@@ -589,6 +589,7 @@
     <string name="admin2_conversion">Conversión</string>
     <string name="admin2_percent">%1$d%%</string>
     <string name="admin2_needs_attention">Requiere atención</string>
+    <string name="admin2_all_caught_up">Todo al día: no hay nada pendiente por revisar.</string>
     <string name="admin2_see_all">Ver todos →</string>
     <string name="admin2_publication_number">Publicación #%1$d</string>
     <string name="admin2_kpi_users">Usuarios registrados</string>
@@ -615,13 +616,15 @@
     <string name="admin2_value_individual">Particular</string>
     <string name="admin2_value_lot">Lote</string>
     <string name="admin2_value_pending">Pendiente</string>
-    <string name="admin2_value_pending_changes">Cambios pendientes</string>
+    <string name="admin2_value_pending_changes">Edición sin revisar</string>
     <string name="admin2_value_rejected">Rechazado</string>
     <string name="admin2_value_disabled">Deshabilitado</string>
     <string name="admin2_value_paused">Pausado</string>
     <string name="admin2_value_sold">Vendido</string>
     <string name="admin2_value_resolved">Atendido</string>
     <string name="admin2_value_dismissed">Descartado</string>
+    <string name="admin2_value_closed">Resueltos</string>
+    <string name="admin2_review_enable">Rehabilitar publicación</string>
     <string name="admin2_value_user">Usuario</string>
     <string name="admin2_value_publication">Publicación</string>
     <string name="admin2_users_desc">Consulta y administra las cuentas registradas en Karsy.</string>
@@ -672,6 +675,34 @@
     <string name="admin2_view_publication">Ver publicación</string>
     <string name="admin2_reports_desc">Revisa incidencias y reportes enviados por la comunidad de Karsy.</string>
     <string name="admin2_incidents">Incidencias</string>
+    <string name="admin2_accounts_title">Cuentas registradas</string>
+    <string name="admin2_listings_title">Publicaciones</string>
+    <string name="admin2_featured_list_title">Solicitudes de destacado</string>
+    <string name="admin2_requested_by">Solicitado por</string>
+    <string name="admin2_review_account_title">Revisar cuenta reportada</string>
+    <string name="admin2_review_keep_account">No suspender</string>
+    <string name="admin2_account_listings">Publicaciones de la cuenta (%1$d)</string>
+    <string name="admin2_account_no_listings">Esta cuenta no tiene publicaciones.</string>
+    <string name="admin2_badge_reported">Reportada</string>
+    <string name="admin2_msg_owner_not_found">No se encontró la cuenta del vendedor.</string>
+    <string name="admin2_msg_report_resolved_suspended">Reporte atendido y cuenta suspendida.</string>
+    <string name="admin2_close_report_dialog_title">Atender reporte</string>
+    <string name="admin2_close_report_dialog_desc">La cuenta ya está suspendida. Explica cómo se atendió el reporte; queda en la bitácora.</string>
+    <string name="admin2_close_report_dialog_hint">Ej. La cuenta ya fue suspendida por un reporte anterior.</string>
+    <string name="admin2_close_report_confirm">Atender reporte</string>
+    <string name="admin2_close_report_dialog_working">Guardando…</string>
+    <plurals name="admin2_accounts_count">
+        <item quantity="one">%d cuenta</item>
+        <item quantity="other">%d cuentas</item>
+    </plurals>
+    <plurals name="admin2_listings_count">
+        <item quantity="one">%d publicación</item>
+        <item quantity="other">%d publicaciones</item>
+    </plurals>
+    <plurals name="admin2_featured_count">
+        <item quantity="one">%d solicitud</item>
+        <item quantity="other">%d solicitudes</item>
+    </plurals>
     <string name="admin2_reports_empty_title">Sin reportes</string>
     <string name="admin2_reports_empty_desc">No hay reportes con este estado.</string>
     <string name="admin2_reported_by">Reportado por</string>

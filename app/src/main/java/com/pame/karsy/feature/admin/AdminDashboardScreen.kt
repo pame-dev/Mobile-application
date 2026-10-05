@@ -143,7 +143,6 @@ fun AdminDashboardScreen(
                 when (section) {
                     AdminSection.Inicio -> AdminHomeSection(vm = vm, onNavigate = { section = it })
                     AdminSection.Usuarios -> AdminUsersSection(vm)
-                    AdminSection.Lotes -> AdminLotesSection(vm)
                     AdminSection.Vehiculos -> AdminVehiclesSection(vm, onCarClick)
                     AdminSection.Reportes -> AdminReportsSection(vm, onCarClick, onReviewReport)
                     AdminSection.Destacados -> AdminFeaturedSection(vm)

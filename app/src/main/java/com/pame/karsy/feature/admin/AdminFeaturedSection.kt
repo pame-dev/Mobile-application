@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.Verified
@@ -44,6 +45,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -133,54 +135,34 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
             description = stringResource(R.string.admin1_featured_desc)
         )
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth().padding(bottom = 18.dp)
-        ) {
-            FeaturedStatus.entries.forEach { status ->
-                val active = filter == status
-                val count = requests.count { it.status == status }
-                val label = when (status) {
-                    FeaturedStatus.Pendiente -> stringResource(R.string.admin1_filter_pending)
-                    FeaturedStatus.Aprobada -> stringResource(R.string.admin1_filter_approved)
-                    FeaturedStatus.Rechazada -> stringResource(R.string.admin1_filter_rejected)
+        AdminCard {
+            AdminFilterBar {
+                val statusLabels = FeaturedStatus.entries.map { status ->
+                    stringResource(R.string.admin1_filter_with_count, featuredFilterLabel(status), requests.count { it.status == status })
                 }
-                Text(
-                    stringResource(R.string.admin1_filter_with_count, label, count),
-                    fontFamily = DmSans,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (active) KarsyWhite else KarsyCharcoal,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(if (active) KarsyNavy else KarsyWhite)
-                        .border(
-                            if (active) 1.5.dp else 1.dp,
-                            if (active) KarsyNavy else KarsyBorder,
-                            RoundedCornerShape(999.dp)
-                        )
-                        .clickable { filter = status }
-                        .padding(horizontal = 12.dp, vertical = 9.dp)
-                )
+                AdminListHeader(
+                    title = stringResource(R.string.admin2_featured_list_title),
+                    count = pluralStringResource(R.plurals.admin2_featured_count, requests.size, requests.size)
+                ) {
+                    AdminSelect(
+                        value = statusLabels[filter.ordinal],
+                        options = statusLabels,
+                        onSelect = { label -> statusLabels.indexOf(label).takeIf { it >= 0 }?.let { filter = FeaturedStatus.entries[it] } }
+                    )
+                }
             }
-        }
 
-        if (visible.isEmpty()) {
-            AdminCard {
-                Text(
-                    stringResource(R.string.admin1_featured_empty),
-                    fontFamily = DmSans,
-                    fontSize = 14.sp,
-                    color = KarsyMid,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(32.dp)
+            if (visible.isEmpty()) {
+                AdminEmptyState(
+                    icon = Icons.Outlined.StarOutline,
+                    title = stringResource(R.string.admin1_featured_empty),
+                    description = stringResource(R.string.admin1_featured_desc)
                 )
-            }
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                visible.forEach { request ->
-                    FeaturedRequestCard(request, onClick = { selectedId = request.id })
+            } else {
+                visible.forEachIndexed { index, request ->
+                    AdminListRow(isLast = index == visible.lastIndex) {
+                        FeaturedRequestRow(request, onClick = { selectedId = request.id })
+                    }
                 }
             }
         }
@@ -188,108 +170,48 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
 }
 
 @Composable
-private fun FeaturedRequestCard(request: FeaturedRequest, onClick: () -> Unit) {
-    val requestPrefix = stringResource(R.string.admin1_user_requested_prefix)
-    val requestSuffix = stringResource(R.string.admin1_user_requested_suffix)
-    val shape = RoundedCornerShape(16.dp)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(3.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.1f), spotColor = KarsyNavy.copy(alpha = 0.1f))
-            .clip(shape)
-            .background(KarsyWhite)
-            .border(1.dp, KarsyBorder, shape)
-            .clickable(onClick = onClick)
+private fun featuredFilterLabel(status: FeaturedStatus): String = when (status) {
+    FeaturedStatus.Pendiente -> stringResource(R.string.admin1_filter_pending)
+    FeaturedStatus.Aprobada -> stringResource(R.string.admin1_filter_approved)
+    FeaturedStatus.Rechazada -> stringResource(R.string.admin1_filter_rejected)
+}
+
+/** Fila con el formato de Reportes: tiempo y estado, miniatura con el auto, solicitante y acción. */
+@Composable
+private fun FeaturedRequestRow(request: FeaturedRequest, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Box {
-            AsyncImage(
-                model = request.image,
-                contentDescription = request.vehicle,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().height(170.dp).background(KarsyBg)
-            )
-            val (text, bg, fg) = when (request.status) {
-                FeaturedStatus.Aprobada -> Triple(stringResource(R.string.admin1_badge_featured), ApprovedBg, KarsySuccess)
-                FeaturedStatus.Rechazada -> Triple(stringResource(R.string.admin1_badge_rejected), RejectedBg, RejectedFg)
-                FeaturedStatus.Pendiente -> Triple(stringResource(R.string.admin1_badge_requested), FeaturedYellowBg, FeaturedYellowFg)
-            }
-            Text(
-                text,
-                fontFamily = DmSans,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = fg,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(12.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(bg)
-                    .padding(horizontal = 10.dp, vertical = 6.dp)
-            )
+        AdminBadge(request.time, BadgeTone.Neutral)
+        Spacer(Modifier.weight(1f))
+        when (request.status) {
+            FeaturedStatus.Pendiente -> AdminStatusBadge("Pendiente")
+            FeaturedStatus.Aprobada -> AdminBadge(stringResource(R.string.admin1_badge_featured), BadgeTone.Success)
+            FeaturedStatus.Rechazada -> AdminBadge(stringResource(R.string.admin1_badge_rejected), BadgeTone.Danger)
         }
-        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)) {
-            Text(
-                request.vehicle,
-                fontFamily = Outfit,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = KarsyNavy
-            )
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        AdminThumbnail(request.image, size = 44.dp)
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(request.vehicle, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
             Spacer(Modifier.height(2.dp))
-            Row(
-                verticalAlignment = Alignment.Top,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 14.dp)
-            ) {
-                Text(
-                    request.year.toString(),
-                    fontFamily = DmSans,
-                    fontSize = 12.sp,
-                    color = KarsyMid,
-                    modifier = Modifier.weight(1f)
-                )
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        request.price.substringBeforeLast(" "),
-                        fontFamily = Outfit,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = KarsyTeal
-                    )
-                    Text(request.price.substringAfterLast(" "), fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
-                }
-            }
+            Text(
+                listOf(request.year.takeIf { it > 0 }?.toString(), request.price).filterNotNull().joinToString(" · "),
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                color = AdminColors.TableText
+            )
         }
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .background(KarsyBg)
-                .padding(horizontal = 16.dp, vertical = 13.dp)
-        ) {
-            Row(verticalAlignment = Alignment.Top) {
-                Icon(
-                    Icons.Outlined.Person,
-                    contentDescription = null,
-                    tint = KarsyCharcoal,
-                    modifier = Modifier.size(15.dp).padding(top = 2.dp)
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    buildAnnotatedString {
-                        append(requestPrefix)
-                        withStyle(SpanStyle(color = KarsyNavy, fontWeight = FontWeight.Bold)) {
-                            append(request.user)
-                        }
-                        append(requestSuffix)
-                    },
-                    fontFamily = DmSans,
-                    fontSize = 12.sp,
-                    lineHeight = 18.sp,
-                    color = KarsyCharcoal
-                )
-            }
-            Spacer(Modifier.height(5.dp))
-            Text(request.time, fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
-        }
+    }
+    Row(
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        AdminField(stringResource(R.string.admin2_requested_by), request.user, Modifier.weight(1f))
+        AdminActionButton(stringResource(R.string.admin2_review), onClick = onClick)
     }
 }
 

@@ -8,7 +8,10 @@ val KarsyNavyLight = Color(0xFF1A4A6E)
 val KarsyTeal = Color(0xFF52A3AA)
 val KarsyTealLight = Color(0xFFEBF6F7)
 val KarsyTealSoft = Color(0xFFE8F4F5)
-val KarsyBg = Color(0xFFF4F7F9)
+// Gris azulado: lo bastante oscuro para que las tarjetas blancas se distingan del fondo.
+val KarsyBg = Color(0xFFEAEFF4)
+/** Borde de las tarjetas blancas sobre [KarsyBg]. */
+val KarsyCardOutline = Color(0xFFD9E1E8)
 val KarsyCharcoal = Color(0xFF333333)
 val KarsyMid = Color(0xFF8E9A8E)
 val KarsyTextSecondary = Color(0xFF667085)

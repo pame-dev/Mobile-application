@@ -587,6 +587,7 @@
     <string name="admin2_conversion">Conversion</string>
     <string name="admin2_percent">%1$d%%</string>
     <string name="admin2_needs_attention">Needs attention</string>
+    <string name="admin2_all_caught_up">All caught up: nothing pending to review.</string>
     <string name="admin2_see_all">See all →</string>
     <string name="admin2_publication_number">Listing #%1$d</string>
     <string name="admin2_kpi_users">Registered users</string>
@@ -613,13 +614,15 @@
     <string name="admin2_value_individual">Individual</string>
     <string name="admin2_value_lot">Dealer</string>
     <string name="admin2_value_pending">Pending</string>
-    <string name="admin2_value_pending_changes">Pending changes</string>
+    <string name="admin2_value_pending_changes">Unreviewed edit</string>
     <string name="admin2_value_rejected">Rejected</string>
     <string name="admin2_value_disabled">Disabled</string>
     <string name="admin2_value_paused">Paused</string>
     <string name="admin2_value_sold">Sold</string>
     <string name="admin2_value_resolved">Resolved</string>
     <string name="admin2_value_dismissed">Dismissed</string>
+    <string name="admin2_value_closed">Resolved</string>
+    <string name="admin2_review_enable">Re-enable listing</string>
     <string name="admin2_value_user">User</string>
     <string name="admin2_value_publication">Listing</string>
     <string name="admin2_users_desc">View and manage the accounts registered on Karsy.</string>
@@ -670,6 +673,34 @@
     <string name="admin2_view_publication">View listing</string>
     <string name="admin2_reports_desc">Review issues and reports submitted by the Karsy community.</string>
     <string name="admin2_incidents">Issues</string>
+    <string name="admin2_accounts_title">Registered accounts</string>
+    <string name="admin2_listings_title">Listings</string>
+    <string name="admin2_featured_list_title">Feature requests</string>
+    <string name="admin2_requested_by">Requested by</string>
+    <string name="admin2_review_account_title">Review reported account</string>
+    <string name="admin2_review_keep_account">Don\'t suspend</string>
+    <string name="admin2_account_listings">Account listings (%1$d)</string>
+    <string name="admin2_account_no_listings">This account has no listings.</string>
+    <string name="admin2_badge_reported">Reported</string>
+    <string name="admin2_msg_owner_not_found">The seller\'s account was not found.</string>
+    <string name="admin2_msg_report_resolved_suspended">Report resolved and account suspended.</string>
+    <string name="admin2_close_report_dialog_title">Resolve report</string>
+    <string name="admin2_close_report_dialog_desc">The account is already suspended. Explain how the report was handled; it is saved in the audit log.</string>
+    <string name="admin2_close_report_dialog_hint">E.g. The account was already suspended for a previous report.</string>
+    <string name="admin2_close_report_confirm">Resolve report</string>
+    <string name="admin2_close_report_dialog_working">Saving…</string>
+    <plurals name="admin2_accounts_count">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+    <plurals name="admin2_listings_count">
+        <item quantity="one">%d listing</item>
+        <item quantity="other">%d listings</item>
+    </plurals>
+    <plurals name="admin2_featured_count">
+        <item quantity="one">%d request</item>
+        <item quantity="other">%d requests</item>
+    </plurals>
     <string name="admin2_reports_empty_title">No reports</string>
     <string name="admin2_reports_empty_desc">There are no reports with this status.</string>
     <string name="admin2_reported_by">Reported by</string>

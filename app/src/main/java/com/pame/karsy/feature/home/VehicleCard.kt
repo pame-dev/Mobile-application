@@ -29,6 +29,7 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyCardOutline
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTextSecondary
@@ -37,7 +38,6 @@ import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
 
 /** Borde casi imperceptible de la tarjeta (entre el blanco y KarsyBorder). */
-private val CardOutline = Color(0xFFE8EDF1)
 
 /** Tarjeta de la cuadrícula "Todos los vehículos" (VehicleCard del mockup). */
 @Composable
@@ -53,12 +53,11 @@ fun VehicleCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            // Sombra suave + borde fino para que la tarjeta blanca se distinga del fondo de la lista,
-            // también en el borde inferior.
-            .shadow(10.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.16f), spotColor = KarsyNavy.copy(alpha = 0.22f))
+            // Sombra corta + borde definido para que la tarjeta blanca se separe del fondo.
+            .shadow(4.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.18f), spotColor = KarsyNavy.copy(alpha = 0.28f))
             .clip(shape)
             .background(KarsyWhite)
-            .border(1.dp, CardOutline, shape)
+            .border(1.dp, KarsyCardOutline, shape)
             .clickable(onClick = onClick)
     ) {
         Box(

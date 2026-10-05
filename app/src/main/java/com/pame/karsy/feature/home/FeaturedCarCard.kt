@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyCardOutline
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTextSecondary
@@ -58,9 +60,11 @@ fun FeaturedCarCard(
     Column(
         modifier = modifier
             .width(width)
-            .shadow(10.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.10f), spotColor = KarsyNavy.copy(alpha = 0.18f))
+            // Sombra corta + borde definido para que la tarjeta blanca se separe del fondo.
+            .shadow(4.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.18f), spotColor = KarsyNavy.copy(alpha = 0.28f))
             .clip(shape)
             .background(KarsyWhite)
+            .border(1.dp, KarsyCardOutline, shape)
             .clickable(onClick = onClick)
     ) {
         Box(

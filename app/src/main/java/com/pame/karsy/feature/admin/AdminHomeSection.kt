@@ -414,6 +414,27 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit,
                     modifier = Modifier.clickable(onClick = onSeeAll)
                 )
             }
+            // Nada pendiente: un aviso positivo en lugar de filas en 0.
+            if (alerts.isEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFF0FDF4))
+                        .padding(horizontal = 14.dp, vertical = 12.dp)
+                ) {
+                    Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = AdminColors.Green, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        stringResource(R.string.admin2_all_caught_up),
+                        fontFamily = DmSans,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = KarsyCharcoal
+                    )
+                }
+            }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 alerts.forEach { alert ->
                     Row(
