@@ -280,7 +280,7 @@ fun KarsyNavGraph(
             Routes.AdminReportReview.route,
             arguments = listOf(navArgument(Routes.AdminReportReview.ARG) { type = NavType.LongType })
         ) { entry ->
-            val panelEntry = remember(entry) { navController.getBackStack Entry(Routes.AdminDashboard.route) }
+            val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
             val adminVm: AdminViewModel = viewModel(panelEntry)
             val reportId = entry.arguments?.getLong(Routes.AdminReportReview.ARG) ?: 0L
             val report = adminVm.reports.firstOrNull { it.id == reportId }
