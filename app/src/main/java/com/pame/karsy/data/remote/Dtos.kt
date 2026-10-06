@@ -119,6 +119,13 @@ data class ReporteInsert(
     @SerialName("motivo_reporte") val motivo: String,
 )
 
+/** Fin de un destacado aprobado (solicitudes_destacado). */
+@Serializable
+data class DestacadoFinDto(
+    @SerialName("id_publicacion") val idPublicacion: Long,
+    @SerialName("fecha_fin_destacado") val fechaFin: String? = null,
+)
+
 @Serializable
 data class SolicitudDestacadoInsert(
     @SerialName("id_publicacion") val idPublicacion: Long,

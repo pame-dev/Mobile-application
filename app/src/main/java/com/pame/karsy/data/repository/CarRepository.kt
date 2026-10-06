@@ -11,6 +11,7 @@ import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.data.model.SellerContact
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.ContactoDto
+import com.pame.karsy.data.remote.DestacadoFinDto
 import com.pame.karsy.data.remote.FavoritoDto
 import com.pame.karsy.data.remote.FavoritosConteoDto
 import com.pame.karsy.data.remote.InteraccionDto
@@ -54,10 +55,14 @@ object CarRepository {
             order("fecha_primera_publicacion", Order.DESCENDING)
         }.decodeList<AnuncioDto>().map(::toCar)
 
-    suspend fun detail(id: Long): CarDetail? =
-        db.from(VISTA).select { filter { eq("id_publicacion", id) } }
+    suspend fun detail(id: Long): CarDetail? {
+        val detail = db.from(VISTA).select { filter { eq("id_publicacion", id) } }
             .decodeSingleOrNull<AnuncioDto>()
-            ?.let(::toDetail)
+            ?.let(::toDetail) ?: return null
+        // El dueño ve hasta cuándo dura su destacado.
+        if (!detail.car.featured || detail.car.ownerId != SessionManager.userId) return detail
+        return detail.copy(car = withFeaturedUntil(listOf(detail.car)).first())
+    }
 
     suspend fun carsByIds(ids: List<Long>): List<Car> {
         if (ids.isEmpty()) return emptyList()
@@ -78,7 +83,27 @@ object CarRepository {
                 if (onlyVisible) eq("visible", true)
             }
             order("fecha_creacion", Order.DESCENDING)
-        }.decodeList<AnuncioDto>().map(::toCar)
+        }.decodeList<AnuncioDto>().map(::toCar).let { withFeaturedUntil(it) }
+
+    /**
+     * Llena [Car.featuredUntil] con la fecha de fin del destacado vigente (dura 1 mes desde
+     * que el admin lo aprueba). Si la consulta falla, las publicaciones se muestran igual.
+     */
+    private suspend fun withFeaturedUntil(cars: List<Car>): List<Car> {
+        val ids = cars.filter { it.featured }.map { it.id }
+        if (ids.isEmpty()) return cars
+        val fin = runCatching {
+            db.from("solicitudes_destacado").select {
+                filter {
+                    isIn("id_publicacion", ids)
+                    eq("estado_solicitud", "aprobada")
+                }
+            }.decodeList<DestacadoFinDto>()
+                .groupBy { it.idPublicacion }
+                .mapValues { (_, filas) -> filas.mapNotNull { it.fechaFin }.max() }
+        }.getOrDefault(emptyMap())
+        return cars.map { car -> fin[car.id]?.let { car.copy(featuredUntil = Formato.fechaCorta(it)) } ?: car }
+    }
 
     // ── Favoritos ────────────────────────────────────────────────────────────
 

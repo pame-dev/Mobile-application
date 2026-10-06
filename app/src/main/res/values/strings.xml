@@ -318,6 +318,7 @@
     <string name="profile_dashboard_publish">+ Publicar</string>
     <string name="profile_dashboard_no_listings">Todavía no publicas ningún vehículo. Toca \"+ Publicar\" para crear el primero.</string>
     <string name="profile_dashboard_featured">Destacado</string>
+    <string name="profile_dashboard_featured_until">Destacado hasta %1$s</string>
     <string name="profile_dashboard_request_sent">Solicitud enviada</string>
     <string name="profile_dashboard_feature">Destacar</string>
     <string name="profile_dashboard_fix_resubmit">Corregir y reenviar</string>
@@ -332,11 +333,11 @@
     <!-- Diálogo destacar -->
     <string name="profile_feature_dialog_title">¿Quieres destacar tu vehículo?</string>
     <string name="profile_feature_dialog_body">Haz que tu publicación tenga mayor visibilidad y aparezca en una sección destacada de la plataforma.</string>
-    <string name="profile_feature_dialog_note">Antes de destacarla, un administrador deberá revisar y aprobar tu publicación. Una vez aprobada, tu vehículo podrá aparecer como publicación destacada.</string>
+    <string name="profile_feature_dialog_note">Antes de destacarla, un administrador deberá revisar y aprobar tu solicitud. Una vez aprobada, tu vehículo aparecerá como publicación destacada durante 1 mes; después vuelve a mostrarse como una publicación normal y puedes solicitarlo de nuevo.</string>
     <string name="profile_feature_dialog_confirm">Solicitar destacar</string>
     <string name="profile_cancel">Cancelar</string>
     <!-- Solicitud enviada -->
-    <string name="profile_request_sent_body">Tu solicitud para destacar %1$s fue enviada correctamente.</string>
+    <string name="profile_request_sent_body">Tu solicitud para destacar %1$s fue enviada correctamente. Si se aprueba, estará destacada durante 1 mes.</string>
     <string name="profile_request_sent_review">El equipo de Karsy la revisará pronto.</string>
     <string name="profile_request_sent_ok">Entendido</string>
     <!-- Editar perfil -->
@@ -845,7 +846,7 @@
     <string name="terms_s3_title">3. Publicaciones</string>
     <string name="terms_s3_body">Las publicaciones deben describir el vehículo de forma veraz: precio, kilometraje, estado y fotos reales del vehículo. Toda publicación pasa por una revisión del equipo de administración antes de mostrarse a los compradores y puede ser rechazada si no cumple con estas reglas.</string>
     <string name="terms_s4_title">4. Publicaciones destacadas</string>
-    <string name="terms_s4_body">Puedes solicitar que tu vehículo aparezca en la sección de destacados. La solicitud será revisada por un administrador, quien puede aprobarla o rechazarla indicando el motivo.</string>
+    <string name="terms_s4_body">Puedes solicitar que tu vehículo aparezca en la sección de destacados. La solicitud será revisada por un administrador, quien puede aprobarla o rechazarla indicando el motivo. Un destacado aprobado dura 1 mes a partir de la aprobación; al terminar, la publicación sigue activa como una publicación normal y puedes volver a solicitarlo.</string>
     <string name="terms_s5_title">5. Contacto y tratos entre usuarios</string>
     <string name="terms_s5_body">Los acuerdos, pagos y entregas se realizan directamente entre comprador y vendedor. Te recomendamos revisar la documentación del vehículo, verificar la identidad del vendedor y no realizar pagos por adelantado sin haber visto el vehículo.</string>
     <string name="terms_s6_title">6. Conductas no permitidas</string>
@@ -863,7 +864,7 @@
     <string name="notif_favorite">A alguien le gustó tu publicación \"%1$s\" y la agregó a sus favoritos.</string>
     <string name="notif_sent">Tu publicación \"%1$s\" se envió al administrador y la está revisando.</string>
     <string name="notif_approved">¡Tu publicación \"%1$s\" fue aprobada! Ya está visible para todos.</string>
-    <string name="notif_featured_mine">Tu publicación \"%1$s\" ahora es destacada.</string>
+    <string name="notif_featured_mine">Tu publicación \"%1$s\" ahora es destacada durante 1 mes.</string>
     <string name="notif_featured_new">Nueva publicación destacada: \"%1$s\". ¡Échale un vistazo!</string>
     <string name="notif_generic">Tienes un aviso sobre \"%1$s\".</string>
 </resources>
