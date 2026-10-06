@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
@@ -106,7 +107,7 @@ internal fun LegalDocumentScreen(
                             fontFamily = Outfit,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = KarsyNavy
+                            color = KarsyInk
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(

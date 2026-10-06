@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -50,7 +51,7 @@ internal fun RegisterHeader(title: String, subtitle: String, modifier: Modifier 
             fontSize = 28.sp,
             lineHeight = 34.sp,
             letterSpacing = (-0.02).em,
-            color = KarsyNavy
+            color = KarsyInk
         )
         Spacer(Modifier.height(6.dp))
         Text(subtitle, fontFamily = DmSans, fontSize = 15.sp, lineHeight = 21.sp, color = KarsyMid)

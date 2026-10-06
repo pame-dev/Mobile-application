@@ -65,6 +65,8 @@ import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -137,7 +139,7 @@ private fun LoginForm(
                     .padding(start = 12.dp, top = 8.dp)
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyInk, modifier = Modifier.size(28.dp))
                 }
             }
 
@@ -330,7 +332,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     .padding(start = 12.dp, end = 24.dp, top = 8.dp)
             ) {
                 IconButton(onClick = vm::back, modifier = Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyInk, modifier = Modifier.size(28.dp))
                 }
                 KarsyLogo(size = 46.dp, modifier = Modifier.align(Alignment.Center))
             }
@@ -347,7 +349,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 25.sp,
                     lineHeight = 30.sp,
-                    color = KarsyNavy,
+                    color = KarsyInk,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(9.dp))
@@ -475,7 +477,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
                 .fillMaxWidth()
                 .shadow(20.dp, shape)
                 .clip(shape)
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .padding(horizontal = 24.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -494,7 +496,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 21.sp,
-                color = KarsyNavy,
+                color = KarsyInk,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(9.dp))

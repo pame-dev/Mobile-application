@@ -48,6 +48,8 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
@@ -125,7 +127,7 @@ fun AdminDashboardScreen(
                         .background(KarsyTealLight)
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
-                    Text(msg, fontFamily = DmSans, fontSize = 13.sp, color = KarsyNavy, modifier = Modifier.weight(1f))
+                    Text(msg, fontFamily = DmSans, fontSize = 13.sp, color = KarsyInk, modifier = Modifier.weight(1f))
                     Text(
                         stringResource(R.string.admin1_close),
                         fontFamily = DmSans,
@@ -154,7 +156,7 @@ fun AdminDashboardScreen(
 
 @Composable
 private fun AdminTopBar(onMenu: () -> Unit, onHome: () -> Unit) {
-    Column(Modifier.fillMaxWidth().background(KarsyWhite)) {
+    Column(Modifier.fillMaxWidth().background(KarsySurface)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -172,7 +174,7 @@ private fun AdminTopBar(onMenu: () -> Unit, onHome: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 letterSpacing = 0.03.em,
-                color = KarsyNavy,
+                color = KarsyInk,
                 modifier = Modifier.weight(1f)
             )
             TopBarButton(Icons.Outlined.Home, stringResource(R.string.admin1_back_home), onHome)
@@ -192,7 +194,7 @@ private fun TopBarButton(icon: ImageVector, description: String, onClick: () -> 
             .border(1.5.dp, KarsyBorder, RoundedCornerShape(10.dp))
     ) {
         IconButton(onClick = onClick) {
-            Icon(icon, contentDescription = description, tint = KarsyNavy, modifier = Modifier.size(19.dp))
+            Icon(icon, contentDescription = description, tint = KarsyInk, modifier = Modifier.size(19.dp))
         }
     }
 }

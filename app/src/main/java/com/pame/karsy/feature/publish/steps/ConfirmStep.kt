@@ -52,6 +52,10 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.Tema
+import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -219,7 +223,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(KarsyWhite)
+                        .background(KarsySurface)
                         .border(1.dp, KarsyBorderMuted, RoundedCornerShape(16.dp))
                 ) {
                     techSpecs.forEachIndexed { i, (key, value) ->
@@ -252,12 +256,12 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
             // Descripción e imperfecciones
             Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp)) {
                 BlockLabel(stringResource(R.string.publish_block_description))
-                TextBlock(form.descripcion.trim(), background = KarsyWhite, border = KarsyBorderMuted)
+                TextBlock(form.descripcion.trim(), background = KarsySurface, border = KarsyBorderMuted)
                 Box(Modifier.padding(top = 16.dp)) { BlockLabel(stringResource(R.string.publish_block_imperfections)) }
                 TextBlock(
                     form.imperfecciones.trim().ifEmpty { stringResource(R.string.publish_no_imperfections) },
-                    background = Color(0xFFFFFBF0),
-                    border = Color(0xFFF5E8B0)
+                    background = karsyTint(Color(0xFFF5B400), Color(0xFFFFFBF0)),
+                    border = if (Tema.oscuro) Color(0xFF5A4A1A) else Color(0xFFF5E8B0)
                 )
                 Text(
                     stringResource(R.string.publish_review_notice),
@@ -310,11 +314,11 @@ private fun CarouselArrow(
             .size(32.dp)
             .shadow(4.dp, CircleShape)
             .clip(CircleShape)
-            .background(KarsyWhite.copy(alpha = 0.88f))
+            .background(KarsySurface.copy(alpha = 0.88f))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = description, tint = KarsyNavy, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = description, tint = KarsyInk, modifier = Modifier.size(22.dp))
     }
 }
 
@@ -326,7 +330,7 @@ private fun BlockLabel(text: String) {
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.05.em,
-        color = KarsyNavy,
+        color = KarsyInk,
         modifier = Modifier.padding(bottom = 8.dp)
     )
 }

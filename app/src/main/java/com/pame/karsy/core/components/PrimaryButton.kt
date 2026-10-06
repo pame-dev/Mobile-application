@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.KarsyBorder
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyDisabled
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
@@ -58,13 +60,13 @@ fun SecondaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    contentColor: Color = KarsyNavy,
+    contentColor: Color = KarsyInk,
 ) {
     OutlinedButton(
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.5.dp, KarsyBorder),
-        colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = contentColor),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = contentColor),
         modifier = modifier
             .fillMaxWidth()
             .height(54.dp)

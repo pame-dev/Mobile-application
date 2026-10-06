@@ -60,6 +60,9 @@ import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyCardOutline
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -73,7 +76,7 @@ import com.pame.karsy.data.model.Car
 import com.pame.karsy.feature.home.FilterSheet
 import com.pame.karsy.feature.home.HomeFilters
 
-private val CardBorder = Color(0xFFEEF1F4)
+private val CardBorder: Color get() = KarsyCardOutline
 
 /** Lista de vehículos guardados por el usuario (WebFavoritesView del mockup). */
 @Composable
@@ -121,7 +124,7 @@ fun FavoritesScreen(
                                 fontFamily = Outfit,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = KarsyNavy
+                                color = KarsyInk
                             )
                             Text(
                                 vm.sortLabel,
@@ -199,7 +202,7 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit, onFilter: () -
                 .weight(1f)
                 .height(48.dp)
                 .clip(shape)
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .border(1.5.dp, KarsyBorder, shape)
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -227,7 +230,7 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit, onFilter: () -
             Modifier
                 .height(48.dp)
                 .clip(shape)
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .border(1.5.dp, KarsyBorder, shape)
                 .clickable(onClick = onFilter)
                 .padding(horizontal = 16.dp),
@@ -253,7 +256,7 @@ private fun FavoriteCard(
             .fillMaxWidth()
             .shadow(6.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.08f), spotColor = KarsyNavy.copy(alpha = 0.14f))
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.dp, CardBorder, shape)
             .clickable(onClick = onClick)
     ) {
@@ -290,7 +293,7 @@ private fun FavoriteCard(
                 Icon(
                     Icons.Rounded.Favorite,
                     contentDescription = stringResource(R.string.home_remove_favorite),
-                    tint = KarsyNavy,
+                    tint = KarsyInk,
                     modifier = Modifier.size(17.dp)
                 )
             }
@@ -318,7 +321,7 @@ private fun FavoriteCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(car.price, fontFamily = Outfit, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+                Text(car.price, fontFamily = Outfit, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
                 Button(
                     onClick = onClick,
                     shape = RoundedCornerShape(10.dp),

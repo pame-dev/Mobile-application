@@ -44,6 +44,8 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.BackTopBar
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsySurface
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -147,7 +149,7 @@ private fun TypeCard(
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(16.dp)
-    val bg by animateColorAsState(if (active) KarsyTealLight else KarsyWhite, label = "cardBg")
+    val bg by animateColorAsState(if (active) KarsyTealLight else KarsySurface, label = "cardBg")
     val iconBg by animateColorAsState(if (active) KarsyTeal else KarsyTealLight, label = "iconBg")
     Row(
         Modifier
@@ -176,7 +178,7 @@ private fun TypeCard(
             Icon(icon, contentDescription = null, tint = if (active) KarsyWhite else KarsyTeal, modifier = Modifier.size(34.dp))
         }
         Column {
-            Text(title, fontFamily = Outfit, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = KarsyNavy)
+            Text(title, fontFamily = Outfit, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = KarsyInk)
             Spacer(Modifier.height(4.dp))
             Text(desc, fontFamily = DmSans, fontSize = 14.sp, lineHeight = 19.6.sp, color = KarsyMid)
         }

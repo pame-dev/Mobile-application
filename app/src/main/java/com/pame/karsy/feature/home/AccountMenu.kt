@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyWhite
@@ -58,7 +60,7 @@ internal fun AccountMenu(
         onDismissRequest = onDismiss,
         offset = DpOffset(0.dp, 8.dp),
         shape = RoundedCornerShape(14.dp),
-        containerColor = KarsyWhite,
+        containerColor = KarsySurface,
         shadowElevation = 10.dp,
         modifier = Modifier.widthIn(min = 240.dp, max = 300.dp)
     ) {
@@ -74,7 +76,7 @@ internal fun AccountMenu(
                     fontFamily = Outfit,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
+                    color = KarsyInk,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -89,7 +91,7 @@ internal fun AccountMenu(
             }
         }
         HorizontalDivider(color = KarsyBorder)
-        MenuOption(Icons.Outlined.Person, stringResource(R.string.home_my_profile), KarsyNavy) {
+        MenuOption(Icons.Outlined.Person, stringResource(R.string.home_my_profile), KarsyInk) {
             onDismiss()
             onProfile()
         }

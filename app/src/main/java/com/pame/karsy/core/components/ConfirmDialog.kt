@@ -37,12 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.Tema
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 private val DialogGray = Color(0xFF8E9A8E)
-private val SoftGray = Color(0xFFF4F7F9)
+private val SoftGray: Color get() = if (Tema.oscuro) Color(0xFF26313B) else Color(0xFFF4F7F9)
 
 /**
  * Modal de confirmación sobre un fondo oscuro que cubre toda la pantalla:
@@ -80,7 +83,7 @@ fun ConfirmDialog(
                     .animateEnterExit(enter = scaleIn(initialScale = 0.9f), exit = scaleOut(targetScale = 0.9f))
                     .padding(horizontal = 28.dp)
                     .widthIn(max = 360.dp)
-                    .background(KarsyWhite, RoundedCornerShape(16.dp))
+                    .background(KarsySurface, RoundedCornerShape(16.dp))
                     // Evita que un toque dentro de la tarjeta la cierre.
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -103,7 +106,7 @@ fun ConfirmDialog(
                     fontFamily = Outfit,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
+                    color = KarsyInk,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
@@ -120,7 +123,7 @@ fun ConfirmDialog(
                     Button(
                         onClick = onCancel,
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = SoftGray, contentColor = KarsyNavy),
+                        colors = ButtonDefaults.buttonColors(containerColor = SoftGray, contentColor = KarsyInk),
                         elevation = null,
                         modifier = Modifier
                             .weight(1f)

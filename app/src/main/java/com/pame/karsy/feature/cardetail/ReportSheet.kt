@@ -55,6 +55,10 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyDisabled
+import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -67,8 +71,8 @@ import com.pame.karsy.core.theme.Outfit
 
 // Tonos del flujo de reporte tomados del mockup.
 private val ReportRed = Color(0xFFE53935)
-private val ReportRedLight = Color(0xFFFDEDEC)
-private val ReportDisabled = Color(0xFFD6DDE1)
+private val ReportRedLight: Color get() = karsyTint(Color(0xFFEF4444), Color(0xFFFDEDEC))
+private val ReportDisabled: Color get() = KarsyDisabled
 private val RadioBorder = Color(0xFFB7C0C7)
 
 private enum class ReportStep { TYPE, REASONS, SUCCESS }
@@ -119,7 +123,7 @@ internal fun ReportSheet(onSubmit: (String, (String?) -> Unit) -> Unit, onDismis
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = SheetShape,
-        containerColor = KarsyWhite,
+        containerColor = KarsySurface,
         scrimColor = SheetScrim,
         dragHandle = null,
     ) {
@@ -208,7 +212,7 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
             fontFamily = Outfit,
             fontSize = 19.sp,
             fontWeight = FontWeight.Bold,
-            color = KarsyNavy,
+            color = KarsyInk,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 34.dp)
@@ -233,7 +237,7 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
                 .padding(bottom = 12.dp)
                 .shadow(3.dp, shape, ambientColor = KarsyNavy, spotColor = KarsyNavy.copy(alpha = 0.25f))
                 .clip(shape)
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .border(1.dp, KarsyBorder, shape)
                 .clickable { onChoose(type) }
                 .padding(horizontal = 14.dp, vertical = 15.dp)
@@ -300,7 +304,7 @@ private fun ReasonsStep(
     ) {
         IconButton(
             onClick = onBack,
-            colors = IconButtonDefaults.iconButtonColors(containerColor = KarsyBg, contentColor = KarsyNavy),
+            colors = IconButtonDefaults.iconButtonColors(containerColor = KarsyBg, contentColor = KarsyInk),
             modifier = Modifier.size(32.dp)
         ) {
             Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), modifier = Modifier.size(20.dp))
@@ -312,7 +316,7 @@ private fun ReasonsStep(
                 fontSize = 18.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy
+                color = KarsyInk
             )
             Text(
                 stringResource(R.string.detail_reasons_subtitle),
@@ -346,7 +350,7 @@ private fun ReasonsStep(
                     .padding(top = 1.dp)
                     .size(18.dp)
                     .clip(CircleShape)
-                    .background(KarsyWhite)
+                    .background(KarsySurface)
                     .border(if (selected) 5.dp else 2.dp, if (selected) ReportRed else RadioBorder, CircleShape)
             )
             Column {
@@ -429,7 +433,7 @@ private fun SuccessStep(onClose: () -> Unit) {
             fontFamily = Outfit,
             fontSize = 19.sp,
             fontWeight = FontWeight.Bold,
-            color = KarsyNavy,
+            color = KarsyInk,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(

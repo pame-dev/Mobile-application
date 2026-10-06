@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyBorderMuted
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -88,7 +91,7 @@ internal fun ContactSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = SheetShape,
-        containerColor = KarsyWhite,
+        containerColor = KarsySurface,
         scrimColor = SheetScrim,
         dragHandle = null,
     ) {
@@ -104,7 +107,7 @@ internal fun ContactSheet(
                     .width(42.dp)
                     .height(4.dp)
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Color(0xFFD9E1E6))
+                    .background(KarsyBorderMuted)
             )
 
             Box(Modifier.fillMaxWidth().padding(bottom = 18.dp)) {
@@ -114,7 +117,7 @@ internal fun ContactSheet(
                     fontFamily = Outfit,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
+                    color = KarsyInk,
                     modifier = Modifier.fillMaxWidth().align(Alignment.Center)
                 )
                 IconButton(
@@ -134,7 +137,7 @@ internal fun ContactSheet(
                     .padding(bottom = 16.dp)
                     .shadow(4.dp, cardShape, ambientColor = KarsyNavy, spotColor = KarsyNavy.copy(alpha = 0.3f))
                     .clip(cardShape)
-                    .background(KarsyWhite)
+                    .background(KarsySurface)
                     .border(1.dp, KarsyBorder, cardShape)
                     .padding(16.dp)
             ) {
@@ -153,7 +156,7 @@ internal fun ContactSheet(
                         fontFamily = Outfit,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = KarsyNavy,
+                        color = KarsyInk,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                     if (loading) {
@@ -255,7 +258,7 @@ private fun ContactButton(
             enabled = enabled,
             shape = RoundedCornerShape(999.dp),
             border = BorderStroke(1.5.dp, KarsyTeal),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = KarsyNavy),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyInk),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 13.dp),
             modifier = Modifier.fillMaxWidth(),
             content = content

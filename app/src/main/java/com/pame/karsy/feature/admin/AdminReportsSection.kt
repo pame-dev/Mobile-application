@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.core.theme.Outfit
@@ -98,7 +99,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
                                     fontFamily = DmSans,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = KarsyNavy
+                                    color = KarsyInk
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(

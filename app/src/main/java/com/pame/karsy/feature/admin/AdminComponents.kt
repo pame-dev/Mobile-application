@@ -60,6 +60,9 @@ import androidx.compose.ui.unit.Dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.Tema
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -71,28 +74,46 @@ import com.pame.karsy.core.theme.Outfit
 
 /** Colores propios del panel de administración (tomados del mockup). */
 internal object AdminColors {
-    val Blue = Color(0xFF2563EB)
-    val TableText = Color(0xFF344054)
+    val Blue: Color get() = if (Tema.oscuro) Color(0xFF60A5FA) else Color(0xFF2563EB)
+    val TableText: Color get() = if (Tema.oscuro) Color(0xFFD0D8E0) else Color(0xFF344054)
     val Muted = Color(0xFF98A2B3)
-    val RowDivider = Color(0xFFF0F2F4)
+    val RowDivider: Color get() = if (Tema.oscuro) Color(0xFF26313B) else Color(0xFFF0F2F4)
     val Danger = Color(0xFFE65B5B)
     val BadgeRed = Color(0xFFEF4444)
     val Green = Color(0xFF22C55E)
-    val NeutralText = Color(0xFF475467)
+    val NeutralText: Color get() = if (Tema.oscuro) Color(0xFFB7C1CB) else Color(0xFF475467)
 }
 
-enum class BadgeTone(val bg: Color, val fg: Color) {
-    Success(Color(0xFFECFDF3), Color(0xFF16824A)),
-    Warning(Color(0xFFFFFAEB), Color(0xFFB54708)),
-    Danger(Color(0xFFFEF3F2), Color(0xFFB42318)),
-    Info(Color(0xFFEFF8FF), Color(0xFF175CD3)),
-    Neutral(Color(0xFFF2F4F7), Color(0xFF475467)),
+/** Colores de badge: pastel con texto oscuro en claro; texto brillante sobre su tono translúcido en oscuro. */
+enum class BadgeTone(private val bgLight: Color, private val fgLight: Color, private val fgDark: Color) {
+    Success(Color(0xFFECFDF3), Color(0xFF16824A), Color(0xFF4ADE80)),
+    Warning(Color(0xFFFFFAEB), Color(0xFFB54708), Color(0xFFFBBF24)),
+    Danger(Color(0xFFFEF3F2), Color(0xFFB42318), Color(0xFFF87171)),
+    Info(Color(0xFFEFF8FF), Color(0xFF175CD3), Color(0xFF60A5FA)),
+    Neutral(Color(0xFFF2F4F7), Color(0xFF475467), Color(0xFFB7C1CB));
+
+    val fg: Color get() = if (Tema.oscuro) fgDark else fgLight
+    val bg: Color get() = if (Tema.oscuro) fgDark.copy(alpha = 0.16f) else bgLight
 }
 
-enum class ActionTone(val bg: Color, val fg: Color, val border: Color) {
-    Default(Color(0xFFF4F7F9), Color(0xFF0D2B45), Color(0xFFE2E8ED)),
-    Danger(Color(0xFFFEF3F2), Color(0xFFB42318), Color(0xFFFECACA)),
-    Success(Color(0xFFECFDF3), Color(0xFF16824A), Color(0xFFABEFC6)),
+enum class ActionTone {
+    Default, Danger, Success;
+
+    val bg: Color get() = when (this) {
+        Default -> if (Tema.oscuro) Color(0xFF232E38) else Color(0xFFF4F7F9)
+        Danger -> BadgeTone.Danger.bg
+        Success -> BadgeTone.Success.bg
+    }
+    val fg: Color get() = when (this) {
+        Default -> KarsyInk
+        Danger -> BadgeTone.Danger.fg
+        Success -> BadgeTone.Success.fg
+    }
+    val border: Color get() = when (this) {
+        Default -> KarsyBorder
+        Danger -> if (Tema.oscuro) BadgeTone.Danger.fg.copy(alpha = 0.35f) else Color(0xFFFECACA)
+        Success -> if (Tema.oscuro) BadgeTone.Success.fg.copy(alpha = 0.35f) else Color(0xFFABEFC6)
+    }
 }
 
 @Composable
@@ -119,7 +140,7 @@ fun AdminSectionHeader(title: String, description: String, modifier: Modifier = 
             fontFamily = Outfit,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = KarsyNavy,
+            color = KarsyInk,
         )
         Spacer(Modifier.height(4.dp))
         Text(
@@ -144,7 +165,7 @@ fun AdminSearchBar(
         onValueChange = onValueChange,
         singleLine = true,
         textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, color = KarsyCharcoal),
-        cursorBrush = SolidColor(KarsyNavy),
+        cursorBrush = SolidColor(KarsyInk),
         modifier = modifier,
         decorationBox = { inner ->
             Row(
@@ -153,7 +174,7 @@ fun AdminSearchBar(
                     .fillMaxWidth()
                     .heightIn(min = 42.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(KarsyWhite)
+                    .background(KarsySurface)
                     .border(1.dp, KarsyBorder, RoundedCornerShape(10.dp))
                     .padding(horizontal = 13.dp)
             ) {
@@ -196,7 +217,7 @@ fun AdminSelect(
             modifier = Modifier
                 .heightIn(min = 42.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .border(1.dp, KarsyBorder, RoundedCornerShape(10.dp))
                 .clickable { expanded = true }
                 .padding(start = 12.dp, end = 8.dp)
@@ -213,7 +234,7 @@ fun AdminSelect(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = KarsyWhite,
+            containerColor = KarsySurface,
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
@@ -223,7 +244,7 @@ fun AdminSelect(
                             fontFamily = DmSans,
                             fontSize = 13.sp,
                             fontWeight = if (option == value) FontWeight.Bold else FontWeight.Normal,
-                            color = if (option == value) KarsyNavy else AdminColors.TableText
+                            color = if (option == value) KarsyInk else AdminColors.TableText
                         )
                     },
                     onClick = {
@@ -251,7 +272,7 @@ fun AdminCard(
                 spotColor = KarsyNavy.copy(alpha = 0.08f)
             )
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.dp, KarsyBorder, shape),
         content = content
     )
@@ -295,7 +316,7 @@ fun AdminEmptyState(icon: ImageVector, title: String, description: String) {
             fontFamily = Outfit,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
-            color = KarsyNavy,
+            color = KarsyInk,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(6.dp))
@@ -352,7 +373,7 @@ fun AdminField(label: String, value: String, modifier: Modifier = Modifier, bold
 fun AdminListHeader(title: String, count: String, filter: (@Composable () -> Unit)? = null) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+            Text(title, fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
             Spacer(Modifier.height(3.dp))
             Text(count, fontFamily = DmSans, fontSize = 12.sp, color = AdminColors.Muted)
         }
@@ -428,7 +449,7 @@ fun AdminDetailModal(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = KarsyWhite,
+        containerColor = KarsySurface,
         shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
     ) {
         Column(
@@ -444,7 +465,7 @@ fun AdminDetailModal(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text(title, fontFamily = Outfit, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+                    Text(title, fontFamily = Outfit, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
                     Spacer(Modifier.height(4.dp))
                     Text(subtitle, fontFamily = DmSans, fontSize = 12.sp, color = AdminColors.Muted)
                 }
@@ -484,8 +505,8 @@ fun AdminSheetButton(
     val (bg, fg, border) = when (style) {
         AdminButtonStyle.Primary -> Triple(KarsyNavy, KarsyWhite, KarsyNavy)
         AdminButtonStyle.Positive -> Triple(BadgeTone.Success.fg, KarsyWhite, BadgeTone.Success.fg)
-        AdminButtonStyle.Destructive -> Triple(KarsyWhite, BadgeTone.Danger.fg, BadgeTone.Danger.fg.copy(alpha = 0.55f))
-        AdminButtonStyle.Secondary -> Triple(Color.Transparent, KarsyNavy, Color.Transparent)
+        AdminButtonStyle.Destructive -> Triple(KarsySurface, BadgeTone.Danger.fg, BadgeTone.Danger.fg.copy(alpha = 0.55f))
+        AdminButtonStyle.Secondary -> Triple(Color.Transparent, KarsyInk, Color.Transparent)
     }
     Box(
         contentAlignment = Alignment.Center,

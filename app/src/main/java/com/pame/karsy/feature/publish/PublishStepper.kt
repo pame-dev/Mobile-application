@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -84,7 +86,7 @@ fun PublishHeader(title: String, onBack: () -> Unit) {
             Icon(
                 Icons.Rounded.ChevronLeft,
                 contentDescription = stringResource(R.string.publish_back),
-                tint = KarsyNavy,
+                tint = KarsyInk,
                 modifier = Modifier.size(26.dp)
             )
         }
@@ -93,7 +95,7 @@ fun PublishHeader(title: String, onBack: () -> Unit) {
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
             fontSize = 17.sp,
-            color = KarsyNavy,
+            color = KarsyInk,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
@@ -159,7 +161,7 @@ fun PublishStepper(step: Int) {
                         fontFamily = DmSans,
                         fontSize = 10.sp,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                        color = if (inactive) KarsyMid else KarsyNavy,
+                        color = if (inactive) KarsyMid else KarsyInk,
                         maxLines = 1,
                         softWrap = false
                     )
@@ -206,7 +208,7 @@ fun SectionTitle(text: String) {
         fontFamily = DmSans,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
-        color = KarsyNavy
+        color = KarsyInk
     )
 }
 
@@ -218,14 +220,14 @@ fun PublishTextInput(
     placeholder: String,
     modifier: Modifier = Modifier,
     numeric: Boolean = false,
-    background: Color = KarsyWhite,
+    background: Color = KarsySurface,
 ) {
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
         textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal),
-        cursorBrush = SolidColor(KarsyNavy),
+        cursorBrush = SolidColor(KarsyInk),
         keyboardOptions = KeyboardOptions(
             keyboardType = if (numeric) KeyboardType.Number else KeyboardType.Text
         ),
@@ -256,7 +258,7 @@ fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
             .fillMaxWidth()
             .shadow(3.dp, RoundedCornerShape(16.dp), ambientColor = KarsyNavy.copy(alpha = 0.2f), spotColor = KarsyNavy.copy(alpha = 0.2f))
             .clip(RoundedCornerShape(16.dp))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         content = content

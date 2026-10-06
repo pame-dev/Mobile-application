@@ -38,6 +38,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
@@ -48,6 +49,7 @@ private data class SettingsItem(
     @StringRes val labelRes: Int,
     @StringRes val descRes: Int,
     val isLanguage: Boolean = false,
+    val isTheme: Boolean = false,
     val isTerms: Boolean = false,
     val isNotifications: Boolean = false,
     val isPrivacy: Boolean = false,
@@ -58,11 +60,13 @@ private val settingsItems = listOf(
     SettingsItem("🔒", R.string.settings_privacy, R.string.settings_privacy_desc, isPrivacy = true),
     // La descripción del idioma se arma con languageSummary (idioma elegido).
     SettingsItem("🌐", R.string.settings_language, R.string.settings_language, isLanguage = true),
+    // La descripción del tema se arma con themeSummary (tema elegido).
+    SettingsItem("🌓", R.string.settings_theme, R.string.settings_theme, isTheme = true),
     SettingsItem("📄", R.string.settings_terms, R.string.settings_terms_desc, isTerms = true),
 )
 
 /** Colores de la tarjeta de "Cerrar sesión" del mockup. */
-private val LogoutBorder = Color(0xFFFECACA)
+private val LogoutBorder: Color get() = if (Tema.oscuro) Color(0xFF5C2626) else Color(0xFFFECACA)
 private val LogoutRed = Color(0xFFD93025)
 
 /** Pantalla de configuración (WebConfigView del mockup). */
@@ -77,6 +81,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
     var languageOpen by rememberSaveable { mutableStateOf(false) }
+    var themeOpen by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -102,6 +107,7 @@ fun SettingsScreen(
                                 .fillMaxWidth()
                                 .clickable {
                                     if (item.isLanguage) languageOpen = true
+                                    if (item.isTheme) themeOpen = true
                                     if (item.isTerms) onTerms()
                                     if (item.isNotifications) onNotifications()
                                     if (item.isPrivacy) onPrivacy()
@@ -126,7 +132,11 @@ fun SettingsScreen(
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
-                                    if (item.isLanguage) languageSummary(context) else stringResource(item.descRes),
+                                    when {
+                                        item.isLanguage -> languageSummary(context)
+                                        item.isTheme -> themeSummary(context)
+                                        else -> stringResource(item.descRes)
+                                    },
                                     fontFamily = DmSans,
                                     fontSize = 13.sp,
                                     color = KarsyMid
@@ -170,6 +180,18 @@ fun SettingsScreen(
         )
     }
 
+    if (themeOpen) {
+        ThemeSheet(
+            selected = Tema.elegido(context),
+            phoneIsDark = Tema.telefonoEnOscuro(context),
+            onSelect = { codigo ->
+                themeOpen = false
+                // Si cambia el tema en uso, la app se recrea con los colores nuevos.
+                (context as? Activity)?.let { Tema.cambiar(it, codigo) }
+            },
+            onDismiss = { themeOpen = false }
+        )
+    }
     if (languageOpen) {
         LanguageSheet(
             selected = Idioma.elegido(context),
@@ -189,3 +211,10 @@ private fun languageSummary(context: Context): String =
     if (Idioma.elegido(context) == Idioma.SISTEMA)
         stringResource(R.string.settings_language_system_current, languageName(Idioma.actual(context)))
     else languageName(Idioma.actual(context))
+
+/** Lo que se muestra bajo "Tema": el elegido o "Tema del teléfono (Oscuro)". */
+@Composable
+private fun themeSummary(context: Context): String {
+    val actual = stringResource(if (Tema.esOscuro(context)) R.string.settings_theme_dark else R.string.settings_theme_light)
+    return if (Tema.elegido(context) == Tema.SISTEMA) stringResource(R.string.settings_theme_system_current, actual) else actual
+}

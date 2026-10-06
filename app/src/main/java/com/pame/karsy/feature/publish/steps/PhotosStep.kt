@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -126,7 +127,7 @@ private fun ExtraPhotosCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .padding(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -219,7 +220,7 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, onPick: () -> U
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .drawBehind {
                 val stroke = 1.5.dp.toPx()
                 drawRoundRect(
@@ -312,7 +313,7 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, onPick: () -> U
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .border(1.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
                 .clickable(onClick = onPick)
                 .padding(vertical = 10.dp),

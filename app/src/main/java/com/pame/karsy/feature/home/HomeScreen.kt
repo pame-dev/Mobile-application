@@ -87,6 +87,10 @@ import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyNavyDeep
+import com.pame.karsy.core.theme.Tema
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyDisabled
@@ -100,7 +104,7 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 /** Fondo de la lista de publicaciones: un poco más oscuro que KarsyBg para que resalten las tarjetas blancas. */
-private val HomeListBg = Color(0xFFE9EEF2)
+private val HomeListBg: Color get() = if (Tema.oscuro) KarsyBg else Color(0xFFE9EEF2)
 
 /** Pantalla principal del marketplace (WebHomeScreen del mockup). */
 @Composable
@@ -273,7 +277,7 @@ fun HomeScreen(
                             options = ORDEN_OPCIONES,
                             onSelect = { vm.filters = vm.filters.copy(orden = it) },
                             fillWidth = false,
-                            container = KarsyWhite,
+                            container = KarsySurface,
                             textColor = KarsyTextSecondary,
                             label = filterLabel
                         )
@@ -372,7 +376,7 @@ private fun EmptyMessage(text: String, action: String?, onAction: () -> Unit) {
                 onClick = onAction,
                 shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.5.dp, KarsyBorder),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = KarsyNavy),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = KarsyInk),
                 modifier = Modifier.padding(top = 12.dp)
             ) {
                 Text(action, fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
@@ -397,7 +401,7 @@ private fun HomeHeader(
     val profileButton = @Composable {
         Box {
             HeaderIconButton(onClick = onToggleAccountMenu, active = accountMenuOpen) {
-                Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = if (accountMenuOpen) KarsyTeal else KarsyNavy, modifier = Modifier.size(19.dp))
+                Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = if (accountMenuOpen) KarsyTeal else KarsyInk, modifier = Modifier.size(19.dp))
             }
             accountMenu()
         }
@@ -406,7 +410,7 @@ private fun HomeHeader(
         Modifier
             .fillMaxWidth()
             .shadow(6.dp, spotColor = KarsyNavy.copy(alpha = 0.10f), ambientColor = KarsyNavy.copy(alpha = 0.07f))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .statusBarsPadding()
     ) {
         Row(
@@ -433,7 +437,7 @@ private fun HomeHeader(
                     }
                     userMode.isAdmin -> {
                         HeaderIconButton(onClick = onAdminPanel) {
-                            Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyNavy, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyInk, modifier = Modifier.size(18.dp))
                         }
                         profileButton()
                     }
@@ -448,7 +452,7 @@ private fun HomeHeader(
                     if (menuOpen) {
                         Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.home_close_filters), tint = KarsyTeal, modifier = Modifier.size(17.dp))
                     } else {
-                        Icon(Icons.Rounded.FilterList, contentDescription = stringResource(R.string.home_filter), tint = KarsyNavy, modifier = Modifier.size(19.dp))
+                        Icon(Icons.Rounded.FilterList, contentDescription = stringResource(R.string.home_filter), tint = KarsyInk, modifier = Modifier.size(19.dp))
                     }
                 }
             }
@@ -483,8 +487,8 @@ private fun HeroSection(
             .fillMaxWidth()
             .background(
                 Brush.linearGradient(
-                    0f to KarsyNavy,
-                    0.6f to KarsyNavyLight,
+                    0f to KarsyNavyDeep,
+                    0.6f to Color(0xFF1A4A6E),
                     1f to KarsyTeal
                 )
             )
@@ -609,7 +613,7 @@ private fun VisitorBanner(onRegister: () -> Unit, modifier: Modifier = Modifier)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("👀", fontSize = 22.sp)
             Column {
-                Text(stringResource(R.string.home_visitor_title), fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+                Text(stringResource(R.string.home_visitor_title), fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
                 Text(
                     stringResource(R.string.home_visitor_message),
                     fontFamily = DmSans,
@@ -644,7 +648,7 @@ private fun SectionHeader(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = KarsyNavy, letterSpacing = (-0.01).em)
+            Text(title, fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = KarsyInk, letterSpacing = (-0.01).em)
             Text(subtitle, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(top = 4.dp))
         }
         action()

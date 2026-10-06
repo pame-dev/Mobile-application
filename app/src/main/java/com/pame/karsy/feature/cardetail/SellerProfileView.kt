@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
@@ -79,7 +81,7 @@ internal fun SellerProfileView(
             // Evita que los toques pasen al detalle que queda debajo.
             .clickable(enabled = false, onClick = {})
     ) {
-        Column(Modifier.background(KarsyWhite)) {
+        Column(Modifier.background(KarsySurface)) {
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -94,15 +96,15 @@ internal fun SellerProfileView(
                         .clickable(onClick = onBack)
                         .padding(vertical = 4.dp, horizontal = 2.dp)
                 ) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyNavy, modifier = Modifier.size(24.dp))
-                    Text(stringResource(R.string.detail_home), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = KarsyNavy)
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyInk, modifier = Modifier.size(24.dp))
+                    Text(stringResource(R.string.detail_home), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = KarsyInk)
                 }
                 Text(
                     stringResource(R.string.detail_profile_title),
                     fontFamily = Outfit,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
+                    color = KarsyInk,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -123,7 +125,7 @@ internal fun SellerProfileView(
                     .padding(bottom = 16.dp)
                     .shadow(3.dp, cardShape, ambientColor = KarsyNavy, spotColor = KarsyNavy.copy(alpha = 0.25f))
                     .clip(cardShape)
-                    .background(KarsyWhite)
+                    .background(KarsySurface)
                     .border(1.dp, KarsyBorder, cardShape)
             ) {
                 Box {
@@ -145,7 +147,7 @@ internal fun SellerProfileView(
                             initialsSize = 26.sp,
                             modifier = Modifier
                                 .shadow(4.dp, CircleShape)
-                                .border(4.dp, KarsyWhite, CircleShape)
+                                .border(4.dp, KarsySurface, CircleShape)
                         )
                         Box(
                             Modifier
@@ -153,7 +155,7 @@ internal fun SellerProfileView(
                                 .padding(2.dp)
                                 .size(16.dp)
                                 .clip(CircleShape)
-                                .background(KarsyWhite)
+                                .background(KarsySurface)
                                 .padding(3.dp)
                                 .clip(CircleShape)
                                 .background(KarsyTeal)
@@ -164,7 +166,7 @@ internal fun SellerProfileView(
                         fontFamily = Outfit,
                         fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
-                        color = KarsyNavy,
+                        color = KarsyInk,
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                     Text(
@@ -191,7 +193,7 @@ internal fun SellerProfileView(
                     .fillMaxWidth()
                     .shadow(3.dp, cardShape, ambientColor = KarsyNavy, spotColor = KarsyNavy.copy(alpha = 0.25f))
                     .clip(cardShape)
-                    .background(KarsyWhite)
+                    .background(KarsySurface)
                     .border(1.dp, KarsyBorder, cardShape)
             ) {
                 Text(
@@ -199,7 +201,7 @@ internal fun SellerProfileView(
                     fontFamily = Outfit,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
+                    color = KarsyInk,
                     modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 12.dp)
                 )
                 HorizontalDivider(color = KarsyBg, thickness = 1.dp)

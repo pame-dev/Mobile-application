@@ -49,6 +49,8 @@ import com.pame.karsy.R
 import com.pame.karsy.core.push.notificationTextRes
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
@@ -139,7 +141,7 @@ private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(style.bg)
+            .background(karsyTint(style.color, style.bg))
             .then(if (n.leida) Modifier else Modifier.border(1.dp, style.color.copy(alpha = 0.35f), RoundedCornerShape(10.dp)))
             .clickable(enabled = n.idPublicacion != null) { n.idPublicacion?.let(onCarClick) }
             .padding(horizontal = 14.dp, vertical = 12.dp)
@@ -149,7 +151,7 @@ private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
             modifier = Modifier
                 .size(30.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
         ) {
             Icon(style.icon, contentDescription = null, tint = style.color, modifier = Modifier.size(16.dp))
         }

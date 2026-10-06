@@ -65,6 +65,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyError
@@ -171,7 +173,7 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
             Icon(
                 Icons.Rounded.ChevronLeft,
                 contentDescription = stringResource(R.string.profile_dashboard_back_cd),
-                tint = KarsyNavy,
+                tint = KarsyInk,
                 modifier = Modifier.size(32.dp)
             )
         }
@@ -180,7 +182,7 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
             fontFamily = Outfit,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = KarsyNavy,
+            color = KarsyInk,
             modifier = Modifier
                 .padding(start = 8.dp)
                 .weight(1f)
@@ -208,7 +210,7 @@ private fun StatsRow(stats: SellerStats, trend: String) {
                 .weight(1f)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(16.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .padding(16.dp)
         ) {
             // No hay tabla de ventas: la métrica principal son las vistas de detalle.
@@ -218,7 +220,7 @@ private fun StatsRow(stats: SellerStats, trend: String) {
                 fontFamily = Outfit,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy,
+                color = KarsyInk,
                 modifier = Modifier.padding(top = 2.dp)
             )
             Text(
@@ -246,7 +248,7 @@ private fun StatsRow(stats: SellerStats, trend: String) {
             SmallStatCard(
                 stringResource(R.string.profile_dashboard_published),
                 stats.publicadas.toString(),
-                KarsyNavy,
+                KarsyInk,
                 stringResource(R.string.profile_dashboard_vehicles),
                 Modifier.weight(1f)
             )
@@ -267,7 +269,7 @@ private fun SmallStatCard(label: String, value: String, valueColor: Color, capti
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -302,7 +304,7 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .padding(16.dp)
     ) {
         Text(
@@ -333,7 +335,7 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
             modifier = Modifier.padding(bottom = 12.dp)
         )
         val textMeasurer = rememberTextMeasurer()
-        val valueStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+        val valueStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
         val dayStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
         Canvas(
             modifier = Modifier
@@ -404,7 +406,7 @@ private fun MyListingsSection(
                 fontFamily = Outfit,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy,
+                color = KarsyInk,
                 modifier = Modifier.weight(1f)
             )
             // Acceso a "Publicar vehículo" (no aparece en el mockup, pero la ruta lo requiere).
@@ -456,7 +458,7 @@ private fun ListingCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .clickable { onCarClick(car.id) }
     ) {
         Box {

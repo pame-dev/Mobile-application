@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -330,7 +332,7 @@ private fun CatalogDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = KarsyWhite,
+            containerColor = KarsySurface,
             modifier = Modifier.heightIn(max = 320.dp)
         ) {
             options.forEach { (id, nombre) ->
@@ -380,7 +382,7 @@ private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: 
             fontFamily = DmSans,
             fontSize = 9.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) KarsyNavy else KarsyMid,
+            color = if (selected) KarsyInk else KarsyMid,
             textAlign = TextAlign.Center
         )
     }

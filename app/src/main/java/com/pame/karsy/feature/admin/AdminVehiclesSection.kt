@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
 
 @Composable
@@ -94,7 +95,7 @@ fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit) {
                                     fontFamily = DmSans,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = KarsyNavy
+                                    color = KarsyInk
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(

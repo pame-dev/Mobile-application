@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 
@@ -46,7 +47,7 @@ fun HeartToggle(
             .size(size)
             .shadow(4.dp, CircleShape)
             .clip(CircleShape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .clickable(onClick = onToggle),
         contentAlignment = Alignment.Center
     ) {

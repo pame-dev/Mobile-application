@@ -35,6 +35,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.pame.karsy.R
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
@@ -70,7 +72,7 @@ fun ChangePasswordDialog(
                 .fillMaxWidth()
                 .shadow(24.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
                 .clip(shape)
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
@@ -79,7 +81,7 @@ fun ChangePasswordDialog(
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = KarsyNavy
+                color = KarsyInk
             )
             Text(
                 stringResource(R.string.profile_password_desc),
@@ -122,7 +124,7 @@ fun ChangePasswordDialog(
                     enabled = !saving,
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(1.5.dp, KarsyBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = KarsyTextSecondary),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyTextSecondary),
                     contentPadding = PaddingValues(vertical = 12.dp),
                     modifier = Modifier.weight(1f)
                 ) {

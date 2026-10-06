@@ -35,11 +35,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.KarsyBg
+import com.pame.karsy.core.theme.Tema
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.Outfit
 
-private val OtpBorder = Color(0xFFDDE5E9)
+private val OtpBorder: Color get() = if (Tema.oscuro) Color(0xFF3A4652) else Color(0xFFDDE5E9)
 
 /**
  * Casillas del código de verificación (una por dígito); avanzan/retroceden el foco solas.
@@ -78,7 +80,7 @@ fun OtpInput(otp: MutableList<String>, modifier: Modifier = Modifier, autoFocus:
                     fontFamily = Outfit,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy,
+                    color = KarsyInk,
                     textAlign = TextAlign.Center
                 ),
                 cursorBrush = SolidColor(KarsyTeal),

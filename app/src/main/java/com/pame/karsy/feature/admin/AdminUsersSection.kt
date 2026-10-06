@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.feature.profile.ProfileAvatar
 
@@ -158,7 +159,7 @@ fun AdminUserRowContent(user: AdminUser, action: (@Composable () -> Unit)? = nul
         ProfileAvatar(name = user.name, avatarUrl = null, size = 44.dp, initialsSize = 15.sp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(user.name, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+            Text(user.name, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
             Spacer(Modifier.height(2.dp))
             Text(
                 user.email,

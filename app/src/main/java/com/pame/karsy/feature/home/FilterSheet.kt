@@ -64,6 +64,8 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -179,7 +181,7 @@ private fun FilterPanel(
             .fillMaxHeight()
             .width(300.dp)
             .shadow(24.dp, RoundedCornerShape(0.dp), spotColor = KarsyNavy.copy(alpha = 0.3f))
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -246,7 +248,7 @@ private fun FilterPanel(
                             },
                             shape = RoundedCornerShape(10.dp),
                             border = BorderStroke(1.5.dp, KarsyBorder),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = KarsyTextSecondary),
+                            colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyTextSecondary),
                             contentPadding = PaddingValues(vertical = 10.dp),
                             modifier = Modifier.weight(1f)
                         ) {
@@ -280,7 +282,7 @@ private fun FilterPanel(
                         fontFamily = DmSans,
                         fontSize = 13.sp,
                         lineHeight = 19.5.sp,
-                        color = KarsyNavy,
+                        color = KarsyInk,
                         modifier = Modifier.padding(bottom = 10.dp)
                     )
                     Button(
@@ -382,7 +384,7 @@ internal fun KarsySelect(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = KarsyWhite
+            containerColor = KarsySurface
         ) {
             options.forEach { opt ->
                 DropdownMenuItem(

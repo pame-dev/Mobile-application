@@ -30,7 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.Idioma
+import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
@@ -56,7 +59,7 @@ fun LanguageSheet(selected: String, onSelect: (String) -> Unit, onDismiss: () ->
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = KarsyWhite,
+        containerColor = KarsySurface,
         shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
     ) {
         Column(
@@ -71,7 +74,7 @@ fun LanguageSheet(selected: String, onSelect: (String) -> Unit, onDismiss: () ->
                 fontFamily = Outfit,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy
+                color = KarsyInk
             )
             Text(
                 stringResource(R.string.settings_language_sheet_desc),
@@ -94,7 +97,7 @@ fun LanguageSheet(selected: String, onSelect: (String) -> Unit, onDismiss: () ->
 }
 
 @Composable
-private fun LanguageOption(flag: String, label: String, description: String?, selected: Boolean, onClick: () -> Unit) {
+internal fun LanguageOption(flag: String, label: String, description: String?, selected: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(14.dp)
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -102,7 +105,7 @@ private fun LanguageOption(flag: String, label: String, description: String?, se
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(if (selected) KarsyTealLight else KarsyWhite)
+            .background(if (selected) KarsyTealLight else KarsySurface)
             .border(1.5.dp, if (selected) KarsyTeal else KarsyBorder, shape)
             .clickable(role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp)
@@ -124,6 +127,55 @@ private fun LanguageOption(flag: String, label: String, description: String?, se
                 .border(2.dp, if (selected) KarsyTeal else KarsyBorder, CircleShape)
         ) {
             if (selected) Box(Modifier.size(11.dp).clip(CircleShape).background(KarsyTeal))
+        }
+    }
+}
+
+/**
+ * Selector de tema de Configuración: claro, oscuro o el del teléfono.
+ * [selected] es Tema.CLARO / OSCURO / SISTEMA; la app se recrea si cambia el tema en uso.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ThemeSheet(selected: String, phoneIsDark: Boolean, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = KarsySurface,
+        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 24.dp)
+                .navigationBarsPadding()
+        ) {
+            Text(
+                stringResource(R.string.settings_theme),
+                fontFamily = Outfit,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyInk
+            )
+            Text(
+                stringResource(R.string.settings_theme_sheet_desc),
+                fontFamily = DmSans,
+                fontSize = 13.sp,
+                color = KarsyMid,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            LanguageOption("☀️", stringResource(R.string.settings_theme_light), null, selected == Tema.CLARO) { onSelect(Tema.CLARO) }
+            LanguageOption("🌙", stringResource(R.string.settings_theme_dark), null, selected == Tema.OSCURO) { onSelect(Tema.OSCURO) }
+            LanguageOption(
+                flag = "📱",
+                label = stringResource(R.string.settings_theme_system),
+                description = stringResource(
+                    R.string.settings_language_system_desc,
+                    stringResource(if (phoneIsDark) R.string.settings_theme_dark else R.string.settings_theme_light)
+                ),
+                selected = selected == Tema.SISTEMA,
+            ) { onSelect(Tema.SISTEMA) }
         }
     }
 }
