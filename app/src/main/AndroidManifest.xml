@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Notificaciones push (Android 13+ pide permiso al usuario) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- "Cerca de mí": ubicación aproximada (municipio / estado), no GPS preciso -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"

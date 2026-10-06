@@ -56,7 +56,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.StarBadge
+import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
@@ -100,81 +102,86 @@ fun FavoritesScreen(
         Column(Modifier.fillMaxSize()) {
             SubHeader(title = stringResource(R.string.home_favorites_title), onBack = onBack)
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 300.dp),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .navigationBarsPadding()
-            ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column {
-                        SearchRow(search = vm.query, onSearch = { vm.query = it }, onFilter = { filtersOpen = true })
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(top = 20.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                pluralStringResource(R.plurals.home_vehicles_saved, displayed.size, displayed.size),
-                                fontFamily = Outfit,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = KarsyInk
-                            )
-                            Text(
-                                vm.sortLabel,
-                                fontFamily = DmSans,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = KarsyTeal,
-                                modifier = Modifier.clickable(onClick = vm::nextSort)
-                            )
-                        }
-                        (errorMsg ?: vm.error)?.let {
-                            Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError, modifier = Modifier.padding(top = 8.dp))
+            KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 300.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding()
+                ) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Column {
+                            SearchRow(search = vm.query, onSearch = { vm.query = it }, onFilter = { filtersOpen = true })
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 20.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    pluralStringResource(R.plurals.home_vehicles_saved, displayed.size, displayed.size),
+                                    fontFamily = Outfit,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = KarsyInk
+                                )
+                                Text(
+                                    vm.sortLabel,
+                                    fontFamily = DmSans,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = KarsyTeal,
+                                    modifier = Modifier.clickable(onClick = vm::nextSort)
+                                )
+                            }
+                            (errorMsg ?: vm.error)?.let {
+                                Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError, modifier = Modifier.padding(top = 8.dp))
+                            }
                         }
                     }
-                }
 
-                if (vm.loading) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = KarsyTeal)
+                    if (vm.loading) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                repeat(2) { SkeletonCarCard() }
+                            }
                         }
                     }
-                }
 
-                items(displayed, key = { it.id }) { car ->
-                    FavoriteCard(
-                        car = car,
-                        onClick = { onCarClick(car.id) },
-                        onRemove = { vm.remove(car.id) { errorMsg = it } },
-                        // Al quitar un favorito la tarjeta se desvanece y las demás se reacomodan.
-                        modifier = Modifier.animateItem(
-                            fadeInSpec = tween(200),
-                            placementSpec = tween(300),
-                            fadeOutSpec = tween(250)
+                    items(displayed, key = { it.id }) { car ->
+                        FavoriteCard(
+                            car = car,
+                            onClick = { onCarClick(car.id) },
+                            onRemove = { vm.remove(car.id) { errorMsg = it } },
+                            // Al quitar un favorito la tarjeta se desvanece y las demás se reacomodan.
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = tween(200),
+                                placementSpec = tween(300),
+                                fadeOutSpec = tween(250)
+                            )
                         )
-                    )
-                }
+                    }
 
-                if (displayed.isEmpty() && !vm.loading) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        // Sin favoritos guardados vs. favoritos que no coinciden con búsqueda/filtros.
-                        if (vm.cars.isEmpty()) EmptyState(
-                            emoji = "🤍",
-                            title = stringResource(R.string.favorites_empty_title),
-                            subtitle = stringResource(R.string.favorites_empty_subtitle)
-                        ) else EmptyState(
-                            emoji = "🔍",
-                            title = stringResource(R.string.home_no_results),
-                            subtitle = stringResource(R.string.home_try_another_search)
-                        )
+                    if (displayed.isEmpty() && !vm.loading) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            // Sin favoritos guardados vs. favoritos que no coinciden con búsqueda/filtros.
+                            if (vm.cars.isEmpty()) EmptyState(
+                                emoji = "🤍",
+                                title = stringResource(R.string.favorites_empty_title),
+                                subtitle = stringResource(R.string.favorites_empty_subtitle)
+                            ) else EmptyState(
+                                emoji = "🔍",
+                                title = stringResource(R.string.home_no_results),
+                                subtitle = stringResource(R.string.home_try_another_search)
+                            )
+                        }
                     }
                 }
             }

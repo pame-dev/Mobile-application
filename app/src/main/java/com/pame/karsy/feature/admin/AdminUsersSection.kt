@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.admin
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -73,7 +75,12 @@ fun AdminUsersSection(vm: AdminViewModel) {
                 )
             }
 
-            if (filtered.isEmpty()) {
+            // Mientras carga: filas de esqueleto en lugar de "no se encontraron".
+            if (vm.loading && filtered.isEmpty()) {
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                    repeat(4) { SkeletonListRow(circle = true) }
+                }
+            } else if (filtered.isEmpty()) {
                 AdminEmptyState(
                     icon = Icons.Rounded.Search,
                     title = stringResource(R.string.admin2_users_empty_title),

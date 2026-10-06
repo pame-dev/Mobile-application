@@ -172,6 +172,11 @@
     <string name="home_featured_title">Vehículos destacados</string>
     <string name="home_featured_subtitle">Selección especial de nuestra plataforma</string>
     <string name="home_all_title">Todos los vehículos</string>
+    <string name="home_near_me">📍 Cerca de mí</string>
+    <string name="home_near_me_searching">📍 Buscando tu ubicación…</string>
+    <string name="home_near_me_active">📍 Cerca de %1$s  ✕</string>
+    <string name="home_near_me_failed">No pudimos obtener tu ubicación. Revisa que la ubicación del teléfono esté activada.</string>
+    <string name="home_near_me_denied">Para mostrar autos cerca de ti, permite el acceso a tu ubicación.</string>
     <plurals name="home_vehicles_available">
         <item quantity="one">%1$d vehículo disponible</item>
         <item quantity="other">%1$d vehículos disponibles</item>
@@ -225,6 +230,11 @@
     <string name="detail_contact_seller">Contactar vendedor</string>
     <string name="detail_back">Regresar</string>
     <string name="detail_title">Detalle del vehículo</string>
+    <string name="detail_share">Compartir</string>
+    <string name="detail_share_title">🚗 *%1$s*</string>
+    <string name="detail_share_price">💰 %1$s %2$s</string>
+    <string name="detail_share_place">📍 %1$s</string>
+    <string name="detail_share_footer">Lo vi en Karsy, la app para comprar y vender autos.</string>
     <string name="detail_photo_counter">%1$d de %2$d</string>
     <string name="detail_report_content_desc">Reportar publicación o cuenta</string>
     <string name="detail_photo_n">Foto %1$d</string>
@@ -351,6 +361,9 @@
     <string name="profile_dashboard_no_listings">Todavía no publicas ningún vehículo. Toca \"+ Publicar\" para crear el primero.</string>
     <string name="profile_dashboard_featured">Destacado</string>
     <string name="profile_dashboard_featured_until">Destacado hasta %1$s</string>
+    <string name="profile_dashboard_renew">Renovar destacado · termina %1$s</string>
+    <string name="detail_owner_renew">Renovar destacado</string>
+    <string name="detail_owner_featured_until">★ Hasta %1$s</string>
     <string name="profile_dashboard_request_sent">Solicitud enviada</string>
     <string name="profile_dashboard_feature">Destacar</string>
     <string name="profile_dashboard_fix_resubmit">Corregir y reenviar</string>
@@ -936,6 +949,7 @@
     <string name="notif_sent">Tu publicación \"%1$s\" se envió al administrador y la está revisando.</string>
     <string name="notif_approved">¡Tu publicación \"%1$s\" fue aprobada! Ya está visible para todos.</string>
     <string name="notif_featured_mine">Tu publicación \"%1$s\" ahora es destacada durante 1 mes.</string>
+    <string name="notif_featured_expiring">Tu destacado de \"%1$s\" termina en menos de 3 días. Renuévalo para seguir apareciendo en destacados.</string>
     <string name="notif_rejected">Tu publicación \"%1$s\" fue rechazada. Corrígela y vuelve a enviarla.</string>
     <string name="notif_edit_approved">Se aprobaron los cambios a tu publicación \"%1$s\". Ya se ven publicados.</string>
     <string name="notif_edit_rejected">No se aprobaron los cambios a \"%1$s\". Sigue visible la versión anterior.</string>

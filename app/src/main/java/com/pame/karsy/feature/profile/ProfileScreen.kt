@@ -55,6 +55,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -137,9 +138,9 @@ fun ProfileScreen(
                 )
                 Spacer(Modifier.height(16.dp))
             } else if (vm.loading) {
-                Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = KarsyTeal)
-                }
+                // Esqueleto: portada con avatar y nombre.
+                SkeletonBlock(230.dp, shape = RoundedCornerShape(20.dp))
+                Spacer(Modifier.height(16.dp))
             }
             vm.message?.let {
                 Text(

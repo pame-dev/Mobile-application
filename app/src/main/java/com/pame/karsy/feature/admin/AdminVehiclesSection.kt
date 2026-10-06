@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.admin
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
@@ -68,7 +70,12 @@ fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit) {
                 )
             }
 
-            if (filtered.isEmpty()) {
+            // Mientras carga: filas de esqueleto en lugar de "no se encontraron".
+            if (vm.loading && filtered.isEmpty()) {
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                    repeat(4) { SkeletonListRow(circle = false) }
+                }
+            } else if (filtered.isEmpty()) {
                 AdminEmptyState(
                     icon = Icons.Rounded.Search,
                     title = stringResource(R.string.admin2_vehicles_empty_title),

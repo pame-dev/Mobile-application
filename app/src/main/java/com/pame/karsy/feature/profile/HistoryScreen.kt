@@ -19,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
@@ -49,9 +56,12 @@ import com.pame.karsy.data.repository.CarRepository
  */
 @Composable
 fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
-    val historyItems by produceState<List<Pair<Car, String>>?>(initialValue = null) {
-        value = safeCall { CarRepository.history() }.getOrDefault(emptyList())
+    var historyItems by remember { mutableStateOf<List<Pair<Car, String>>?>(null) }
+    val scope = rememberCoroutineScope()
+    suspend fun load() {
+        historyItems = safeCall { CarRepository.history() }.getOrDefault(emptyList())
     }
+    LaunchedEffect(Unit) { load() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,73 +72,80 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
             onBack = onBack,
             modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
-        ) {
-            val items = historyItems
-            if (items == null) {
-                CircularProgressIndicator(color = KarsyTeal, modifier = Modifier.align(Alignment.CenterHorizontally))
-                return@Column
-            }
-            ProfileCard {
-                if (items.isEmpty()) {
-                    Text(
-                        stringResource(R.string.profile_history_empty),
-                        fontFamily = DmSans,
-                        fontSize = 14.sp,
-                        color = KarsyMid,
-                        modifier = Modifier.padding(20.dp)
-                    )
-                }
-                items.forEachIndexed { idx, (car, sub) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onCarClick(car.id) }
-                            .padding(horizontal = 18.dp, vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        AsyncImage(
-                            model = car.imageUrl,
-                            contentDescription = car.title,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(72.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(ImagePlaceholder)
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "${car.title} ${car.year}",
-                                fontFamily = DmSans,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 15.sp,
-                                color = KarsyInk
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                "${car.price} ${car.currency}",
-                                fontFamily = Outfit,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = KarsyTeal
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                sub,
-                                fontFamily = DmSans,
-                                fontSize = 12.sp,
-                                color = KarsyMid
-                            )
+        KarsyPullToRefresh(onRefresh = { done -> scope.launch { load(); done() } }, modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .navigationBarsPadding()
+                    .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
+            ) {
+                val items = historyItems
+                if (items == null) {
+                    // Esqueleto de la lista mientras carga.
+                    ProfileCard {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                            repeat(5) { SkeletonListRow() }
                         }
-                        RowChevron()
                     }
-                    if (idx < items.lastIndex) RowDivider()
+                    return@Column
+                }
+                ProfileCard {
+                    if (items.isEmpty()) {
+                        Text(
+                            stringResource(R.string.profile_history_empty),
+                            fontFamily = DmSans,
+                            fontSize = 14.sp,
+                            color = KarsyMid,
+                            modifier = Modifier.padding(20.dp)
+                        )
+                    }
+                    items.forEachIndexed { idx, (car, sub) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onCarClick(car.id) }
+                                .padding(horizontal = 18.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            AsyncImage(
+                                model = car.imageUrl,
+                                contentDescription = car.title,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(ImagePlaceholder)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "${car.title} ${car.year}",
+                                    fontFamily = DmSans,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 15.sp,
+                                    color = KarsyInk
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    "${car.price} ${car.currency}",
+                                    fontFamily = Outfit,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = KarsyTeal
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    sub,
+                                    fontFamily = DmSans,
+                                    fontSize = 12.sp,
+                                    color = KarsyMid
+                                )
+                            }
+                            RowChevron()
+                        }
+                        if (idx < items.lastIndex) RowDivider()
+                    }
                 }
             }
         }
