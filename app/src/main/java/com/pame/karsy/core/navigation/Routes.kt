@@ -29,6 +29,8 @@ sealed class Routes(val route: String) {
     object History : Routes("history")
     object Settings : Routes("settings")
     object Terms : Routes("terms")
+    object Privacy : Routes("privacy")
+    object PrivacyNotice : Routes("privacy_notice")
     object Notifications : Routes("notifications")
 
     /** Publicar; con editId corrige y reenvía una publicación rechazada. */

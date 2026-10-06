@@ -7,6 +7,7 @@ import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.data.remote.CuentaDto
 import io.github.jan.supabase.auth.OtpType
+import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -129,6 +130,14 @@ object AuthRepository {
 
     suspend fun signOut() {
         runCatching { auth.signOut() }
+    }
+
+    /**
+     * Cierra la sesión en todos los dispositivos de la cuenta (Supabase invalida todas
+     * las sesiones), incluido este.
+     */
+    suspend fun signOutEverywhere() {
+        auth.signOut(SignOutScope.GLOBAL)
     }
 
     private suspend fun loadAccountOrSignOut(): SessionAccount {

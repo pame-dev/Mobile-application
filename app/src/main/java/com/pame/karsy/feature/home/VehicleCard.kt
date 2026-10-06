@@ -92,7 +92,7 @@ fun VehicleCard(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = KarsyNavy,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
@@ -122,6 +122,8 @@ fun VehicleCard(
                 lineHeight = 18.sp,
                 color = KarsyTextSecondary,
                 maxLines = 2,
+                // Siempre 2 líneas, aunque sea corta: así todas las tarjetas miden lo mismo.
+                minLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 6.dp)
             )

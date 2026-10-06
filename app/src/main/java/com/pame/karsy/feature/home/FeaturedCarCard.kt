@@ -102,7 +102,7 @@ fun FeaturedCarCard(
                         fontWeight = FontWeight.Bold,
                         color = KarsyNavy,
                         lineHeight = 20.sp,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
@@ -136,6 +136,8 @@ fun FeaturedCarCard(
                 lineHeight = 19.5.sp,
                 color = KarsyTextSecondary,
                 maxLines = 2,
+                // Siempre 2 líneas, aunque sea corta: así todas las tarjetas miden lo mismo.
+                minLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 6.dp)
             )
