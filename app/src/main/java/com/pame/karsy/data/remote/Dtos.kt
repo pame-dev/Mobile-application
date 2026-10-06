@@ -248,6 +248,8 @@ data class NotificacionDto(
     val tipo: String,
     @SerialName("id_publicacion") val idPublicacion: Long? = null,
     @SerialName("titulo_vehiculo") val tituloVehiculo: String? = null,
+    /** Comentario del admin (rechazo / deshabilitación); null si no aplica. */
+    val motivo: String? = null,
     val leida: Boolean = false,
     @SerialName("fecha_creacion") val fecha: String,
 )

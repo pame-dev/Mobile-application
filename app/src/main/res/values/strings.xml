@@ -865,6 +865,14 @@
     <string name="notif_sent">Tu publicación \"%1$s\" se envió al administrador y la está revisando.</string>
     <string name="notif_approved">¡Tu publicación \"%1$s\" fue aprobada! Ya está visible para todos.</string>
     <string name="notif_featured_mine">Tu publicación \"%1$s\" ahora es destacada durante 1 mes.</string>
-    <string name="notif_featured_new">Nueva publicación destacada: \"%1$s\". ¡Échale un vistazo!</string>
+    <string name="notif_rejected">Tu publicación \"%1$s\" fue rechazada. Corrígela y vuelve a enviarla.</string>
+    <string name="notif_edit_approved">Se aprobaron los cambios a tu publicación \"%1$s\". Ya se ven publicados.</string>
+    <string name="notif_edit_rejected">No se aprobaron los cambios a \"%1$s\". Sigue visible la versión anterior.</string>
+    <string name="notif_disabled">Administración deshabilitó tu publicación \"%1$s\". Ya no es visible para otros usuarios.</string>
+    <string name="notif_reenabled">Tu publicación \"%1$s\" fue rehabilitada y vuelve a estar visible.</string>
+    <string name="notif_featured_rejected">Tu solicitud para destacar \"%1$s\" fue rechazada.</string>
+    <string name="notif_report_resolved">Gracias por tu reporte sobre \"%1$s\". Lo revisamos y tomamos medidas.</string>
+    <string name="notif_report_dismissed">Revisamos tu reporte sobre \"%1$s\" y no encontramos un incumplimiento.</string>
+    <string name="notif_reason">Motivo: %1$s</string>
     <string name="notif_generic">Tienes un aviso sobre \"%1$s\".</string>
 </resources>

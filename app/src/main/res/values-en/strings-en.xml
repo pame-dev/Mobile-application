@@ -863,6 +863,14 @@
     <string name="notif_sent">Your listing \"%1$s\" was sent to the administrator and is being reviewed.</string>
     <string name="notif_approved">Your listing \"%1$s\" was approved! It is now visible to everyone.</string>
     <string name="notif_featured_mine">Your listing \"%1$s\" is now featured for 1 month.</string>
-    <string name="notif_featured_new">New featured listing: \"%1$s\". Take a look!</string>
+    <string name="notif_rejected">Your listing \"%1$s\" was rejected. Fix it and submit it again.</string>
+    <string name="notif_edit_approved">The changes to your listing \"%1$s\" were approved and are now live.</string>
+    <string name="notif_edit_rejected">The changes to \"%1$s\" were not approved. The previous version is still visible.</string>
+    <string name="notif_disabled">An administrator disabled your listing \"%1$s\". Other users can no longer see it.</string>
+    <string name="notif_reenabled">Your listing \"%1$s\" was re-enabled and is visible again.</string>
+    <string name="notif_featured_rejected">Your request to feature \"%1$s\" was rejected.</string>
+    <string name="notif_report_resolved">Thanks for your report about \"%1$s\". We reviewed it and took action.</string>
+    <string name="notif_report_dismissed">We reviewed your report about \"%1$s\" and found no violation.</string>
+    <string name="notif_reason">Reason: %1$s</string>
     <string name="notif_generic">You have an update about \"%1$s\".</string>
 </resources>

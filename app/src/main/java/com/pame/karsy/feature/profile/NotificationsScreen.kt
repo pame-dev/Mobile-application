@@ -24,9 +24,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.HourglassTop
-import androidx.compose.material.icons.rounded.NewReleases
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Cancel
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -64,7 +67,14 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
     "propuesta_enviada" -> NotifStyle(Icons.Rounded.HourglassTop, Color(0xFFD97706), Color(0xFFFFFBEB), R.string.notif_sent)
     "publicacion_aprobada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4), R.string.notif_approved)
     "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, Color(0xFF8B5CF6), Color(0xFFF5F3FF), R.string.notif_featured_mine)
-    "nuevo_destacado" -> NotifStyle(Icons.Rounded.NewReleases, Color(0xFF3B82F6), Color(0xFFEFF6FF), R.string.notif_featured_new)
+    "edicion_aprobada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4), R.string.notif_edit_approved)
+    "publicacion_rehabilitada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4), R.string.notif_reenabled)
+    "publicacion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2), R.string.notif_rejected)
+    "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2), R.string.notif_edit_rejected)
+    "publicacion_deshabilitada" -> NotifStyle(Icons.Rounded.Block, Color(0xFFDC2626), Color(0xFFFEF2F2), R.string.notif_disabled)
+    "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, Color(0xFFD97706), Color(0xFFFFFBEB), R.string.notif_featured_rejected)
+    "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, Color(0xFF2563EB), Color(0xFFEFF6FF), R.string.notif_report_resolved)
+    "reporte_descartado" -> NotifStyle(Icons.Rounded.Flag, KarsyTeal, KarsyBg, R.string.notif_report_dismissed)
     else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg, R.string.notif_generic)
 }
 
@@ -155,6 +165,17 @@ private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
                 lineHeight = 17.sp,
                 color = KarsyCharcoal
             )
+            // Comentario del admin (por qué se rechazó o deshabilitó).
+            n.motivo?.takeIf { it.isNotBlank() }?.let { motivo ->
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.notif_reason, motivo),
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    color = style.color
+                )
+            }
             Spacer(Modifier.height(2.dp))
             Text(
                 Formato.haceCuanto(n.fecha),
