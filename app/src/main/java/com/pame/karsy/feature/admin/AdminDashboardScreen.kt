@@ -1,5 +1,12 @@
 package com.pame.karsy.feature.admin
 
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.remember
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.AnimatedVisibility
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,6 +52,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
@@ -119,7 +127,22 @@ fun AdminDashboardScreen(
                 onMenu = { scope.launch { drawerState.open() } },
                 onHome = onBack
             )
-            vm.message?.let { msg ->
+            // Aviso del resultado de la última acción: se oculta solo a los MESSAGE_MS.
+            // Se recuerda el último texto para que la animación de salida lo siga mostrando.
+            val message = vm.message
+            var lastMessage by remember { mutableStateOf("") }
+            if (message != null) lastMessage = message
+            LaunchedEffect(message) {
+                if (message != null) {
+                    delay(MESSAGE_MS)
+                    vm.dismissMessage()
+                }
+            }
+            AnimatedVisibility(
+                visible = message != null,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -127,7 +150,7 @@ fun AdminDashboardScreen(
                         .background(KarsyTealLight)
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
-                    Text(msg, fontFamily = DmSans, fontSize = 13.sp, color = KarsyInk, modifier = Modifier.weight(1f))
+                    Text(lastMessage, fontFamily = DmSans, fontSize = 13.sp, color = KarsyInk, modifier = Modifier.weight(1f))
                     Text(
                         stringResource(R.string.admin1_close),
                         fontFamily = DmSans,
@@ -141,7 +164,8 @@ fun AdminDashboardScreen(
             if (vm.loading || vm.working) {
                 LinearProgressIndicator(color = KarsyTeal, modifier = Modifier.fillMaxWidth())
             }
-            Box(Modifier.weight(1f)) {
+            // Deslizar hacia abajo recarga todos los datos del panel.
+            KarsyPullToRefresh(onRefresh = { done -> vm.loadAll(done) }, modifier = Modifier.weight(1f)) {
                 when (section) {
                     AdminSection.Inicio -> AdminHomeSection(vm = vm, onNavigate = { section = it })
                     AdminSection.Usuarios -> AdminUsersSection(vm)
@@ -198,3 +222,6 @@ private fun TopBarButton(icon: ImageVector, description: String, onClick: () -> 
         }
     }
 }
+
+/** Tiempo que el aviso de una acción del admin se queda visible antes de ocultarse solo. */
+private const val MESSAGE_MS = 10_000L

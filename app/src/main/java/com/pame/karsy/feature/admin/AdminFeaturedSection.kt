@@ -59,6 +59,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.Tema
@@ -156,7 +157,12 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
                 }
             }
 
-            if (visible.isEmpty()) {
+            // Mientras carga: filas de esqueleto en lugar de "no se encontraron".
+            if (vm.loading && visible.isEmpty()) {
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                    repeat(4) { SkeletonListRow(circle = false) }
+                }
+            } else if (visible.isEmpty()) {
                 AdminEmptyState(
                     icon = Icons.Outlined.StarOutline,
                     title = stringResource(R.string.admin1_featured_empty),

@@ -34,7 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,8 +45,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.push.notificationTextRes
 import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.theme.KarsySurface
@@ -70,6 +77,7 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
     "publicacion_aprobada", "edicion_aprobada", "publicacion_rehabilitada" ->
         NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4))
     "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, Color(0xFF8B5CF6), Color(0xFFF5F3FF))
+    "destacado_por_vencer" -> NotifStyle(Icons.Rounded.Star, Color(0xFFD97706), Color(0xFFFFFBEB))
     "publicacion_rechazada", "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2))
     "publicacion_deshabilitada" -> NotifStyle(Icons.Rounded.Block, Color(0xFFDC2626), Color(0xFFFEF2F2))
     "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, Color(0xFFD97706), Color(0xFFFFFBEB))
@@ -84,10 +92,14 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
  */
 @Composable
 fun NotificationsScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
-    val notifications by produceState<List<NotificacionDto>?>(initialValue = null) {
-        value = safeCall { NotificationRepository.mine() }.getOrDefault(emptyList())
-        if (value.orEmpty().any { !it.leida }) safeCall { NotificationRepository.markAllRead() }
+    var notifications by remember { mutableStateOf<List<NotificacionDto>?>(null) }
+    val scope = rememberCoroutineScope()
+    suspend fun load() {
+        val lista = safeCall { NotificationRepository.mine() }.getOrDefault(emptyList())
+        if (lista.any { !it.leida }) safeCall { NotificationRepository.markAllRead() }
+        notifications = lista
     }
+    LaunchedEffect(Unit) { load() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -98,34 +110,41 @@ fun NotificationsScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
             onBack = onBack,
             modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
-        ) {
-            val items = notifications
-            if (items == null) {
-                CircularProgressIndicator(color = KarsyTeal, modifier = Modifier.align(Alignment.CenterHorizontally))
-                return@Column
-            }
-            ProfileCard {
-                if (items.isEmpty()) {
-                    Text(
-                        stringResource(R.string.notif_empty),
-                        fontFamily = DmSans,
-                        fontSize = 14.sp,
-                        color = KarsyMid,
-                        modifier = Modifier.padding(20.dp)
-                    )
-                    return@ProfileCard
+        KarsyPullToRefresh(onRefresh = { done -> scope.launch { load(); done() } }, modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .navigationBarsPadding()
+                    .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
+            ) {
+                val items = notifications
+                if (items == null) {
+                    // Esqueleto de la lista mientras carga.
+                    ProfileCard {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                            repeat(5) { SkeletonListRow() }
+                        }
+                    }
+                    return@Column
                 }
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
-                ) {
-                    items.forEach { n -> NotificationRow(n, onCarClick) }
+                ProfileCard {
+                    if (items.isEmpty()) {
+                        Text(
+                            stringResource(R.string.notif_empty),
+                            fontFamily = DmSans,
+                            fontSize = 14.sp,
+                            color = KarsyMid,
+                            modifier = Modifier.padding(20.dp)
+                        )
+                        return@ProfileCard
+                    }
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
+                    ) {
+                        items.forEach { n -> NotificationRow(n, onCarClick) }
+                    }
                 }
             }
         }

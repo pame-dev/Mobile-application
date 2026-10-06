@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.runtime.getValue
+import com.pame.karsy.core.location.UbicacionActual
+import com.pame.karsy.core.location.Lugar
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -111,15 +113,24 @@ class HomeViewModel : ViewModel() {
 
     val featured: List<Car> get() = cars.filter { it.featured }
 
+    /** "Cerca de mí": lugar del teléfono; null si el filtro está apagado. */
+    var cercaDe by mutableStateOf<Lugar?>(null)
+
     /** Anuncios con búsqueda, filtros y orden aplicados. */
     val visibleCars: List<Car>
         get() {
+            val lugar = cercaDe
+            // Cerca de mí: solo los del mismo estado.
             val lista = cars.filtrar(filters, query)
-            return when (filters.orden) {
+                .let { l -> if (lugar == null) l else l.filter { UbicacionActual.mismoLugar(it.estado, lugar.estado) } }
+            val ordenada = when (filters.orden) {
                 "Menor precio" -> lista.sortedBy { it.priceValue }
                 "Mayor precio" -> lista.sortedByDescending { it.priceValue }
                 else -> lista.sortedByDescending { it.publishedAt }
             }
+            // ...y primero los del mismo municipio (sortedBy es estable: respeta el orden elegido).
+            return if (lugar == null) ordenada
+            else ordenada.sortedBy { if (UbicacionActual.mismoLugar(it.municipio, lugar.municipio)) 0 else 1 }
         }
 
     val filterOptions: FilterOptions get() = filterOptionsOf(catalogs, cars)
@@ -133,13 +144,15 @@ class HomeViewModel : ViewModel() {
         )
 
     /** Se llama cada vez que la pantalla aparece (p. ej. al volver del detalle). */
-    fun refresh() {
+    /** [onDone] se llama cuando la lista ya se actualizó (para quitar el pull-to-refresh). */
+    fun refresh(onDone: () -> Unit = {}) {
         viewModelScope.launch {
             if (cars.isEmpty()) loading = true
             safeCall { CarRepository.visibleCars() }
                 .onSuccess { cars = it; error = null }
                 .onFailure { error = it.mensajeUsuario() }
             loading = false
+            onDone()
 
             if (catalogs == null) catalogs = safeCall { CatalogRepository.get() }.getOrNull()
             favoriteIds = if (SessionManager.userId != null) {

@@ -67,7 +67,8 @@ class AdminViewModel : ViewModel() {
         if (!loading) loadAll()
     }
 
-    fun loadAll() {
+    /** [onDone] se llama cuando todo se recargó (para quitar el pull-to-refresh). */
+    fun loadAll(onDone: () -> Unit = {}) {
         viewModelScope.launch {
             loading = true
             val errores = mutableListOf<String>()
@@ -78,6 +79,7 @@ class AdminViewModel : ViewModel() {
             safeCall { AdminRepository.featuredRequests() }.onSuccess { featuredRows = it }.onFailure { errores += it.mensajeUsuario() }
             if (errores.isNotEmpty()) message = errores.first()
             loading = false
+            onDone()
         }
     }
 

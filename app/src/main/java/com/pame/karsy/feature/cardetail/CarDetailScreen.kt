@@ -1,6 +1,9 @@
 package com.pame.karsy.feature.cardetail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.material.icons.rounded.Share
+import android.content.Intent
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,6 +56,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -67,6 +71,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartIcon
+import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.components.SectionLabel
@@ -124,8 +129,23 @@ fun CarDetailScreen(
     val detail = vm.detail
     if (detail == null) {
         when {
-            vm.loading -> Box(Modifier.fillMaxSize().background(KarsyBg), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = KarsyTeal)
+            // Esqueleto: foto principal, miniaturas, título, precio y ficha técnica.
+            vm.loading -> Column(
+                Modifier.fillMaxSize().background(KarsyBg).statusBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Spacer(Modifier.height(56.dp))
+                SkeletonBlock(300.dp, shape = RoundedCornerShape(0.dp))
+                Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SkeletonBlock(22.dp, width = 220.dp)
+                    SkeletonBlock(28.dp, width = 150.dp)
+                    repeat(3) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            SkeletonBlock(52.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp))
+                            SkeletonBlock(52.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp))
+                        }
+                    }
+                }
             }
             else -> NotFound(onBack, message = vm.error, onRetry = if (vm.error != null) vm::retry else null)
         }
@@ -134,6 +154,7 @@ fun CarDetailScreen(
 
     val isVisitor = userMode == UserMode.VISITANTE
     val isOwner = detail.sellerId == SessionManager.userId
+    val context = LocalContext.current
 
     var activeImg by rememberSaveable { mutableIntStateOf(0) }
     var showContact by rememberSaveable { mutableStateOf(false) }
@@ -218,6 +239,7 @@ fun CarDetailScreen(
                 onBack = onBack,
                 onFav = ::handleFav,
                 onReport = ::openReport,
+                onShare = { shareCar(context, detail) },
             )
 
             Column(
@@ -263,7 +285,12 @@ fun CarDetailScreen(
                 onEdit = ::editPublication,
                 onPause = { confirmPause = true },
                 onResume = { setPaused(false) },
-                onFeature = { askFeature = true },
+                onFeature = {
+                    // Renovar va directo (un toque); destacar por primera vez pide confirmación.
+                    if (detail.car.featured && detail.car.featuredEndsSoon) {
+                        vm.requestFeatured { error -> if (error == null) featureSent = true else toastMessage = error }
+                    } else askFeature = true
+                },
                 onMarkSold = { confirmSold = true },
                 onMarkAvailable = { confirmAvailable = true },
             )
@@ -513,17 +540,22 @@ private fun OwnerActionsBar(
                         modifier = Modifier.weight(1f)
                     )
                 }
+                val renovar = car.featured && car.featuredEndsSoon && !car.featuredPending
                 if (showFeature) OwnerButton(
                     text = when {
-                        car.featured && car.featuredUntil != null -> stringResource(R.string.profile_dashboard_featured_until, car.featuredUntil)
+                        renovar -> stringResource(R.string.detail_owner_renew)
+                        // Corto para que quepa en el botón.
+                        car.featured && car.featuredUntil != null ->
+                            stringResource(R.string.detail_owner_featured_until, car.featuredUntil.replace(Regex(" \\d{4}$"), ""))
                         car.featured -> stringResource(R.string.profile_dashboard_featured)
                         car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
                         else -> stringResource(R.string.profile_dashboard_feature)
                     },
                     onClick = onFeature,
-                    // Una solicitud a la vez.
-                    enabled = !car.featured && !car.featuredPending,
-                    color = FeatureGold,
+                    // Una solicitud a la vez; un destacado vigente solo se renueva si está por terminar.
+                    enabled = !car.featuredPending && (!car.featured || renovar),
+                    filled = renovar,
+                    color = if (renovar) KarsyTeal else FeatureGold,
                     modifier = Modifier.weight(1f)
                 )
                 if (canEdit) OwnerButton(
@@ -706,6 +738,7 @@ private fun DetailHeader(
     onBack: () -> Unit,
     onFav: () -> Unit,
     onReport: () -> Unit,
+    onShare: () -> Unit,
 ) {
     Box(
         Modifier
@@ -730,11 +763,20 @@ private fun DetailHeader(
             color = KarsyInk,
             modifier = Modifier.align(Alignment.Center)
         )
-        if (showActions) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.align(Alignment.CenterEnd)
-            ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            // Compartir: para todos, también el dueño (es quien más comparte su publicación).
+            HeaderSquareButton(onClick = onShare) {
+                Icon(
+                    Icons.Rounded.Share,
+                    contentDescription = stringResource(R.string.detail_share),
+                    tint = KarsyInk,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            if (showActions) {
                 HeaderSquareButton(onClick = onFav) {
                     HeartIcon(filled = fav, size = 16.dp)
                 }
@@ -1026,4 +1068,26 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
             }
         }
     }
+}
+
+/**
+ * Comparte la publicación con el menú de Android (WhatsApp, Messenger, correo…).
+ * Va solo texto: sin un dominio web propio no hay enlace que abra la app en esta publicación.
+ */
+private fun shareCar(context: Context, detail: CarDetail) {
+    val car = detail.car
+    val lineas = listOfNotNull(
+        context.getString(R.string.detail_share_title, "${car.title} ${car.year}"),
+        context.getString(R.string.detail_share_price, car.price, car.currency),
+        listOf(detail.ubicacion, car.kilometraje).filter { it.isNotBlank() && it != "—" }
+            .takeIf { it.isNotEmpty() }
+            ?.let { context.getString(R.string.detail_share_place, it.joinToString(" · ")) },
+        "",
+        context.getString(R.string.detail_share_footer),
+    )
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, lineas.joinToString("\n"))
+    }
+    context.startActivity(Intent.createChooser(intent, context.getString(R.string.detail_share)))
 }

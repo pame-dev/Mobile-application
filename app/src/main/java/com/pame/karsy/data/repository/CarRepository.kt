@@ -102,7 +102,11 @@ object CarRepository {
                 .groupBy { it.idPublicacion }
                 .mapValues { (_, filas) -> filas.mapNotNull { it.fechaFin }.max() }
         }.getOrDefault(emptyMap())
-        return cars.map { car -> fin[car.id]?.let { car.copy(featuredUntil = Formato.fechaCorta(it)) } ?: car }
+        return cars.map { car ->
+            fin[car.id]?.let {
+                car.copy(featuredUntil = Formato.fechaCorta(it), featuredEndsSoon = Formato.terminaEnDias(it, 3))
+            } ?: car
+        }
     }
 
     // ── Favoritos ────────────────────────────────────────────────────────────
@@ -284,6 +288,8 @@ object CarRepository {
             publishedAt = a.fechaPrimeraPublicacion ?: a.fechaCreacion,
             featured = a.destacado,
             featuredPending = a.destacadoPendiente,
+            estado = a.estadoUbicacion.orEmpty(),
+            municipio = a.municipioUbicacion.orEmpty(),
             disabledReason = a.motivoDeshabilitacion
                 ?.takeIf { a.estadoAdministrativo == "deshabilitada_administrador" },
             rejectedReason = a.motivoRechazo?.takeIf { a.estadoUltimaPropuesta == "rechazada" },

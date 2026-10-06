@@ -170,6 +170,11 @@
     <string name="home_featured_title">Featured vehicles</string>
     <string name="home_featured_subtitle">A special selection from our platform</string>
     <string name="home_all_title">All vehicles</string>
+    <string name="home_near_me">📍 Near me</string>
+    <string name="home_near_me_searching">📍 Finding your location…</string>
+    <string name="home_near_me_active">📍 Near %1$s  ✕</string>
+    <string name="home_near_me_failed">We could not get your location. Make sure location is turned on.</string>
+    <string name="home_near_me_denied">To show cars near you, allow access to your location.</string>
     <plurals name="home_vehicles_available">
         <item quantity="one">%1$d vehicle available</item>
         <item quantity="other">%1$d vehicles available</item>
@@ -223,6 +228,11 @@
     <string name="detail_contact_seller">Contact seller</string>
     <string name="detail_back">Back</string>
     <string name="detail_title">Vehicle details</string>
+    <string name="detail_share">Share</string>
+    <string name="detail_share_title">🚗 *%1$s*</string>
+    <string name="detail_share_price">💰 %1$s %2$s</string>
+    <string name="detail_share_place">📍 %1$s</string>
+    <string name="detail_share_footer">I found it on Karsy, the app to buy and sell cars.</string>
     <string name="detail_photo_counter">%1$d of %2$d</string>
     <string name="detail_report_content_desc">Report listing or account</string>
     <string name="detail_photo_n">Photo %1$d</string>
@@ -349,6 +359,9 @@
     <string name="profile_dashboard_no_listings">You haven\'t listed any vehicles yet. Tap \"+ Post\" to create your first one.</string>
     <string name="profile_dashboard_featured">Featured</string>
     <string name="profile_dashboard_featured_until">Featured until %1$s</string>
+    <string name="profile_dashboard_renew">Renew feature · ends %1$s</string>
+    <string name="detail_owner_renew">Renew feature</string>
+    <string name="detail_owner_featured_until">★ Until %1$s</string>
     <string name="profile_dashboard_request_sent">Request sent</string>
     <string name="profile_dashboard_feature">Feature</string>
     <string name="profile_dashboard_fix_resubmit">Fix and resubmit</string>
@@ -934,6 +947,7 @@
     <string name="notif_sent">Your listing \"%1$s\" was sent to the administrator and is being reviewed.</string>
     <string name="notif_approved">Your listing \"%1$s\" was approved! It is now visible to everyone.</string>
     <string name="notif_featured_mine">Your listing \"%1$s\" is now featured for 1 month.</string>
+    <string name="notif_featured_expiring">The feature for \"%1$s\" ends in less than 3 days. Renew it to keep appearing in featured listings.</string>
     <string name="notif_rejected">Your listing \"%1$s\" was rejected. Fix it and submit it again.</string>
     <string name="notif_edit_approved">The changes to your listing \"%1$s\" were approved and are now live.</string>
     <string name="notif_edit_rejected">The changes to \"%1$s\" were not approved. The previous version is still visible.</string>

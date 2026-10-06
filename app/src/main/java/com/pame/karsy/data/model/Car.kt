@@ -34,6 +34,11 @@ data class Car(
     val featuredPending: Boolean = false,
     /** Hasta cuándo dura el destacado vigente ("5 nov 2026"); solo se llena para el dueño. */
     val featuredUntil: String? = null,
+    /** El destacado vigente termina en 3 días o menos: se puede renovar. */
+    val featuredEndsSoon: Boolean = false,
+    /** Ubicación de la publicación (para "Cerca de mí"). */
+    val estado: String = "",
+    val municipio: String = "",
     /** Por qué administración deshabilitó la publicación (solo lo ven el dueño y el admin). */
     val disabledReason: String? = null,
     /**

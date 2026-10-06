@@ -59,13 +59,15 @@ class FavoritesViewModel : ViewModel() {
         filters = filters.copy(orden = ORDEN_OPCIONES[(i + 1) % ORDEN_OPCIONES.size])
     }
 
-    fun load() {
+    /** [onDone] se llama cuando la lista ya se actualizó (para quitar el pull-to-refresh). */
+    fun load(onDone: () -> Unit = {}) {
         viewModelScope.launch {
             loading = cars.isEmpty()
             safeCall { CarRepository.favoriteCars() }
                 .onSuccess { cars = it; error = null }
                 .onFailure { error = it.mensajeUsuario() }
             loading = false
+            onDone()
 
             if (catalogs == null) catalogs = safeCall { CatalogRepository.get() }.getOrNull()
         }

@@ -66,6 +66,14 @@ object Formato {
         }
     }
 
+    /** true si [iso] es dentro de [dias] días o menos (y aún no pasa). */
+    @OptIn(ExperimentalTime::class)
+    fun terminaEnDias(iso: String?, dias: Int): Boolean {
+        val fin = instante(iso) ?: return false
+        val restante = fin - Clock.System.now()
+        return restante.isPositive() && restante.inWholeHours <= dias * 24L
+    }
+
     @OptIn(ExperimentalTime::class)
     private fun instante(iso: String?): Instant? =
         iso?.let { runCatching { Instant.parse(it.replace(' ', 'T').let(::conZona)) }.getOrNull() }

@@ -1,6 +1,16 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.foundation.BorderStroke
+import com.pame.karsy.core.location.UbicacionActual
+import com.pame.karsy.core.location.Lugar
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import android.widget.Toast
+import android.content.pm.PackageManager
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -81,7 +91,9 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.HeartIcon
+import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.session.SessionManager
@@ -194,122 +206,135 @@ fun HomeScreen(
                 onToggleAccountMenu = { accountMenuOpen = !accountMenuOpen }
             )
 
-            LazyVerticalGrid(
-                state = gridState,
-                columns = GridCells.Adaptive(minSize = 280.dp),
-                contentPadding = PaddingValues(bottom = 120.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .navigationBarsPadding()
-            ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    HeroSection(
-                        stats = vm.heroStats,
-                        query = vm.query,
-                        onQueryChange = { vm.query = it },
-                        onSearch = showResults
-                    )
-                }
-
-                if (isVisitor) {
+            KarsyPullToRefresh(onRefresh = { done -> vm.refresh(done) }, modifier = Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    state = gridState,
+                    columns = GridCells.Adaptive(minSize = 280.dp),
+                    contentPadding = PaddingValues(bottom = 120.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding()
+                ) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        VisitorBanner(onRegister = goRegister, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp))
+                        HeroSection(
+                            stats = vm.heroStats,
+                            query = vm.query,
+                            onQueryChange = { vm.query = it },
+                            onSearch = showResults
+                        )
                     }
-                }
 
-                // Vehículos destacados (solicitudes de destacado aprobadas y vigentes)
-                // Mientras se busca se ocultan para que los resultados queden arriba.
-                if (featured.isNotEmpty() && !searching) item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column(Modifier.padding(top = 8.dp)) {
-                        SectionHeader(
-                            title = stringResource(R.string.home_featured_title),
-                            subtitle = stringResource(R.string.home_featured_subtitle),
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        ) {}
-                        // Carrusel infinito: la lista se repite LOOP_ITEMS veces y empieza a la mitad,
-                        // así después de la última viene la primera sin regresar (y se puede deslizar
-                        // hacia ambos lados). Con un solo destacado no hay carrusel.
-                        val loop = featured.size > 1
-                        val featuredState = remember(featured.size) {
-                            val start = if (loop) LOOP_ITEMS / 2 - (LOOP_ITEMS / 2) % featured.size else 0
-                            LazyListState(firstVisibleItemIndex = start)
+                    if (isVisitor) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            VisitorBanner(onRegister = goRegister, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp))
                         }
-                        if (loop) AutoScroll(featuredState)
-                        // Tarjeta centrada: deja a cada lado un margen igual donde asoman la
-                        // anterior y la siguiente ([CAROUSEL_PEEK] + [CAROUSEL_GAP]).
-                        BoxWithConstraints(Modifier.fillMaxWidth()) {
-                            val side = if (loop) CAROUSEL_PEEK + CAROUSEL_GAP else 16.dp
-                            val cardWidth = maxWidth - side * 2
-                            LazyRow(
-                                state = featuredState,
-                                // Al soltar, la tarjeta más cercana se acomoda al centro.
-                                flingBehavior = rememberSnapFlingBehavior(featuredState, SnapPosition.Center),
-                                contentPadding = PaddingValues(start = side, end = side, top = 16.dp, bottom = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(CAROUSEL_GAP)
-                            ) {
-                                items(if (loop) LOOP_ITEMS else featured.size) { index ->
-                                    val car = featured[index % featured.size]
-                                    FeaturedCarCard(
-                                        car = car,
-                                        isFavorite = car.id in favoriteIds,
-                                        showHeart = showHeart,
-                                        onClick = { onCarClick(car.id) },
-                                        onToggleFavorite = { toggleFavorite(car.id) },
-                                        width = cardWidth
-                                    )
+                    }
+
+                    // Vehículos destacados (solicitudes de destacado aprobadas y vigentes)
+                    // Mientras se busca se ocultan para que los resultados queden arriba.
+                    if (featured.isNotEmpty() && !searching) item(span = { GridItemSpan(maxLineSpan) }) {
+                        Column(Modifier.padding(top = 8.dp)) {
+                            SectionHeader(
+                                title = stringResource(R.string.home_featured_title),
+                                subtitle = stringResource(R.string.home_featured_subtitle),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            ) {}
+                            // Carrusel infinito: la lista se repite LOOP_ITEMS veces y empieza a la mitad,
+                            // así después de la última viene la primera sin regresar (y se puede deslizar
+                            // hacia ambos lados). Con un solo destacado no hay carrusel.
+                            val loop = featured.size > 1
+                            val featuredState = remember(featured.size) {
+                                val start = if (loop) LOOP_ITEMS / 2 - (LOOP_ITEMS / 2) % featured.size else 0
+                                LazyListState(firstVisibleItemIndex = start)
+                            }
+                            if (loop) AutoScroll(featuredState)
+                            // Tarjeta centrada: deja a cada lado un margen igual donde asoman la
+                            // anterior y la siguiente ([CAROUSEL_PEEK] + [CAROUSEL_GAP]).
+                            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                                val side = if (loop) CAROUSEL_PEEK + CAROUSEL_GAP else 16.dp
+                                val cardWidth = maxWidth - side * 2
+                                LazyRow(
+                                    state = featuredState,
+                                    // Al soltar, la tarjeta más cercana se acomoda al centro.
+                                    flingBehavior = rememberSnapFlingBehavior(featuredState, SnapPosition.Center),
+                                    contentPadding = PaddingValues(start = side, end = side, top = 16.dp, bottom = 16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(CAROUSEL_GAP)
+                                ) {
+                                    items(if (loop) LOOP_ITEMS else featured.size) { index ->
+                                        val car = featured[index % featured.size]
+                                        FeaturedCarCard(
+                                            car = car,
+                                            isFavorite = car.id in favoriteIds,
+                                            showHeart = showHeart,
+                                            onClick = { onCarClick(car.id) },
+                                            onToggleFavorite = { toggleFavorite(car.id) },
+                                            width = cardWidth
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                // Todos los vehículos
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    SectionHeader(
-                        title = stringResource(R.string.home_all_title),
-                        subtitle = pluralStringResource(R.plurals.home_vehicles_available, allCars.size, allCars.size),
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    ) {
-                        KarsySelect(
-                            selected = vm.filters.orden,
-                            options = ORDEN_OPCIONES,
-                            onSelect = { vm.filters = vm.filters.copy(orden = it) },
-                            fillWidth = false,
-                            container = KarsySurface,
-                            textColor = KarsyTextSecondary,
-                            label = filterLabel
-                        )
-                    }
-                }
-                when {
-                    vm.loading && allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
-                        Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = KarsyTeal)
+                    // Todos los vehículos
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        SectionHeader(
+                            title = stringResource(R.string.home_all_title),
+                            subtitle = pluralStringResource(R.plurals.home_vehicles_available, allCars.size, allCars.size),
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ) {
+                            KarsySelect(
+                                selected = vm.filters.orden,
+                                options = ORDEN_OPCIONES,
+                                onSelect = { vm.filters = vm.filters.copy(orden = it) },
+                                fillWidth = false,
+                                container = KarsySurface,
+                                textColor = KarsyTextSecondary,
+                                label = filterLabel
+                            )
                         }
                     }
-                    vm.error != null && allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
-                        EmptyMessage(vm.error!!, action = stringResource(R.string.home_retry), onAction = vm::refresh)
-                    }
-                    allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
-                        EmptyMessage(
-                            if (vm.cars.isEmpty()) stringResource(R.string.home_empty_no_vehicles)
-                            else stringResource(R.string.home_empty_no_match),
-                            action = if (vm.cars.isEmpty()) null else stringResource(R.string.home_clear_filters),
-                            onAction = { vm.filters = HomeFilters(); vm.query = "" }
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        NearMeChip(
+                            lugar = vm.cercaDe,
+                            onChange = { vm.cercaDe = it },
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
-                }
-                items(allCars, key = { it.id }) { car ->
-                    VehicleCard(
-                        car = car,
-                        isFavorite = car.id in favoriteIds,
-                        showHeart = showHeart,
-                        onClick = { onCarClick(car.id) },
-                        onToggleFavorite = { toggleFavorite(car.id) },
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
+                    when {
+                        // Mientras carga: tarjetas de esqueleto con la forma de las publicaciones.
+                        vm.loading && allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                repeat(3) { SkeletonCarCard() }
+                            }
+                        }
+                        vm.error != null && allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            EmptyMessage(vm.error!!, action = stringResource(R.string.home_retry), onAction = vm::refresh)
+                        }
+                        allCars.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            EmptyMessage(
+                                if (vm.cars.isEmpty()) stringResource(R.string.home_empty_no_vehicles)
+                                else stringResource(R.string.home_empty_no_match),
+                                action = if (vm.cars.isEmpty()) null else stringResource(R.string.home_clear_filters),
+                                onAction = { vm.filters = HomeFilters(); vm.query = ""; vm.cercaDe = null }
+                            )
+                        }
+                    }
+                    items(allCars, key = { it.id }) { car ->
+                        VehicleCard(
+                            car = car,
+                            isFavorite = car.id in favoriteIds,
+                            showHeart = showHeart,
+                            onClick = { onCarClick(car.id) },
+                            onToggleFavorite = { toggleFavorite(car.id) },
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -723,5 +748,66 @@ private fun AutoScroll(state: LazyListState) {
                 animationSpec = tween(durationMillis = SLIDE_MS, easing = SlideEasing)
             )
         }
+    }
+}
+
+/**
+ * "Cerca de mí": pide la ubicación aproximada (con permiso la primera vez) y filtra por el
+ * estado del teléfono, con los del mismo municipio primero. Activo, muestra el lugar y se
+ * quita con un toque.
+ */
+@Composable
+private fun NearMeChip(lugar: Lugar?, onChange: (Lugar?) -> Unit, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var buscando by remember { mutableStateOf(false) }
+    val sinUbicacion = stringResource(R.string.home_near_me_failed)
+
+    fun buscar() {
+        buscando = true
+        scope.launch {
+            val encontrado = UbicacionActual.obtener(context)
+            buscando = false
+            if (encontrado == null) Toast.makeText(context, sinUbicacion, Toast.LENGTH_LONG).show()
+            onChange(encontrado)
+        }
+    }
+    val permiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        if (concedido) buscar()
+        else Toast.makeText(context, context.getString(R.string.home_near_me_denied), Toast.LENGTH_LONG).show()
+    }
+
+    val activo = lugar != null
+    val shape = RoundedCornerShape(999.dp)
+    Row(modifier.fillMaxWidth()) {
+        Text(
+            when {
+                buscando -> stringResource(R.string.home_near_me_searching)
+                lugar != null -> stringResource(
+                    R.string.home_near_me_active,
+                    listOf(lugar.municipio, lugar.estado).filter { it.isNotBlank() }.joinToString(", ")
+                )
+                else -> stringResource(R.string.home_near_me)
+            },
+            fontFamily = DmSans,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (activo) KarsyWhite else KarsyInk,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .clip(shape)
+                .background(if (activo) KarsyTeal else KarsySurface)
+                .border(1.dp, if (activo) KarsyTeal else KarsyBorder, shape)
+                .clickable(enabled = !buscando) {
+                    when {
+                        activo -> onChange(null)
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                            PackageManager.PERMISSION_GRANTED -> buscar()
+                        else -> permiso.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    }
+                }
+                .padding(horizontal = 14.dp, vertical = 9.dp)
+        )
     }
 }

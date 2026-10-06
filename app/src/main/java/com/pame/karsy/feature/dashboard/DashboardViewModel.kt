@@ -57,8 +57,9 @@ class DashboardViewModel : ViewModel() {
     var solicitudCar by mutableStateOf<Car?>(null)
         private set
 
-    fun load() {
-        val uid = SessionManager.userId ?: run { loading = false; return }
+    /** [onDone] se llama cuando todo se actualizó (para quitar el pull-to-refresh). */
+    fun load(onDone: () -> Unit = {}) {
+        val uid = SessionManager.userId ?: run { loading = false; onDone(); return }
         viewModelScope.launch {
             safeCall { StatsRepository.seller() }
                 .onSuccess { stats = it; error = null }
@@ -67,11 +68,14 @@ class DashboardViewModel : ViewModel() {
             favoriteCounts = safeCall { CarRepository.favoriteCounts() }.getOrDefault(favoriteCounts)
             if (avatarUrl == null) avatarUrl = safeCall { UserRepository.currentUser()?.avatarUrl }.getOrNull()
             loading = false
+            onDone()
         }
     }
 
+    /** Destacar pide confirmación; renovar un destacado que está por terminar va directo (un toque). */
     fun askDestacar(car: Car) {
         destacarCar = car
+        if (car.featured && car.featuredEndsSoon) confirmDestacar()
     }
 
     fun cancelDestacar() {

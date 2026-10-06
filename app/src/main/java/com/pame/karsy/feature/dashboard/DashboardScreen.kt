@@ -64,6 +64,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.KarsyPullToRefresh
+import com.pame.karsy.core.components.SkeletonBlock
+import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -102,36 +105,42 @@ fun DashboardScreen(
         Column(Modifier.fillMaxSize()) {
             DashboardHeader(name = vm.displayName, avatarUrl = vm.avatarUrl, onBack = onBack)
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp)
-                    .navigationBarsPadding()
-                    .padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                vm.error?.let {
-                    Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
-                }
-                val stats = vm.stats
-                if (stats == null && vm.loading) {
-                    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = KarsyTeal)
+            KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+                        .navigationBarsPadding()
+                        .padding(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    vm.error?.let {
+                        Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
                     }
+                    val stats = vm.stats
+                    if (stats == null && vm.loading) {
+                        // Esqueleto: tarjetas de estadísticas + gráfica semanal + una publicación.
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
+                            SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
+                        }
+                        SkeletonBlock(170.dp, shape = RoundedCornerShape(16.dp))
+                        SkeletonCarCard(imageHeight = 110.dp)
+                    }
+                    if (stats != null) {
+                        StatsRow(stats, vm.viewsTrend)
+                        WeeklyInterestCard(stats.favoritosSemana, stats.diasSemana)
+                    }
+                    MyListingsSection(
+                        listings = vm.myListings,
+                        favoriteCounts = vm.favoriteCounts,
+                        onDestacar = vm::askDestacar,
+                        onEdit = onEditPublication,
+                        onNewPublication = onNewPublication,
+                        onCarClick = onCarClick
+                    )
                 }
-                if (stats != null) {
-                    StatsRow(stats, vm.viewsTrend)
-                    WeeklyInterestCard(stats.favoritosSemana, stats.diasSemana)
-                }
-                MyListingsSection(
-                    listings = vm.myListings,
-                    favoriteCounts = vm.favoriteCounts,
-                    onDestacar = vm::askDestacar,
-                    onEdit = onEditPublication,
-                    onNewPublication = onNewPublication,
-                    onCarClick = onCarClick
-                )
             }
         }
 
@@ -563,12 +572,14 @@ private fun ListingCard(
                 }
             } else {
                 // Solo un anuncio activo puede destacarse, y una solicitud a la vez.
-                val puedeDestacar = car.status == "Activo" && !car.featured && !car.featuredPending
+                // Si el destacado termina en 3 días o menos, se puede renovar.
+                val renovar = car.featured && car.featuredEndsSoon && !car.featuredPending
+                val puedeDestacar = car.status == "Activo" && !car.featuredPending && (!car.featured || renovar)
                 Button(
                     onClick = { onDestacar(car) },
                     enabled = puedeDestacar,
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
+                    colors = ButtonDefaults.buttonColors(containerColor = if (renovar) KarsyTeal else KarsyNavy, contentColor = KarsyWhite),
                     contentPadding = PaddingValues(vertical = 8.dp),
                     modifier = Modifier
                         .padding(top = 10.dp)
@@ -577,6 +588,7 @@ private fun ListingCard(
                 ) {
                     Text(
                         when {
+                            renovar -> stringResource(R.string.profile_dashboard_renew, car.featuredUntil.orEmpty())
                             car.featured && car.featuredUntil != null -> stringResource(R.string.profile_dashboard_featured_until, car.featuredUntil)
                             car.featured -> stringResource(R.string.profile_dashboard_featured)
                             car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)

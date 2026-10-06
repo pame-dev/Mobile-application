@@ -20,6 +20,7 @@ fun notificationTextRes(tipo: String): Int = when (tipo) {
     "edicion_rechazada" -> R.string.notif_edit_rejected
     "publicacion_deshabilitada" -> R.string.notif_disabled
     "destacado_rechazado" -> R.string.notif_featured_rejected
+    "destacado_por_vencer" -> R.string.notif_featured_expiring
     "reporte_atendido" -> R.string.notif_report_resolved
     "reporte_descartado" -> R.string.notif_report_dismissed
     else -> R.string.notif_generic
