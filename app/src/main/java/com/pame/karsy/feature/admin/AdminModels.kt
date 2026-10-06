@@ -17,15 +17,10 @@ data class AdminUser(
     val status: String,
     val posts: Int,
     val isAdmin: Boolean = false,
-)
-
-data class AdminLot(
-    val id: String,
-    val name: String,
-    val responsible: String,
-    val city: String,
-    val vehicles: Int,
-    val status: String,
+    // Solo cuentas de tipo lote (antes estaban en su propia sección).
+    val responsible: String = "",
+    val location: String = "",
+    val activeVehicles: Int = 0,
 )
 
 data class AdminVehicle(
@@ -33,6 +28,7 @@ data class AdminVehicle(
     /** Propuesta pendiente de revisión (null si no hay nada que moderar). */
     val pendingProposalId: Long?,
     val name: String,
+    val sellerId: String,
     val seller: String,
     val year: Int,
     val price: String,
@@ -51,6 +47,9 @@ data class AdminReport(
     val type: String,
     val reporter: String,
     val target: String,
+    /** Dueño de la publicación reportada: es la cuenta que se revisa en un reporte de "Usuario". */
+    val ownerId: String?,
+    val ownerName: String?,
     val imageUrl: String?,
     val reason: String,
     val resolution: String?,
@@ -88,7 +87,9 @@ data class AdminKpi(
     val bg: Color,
 )
 
+/** [count] es lo que hay pendiente; las alertas en 0 no se muestran. */
 data class AdminAlert(
+    val count: Int,
     val text: String,
     val icon: ImageVector,
     val bg: Color,

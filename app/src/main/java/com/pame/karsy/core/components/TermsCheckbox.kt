@@ -20,7 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
@@ -36,12 +39,16 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyWhite
 
-/** Casilla "Acepto los términos y condiciones de KARSY" (TermsNote del mockup). */
+/**
+ * Casilla "Acepto los términos y condiciones de KARSY" (TermsNote del mockup).
+ * Tocar el enlace abre los términos ([onOpenTerms]); el resto de la fila marca la casilla.
+ */
 @Composable
 fun TermsCheckbox(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenTerms: (() -> Unit)? = null,
 ) {
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -75,8 +82,13 @@ fun TermsCheckbox(
         Text(
             text = buildAnnotatedString {
                 append(termsPrefix)
-                withStyle(SpanStyle(color = KarsyTeal, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)) {
-                    append(termsLink)
+                val linkStyle = SpanStyle(color = KarsyTeal, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
+                if (onOpenTerms != null) {
+                    withLink(LinkAnnotation.Clickable("terms", TextLinkStyles(linkStyle)) { onOpenTerms() }) {
+                        append(termsLink)
+                    }
+                } else {
+                    withStyle(linkStyle) { append(termsLink) }
                 }
                 append(termsSuffix)
             },

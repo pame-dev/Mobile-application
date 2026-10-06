@@ -182,6 +182,11 @@ data class ReasonDialogTexts(
             R.string.admin2_dismiss_dialog_title, R.string.admin2_dismiss_dialog_desc,
             R.string.admin2_dismiss_dialog_hint, R.string.admin2_dismiss_confirm, R.string.admin2_dismiss_dialog_working,
         )
+        /** Reporte de cuenta que procede cuando la cuenta ya estaba suspendida. */
+        val CloseReport = ReasonDialogTexts(
+            R.string.admin2_close_report_dialog_title, R.string.admin2_close_report_dialog_desc,
+            R.string.admin2_close_report_dialog_hint, R.string.admin2_close_report_confirm, R.string.admin2_close_report_dialog_working,
+        )
     }
 }
 

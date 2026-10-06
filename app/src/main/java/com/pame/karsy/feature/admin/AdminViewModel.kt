@@ -104,18 +104,9 @@ class AdminViewModel : ViewModel() {
                 status = if (c.estadoCuenta == "suspendida") "Suspendido" else "Activo",
                 posts = c.publicaciones,
                 isAdmin = c.esAdmin,
-            )
-        }
-
-    val lots: List<AdminLot>
-        get() = accounts.filter { it.tipoCuenta == "lote" }.map { c ->
-            AdminLot(
-                id = c.idCuenta,
-                name = c.nombre,
                 responsible = c.responsable,
-                city = "${c.municipio}, ${c.estado}",
-                vehicles = c.activas,
-                status = if (c.estadoCuenta == "suspendida") "Suspendido" else "Activo",
+                location = listOf(c.municipio, c.estado).filter { it.isNotBlank() }.joinToString(", "),
+                activeVehicles = c.activas,
             )
         }
 
@@ -125,6 +116,7 @@ class AdminViewModel : ViewModel() {
                 id = car.id,
                 pendingProposalId = a.idUltimaPropuesta.takeIf { a.estadoUltimaPropuesta == "pendiente" },
                 name = car.title,
+                sellerId = car.ownerId,
                 seller = car.ownerName,
                 year = car.year,
                 price = car.price,
@@ -140,8 +132,9 @@ class AdminViewModel : ViewModel() {
 
     val reports: List<AdminReport>
         get() {
-            val fotos = cars.associate { it.first.id to it.first.imageUrl }
+            val porId = cars.associateBy { it.first.id }
             return reportRows.map { r ->
+                val car = porId[r.idPublicacion]?.first
                 val esCuenta = r.motivo.startsWith("Cuenta del vendedor")
                 AdminReport(
                     id = r.idReporte,
@@ -149,7 +142,9 @@ class AdminViewModel : ViewModel() {
                     type = if (esCuenta) "Usuario" else "Publicación",
                     reporter = r.reportante,
                     target = r.publicacion,
-                    imageUrl = fotos[r.idPublicacion],
+                    ownerId = car?.ownerId,
+                    ownerName = car?.ownerName,
+                    imageUrl = car?.imageUrl,
                     reason = r.motivo,
                     resolution = r.motivoResolucion,
                     date = Formato.fechaCorta(r.fecha),
@@ -201,14 +196,15 @@ class AdminViewModel : ViewModel() {
     val alerts: List<AdminAlert>
         get() {
             val s = stats ?: return emptyList()
+            // Solo lo que realmente tiene pendientes.
             return listOf(
-                AdminAlert(textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadas, s.deshabilitadas), Icons.Outlined.Description, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_suspended, s.suspendidas, s.suspendidas), Icons.Outlined.PersonOff, Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Icons.Outlined.Storefront, Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Lotes),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Icons.Outlined.Shield, Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Icons.Outlined.Flag, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
-                AdminAlert(textoPlural(R.plurals.admin2_alert_pending_featured, s.destacadosPendientes, s.destacadosPendientes), Icons.Outlined.StarOutline, Color(0xFFFFFBEB), Color(0xFFD97706), AdminSection.Destacados),
-            )
+                AdminAlert(s.deshabilitadas, textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadas, s.deshabilitadas), Icons.Outlined.Description, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos),
+                AdminAlert(s.suspendidas, textoPlural(R.plurals.admin2_alert_suspended, s.suspendidas, s.suspendidas), Icons.Outlined.PersonOff, Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios),
+                AdminAlert(s.lotesNuevos, textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Icons.Outlined.Storefront, Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Usuarios),
+                AdminAlert(s.propuestasPendientes, textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Icons.Outlined.Shield, Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
+                AdminAlert(s.reportesPendientes, textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Icons.Outlined.Flag, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
+                AdminAlert(s.destacadosPendientes, textoPlural(R.plurals.admin2_alert_pending_featured, s.destacadosPendientes, s.destacadosPendientes), Icons.Outlined.StarOutline, Color(0xFFFFFBEB), Color(0xFFD97706), AdminSection.Destacados),
+            ).filter { it.count > 0 }
         }
 
     // ── Acciones ─────────────────────────────────────────────────────────────
@@ -270,6 +266,19 @@ class AdminViewModel : ViewModel() {
         AdminRepository.resolveReport(reportId, "descartado", reason.trim(), disableCar = false)
     }
 
+    /**
+     * Reporte de cuenta que procede: suspende al dueño y atiende el reporte con el mismo motivo.
+     * Si la cuenta ya estaba suspendida, solo atiende el reporte.
+     */
+    fun suspendFromReport(report: AdminReport, reason: String, onSuccess: () -> Unit) = perform(
+        texto(R.string.admin2_msg_report_resolved_suspended), onSuccess
+    ) {
+        val ownerId = report.ownerId ?: throw UserFacingException(texto(R.string.admin2_msg_owner_not_found))
+        val yaSuspendida = accounts.firstOrNull { it.idCuenta == ownerId }?.estadoCuenta == "suspendida"
+        if (!yaSuspendida) AdminRepository.setAccountSuspended(ownerId, true, reason.trim())
+        AdminRepository.resolveReport(report.id, "atendido", reason.trim(), disableCar = false)
+    }
+
     fun resolveFeatured(request: FeaturedRequest, approve: Boolean, reason: String? = null) = perform(
         texto(if (approve) R.string.admin2_msg_featured_approved else R.string.admin2_msg_featured_rejected)
     ) {
@@ -295,6 +304,7 @@ internal fun adminValueLabelRes(value: String): Int? = when (value) {
     "Vendido" -> R.string.admin2_value_sold
     "Atendido" -> R.string.admin2_value_resolved
     "Descartado" -> R.string.admin2_value_dismissed
+    "Resuelto" -> R.string.admin2_value_closed
     "Usuario" -> R.string.admin2_value_user
     "Publicación" -> R.string.admin2_value_publication
     else -> null

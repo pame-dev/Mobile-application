@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Azul marino del logo de Karsy (fondo del ícono del launcher). -->
+    <color name="ic_launcher_background">#033052</color>
+</resources>

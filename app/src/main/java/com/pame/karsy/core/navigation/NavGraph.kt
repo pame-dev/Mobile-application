@@ -28,9 +28,11 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.feature.admin.AdminDashboardScreen
+import com.pame.karsy.feature.admin.AdminVehicleReviewBar
 import com.pame.karsy.feature.admin.AdminViewModel
 import com.pame.karsy.feature.admin.ReportReviewBar
 import com.pame.karsy.feature.admin.ReportReviewNotice
+import com.pame.karsy.feature.admin.UserReportReviewScreen
 import com.pame.karsy.feature.cardetail.CarDetailScreen
 import com.pame.karsy.feature.dashboard.DashboardScreen
 import com.pame.karsy.feature.favorites.FavoritesScreen
@@ -106,6 +108,7 @@ fun KarsyNavGraph(
     }
 
     fun openCar(id: Long) = navController.navigate(Routes.CarDetail.createRoute(id))
+    fun openAdminCar(id: Long) = navController.navigate(Routes.AdminVehicleReview.createRoute(id))
     fun goRegister() = navController.navigate(Routes.RegisterType.route)
     fun goVerifyEmail(email: String, sendCode: Boolean) =
         navController.navigate(Routes.VerifyEmail.createRoute(email, sendCode))
@@ -165,14 +168,16 @@ fun KarsyNavGraph(
             RegisterParticularScreen(
                 onBack = ::back,
                 onCreated = ::enterAs,
-                onVerifyEmail = { goVerifyEmail(it, sendCode = false) }
+                onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
+                onTerms = { navController.navigate(Routes.Terms.route) }
             )
         }
         composable(Routes.RegisterLote.route) {
             RegisterLoteScreen(
                 onBack = ::back,
                 onCreated = ::enterAs,
-                onVerifyEmail = { goVerifyEmail(it, sendCode = false) }
+                onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
+                onTerms = { navController.navigate(Routes.Terms.route) }
             )
         }
 
@@ -270,9 +275,27 @@ fun KarsyNavGraph(
         composable(Routes.AdminDashboard.route) {
             AdminDashboardScreen(
                 onBack = ::back,
-                onCarClick = ::openCar,
+                onCarClick = ::openAdminCar,
                 onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
                 onLogout = ::logout
+            )
+        }
+        // Publicación abierta desde el panel: solo acciones de admin (aunque el admin sea el dueño).
+        composable(
+            Routes.AdminVehicleReview.route,
+            arguments = listOf(navArgument(Routes.AdminVehicleReview.ARG) { type = NavType.LongType })
+        ) { entry ->
+            val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
+            val adminVm: AdminViewModel = viewModel(panelEntry)
+            val carId = entry.arguments?.getLong(Routes.AdminVehicleReview.ARG) ?: 0L
+            val vehicle = adminVm.vehicles.firstOrNull { it.id == carId }
+            CarDetailScreen(
+                carId = carId,
+                userMode = userMode,
+                onBack = ::back,
+                onRegister = ::goRegister,
+                onCarClick = ::openAdminCar,
+                bottomBar = { vehicle?.let { AdminVehicleReviewBar(adminVm, it, onDone = ::back) } }
             )
         }
         // Comparte el AdminViewModel del panel: al resolver, la lista de reportes se recarga sola.
@@ -287,6 +310,15 @@ fun KarsyNavGraph(
             if (report == null) {
                 // Ya resuelto o la lista aún no carga: regresa al panel.
                 LaunchedEffect(adminVm.loading) { if (!adminVm.loading) back() }
+            } else if (report.type == "Usuario") {
+                // Reporte de cuenta: se revisa la cuenta del vendedor, no la publicación.
+                UserReportReviewScreen(
+                    vm = adminVm,
+                    report = report,
+                    onBack = ::back,
+                    onCarClick = ::openAdminCar,
+                    onDone = ::back
+                )
             } else {
                 CarDetailScreen(
                     carId = report.publicationId,
@@ -295,9 +327,10 @@ fun KarsyNavGraph(
                     onRegister = ::goRegister,
                     onCarClick = ::openCar,
                     topNotice = { ReportReviewNotice(report) },
-                    bottomBar = if (report.status == "Pendiente") {
-                        { ReportReviewBar(adminVm, report, onDone = ::back) }
-                    } else null
+                    // Sin barra del dueño aunque el admin sea quien publicó.
+                    bottomBar = {
+                        if (report.status == "Pendiente") ReportReviewBar(adminVm, report, onDone = ::back)
+                    }
                 )
             }
         }

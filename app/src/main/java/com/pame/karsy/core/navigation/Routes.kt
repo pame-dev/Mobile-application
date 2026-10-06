@@ -40,6 +40,12 @@ sealed class Routes(val route: String) {
     object AdminDashboard : Routes("admin_dashboard")
 
     /** Publicación reportada abierta desde el panel, con las acciones de moderación abajo. */
+    /** Publicación abierta desde el panel: acciones de admin abajo, nunca las del dueño. */
+    object AdminVehicleReview : Routes("admin_vehicle_review/{carId}") {
+        const val ARG = "carId"
+        fun createRoute(carId: Long) = "admin_vehicle_review/$carId"
+    }
+
     object AdminReportReview : Routes("admin_report_review/{reportId}") {
         const val ARG = "reportId"
         fun createRoute(reportId: Long) = "admin_report_review/$reportId"

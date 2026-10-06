@@ -28,7 +28,6 @@ import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
@@ -56,7 +55,6 @@ import com.pame.karsy.core.theme.Outfit
 enum class AdminSection(@StringRes val labelRes: Int) {
     Inicio(R.string.admin2_section_home),
     Usuarios(R.string.admin2_section_users),
-    Lotes(R.string.admin2_section_lots),
     Vehiculos(R.string.admin2_section_vehicles),
     Reportes(R.string.admin2_section_reports),
     Destacados(R.string.admin2_section_featured);
@@ -67,7 +65,6 @@ enum class AdminSection(@StringRes val labelRes: Int) {
         get() = when (this) {
             Inicio -> Icons.Outlined.Home
             Usuarios -> Icons.Outlined.Group
-            Lotes -> Icons.Outlined.Storefront
             Vehiculos -> Icons.Outlined.DirectionsCar
             Reportes -> Icons.Outlined.Flag
             Destacados -> Icons.Outlined.StarOutline

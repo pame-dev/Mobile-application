@@ -344,6 +344,36 @@ fun AdminField(label: String, value: String, modifier: Modifier = Modifier, bold
     }
 }
 
+/**
+ * Encabezado de lista con el formato de Reportes: título y contador a la izquierda,
+ * filtro a la derecha. Va dentro de [AdminFilterBar].
+ */
+@Composable
+fun AdminListHeader(title: String, count: String, filter: (@Composable () -> Unit)? = null) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title, fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+            Spacer(Modifier.height(3.dp))
+            Text(count, fontFamily = DmSans, fontSize = 12.sp, color = AdminColors.Muted)
+        }
+        filter?.invoke()
+    }
+}
+
+/**
+ * Filtro desplegable por valores internos (en español) con etiqueta traducida.
+ * Compara por valor, no por etiqueta, para no depender del texto mostrado.
+ */
+@Composable
+fun AdminValueSelect(value: String, values: List<String>, onSelect: (String) -> Unit) {
+    val labels = values.map { adminValueLabel(it) }
+    AdminSelect(
+        value = adminValueLabel(value),
+        options = labels,
+        onSelect = { label -> labels.indexOf(label).takeIf { it >= 0 }?.let { onSelect(values[it]) } }
+    )
+}
+
 /** Barra superior de filtros dentro de una AdminCard. */
 @Composable
 fun AdminFilterBar(content: @Composable ColumnScope.() -> Unit) {
