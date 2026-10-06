@@ -661,6 +661,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
         stringResource(R.string.detail_spec_brand) to car.brand,
         stringResource(R.string.detail_spec_transmission) to detail.transmision,
         stringResource(R.string.detail_spec_mileage) to detail.kilometraje,
+        stringResource(R.string.detail_spec_insurance_recovered) to detail.recuperadoPorSeguro,
         stringResource(R.string.detail_spec_cylinders) to detail.cilindros,
         stringResource(R.string.detail_spec_engine) to detail.motor,
         stringResource(R.string.detail_spec_body_type) to detail.tipoCarro,

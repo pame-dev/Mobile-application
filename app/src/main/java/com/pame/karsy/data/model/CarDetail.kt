@@ -10,6 +10,8 @@ data class CarDetail(
     val gallery: List<String>,
     val transmision: String,
     val kilometraje: String,
+    /** "Sí", "No" o "—" si no se indicó. */
+    val recuperadoPorSeguro: String,
     val cilindros: String,
     val motor: String,
     val tipoCarro: String,

@@ -231,6 +231,7 @@
     <string name="detail_spec_brand">Make</string>
     <string name="detail_spec_transmission">Transmission</string>
     <string name="detail_spec_mileage">Mileage</string>
+    <string name="detail_spec_insurance_recovered">Recovered by insurance</string>
     <string name="detail_spec_cylinders">Cylinders</string>
     <string name="detail_spec_engine">Engine</string>
     <string name="detail_spec_body_type">Body type</string>
