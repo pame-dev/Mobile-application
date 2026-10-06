@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    // Lee app/google-services.json (proyecto de Firebase para las notificaciones push).
+    alias(libs.plugins.google.services)
 }
 
 // Credenciales de Supabase: se leen de local.properties (no se sube a git).
@@ -73,6 +75,8 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.storage)
     implementation(libs.ktor.client.okhttp)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

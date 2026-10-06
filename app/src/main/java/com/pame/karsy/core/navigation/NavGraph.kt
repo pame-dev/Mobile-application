@@ -50,10 +50,21 @@ import com.pame.karsy.feature.register.RegisterLoteScreen
 import com.pame.karsy.feature.register.RegisterParticularScreen
 import com.pame.karsy.feature.register.RegisterTypeScreen
 import kotlinx.coroutines.launch
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.pame.karsy.core.push.PushTokens
 
 @Composable
 fun KarsyNavGraph(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    /** Cambia cada vez que el usuario toca una notificación push. */
+    openNotificationsRequest: Int = 0,
 ) {
     val userMode = SessionManager.userMode
     val scope = rememberCoroutineScope()
@@ -71,6 +82,33 @@ fun KarsyNavGraph(
             CircularProgressIndicator(color = KarsyTeal)
         }
         return
+    }
+
+    // ── Notificaciones push ──────────────────────────────────────────────────
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val sessionUserId = SessionManager.userId
+    LaunchedEffect(sessionUserId) {
+        if (sessionUserId == null) return@LaunchedEffect
+        // Este teléfono recibe los avisos de la cuenta en sesión.
+        safeCall { PushTokens.register(context) }
+        // Android 13+: se pide el permiso una sola vez (si lo niega, no se insiste).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            val prefs = context.getSharedPreferences("push", Context.MODE_PRIVATE)
+            if (!prefs.getBoolean("permiso_pedido", false)) {
+                prefs.edit().putBoolean("permiso_pedido", true).apply()
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+    // Tocar una notificación push abre la bandeja de avisos (si hay sesión).
+    LaunchedEffect(openNotificationsRequest, sessionUserId) {
+        if (openNotificationsRequest > 0 && sessionUserId != null) {
+            navController.navigate(Routes.Notifications.route) { launchSingleTop = true }
+        }
     }
 
     /**
@@ -99,6 +137,8 @@ fun KarsyNavGraph(
 
     fun logout() {
         scope.launch {
+            // Antes de cerrar sesión: este teléfono deja de recibir avisos de la cuenta.
+            PushTokens.unregister(context)
             AuthRepository.signOut()
             SessionManager.logout()
             navController.navigate(Routes.Welcome.route) {

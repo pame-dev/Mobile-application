@@ -17,3 +17,7 @@ node_modules/
 # Respaldos de la BD (contienen datos personales)
 respaldos/
 respaldo_*.sql
+
+# Cuenta de servicio de Firebase (secreto: va solo en los secretos de Supabase)
+*firebase-adminsdk*.json
+*service-account*.json

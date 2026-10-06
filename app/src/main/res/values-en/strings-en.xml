@@ -857,6 +857,9 @@
     <string name="terms_s9_body">Karsy may update these terms at any time. We will let you know in the app when there are important changes. If you keep using Karsy after a change, you accept the updated terms.</string>
     <!-- User notifications (Settings → Notifications) -->
     <string name="notif_title">Notifications</string>
+    <string name="app_name_display">Karsy</string>
+    <string name="push_channel_name">Account notices</string>
+    <string name="push_channel_desc">Administrator decisions about your listings and other account notices.</string>
     <string name="notif_empty">You don\'t have any notifications yet.</string>
     <string name="notif_vehicle_fallback">your vehicle</string>
     <string name="notif_favorite">Someone liked your listing \"%1$s\" and added it to their favorites.</string>
