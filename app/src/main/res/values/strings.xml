@@ -456,6 +456,9 @@
     <string name="publish_label_price">PRECIO ($)</string>
     <string name="publish_label_transmission">TRANSMISIÓN</string>
     <string name="publish_label_mileage">KILOMETRAJE</string>
+    <string name="publish_label_insurance_recovered">RECUPERADO POR EL SEGURO</string>
+    <string name="publish_yes">Sí</string>
+    <string name="publish_no">No</string>
     <string name="publish_label_cylinders">CILINDROS</string>
     <string name="publish_label_horsepower">CABALLOS DE FUERZA</string>
     <string name="publish_label_engine">MOTOR</string>
@@ -487,6 +490,7 @@
     <string name="publish_spec_brand">Marca</string>
     <string name="publish_spec_transmission">Transmisión</string>
     <string name="publish_spec_mileage">Kilometraje</string>
+    <string name="publish_spec_insurance_recovered">Recuperado por el seguro</string>
     <string name="publish_spec_cylinders">Cilindros</string>
     <string name="publish_spec_horsepower">Caballos de fuerza</string>
     <string name="publish_spec_engine">Motor</string>

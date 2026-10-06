@@ -165,6 +165,35 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18,500 km", numeric = true)
             }
 
+            Column {
+                FieldLabel(stringResource(R.string.publish_label_insurance_recovered))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        true to stringResource(R.string.publish_yes),
+                        false to stringResource(R.string.publish_no),
+                    ).forEach { (valor, etiqueta) ->
+                        val selected = form.recuperadoPorSeguro == valor
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (selected) KarsyNavy else KarsyBg)
+                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
+                                .clickable { form.recuperadoPorSeguro = valor }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                etiqueta,
+                                fontFamily = DmSans,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (selected) KarsyWhite else KarsyMid
+                            )
+                        }
+                    }
+                }
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_cylinders))

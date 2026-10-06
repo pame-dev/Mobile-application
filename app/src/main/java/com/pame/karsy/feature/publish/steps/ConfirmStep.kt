@@ -86,6 +86,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
         stringResource(R.string.publish_spec_brand) to form.marcaNombre,
         stringResource(R.string.publish_spec_transmission) to form.transmisionNombre,
         stringResource(R.string.publish_spec_mileage) to form.kilometraje.filter(Char::isDigit).toIntOrNull().let { Formato.km(it) },
+        stringResource(R.string.publish_spec_insurance_recovered) to stringResource(if (form.recuperadoPorSeguro) R.string.publish_yes else R.string.publish_no),
         stringResource(R.string.publish_spec_cylinders) to form.cilindros.ifBlank { "—" },
         stringResource(R.string.publish_spec_horsepower) to form.caballos.filter(Char::isDigit).let { if (it.isEmpty()) "—" else "$it hp" },
         stringResource(R.string.publish_spec_engine) to form.motor.trim().ifEmpty { "—" },
