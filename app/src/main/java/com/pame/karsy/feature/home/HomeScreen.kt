@@ -26,7 +26,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -219,22 +224,38 @@ fun HomeScreen(
                             subtitle = stringResource(R.string.home_featured_subtitle),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {}
-                        val featuredState = rememberLazyListState()
-                        AutoScroll(featuredState, itemCount = featured.size)
-                        LazyRow(
-                            state = featuredState,
-                            flingBehavior = rememberSnapFlingBehavior(featuredState),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(featured, key = { it.id }) { car ->
-                                FeaturedCarCard(
-                                    car = car,
-                                    isFavorite = car.id in favoriteIds,
-                                    showHeart = showHeart,
-                                    onClick = { onCarClick(car.id) },
-                                    onToggleFavorite = { toggleFavorite(car.id) }
-                                )
+                        // Carrusel infinito: la lista se repite LOOP_ITEMS veces y empieza a la mitad,
+                        // así después de la última viene la primera sin regresar (y se puede deslizar
+                        // hacia ambos lados). Con un solo destacado no hay carrusel.
+                        val loop = featured.size > 1
+                        val featuredState = remember(featured.size) {
+                            val start = if (loop) LOOP_ITEMS / 2 - (LOOP_ITEMS / 2) % featured.size else 0
+                            LazyListState(firstVisibleItemIndex = start)
+                        }
+                        if (loop) AutoScroll(featuredState)
+                        // Tarjeta centrada: deja a cada lado un margen igual donde asoman la
+                        // anterior y la siguiente ([CAROUSEL_PEEK] + [CAROUSEL_GAP]).
+                        BoxWithConstraints(Modifier.fillMaxWidth()) {
+                            val side = if (loop) CAROUSEL_PEEK + CAROUSEL_GAP else 16.dp
+                            val cardWidth = maxWidth - side * 2
+                            LazyRow(
+                                state = featuredState,
+                                // Al soltar, la tarjeta más cercana se acomoda al centro.
+                                flingBehavior = rememberSnapFlingBehavior(featuredState, SnapPosition.Center),
+                                contentPadding = PaddingValues(start = side, end = side, top = 16.dp, bottom = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(CAROUSEL_GAP)
+                            ) {
+                                items(if (loop) LOOP_ITEMS else featured.size) { index ->
+                                    val car = featured[index % featured.size]
+                                    FeaturedCarCard(
+                                        car = car,
+                                        isFavorite = car.id in favoriteIds,
+                                        showHeart = showHeart,
+                                        onClick = { onCarClick(car.id) },
+                                        onToggleFavorite = { toggleFavorite(car.id) },
+                                        width = cardWidth
+                                    )
+                                }
                             }
                         }
                     }
@@ -653,25 +674,50 @@ private fun AddFab(
     }
 }
 
-/** Intervalo entre cambios automáticos del carrusel de destacados. */
-private const val AUTO_SCROLL_MS = 4_000L
+/** Tiempo que cada destacado se queda quieto para que se pueda leer. */
+private const val AUTO_SCROLL_MS = 6_000L
+
+/** Duración del deslizamiento hacia el siguiente destacado. */
+private const val SLIDE_MS = 1_200
+
+/** Acelera y frena suave (ease-in-out): sin arranques ni paradas bruscas. */
+private val SlideEasing = CubicBezierEasing(0.65f, 0f, 0.35f, 1f)
+
+/** Cuánto asoman las tarjetas vecinas a cada lado del destacado centrado. */
+private val CAROUSEL_PEEK = 22.dp
+
+/** Separación entre tarjetas del carrusel. */
+private val CAROUSEL_GAP = 12.dp
+
+/** Posiciones del carrusel infinito (a 6 s por tarjeta alcanza para horas sin llegar al final). */
+private const val LOOP_ITEMS = 10_000
 
 /**
- * Avanza el carrusel una tarjeta cada [AUTO_SCROLL_MS] y al llegar al final vuelve
- * al inicio. Si el usuario lo desliza, la cuenta empieza de nuevo al soltarlo.
+ * Avanza el carrusel una tarjeta cada [AUTO_SCROLL_MS], siempre hacia adelante (el
+ * carrusel es infinito), con un deslizamiento suave de [SLIDE_MS]. Si el usuario lo
+ * desliza, la cuenta empieza de nuevo al soltarlo.
  */
 @Composable
-private fun AutoScroll(state: LazyListState, itemCount: Int) {
-    if (itemCount < 2) return
+private fun AutoScroll(state: LazyListState) {
     // Solo el arrastre del usuario pausa el carrusel; el desplazamiento automático no
     // (si se usara isScrollInProgress, el propio avance cancelaría su animación).
     val dragging by state.interactionSource.collectIsDraggedAsState()
-    LaunchedEffect(state, itemCount, dragging) {
+    LaunchedEffect(state, dragging) {
         if (dragging) return@LaunchedEffect
         while (true) {
             delay(AUTO_SCROLL_MS)
-            val next = if (state.canScrollForward) state.firstVisibleItemIndex + 1 else 0
-            state.animateScrollToItem(next.coerceAtMost(itemCount - 1))
+            if (!state.canScrollForward) continue
+            // La tarjeta mostrada es la más cercana al centro (las vecinas asoman a los lados);
+            // se desliza de su centro al de la siguiente para que esta quede centrada igual.
+            val info = state.layoutInfo
+            val viewportCenter = (info.viewportStartOffset + info.viewportEndOffset) / 2
+            val centered = info.visibleItemsInfo
+                .minByOrNull { kotlin.math.abs(it.offset + it.size / 2 - viewportCenter) } ?: continue
+            val next = info.visibleItemsInfo.firstOrNull { it.index == centered.index + 1 } ?: continue
+            state.animateScrollBy(
+                value = (next.offset - centered.offset).toFloat(),
+                animationSpec = tween(durationMillis = SLIDE_MS, easing = SlideEasing)
+            )
         }
     }
 }
