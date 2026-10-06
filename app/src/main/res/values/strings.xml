@@ -631,6 +631,7 @@
     <string name="admin2_value_dismissed">Descartado</string>
     <string name="admin2_value_closed">Resueltos</string>
     <string name="admin2_review_enable">Rehabilitar publicación</string>
+    <string name="admin2_review_approve_reenables">Esta publicación está deshabilitada. Si apruebas los cambios, se volverá a habilitar.</string>
     <string name="admin2_value_user">Usuario</string>
     <string name="admin2_value_publication">Publicación</string>
     <string name="admin2_users_desc">Consulta y administra las cuentas registradas en Karsy.</string>

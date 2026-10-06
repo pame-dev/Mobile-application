@@ -53,6 +53,16 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
                 .navigationBarsPadding()
                 .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
         ) {
+            // Edición corregida de una publicación deshabilitada: aprobarla la rehabilita (trigger en la BD).
+            if (vehicle.pendingProposalId != null && !vehicle.enabledByAdmin) {
+                Text(
+                    stringResource(R.string.admin2_review_approve_reenables),
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    color = BadgeTone.Warning.fg
+                )
+            }
             if (acted && dialog == null && !vm.working) vm.message?.let {
                 Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg)
             }

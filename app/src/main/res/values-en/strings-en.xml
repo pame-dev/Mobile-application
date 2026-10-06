@@ -629,6 +629,7 @@
     <string name="admin2_value_dismissed">Dismissed</string>
     <string name="admin2_value_closed">Resolved</string>
     <string name="admin2_review_enable">Re-enable listing</string>
+    <string name="admin2_review_approve_reenables">This listing is disabled. If you approve the changes, it will be re-enabled.</string>
     <string name="admin2_value_user">User</string>
     <string name="admin2_value_publication">Listing</string>
     <string name="admin2_users_desc">View and manage the accounts registered on Karsy.</string>
