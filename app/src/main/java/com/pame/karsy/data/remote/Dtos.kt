@@ -34,6 +34,7 @@ data class AnuncioDto(
     @SerialName("numero_propietarios_anteriores") val propietariosAnteriores: Int? = null,
     @SerialName("tiene_problemas") val tieneProblemas: Boolean? = null,
     @SerialName("descripcion_problemas") val descripcionProblemas: String? = null,
+    @SerialName("recuperado_por_seguro") val recuperadoPorSeguro: Boolean? = null,
     @SerialName("tipo_combustible") val combustible: String? = null,
     val cilindros: Int? = null,
     val cilindrada: String? = null,

@@ -77,6 +77,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var precio by mutableStateOf("")
     var idTransmision by mutableStateOf<Long?>(null)
     var kilometraje by mutableStateOf("")
+    /** Columna recuperado_por_seguro. */
+    var recuperadoPorSeguro by mutableStateOf(false)
     var cilindros by mutableStateOf("")
     var caballos by mutableStateOf("")
     /** Cilindrada / tipo de motor en texto libre (columna cilindrada), p. ej. "2.0 L Turbo". */
@@ -125,6 +127,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         precio = a.precio?.toLong()?.toString().orEmpty()
         idTransmision = a.idTransmision
         kilometraje = a.kilometraje?.toString().orEmpty()
+        recuperadoPorSeguro = a.recuperadoPorSeguro == true
         cilindros = a.cilindros?.toString().orEmpty()
         motor = a.cilindrada.orEmpty()
         combustible = a.combustible.orEmpty()
@@ -254,6 +257,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     put("modelo_otro", if (modeloEsOtro) modeloOtro.trim() else null)
                     put("anio", anio.trim().toInt())
                     put("kilometraje", kilometraje.filter(Char::isDigit).toLong())
+                    put("recuperado_por_seguro", recuperadoPorSeguro)
                     put("id_color", idColor)
                     put("id_transmision", idTransmision)
                     put("id_carroceria", idCarroceria)

@@ -454,6 +454,9 @@
     <string name="publish_label_price">PRICE ($)</string>
     <string name="publish_label_transmission">TRANSMISSION</string>
     <string name="publish_label_mileage">MILEAGE</string>
+    <string name="publish_label_insurance_recovered">RECOVERED BY INSURANCE</string>
+    <string name="publish_yes">Yes</string>
+    <string name="publish_no">No</string>
     <string name="publish_label_cylinders">CYLINDERS</string>
     <string name="publish_label_horsepower">HORSEPOWER</string>
     <string name="publish_label_engine">ENGINE</string>
@@ -485,6 +488,7 @@
     <string name="publish_spec_brand">Make</string>
     <string name="publish_spec_transmission">Transmission</string>
     <string name="publish_spec_mileage">Mileage</string>
+    <string name="publish_spec_insurance_recovered">Recovered by insurance</string>
     <string name="publish_spec_cylinders">Cylinders</string>
     <string name="publish_spec_horsepower">Horsepower</string>
     <string name="publish_spec_engine">Engine</string>
