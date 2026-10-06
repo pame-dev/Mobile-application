@@ -296,6 +296,7 @@ object CarRepository {
             gallery = a.fotos.mapNotNull { Supabase.publicUrl(it) },
             transmision = a.transmision ?: "—",
             kilometraje = Formato.km(a.kilometraje),
+            recuperadoPorSeguro = a.recuperadoPorSeguro?.let { texto(if (it) R.string.publish_yes else R.string.publish_no) } ?: "—",
             cilindros = a.cilindros?.toString() ?: "—",
             motor = a.cilindrada ?: "—",
             tipoCarro = a.carroceria ?: "—",
