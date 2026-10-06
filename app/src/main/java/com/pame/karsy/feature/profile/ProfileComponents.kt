@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.data.model.SOLD_INSIDE_APP
+import com.pame.karsy.data.model.SOLD_OUTSIDE_APP
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyNavyDeep
 import com.pame.karsy.core.theme.KarsyImagePlaceholder
@@ -101,6 +103,14 @@ internal fun carStatusLabel(status: String): String = when (status) {
     "Vendido" -> stringResource(R.string.profile_status_sold)
     "Pausado" -> stringResource(R.string.profile_status_paused)
     else -> status
+}
+
+/** "Vendido dentro / fuera de la app"; null si no se registró dónde se vendió. */
+@Composable
+internal fun soldViaLabel(via: String?): String? = when (via) {
+    SOLD_INSIDE_APP -> stringResource(R.string.sold_via_inside)
+    SOLD_OUTSIDE_APP -> stringResource(R.string.sold_via_outside)
+    else -> null
 }
 
 /** Iniciales para el avatar cuando la cuenta no tiene foto. */

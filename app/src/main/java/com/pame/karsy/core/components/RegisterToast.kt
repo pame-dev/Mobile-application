@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,6 +41,7 @@ import kotlinx.coroutines.delay
 
 /**
  * Aviso flotante que invita al visitante a registrarse. Se cierra solo a los 3.5 s.
+ * Con [showRegister] = false es solo un aviso (p. ej. para un usuario con sesión).
  * Colócalo dentro de un Box con Modifier.align(Alignment.BottomCenter).
  */
 @Composable
@@ -48,6 +50,7 @@ fun RegisterToast(
     onClose: () -> Unit,
     onRegister: () -> Unit,
     modifier: Modifier = Modifier,
+    showRegister: Boolean = true,
 ) {
     LaunchedEffect(message) {
         delay(3500)
@@ -73,18 +76,18 @@ fun RegisterToast(
                 .background(KarsyTeal),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Outlined.Lock, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(20.dp))
+            Icon(if (showRegister) Icons.Outlined.Lock else Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(20.dp))
         }
         Column(Modifier.weight(1f)) {
             Text(message, color = KarsyWhite, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(
+            if (showRegister) Text(
                 stringResource(R.string.core_register_toast_subtitle),
                 color = Color.White.copy(alpha = 0.6f),
                 fontFamily = DmSans,
                 fontSize = 12.sp
             )
         }
-        Button(
+        if (showRegister) Button(
             onClick = onRegister,
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),

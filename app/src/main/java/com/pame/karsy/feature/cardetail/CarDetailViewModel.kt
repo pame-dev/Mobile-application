@@ -74,6 +74,25 @@ class CarDetailViewModel : ViewModel() {
         }
     }
 
+    /**
+     * El dueño marca su publicación como vendida ([via]: "dentro_app" o "fuera_app")
+     * o le quita la marca para que vuelva a estar disponible.
+     */
+    fun setSold(sold: Boolean, via: String? = null, onDone: (error: String?) -> Unit) {
+        val id = detail?.car?.id ?: return
+        if (updatingStatus) return
+        updatingStatus = true
+        viewModelScope.launch {
+            safeCall {
+                CarRepository.setSold(id, sold, via)
+                CarRepository.detail(id)
+            }
+                .onSuccess { detail = it ?: detail; onDone(null) }
+                .onFailure { onDone(it.mensajeUsuario()) }
+            updatingStatus = false
+        }
+    }
+
     /** El dueño pide destacar su publicación (lo aprueba un admin). */
     fun requestFeatured(onDone: (error: String?) -> Unit) {
         val current = detail ?: return

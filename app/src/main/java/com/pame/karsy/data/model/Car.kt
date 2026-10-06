@@ -1,5 +1,9 @@
 package com.pame.karsy.data.model
 
+/** Valores de publicaciones.medio_venta: dónde se vendió el auto. */
+const val SOLD_INSIDE_APP = "dentro_app"
+const val SOLD_OUTSIDE_APP = "fuera_app"
+
 /**
  * Vehículo tal como se muestra en listas y tarjetas.
  * Se construye desde la vista public.v_anuncios (ver CarRepository).
@@ -41,6 +45,10 @@ data class Car(
     val inReview: Boolean = false,
     /** Ya se aprobó alguna vez (es visible salvo que esté pausada/deshabilitada/vendida). */
     val approved: Boolean = false,
+    /** El dueño la marcó como vendida. */
+    val sold: Boolean = false,
+    /** Dónde se vendió: "dentro_app" o "fuera_app" (null si no se sabe o no está vendida). */
+    val soldVia: String? = null,
 ) {
     val title: String get() = "$brand $model"
 }

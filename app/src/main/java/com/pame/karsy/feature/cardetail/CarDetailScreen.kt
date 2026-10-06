@@ -30,6 +30,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.Sell
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -87,10 +88,13 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.model.SOLD_INSIDE_APP
+import com.pame.karsy.data.model.SOLD_OUTSIDE_APP
 import com.pame.karsy.feature.dashboard.DestacarDialog
 import com.pame.karsy.feature.dashboard.SolicitudEnviadaDialog
 import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.feature.profile.ProfileAvatar
+import com.pame.karsy.feature.profile.soldViaLabel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -139,14 +143,28 @@ fun CarDetailScreen(
     var confirmPause by rememberSaveable { mutableStateOf(false) }
     var askFeature by rememberSaveable { mutableStateOf(false) }
     var featureSent by rememberSaveable { mutableStateOf(false) }
+    // Marcar como vendido: primero se confirma y luego se elige dónde se vendió.
+    var confirmSold by rememberSaveable { mutableStateOf(false) }
+    var askSoldVia by rememberSaveable { mutableStateOf(false) }
+    var confirmAvailable by rememberSaveable { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
     val msgPaused = stringResource(R.string.detail_owner_paused)
     val msgResumed = stringResource(R.string.detail_owner_resumed)
+    val msgSold = stringResource(R.string.detail_owner_marked_sold)
+    val msgAvailable = stringResource(R.string.detail_owner_marked_available)
 
     fun setPaused(paused: Boolean) {
         vm.setPaused(paused) { error ->
             confirmPause = false
             toastMessage = error ?: if (paused) msgPaused else msgResumed
+        }
+    }
+
+    fun setSold(sold: Boolean, via: String? = null) {
+        vm.setSold(sold, via) { error ->
+            askSoldVia = false
+            confirmAvailable = false
+            toastMessage = error ?: if (sold) msgSold else msgAvailable
         }
     }
 
@@ -209,6 +227,10 @@ fun CarDetailScreen(
                     .padding(bottom = 20.dp)
             ) {
                 topNotice?.invoke()
+                // Vendida: quien la tenga en favoritos (o la abra) ve que ya no está disponible.
+                if (detail.car.status == "Vendido") {
+                    SoldNotice(isOwner = isOwner, via = detail.car.soldVia)
+                }
                 // El dueño ve por qué administración deshabilitó su publicación.
                 if (isOwner && detail.car.status == "Deshabilitado") {
                     DisabledNotice(reason = detail.car.disabledReason)
@@ -242,6 +264,8 @@ fun CarDetailScreen(
                 onPause = { confirmPause = true },
                 onResume = { setPaused(false) },
                 onFeature = { askFeature = true },
+                onMarkSold = { confirmSold = true },
+                onMarkAvailable = { confirmAvailable = true },
             )
             else Column(Modifier.background(KarsyBg)) {
                 HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -250,7 +274,13 @@ fun CarDetailScreen(
                         .navigationBarsPadding()
                         .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp)
                 ) {
-                    PrimaryButton(text = stringResource(R.string.detail_contact_seller), onClick = ::handleContact)
+                    // Ya vendido: no tiene caso contactar al vendedor.
+                    if (detail.car.status == "Vendido") PrimaryButton(
+                        text = stringResource(R.string.detail_sold_unavailable),
+                        onClick = {},
+                        enabled = false
+                    )
+                    else PrimaryButton(text = stringResource(R.string.detail_contact_seller), onClick = ::handleContact)
                 }
             }
         }
@@ -281,6 +311,88 @@ fun CarDetailScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { confirmPause = false }, enabled = !vm.updatingStatus) {
+                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
+                    }
+                }
+            )
+        }
+
+        if (confirmSold) {
+            AlertDialog(
+                onDismissRequest = { confirmSold = false },
+                containerColor = KarsySurface,
+                title = { Text(stringResource(R.string.detail_owner_sold_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+                text = { Text(stringResource(R.string.detail_owner_sold_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        confirmSold = false
+                        askSoldVia = true
+                    }) {
+                        Text(stringResource(R.string.detail_owner_sold_confirm), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyTeal)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { confirmSold = false }) {
+                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
+                    }
+                }
+            )
+        }
+
+        // Segundo paso: dónde se vendió (se guarda en publicaciones.medio_venta).
+        if (askSoldVia) {
+            AlertDialog(
+                onDismissRequest = { if (!vm.updatingStatus) askSoldVia = false },
+                containerColor = KarsySurface,
+                title = { Text(stringResource(R.string.detail_owner_sold_via_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            stringResource(R.string.detail_owner_sold_via_desc),
+                            fontFamily = DmSans,
+                            fontSize = 14.sp,
+                            color = KarsyCharcoal,
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                        OwnerButton(
+                            text = stringResource(R.string.detail_owner_sold_via_inside),
+                            onClick = { setSold(true, SOLD_INSIDE_APP) },
+                            enabled = !vm.updatingStatus,
+                            filled = true,
+                            color = KarsyTeal,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OwnerButton(
+                            text = stringResource(R.string.detail_owner_sold_via_outside),
+                            onClick = { setSold(true, SOLD_OUTSIDE_APP) },
+                            enabled = !vm.updatingStatus,
+                            color = KarsyNavy,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { askSoldVia = false }, enabled = !vm.updatingStatus) {
+                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
+                    }
+                }
+            )
+        }
+
+        if (confirmAvailable) {
+            AlertDialog(
+                onDismissRequest = { if (!vm.updatingStatus) confirmAvailable = false },
+                containerColor = KarsySurface,
+                title = { Text(stringResource(R.string.detail_owner_available_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+                text = { Text(stringResource(R.string.detail_owner_available_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                confirmButton = {
+                    TextButton(onClick = { setSold(false) }, enabled = !vm.updatingStatus) {
+                        Text(stringResource(R.string.detail_owner_mark_available), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyTeal)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { confirmAvailable = false }, enabled = !vm.updatingStatus) {
                         Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
                     }
                 }
@@ -324,6 +436,8 @@ fun CarDetailScreen(
                     onRegister()
                 },
                 modifier = Modifier.align(Alignment.BottomCenter),
+                // Solo al visitante se le invita a registrarse; con sesión es un aviso normal.
+                showRegister = isVisitor,
             )
         }
     }
@@ -348,7 +462,8 @@ fun CarDetailScreen(
 
 /**
  * Acciones del dueño sobre su publicación: deshabilitarla / habilitarla, pedir que se
- * destaque y editarla (los cambios pasan por revisión; mientras tanto no se edita).
+ * destaque, editarla (los cambios pasan por revisión; mientras tanto no se edita) y
+ * marcarla como vendida o, si ya lo está, volver a marcarla como disponible.
  */
 @Composable
 private fun OwnerActionsBar(
@@ -358,58 +473,81 @@ private fun OwnerActionsBar(
     onPause: () -> Unit,
     onResume: () -> Unit,
     onFeature: () -> Unit,
+    onMarkSold: () -> Unit,
+    onMarkAvailable: () -> Unit,
 ) {
-    // Pausar y destacar solo aplican a una publicación aprobada que el dueño controla.
+    // Pausar, destacar y marcar como vendida solo aplican a una publicación aprobada que el dueño controla.
     val canToggle = car.approved && car.status in listOf("Activo", "Pausado")
     val showFeature = car.approved && car.status == "Activo"
     // Una rechazada se corrige desde el aviso de arriba.
     val canEdit = car.status != "Vendido" && car.rejectedReason == null
-    if (!canToggle && !showFeature && !canEdit) return
+    val isSold = car.status == "Vendido"
+    if (!canToggle && !showFeature && !canEdit && !isSold) return
 
     Column(Modifier.background(KarsyBg)) {
         HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .navigationBarsPadding()
                 .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)
         ) {
-            if (canToggle) {
-                val paused = car.status == "Pausado"
-                OwnerButton(
-                    text = stringResource(if (paused) R.string.detail_owner_resume else R.string.detail_owner_pause),
-                    onClick = if (paused) onResume else onPause,
-                    enabled = !updating,
-                    filled = paused,
-                    color = if (paused) KarsyTeal else KarsyError,
+            // Vendida: lo único que puede hacer es quitarle la marca para que vuelva a estar disponible.
+            if (isSold) OwnerButton(
+                text = stringResource(R.string.detail_owner_mark_available),
+                onClick = onMarkAvailable,
+                enabled = !updating,
+                filled = true,
+                color = KarsyTeal,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (canToggle || showFeature || canEdit) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (canToggle) {
+                    val paused = car.status == "Pausado"
+                    OwnerButton(
+                        text = stringResource(if (paused) R.string.detail_owner_resume else R.string.detail_owner_pause),
+                        onClick = if (paused) onResume else onPause,
+                        enabled = !updating,
+                        filled = paused,
+                        color = if (paused) KarsyTeal else KarsyError,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                if (showFeature) OwnerButton(
+                    text = when {
+                        car.featured && car.featuredUntil != null -> stringResource(R.string.profile_dashboard_featured_until, car.featuredUntil)
+                        car.featured -> stringResource(R.string.profile_dashboard_featured)
+                        car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
+                        else -> stringResource(R.string.profile_dashboard_feature)
+                    },
+                    onClick = onFeature,
+                    // Una solicitud a la vez.
+                    enabled = !car.featured && !car.featuredPending,
+                    color = FeatureGold,
+                    modifier = Modifier.weight(1f)
+                )
+                if (canEdit) OwnerButton(
+                    text = stringResource(if (car.inReview) R.string.detail_owner_in_review else R.string.detail_owner_edit),
+                    onClick = onEdit,
+                    enabled = !car.inReview,
+                    filled = true,
                     modifier = Modifier.weight(1f)
                 )
             }
-            if (showFeature) OwnerButton(
-                text = when {
-                    car.featured && car.featuredUntil != null -> stringResource(R.string.profile_dashboard_featured_until, car.featuredUntil)
-                    car.featured -> stringResource(R.string.profile_dashboard_featured)
-                    car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
-                    else -> stringResource(R.string.profile_dashboard_feature)
-                },
-                onClick = onFeature,
-                // Una solicitud a la vez.
-                enabled = !car.featured && !car.featuredPending,
-                color = FeatureGold,
-                modifier = Modifier.weight(1f)
-            )
-            if (canEdit) OwnerButton(
-                text = stringResource(if (car.inReview) R.string.detail_owner_in_review else R.string.detail_owner_edit),
-                onClick = onEdit,
-                enabled = !car.inReview,
-                filled = true,
-                modifier = Modifier.weight(1f)
+            // Debajo de deshabilitar / destacar / editar.
+            if (canToggle) OwnerButton(
+                text = stringResource(R.string.detail_owner_mark_sold),
+                onClick = onMarkSold,
+                enabled = !updating,
+                color = SoldGreen,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
 private val FeatureGold = Color(0xFFB7791F)
+private val SoldGreen = Color(0xFF027A48)
 
 /** Botón compacto de la barra del dueño: relleno o con borde del color dado. */
 @Composable
@@ -460,6 +598,52 @@ private fun OwnerButton(
         ),
         modifier = sizing
     ) { content() }
+}
+
+/** Aviso de publicación vendida: para el comprador ya no está disponible; el dueño ve dónde la vendió. */
+@Composable
+private fun SoldNotice(isOwner: Boolean, via: String?) {
+    val shape = RoundedCornerShape(14.dp)
+    Column(
+        Modifier
+            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(karsyTint(SoldGreen, Color(0xFFECFDF3)))
+            .border(1.dp, SoldGreen.copy(alpha = 0.25f), shape)
+            .padding(14.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.Sell, contentDescription = null, tint = SoldGreen, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(if (isOwner) R.string.detail_sold_owner_title else R.string.detail_sold_title),
+                fontFamily = Outfit,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = SoldGreen
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            stringResource(if (isOwner) R.string.detail_sold_owner_desc else R.string.detail_sold_desc),
+            fontFamily = DmSans,
+            fontSize = 13.sp,
+            lineHeight = 18.sp,
+            color = KarsyCharcoal
+        )
+        // Dónde se vendió solo le interesa al dueño.
+        if (isOwner) soldViaLabel(via)?.let {
+            Text(
+                it,
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = SoldGreen,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+    }
 }
 
 @Composable
