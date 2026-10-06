@@ -233,6 +233,18 @@ object CarRepository {
         }
     }
 
+    /**
+     * Marca una publicación propia como vendida ([via]: "dentro_app" o "fuera_app") o le
+     * quita la marca para que vuelva a estar disponible (función marcar_publicacion_vendida).
+     */
+    suspend fun setSold(id: Long, sold: Boolean, via: String? = null) {
+        db.postgrest.rpc("marcar_publicacion_vendida", buildJsonObject {
+            put("p_id_publicacion", id)
+            put("p_vendida", sold)
+            put("p_medio_venta", via)
+        })
+    }
+
     /** Cuántos usuarios guardaron en favoritos cada publicación de la cuenta en sesión. */
     suspend fun favoriteCounts(): Map<Long, Int> =
         db.postgrest.rpc("favoritos_mis_publicaciones").decodeList<FavoritosConteoDto>()
@@ -277,6 +289,8 @@ object CarRepository {
             rejectedReason = a.motivoRechazo?.takeIf { a.estadoUltimaPropuesta == "rechazada" },
             inReview = a.estadoUltimaPropuesta == "pendiente",
             approved = a.aprobada,
+            sold = a.vendido || a.estadoPublicacion == "vendida",
+            soldVia = a.medioVenta,
         )
     }
 

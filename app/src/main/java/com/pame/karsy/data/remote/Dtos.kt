@@ -49,6 +49,9 @@ data class AnuncioDto(
     @SerialName("motivo_rechazo_propuesta") val motivoRechazo: String? = null,
     /** Comentario del admin al deshabilitar; null si está habilitada. */
     @SerialName("motivo_deshabilitacion") val motivoDeshabilitacion: String? = null,
+    val vendido: Boolean = false,
+    /** Dónde se vendió: "dentro_app" o "fuera_app"; null si no está vendida. */
+    @SerialName("medio_venta") val medioVenta: String? = null,
     val destacado: Boolean = false,
     @SerialName("destacado_pendiente") val destacadoPendiente: Boolean = false,
     val fotos: List<String> = emptyList(),

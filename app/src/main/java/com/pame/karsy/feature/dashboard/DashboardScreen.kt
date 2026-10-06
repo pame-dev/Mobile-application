@@ -80,6 +80,7 @@ import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.feature.profile.carStatusLabel
+import com.pame.karsy.feature.profile.soldViaLabel
 
 /** Panel del vendedor ("Mi Panel"): métricas, interés semanal y vehículos publicados. */
 @Composable
@@ -514,6 +515,17 @@ private fun ListingCard(
                     fontSize = 11.sp,
                     color = KarsyMid,
                     modifier = Modifier.padding(start = 4.dp)
+                )
+            }
+            // Vendida: dónde se vendió (dentro o fuera de la app).
+            if (car.status == "Vendido") soldViaLabel(car.soldVia)?.let {
+                Text(
+                    it,
+                    fontFamily = DmSans,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KarsyTeal,
+                    modifier = Modifier.padding(top = 6.dp)
                 )
             }
             // Motivo del admin; el texto completo se ve al abrir la publicación (o al corregirla).

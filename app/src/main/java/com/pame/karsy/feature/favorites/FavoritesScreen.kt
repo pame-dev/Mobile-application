@@ -243,6 +243,8 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit, onFilter: () -
     }
 }
 
+private val SoldBadge = Color(0xFF027A48)
+
 @Composable
 private fun FavoriteCard(
     car: Car,
@@ -251,6 +253,7 @@ private fun FavoriteCard(
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(18.dp)
+    val sold = car.status == "Vendido"
     Column(
         modifier
             .fillMaxWidth()
@@ -270,11 +273,13 @@ private fun FavoriteCard(
                 model = car.imageUrl,
                 contentDescription = car.model,
                 contentScale = ContentScale.Crop,
+                // Vendido: la foto se atenúa para que se note que ya no está disponible.
+                alpha = if (sold) 0.55f else 1f,
                 modifier = Modifier.fillMaxSize()
             )
             StarBadge(
-                text = car.condition,
-                background = KarsyNavy.copy(alpha = 0.75f),
+                text = if (sold) stringResource(R.string.profile_status_sold) else car.condition,
+                background = if (sold) SoldBadge else KarsyNavy.copy(alpha = 0.75f),
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(12.dp)
