@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.profile
 
 import android.app.Activity
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,7 +56,8 @@ private data class SettingsItem(
 private val settingsItems = listOf(
     SettingsItem("🔔", R.string.settings_notifications, R.string.settings_notifications_desc, isNotifications = true),
     SettingsItem("🔒", R.string.settings_privacy, R.string.settings_privacy_desc, isPrivacy = true),
-    SettingsItem("🌐", R.string.settings_language, R.string.settings_language_current, isLanguage = true),
+    // La descripción del idioma se arma con languageSummary (idioma elegido).
+    SettingsItem("🌐", R.string.settings_language, R.string.settings_language, isLanguage = true),
     SettingsItem("📄", R.string.settings_terms, R.string.settings_terms_desc, isTerms = true),
 )
 
@@ -74,6 +76,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
+    var languageOpen by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -98,11 +101,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    if (item.isLanguage) {
-                                        // Alterna español ↔ inglés; la app se recrea en el idioma nuevo.
-                                        val nuevo = if (Idioma.actual(context) == Idioma.ES) Idioma.EN else Idioma.ES
-                                        (context as? Activity)?.let { Idioma.cambiar(it, nuevo) }
-                                    }
+                                    if (item.isLanguage) languageOpen = true
                                     if (item.isTerms) onTerms()
                                     if (item.isNotifications) onNotifications()
                                     if (item.isPrivacy) onPrivacy()
@@ -127,7 +126,7 @@ fun SettingsScreen(
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
-                                    stringResource(item.descRes),
+                                    if (item.isLanguage) languageSummary(context) else stringResource(item.descRes),
                                     fontFamily = DmSans,
                                     fontSize = 13.sp,
                                     color = KarsyMid
@@ -170,4 +169,23 @@ fun SettingsScreen(
             }
         )
     }
+
+    if (languageOpen) {
+        LanguageSheet(
+            selected = Idioma.elegido(context),
+            onSelect = { codigo ->
+                languageOpen = false
+                // Si cambia el idioma en uso, la app se recrea con los textos nuevos.
+                (context as? Activity)?.let { Idioma.cambiar(it, codigo) }
+            },
+            onDismiss = { languageOpen = false }
+        )
+    }
 }
+
+/** Lo que se muestra bajo "Idioma": el elegido o "Idioma del teléfono (Español)". */
+@Composable
+private fun languageSummary(context: Context): String =
+    if (Idioma.elegido(context) == Idioma.SISTEMA)
+        stringResource(R.string.settings_language_system_current, languageName(Idioma.actual(context)))
+    else languageName(Idioma.actual(context))

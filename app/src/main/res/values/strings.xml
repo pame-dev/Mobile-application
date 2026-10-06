@@ -18,7 +18,12 @@
     <string name="settings_privacy">Privacidad y seguridad</string>
     <string name="settings_privacy_desc">Contraseña, sesiones y aviso de privacidad</string>
     <string name="settings_language">Idioma</string>
-    <string name="settings_language_current">Español (toca para cambiar a inglés)</string>
+    <string name="settings_language_es">Español</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_system">Usar el idioma del teléfono</string>
+    <string name="settings_language_system_desc">Ahora: %1$s</string>
+    <string name="settings_language_system_current">Idioma del teléfono (%1$s)</string>
+    <string name="settings_language_sheet_desc">Elige el idioma en que quieres ver Karsy.</string>
     <string name="settings_terms">Términos y condiciones</string>
     <string name="settings_terms_desc">Políticas de privacidad y uso</string>
     <string name="settings_logout">Cerrar sesión</string>
