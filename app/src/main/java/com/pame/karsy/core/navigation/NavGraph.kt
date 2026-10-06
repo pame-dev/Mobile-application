@@ -44,6 +44,8 @@ import com.pame.karsy.feature.profile.HistoryScreen
 import com.pame.karsy.feature.profile.NotificationsScreen
 import com.pame.karsy.feature.profile.ProfileScreen
 import com.pame.karsy.feature.profile.SettingsScreen
+import com.pame.karsy.feature.profile.PrivacyNoticeScreen
+import com.pame.karsy.feature.profile.PrivacyScreen
 import com.pame.karsy.feature.profile.TermsScreen
 import com.pame.karsy.feature.publish.PublishFlowScreen
 import com.pame.karsy.feature.register.RegisterLoteScreen
@@ -275,8 +277,25 @@ fun KarsyNavGraph(
                 onBack = ::back,
                 onLogout = ::logout,
                 onTerms = { navController.navigate(Routes.Terms.route) },
-                onNotifications = { navController.navigate(Routes.Notifications.route) }
+                onNotifications = { navController.navigate(Routes.Notifications.route) },
+                onPrivacy = { navController.navigate(Routes.Privacy.route) }
             )
+        }
+        composable(Routes.Privacy.route) {
+            PrivacyScreen(
+                onBack = ::back,
+                onPrivacyNotice = { navController.navigate(Routes.PrivacyNotice.route) },
+                // Las sesiones ya se cerraron en Supabase; aquí solo se limpia la app.
+                onSignedOutEverywhere = {
+                    SessionManager.logout()
+                    navController.navigate(Routes.Welcome.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(Routes.PrivacyNotice.route) {
+            PrivacyNoticeScreen(onBack = ::back)
         }
         composable(Routes.Terms.route) {
             TermsScreen(onBack = ::back)

@@ -27,30 +27,50 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.Outfit
 
-private data class TermsSection(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
+/** Sección de un documento legal (título + texto). */
+internal data class LegalSection(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
 
 private val termsSections = listOf(
-    TermsSection(R.string.terms_s1_title, R.string.terms_s1_body),
-    TermsSection(R.string.terms_s2_title, R.string.terms_s2_body),
-    TermsSection(R.string.terms_s3_title, R.string.terms_s3_body),
-    TermsSection(R.string.terms_s4_title, R.string.terms_s4_body),
-    TermsSection(R.string.terms_s5_title, R.string.terms_s5_body),
-    TermsSection(R.string.terms_s6_title, R.string.terms_s6_body),
-    TermsSection(R.string.terms_s7_title, R.string.terms_s7_body),
-    TermsSection(R.string.terms_s8_title, R.string.terms_s8_body),
-    TermsSection(R.string.terms_s9_title, R.string.terms_s9_body),
+    LegalSection(R.string.terms_s1_title, R.string.terms_s1_body),
+    LegalSection(R.string.terms_s2_title, R.string.terms_s2_body),
+    LegalSection(R.string.terms_s3_title, R.string.terms_s3_body),
+    LegalSection(R.string.terms_s4_title, R.string.terms_s4_body),
+    LegalSection(R.string.terms_s5_title, R.string.terms_s5_body),
+    LegalSection(R.string.terms_s6_title, R.string.terms_s6_body),
+    LegalSection(R.string.terms_s7_title, R.string.terms_s7_body),
+    LegalSection(R.string.terms_s8_title, R.string.terms_s8_body),
+    LegalSection(R.string.terms_s9_title, R.string.terms_s9_body),
 )
 
-/** Términos y condiciones, abierto desde Configuración. Mismo layout que Historial y Configuración. */
+/** Términos y condiciones, abierto desde Configuración y desde los registros. */
 @Composable
-fun TermsScreen(onBack: () -> Unit) {
+fun TermsScreen(onBack: () -> Unit) = LegalDocumentScreen(
+    titleRes = R.string.terms_title,
+    lastUpdateRes = R.string.terms_last_update,
+    introRes = R.string.terms_intro,
+    sections = termsSections,
+    onBack = onBack,
+)
+
+/**
+ * Documento legal con fecha, introducción y secciones (Términos, Aviso de privacidad).
+ * Mismo layout que Historial y Configuración.
+ */
+@Composable
+internal fun LegalDocumentScreen(
+    @StringRes titleRes: Int,
+    @StringRes lastUpdateRes: Int,
+    @StringRes introRes: Int,
+    sections: List<LegalSection>,
+    onBack: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(KarsyBg)
     ) {
         SubHeader(
-            title = stringResource(R.string.terms_title),
+            title = stringResource(titleRes),
             onBack = onBack,
             modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
         )
@@ -64,21 +84,21 @@ fun TermsScreen(onBack: () -> Unit) {
             ProfileCard {
                 Column(Modifier.padding(horizontal = 20.dp, vertical = 22.dp)) {
                     Text(
-                        stringResource(R.string.terms_last_update),
+                        stringResource(lastUpdateRes),
                         fontFamily = DmSans,
                         fontSize = 12.sp,
                         color = KarsyMid
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        stringResource(R.string.terms_intro),
+                        stringResource(introRes),
                         fontFamily = DmSans,
                         fontSize = 14.sp,
                         lineHeight = 21.sp,
                         color = KarsyCharcoal
                     )
                 }
-                termsSections.forEach { section ->
+                sections.forEach { section ->
                     RowDivider()
                     Column(Modifier.padding(horizontal = 20.dp, vertical = 18.dp)) {
                         Text(

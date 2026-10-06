@@ -49,11 +49,12 @@ private data class SettingsItem(
     val isLanguage: Boolean = false,
     val isTerms: Boolean = false,
     val isNotifications: Boolean = false,
+    val isPrivacy: Boolean = false,
 )
 
 private val settingsItems = listOf(
     SettingsItem("🔔", R.string.settings_notifications, R.string.settings_notifications_desc, isNotifications = true),
-    SettingsItem("🔒", R.string.settings_privacy, R.string.settings_privacy_desc),
+    SettingsItem("🔒", R.string.settings_privacy, R.string.settings_privacy_desc, isPrivacy = true),
     SettingsItem("🌐", R.string.settings_language, R.string.settings_language_current, isLanguage = true),
     SettingsItem("📄", R.string.settings_terms, R.string.settings_terms_desc, isTerms = true),
 )
@@ -64,7 +65,13 @@ private val LogoutRed = Color(0xFFD93025)
 
 /** Pantalla de configuración (WebConfigView del mockup). */
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit, onTerms: () -> Unit, onNotifications: () -> Unit) {
+fun SettingsScreen(
+    onBack: () -> Unit,
+    onLogout: () -> Unit,
+    onTerms: () -> Unit,
+    onNotifications: () -> Unit,
+    onPrivacy: () -> Unit,
+) {
     val context = LocalContext.current
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize()) {
@@ -98,7 +105,7 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit, onTerms: () -> Unit
                                     }
                                     if (item.isTerms) onTerms()
                                     if (item.isNotifications) onNotifications()
-                                    // TODO: abrir la sección de seguridad
+                                    if (item.isPrivacy) onPrivacy()
                                 }
                                 .padding(horizontal = 18.dp, vertical = 18.dp),
                             verticalAlignment = Alignment.CenterVertically,

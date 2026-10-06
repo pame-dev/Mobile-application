@@ -16,7 +16,7 @@
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notifications_desc">Alertas y avisos de tu cuenta</string>
     <string name="settings_privacy">Privacidad y seguridad</string>
-    <string name="settings_privacy_desc">Contraseña, accesos y sesiones</string>
+    <string name="settings_privacy_desc">Contraseña, sesiones y aviso de privacidad</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_current">Español (toca para cambiar a inglés)</string>
     <string name="settings_terms">Términos y condiciones</string>
@@ -857,6 +857,37 @@
     <string name="terms_s8_body">Usamos tu nombre, correo, teléfono y WhatsApp para operar tu cuenta y para que los compradores interesados puedan contactarte. Tu teléfono y WhatsApp solo se muestran en tus publicaciones. No vendemos tu información a terceros.</string>
     <string name="terms_s9_title">9. Cambios a estos términos</string>
     <string name="terms_s9_body">Karsy puede actualizar estos términos en cualquier momento. Te avisaremos dentro de la aplicación cuando haya cambios importantes. Si continúas usando Karsy después de un cambio, aceptas los términos actualizados.</string>
+    <!-- Privacidad y seguridad (Configuración) -->
+    <string name="privacy_title">🔒 Privacidad y seguridad</string>
+    <string name="privacy_section_security">Seguridad</string>
+    <string name="privacy_section_privacy">Privacidad</string>
+    <string name="privacy_change_password">Cambiar contraseña</string>
+    <string name="privacy_change_password_desc">Necesitas tu contraseña actual</string>
+    <string name="privacy_logout_all">Cerrar sesión en todos los dispositivos</string>
+    <string name="privacy_logout_all_desc">Útil si perdiste tu teléfono o crees que alguien entró a tu cuenta</string>
+    <string name="privacy_logout_all_confirm_title">¿Cerrar sesión en todos lados?</string>
+    <string name="privacy_logout_all_confirm_body">Se cerrará tu sesión en este teléfono y en todos los dispositivos donde hayas entrado. Tendrás que volver a iniciar sesión.</string>
+    <string name="privacy_logout_all_confirm">Cerrar todas</string>
+    <string name="privacy_notice">Aviso de privacidad</string>
+    <string name="privacy_notice_desc">Qué datos guardamos y para qué</string>
+    <string name="privacy_device_notifications">Notificaciones del teléfono</string>
+    <string name="privacy_device_notifications_on">Activadas</string>
+    <string name="privacy_device_notifications_off">Desactivadas: toca para activarlas</string>
+    <string name="privacy_notice_title">🔒 Aviso de privacidad</string>
+    <string name="privacy_notice_last_update">Última actualización: octubre de 2026</string>
+    <string name="privacy_notice_intro">En Karsy cuidamos tus datos personales. Este aviso explica qué información guardamos, para qué la usamos, con quién se comparte y cómo puedes ejercer tus derechos.</string>
+    <string name="privacy_notice_s1_title">1. Datos que recabamos</string>
+    <string name="privacy_notice_s1_body">Al registrarte: nombre, correo electrónico, contraseña (cifrada), teléfono o WhatsApp de contacto y tu ubicación (estado y municipio). Si eres Lote, también el nombre comercial, la persona responsable, la dirección y los horarios de atención. De forma opcional: foto de perfil y una descripción. Al publicar: los datos, fotos y video de tu vehículo.</string>
+    <string name="privacy_notice_s2_title">2. Actividad dentro de la app</string>
+    <string name="privacy_notice_s2_body">Guardamos los vehículos que ves, los que agregas a favoritos, cuándo pides los datos de contacto de un vendedor y los reportes que envías. Si aceptas las notificaciones, guardamos un identificador de tu teléfono para enviártelas.</string>
+    <string name="privacy_notice_s3_title">3. Para qué usamos tus datos</string>
+    <string name="privacy_notice_s3_body">Para crear y proteger tu cuenta, publicar y mostrar tus vehículos, conectar a compradores con vendedores, mostrarte tu historial y tus favoritos, avisarte sobre tus publicaciones, revisar reportes y mantener la seguridad de la plataforma. No vendemos tus datos ni los usamos para publicidad de terceros.</string>
+    <string name="privacy_notice_s4_title">4. Qué ven otros usuarios</string>
+    <string name="privacy_notice_s4_body">En tu perfil público y en tus publicaciones se muestran tu nombre, foto, descripción y ubicación. Tu teléfono o WhatsApp solo se muestra cuando un comprador con sesión iniciada pide tus datos de contacto. Tu correo y tu contraseña nunca se muestran.</string>
+    <string name="privacy_notice_s5_title">5. Servicios que usamos</string>
+    <string name="privacy_notice_s5_body">Tus datos se almacenan en Supabase (base de datos, inicio de sesión y archivos). Las notificaciones se envían por medio de Firebase Cloud Messaging, de Google. Estos servicios solo procesan la información necesaria para funcionar.</string>
+    <string name="privacy_notice_s6_title">6. Tus derechos</string>
+    <string name="privacy_notice_s6_body">Puedes acceder a tus datos y corregirlos desde tu perfil en cualquier momento. También puedes solicitar la cancelación de tu cuenta o oponerte al uso de tus datos contactando al equipo de Karsy. Si este aviso cambia, lo actualizaremos aquí con su nueva fecha.</string>
     <!-- Notificaciones del usuario (Configuración → Notificaciones) -->
     <string name="notif_title">Notificaciones</string>
     <string name="app_name_display">Karsy</string>
