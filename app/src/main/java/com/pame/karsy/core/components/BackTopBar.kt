@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyBorder
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
@@ -44,7 +46,7 @@ import com.pame.karsy.core.theme.Outfit
 fun BackTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    logoColor: Color = KarsyNavy,
+    logoColor: Color = KarsyInk,
 ) {
     Row(
         modifier = modifier
@@ -58,7 +60,7 @@ fun BackTopBar(
             Icon(
                 Icons.Rounded.ChevronLeft,
                 contentDescription = stringResource(R.string.core_back),
-                tint = KarsyNavy,
+                tint = KarsyInk,
                 modifier = Modifier.size(28.dp)
             )
         }
@@ -81,7 +83,7 @@ fun SubHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .statusBarsPadding()
             .height(60.dp)
             .padding(horizontal = 16.dp),
@@ -100,7 +102,7 @@ fun SubHeader(
                     Icon(
                         Icons.AutoMirrored.Rounded.ArrowBackIos,
                         contentDescription = stringResource(R.string.core_back),
-                        tint = KarsyNavy,
+                        tint = KarsyInk,
                         modifier = Modifier
                             .size(16.dp)
                             .padding(start = 3.dp)
@@ -113,7 +115,7 @@ fun SubHeader(
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = KarsyNavy,
+            color = KarsyInk,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)

@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -95,7 +97,7 @@ fun DestacarDialog(carName: String, onConfirm: () -> Unit, onCancel: () -> Unit)
                 fontFamily = Outfit,
                 fontSize = 19.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy,
+                color = KarsyInk,
                 textAlign = TextAlign.Center,
                 lineHeight = 23.sp,
                 modifier = Modifier.padding(bottom = 12.dp)
@@ -174,7 +176,7 @@ internal fun DashboardSheet(onDismiss: () -> Unit, content: @Composable ColumnSc
                 .fillMaxWidth()
                 .shadow(24.dp, RoundedCornerShape(28.dp), ambientColor = KarsyNavy, spotColor = KarsyNavy)
                 .clip(RoundedCornerShape(28.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 // Evita que un toque dentro de la tarjeta la cierre.
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
             horizontalAlignment = Alignment.CenterHorizontally

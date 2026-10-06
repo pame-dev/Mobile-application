@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.Outfit
 
 /** Ícono del logo con esquinas redondeadas (35 % del tamaño, como en el mockup). */
@@ -42,7 +43,7 @@ fun KarsyBrand(
     modifier: Modifier = Modifier,
     logoSize: Dp = 34.dp,
     fontSize: TextUnit = 19.sp,
-    color: Color = KarsyNavy,
+    color: Color = KarsyInk,
 ) {
     Row(
         modifier = modifier,

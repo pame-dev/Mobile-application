@@ -36,6 +36,7 @@ import com.pame.karsy.core.components.OtpInput
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
@@ -74,7 +75,7 @@ fun VerifyEmailScreen(
                 .padding(start = 12.dp, end = 24.dp, top = 8.dp)
         ) {
             IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
-                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
+                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyInk, modifier = Modifier.size(28.dp))
             }
             KarsyLogo(size = 46.dp, modifier = Modifier.align(Alignment.Center))
         }
@@ -91,7 +92,7 @@ fun VerifyEmailScreen(
                 fontWeight = FontWeight.Bold,
                 fontSize = 25.sp,
                 lineHeight = 30.sp,
-                color = KarsyNavy,
+                color = KarsyInk,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(9.dp))

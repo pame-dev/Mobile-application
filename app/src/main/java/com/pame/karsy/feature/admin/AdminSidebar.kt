@@ -47,11 +47,15 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyNavyDeep
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 /** Secciones del panel de administración (barra lateral del mockup). */
+/** Opción activa del menú: azul fijo, con buen contraste para el texto blanco en ambos temas. */
+private val DrawerActive = Color(0xFF2563EB)
+
 enum class AdminSection(@StringRes val labelRes: Int) {
     Inicio(R.string.admin2_section_home),
     Usuarios(R.string.admin2_section_users),
@@ -88,7 +92,8 @@ fun AdminDrawerContent(
 ) {
     ModalDrawerSheet(
         drawerState = drawerState,
-        drawerContainerColor = KarsyNavy,
+        // Azul marino de la marca en ambos temas (el menú es una superficie de marca).
+        drawerContainerColor = KarsyNavyDeep,
         drawerContentColor = KarsyWhite,
         drawerShape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
         modifier = Modifier.width(264.dp)
@@ -184,7 +189,7 @@ private fun DrawerItem(section: AdminSection, badge: Int?, active: Boolean, onCl
             .fillMaxWidth()
             .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (active) AdminColors.Blue else Color.Transparent)
+            .background(if (active) DrawerActive else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp)
     ) {
@@ -198,7 +203,7 @@ private fun DrawerItem(section: AdminSection, badge: Int?, active: Boolean, onCl
                         .size(10.dp)
                         .clip(CircleShape)
                         .background(AdminColors.BadgeRed)
-                        .border(2.dp, if (active) AdminColors.Blue else KarsyNavy, CircleShape)
+                        .border(2.dp, if (active) DrawerActive else KarsyNavyDeep, CircleShape)
                 )
             }
         }

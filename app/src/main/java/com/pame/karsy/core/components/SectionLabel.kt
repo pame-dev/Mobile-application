@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.KarsyBorder
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.Outfit
 
@@ -34,7 +35,7 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
             fontFamily = Outfit,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = KarsyNavy,
+            color = KarsyInk,
             letterSpacing = 0.06.em
         )
         Box(

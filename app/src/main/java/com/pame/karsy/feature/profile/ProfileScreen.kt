@@ -57,6 +57,8 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyMid
@@ -103,7 +105,7 @@ fun ProfileScreen(
                 Icon(
                     Icons.Outlined.History,
                     contentDescription = stringResource(R.string.profile_history_cd),
-                    tint = KarsyNavy,
+                    tint = KarsyInk,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -111,7 +113,7 @@ fun ProfileScreen(
                 Icon(
                     Icons.Outlined.Settings,
                     contentDescription = stringResource(R.string.profile_settings_cd),
-                    tint = KarsyNavy,
+                    tint = KarsyInk,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -228,7 +230,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                         initialsSize = 30.sp,
                         modifier = Modifier
                             .shadow(6.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
-                            .border(4.dp, KarsyWhite, CircleShape)
+                            .border(4.dp, KarsySurface, CircleShape)
                     )
                     // Indicador "en línea"
                     Box(
@@ -237,7 +239,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                             .offset(x = (-3).dp, y = (-3).dp)
                             .size(18.dp)
                             .clip(CircleShape)
-                            .background(KarsyWhite)
+                            .background(KarsySurface)
                             .padding(3.dp)
                             .clip(CircleShape)
                             .background(KarsyTeal)
@@ -248,8 +250,8 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.5.dp, KarsyBorder),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = KarsyWhite,
-                        contentColor = KarsyNavy
+                        containerColor = KarsySurface,
+                        contentColor = KarsyInk
                     ),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 9.dp),
                     modifier = Modifier.padding(bottom = 4.dp)
@@ -273,7 +275,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                         fontFamily = Outfit,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = KarsyNavy,
+                        color = KarsyInk,
                         modifier = Modifier.weight(1f, fill = false)
                     )
                     if (userMode == UserMode.LOTE || userMode.isAdmin) {
@@ -334,7 +336,7 @@ private fun StatBox(num: String, label: String, modifier: Modifier = Modifier) {
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
-                color = KarsyNavy
+                color = KarsyInk
             )
             Spacer(Modifier.height(3.dp))
             Text(
@@ -363,7 +365,7 @@ private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, 
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                color = KarsyNavy
+                color = KarsyInk
             )
             Button(
                 onClick = onPanel,

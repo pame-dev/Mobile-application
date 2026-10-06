@@ -61,6 +61,8 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyNavyDeep
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
@@ -115,8 +117,8 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
                         0f to Color.Transparent,
                         0.28f to KarsyNavy.copy(alpha = 0.1f),
                         0.5f to KarsyNavy.copy(alpha = 0.75f),
-                        0.72f to KarsyNavy,
-                        1f to KarsyNavy,
+                        0.72f to KarsyNavyDeep,
+                        1f to KarsyNavyDeep,
                     )
                 )
         )
@@ -232,7 +234,7 @@ private fun CarouselDots(count: Int, current: Int, onSelect: (Int) -> Unit) {
                     .width(width)
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(if (active) KarsyWhite else KarsyWhite.copy(alpha = 0.45f))
+                    .background(if (active) KarsySurface else KarsySurface.copy(alpha = 0.45f))
                     .clickable { onSelect(i) }
             )
         }
@@ -248,7 +250,7 @@ private fun LanguageToggle(lang: String, onChange: (String) -> Unit) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(KarsyWhite.copy(alpha = 0.12f))
+            .background(KarsySurface.copy(alpha = 0.12f))
             .clickable { onChange(if (lang == Idioma.ES) Idioma.EN else Idioma.ES) }
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,

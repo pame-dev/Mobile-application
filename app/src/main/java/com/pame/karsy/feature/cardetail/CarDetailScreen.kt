@@ -73,6 +73,10 @@ import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyImagePlaceholder
+import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -267,8 +271,8 @@ fun CarDetailScreen(
         if (confirmPause) {
             AlertDialog(
                 onDismissRequest = { if (!vm.updatingStatus) confirmPause = false },
-                containerColor = KarsyWhite,
-                title = { Text(stringResource(R.string.detail_owner_pause_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyNavy) },
+                containerColor = KarsySurface,
+                title = { Text(stringResource(R.string.detail_owner_pause_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
                 text = { Text(stringResource(R.string.detail_owner_pause_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
                 confirmButton = {
                     TextButton(onClick = { setPaused(true) }, enabled = !vm.updatingStatus) {
@@ -277,7 +281,7 @@ fun CarDetailScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { confirmPause = false }, enabled = !vm.updatingStatus) {
-                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyNavy)
+                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
                     }
                 }
             )
@@ -450,7 +454,7 @@ private fun OwnerButton(
         contentPadding = padding,
         border = BorderStroke(1.5.dp, if (enabled) color.copy(alpha = 0.6f) else KarsyBorder),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = KarsyWhite,
+            containerColor = KarsySurface,
             contentColor = color,
             disabledContentColor = KarsyMid,
         ),
@@ -471,7 +475,7 @@ private fun DisabledNotice(
             .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFFEF3F2))
+            .background(karsyTint(danger, Color(0xFFFEF3F2)))
             .border(1.dp, danger.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
             .padding(14.dp)
     ) {
@@ -530,7 +534,7 @@ private fun DetailHeader(
             Icon(
                 Icons.Rounded.ChevronLeft,
                 contentDescription = stringResource(R.string.detail_back),
-                tint = KarsyNavy,
+                tint = KarsyInk,
                 modifier = Modifier.size(28.dp)
             )
         }
@@ -539,7 +543,7 @@ private fun DetailHeader(
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
             fontSize = 17.sp,
-            color = KarsyNavy,
+            color = KarsyInk,
             modifier = Modifier.align(Alignment.Center)
         )
         if (showActions) {
@@ -570,7 +574,7 @@ private fun HeaderSquareButton(onClick: () -> Unit, content: @Composable () -> U
         Modifier
             .size(36.dp)
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.5.dp, KarsyBorder, shape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
@@ -591,7 +595,7 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
         Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .background(Color(0xFFDDE6EC))
+            .background(KarsyImagePlaceholder)
     ) {
         // Se desliza entre fotos; al tocar se abre a pantalla completa.
         HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
@@ -720,7 +724,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(shape)
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .border(1.dp, KarsyBorder, shape)
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
@@ -739,7 +743,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                     fontFamily = DmSans,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy
+                    color = KarsyInk
                 )
                 Text(
                     if (detail.sellerType == "lote") stringResource(R.string.detail_dealer_view_profile) else stringResource(R.string.detail_private_view_profile),
@@ -762,7 +766,7 @@ private fun FichaCell(label: String, value: String, modifier: Modifier = Modifie
     Column(
         modifier
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.dp, KarsyBorder, shape)
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
@@ -791,7 +795,7 @@ private fun TextCard(text: String) {
             .fillMaxWidth()
             .padding(bottom = 20.dp)
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.dp, KarsyBorder, shape)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     )
@@ -808,7 +812,7 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
             .navigationBarsPadding()
     ) {
         IconButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp, top = 8.dp)) {
-            Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyNavy, modifier = Modifier.size(28.dp))
+            Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyInk, modifier = Modifier.size(28.dp))
         }
         Box(
             Modifier
@@ -823,7 +827,7 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
                     fontFamily = Outfit,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy
+                    color = KarsyInk
                 )
                 message?.let {
                     Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(top = 8.dp))

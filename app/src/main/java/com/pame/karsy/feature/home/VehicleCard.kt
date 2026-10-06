@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyCardOutline
 import com.pame.karsy.core.theme.KarsyNavy
@@ -56,7 +58,7 @@ fun VehicleCard(
             // Sombra corta + borde definido para que la tarjeta blanca se separe del fondo.
             .shadow(4.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.18f), spotColor = KarsyNavy.copy(alpha = 0.28f))
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.dp, KarsyCardOutline, shape)
             .clickable(onClick = onClick)
     ) {
@@ -91,7 +93,7 @@ fun VehicleCard(
                         fontFamily = Outfit,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = KarsyNavy,
+                        color = KarsyInk,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

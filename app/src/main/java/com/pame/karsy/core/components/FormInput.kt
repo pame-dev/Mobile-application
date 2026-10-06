@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -117,7 +118,7 @@ fun FormInput(
 }
 
 @Composable
-fun karsyTextFieldColors(container: androidx.compose.ui.graphics.Color = KarsyWhite) =
+fun karsyTextFieldColors(container: androidx.compose.ui.graphics.Color = KarsySurface) =
     OutlinedTextFieldDefaults.colors(
         focusedBorderColor = KarsyTeal,
         unfocusedBorderColor = KarsyBorder,

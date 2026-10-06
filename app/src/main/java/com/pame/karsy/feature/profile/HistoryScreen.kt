@@ -33,6 +33,7 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
@@ -107,7 +108,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                                 fontFamily = DmSans,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 15.sp,
-                                color = KarsyNavy
+                                color = KarsyInk
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(

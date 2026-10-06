@@ -33,6 +33,9 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyImagePlaceholder
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyCardOutline
 import com.pame.karsy.core.theme.KarsyNavy
@@ -43,7 +46,7 @@ import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
 
 /** Fondo gris azulado mientras carga la foto. */
-internal val ImagePlaceholder = Color(0xFFDDE6EC)
+internal val ImagePlaceholder: Color get() = KarsyImagePlaceholder
 
 /** Tarjeta grande del carrusel "Vehículos destacados" (FeaturedCard del mockup). */
 @Composable
@@ -63,7 +66,7 @@ fun FeaturedCarCard(
             // Sombra corta + borde definido para que la tarjeta blanca se separe del fondo.
             .shadow(4.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.18f), spotColor = KarsyNavy.copy(alpha = 0.28f))
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.dp, KarsyCardOutline, shape)
             .clickable(onClick = onClick)
     ) {
@@ -100,7 +103,7 @@ fun FeaturedCarCard(
                         fontFamily = Outfit,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = KarsyNavy,
+                        color = KarsyInk,
                         lineHeight = 20.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

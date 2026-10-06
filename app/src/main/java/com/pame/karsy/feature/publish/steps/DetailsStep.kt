@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
@@ -96,7 +98,7 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 lineHeight = 19.sp,
-                color = KarsyNavy
+                color = KarsyInk
             )
         }
     }
@@ -123,7 +125,7 @@ private fun LimitedTextArea(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .border(1.dp, KarsyBorderMuted, RoundedCornerShape(16.dp))
         ) {
             BasicTextField(
@@ -131,7 +133,7 @@ private fun LimitedTextArea(
                 onValueChange = { onValueChange(it.take(maxChars)) },
                 minLines = 5,
                 textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, lineHeight = 19.sp, color = KarsyCharcoal),
-                cursorBrush = SolidColor(KarsyNavy),
+                cursorBrush = SolidColor(KarsyInk),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),

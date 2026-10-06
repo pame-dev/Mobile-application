@@ -61,6 +61,8 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -155,7 +157,7 @@ fun EditProfileDialog(
                     .fillMaxWidth()
                     .shadow(24.dp, shape, ambientColor = CardShadow, spotColor = CardShadow)
                     .clip(shape)
-                    .background(KarsyWhite)
+                    .background(KarsySurface)
                     // Evita que un toque dentro de la tarjeta la cierre.
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -174,7 +176,7 @@ fun EditProfileDialog(
                         fontFamily = Outfit,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = KarsyNavy,
+                        color = KarsyInk,
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
@@ -206,7 +208,7 @@ fun EditProfileDialog(
                                 .align(Alignment.BottomEnd)
                                 .size(26.dp)
                                 .clip(CircleShape)
-                                .background(KarsyWhite)
+                                .background(KarsySurface)
                                 .padding(2.dp)
                                 .clip(CircleShape)
                                 .background(KarsyTeal)
@@ -281,7 +283,7 @@ fun EditProfileDialog(
                     onClick = onChangePassword,
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(1.5.dp, KarsyBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsyWhite, contentColor = KarsyNavy),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyInk),
                     contentPadding = PaddingValues(vertical = 12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -302,7 +304,7 @@ fun EditProfileDialog(
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.5.dp, KarsyBorder),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = KarsyWhite,
+                            containerColor = KarsySurface,
                             contentColor = KarsyTextSecondary
                         ),
                         contentPadding = PaddingValues(vertical = 12.dp),

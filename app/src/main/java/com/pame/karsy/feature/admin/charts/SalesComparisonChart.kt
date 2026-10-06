@@ -13,6 +13,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyMid
@@ -37,7 +38,7 @@ fun SalesComparisonChart(
         fontFamily = DmSans,
         fontSize = 10.sp,
         fontWeight = FontWeight.Bold,
-        color = KarsyNavy
+        color = KarsyInk
     )
     // Escala hasta la última línea guía (o 15 % sobre el máximo); nunca 0 para no dividir entre 0.
     val maxValue = maxOf(
@@ -89,7 +90,7 @@ fun SalesComparisonChart(
             )
             val xFuera = center + gap / 2f
             drawRoundRect(
-                color = if (isLast) KarsyNavy else KarsyBorderMuted.copy(alpha = 0.9f),
+                color = if (isLast) KarsyInk else KarsyBorderMuted.copy(alpha = 0.9f),
                 topLeft = Offset(xFuera, yFuera),
                 size = Size(barWidth, bottom - yFuera),
                 cornerRadius = radius

@@ -24,6 +24,12 @@
     <string name="settings_language_system_desc">Ahora: %1$s</string>
     <string name="settings_language_system_current">Idioma del teléfono (%1$s)</string>
     <string name="settings_language_sheet_desc">Elige el idioma en que quieres ver Karsy.</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_theme_system">Usar el tema del teléfono</string>
+    <string name="settings_theme_system_current">Tema del teléfono (%1$s)</string>
+    <string name="settings_theme_sheet_desc">Elige cómo quieres ver Karsy.</string>
     <string name="settings_terms">Términos y condiciones</string>
     <string name="settings_terms_desc">Políticas de privacidad y uso</string>
     <string name="settings_logout">Cerrar sesión</string>

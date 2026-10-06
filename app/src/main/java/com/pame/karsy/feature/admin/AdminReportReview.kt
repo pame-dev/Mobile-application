@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -205,14 +207,14 @@ fun AdminReasonDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = KarsyWhite,
+        containerColor = KarsySurface,
         title = {
             Text(
                 stringResource(texts.title),
                 fontFamily = Outfit,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy
+                color = KarsyInk
             )
         },
         text = {
@@ -268,7 +270,7 @@ fun AdminReasonDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss, enabled = !working) {
-                Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyNavy)
+                Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
             }
         }
     )

@@ -61,6 +61,10 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.Tema
+import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -73,11 +77,11 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.feature.profile.ProfileAvatar
 
-private val FeaturedYellowBg = Color(0xFFFFF4CC)
-private val FeaturedYellowFg = Color(0xFF8A6415)
-private val ApprovedBg = Color(0xFFEDF7ED)
-private val RejectedBg = Color(0xFFFDECEC)
-private val RejectedFg = Color(0xFFB42318)
+private val FeaturedYellowBg: Color get() = karsyTint(Color(0xFFD99A1E), Color(0xFFFFF4CC))
+private val FeaturedYellowFg: Color get() = if (Tema.oscuro) Color(0xFFFBBF24) else Color(0xFF8A6415)
+private val ApprovedBg: Color get() = karsyTint(Color(0xFF22C55E), Color(0xFFEDF7ED))
+private val RejectedBg: Color get() = karsyTint(Color(0xFFEF4444), Color(0xFFFDECEC))
+private val RejectedFg: Color get() = BadgeTone.Danger.fg
 
 @Composable
 fun AdminFeaturedSection(vm: AdminViewModel) {
@@ -195,7 +199,7 @@ private fun FeaturedRequestRow(request: FeaturedRequest, onClick: () -> Unit) {
         AdminThumbnail(request.image, size = 44.dp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(request.vehicle, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyNavy)
+            Text(request.vehicle, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
             Spacer(Modifier.height(2.dp))
             Text(
                 listOf(request.year.takeIf { it > 0 }?.toString(), request.price).filterNotNull().joinToString(" · "),
@@ -252,7 +256,7 @@ private fun FeaturedRequestDetail(
                     .fillMaxWidth()
                     .shadow(4.dp, shape, ambientColor = KarsyNavy.copy(alpha = 0.1f), spotColor = KarsyNavy.copy(alpha = 0.1f))
                     .clip(shape)
-                    .background(KarsyWhite)
+                    .background(KarsySurface)
                     .border(1.dp, KarsyBorder, shape)
             ) {
                 Box {
@@ -289,7 +293,7 @@ private fun FeaturedRequestDetail(
                                 fontFamily = Outfit,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = KarsyNavy
+                                color = KarsyInk
                             )
                         }
                         Spacer(Modifier.width(12.dp))
@@ -337,7 +341,7 @@ private fun FeaturedRequestDetail(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(KarsyWhite)
+                            .background(KarsySurface)
                             .border(1.dp, KarsyBorder, RoundedCornerShape(14.dp))
                             .padding(15.dp)
                     ) {
@@ -354,7 +358,7 @@ private fun FeaturedRequestDetail(
                                 fontFamily = Outfit,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = KarsyNavy
+                                color = KarsyInk
                             )
                             Text(
                                 stringResource(R.string.admin1_view_profile),
@@ -377,7 +381,7 @@ private fun FeaturedRequestDetail(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(KarsyWhite.copy(alpha = 0.96f))
+                    .background(KarsySurface.copy(alpha = 0.96f))
                     .navigationBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
@@ -445,7 +449,7 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
                 .padding(24.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .padding(28.dp)
         ) {
             Box(
@@ -460,7 +464,7 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
                 fontFamily = Outfit,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy,
+                color = KarsyInk,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(10.dp))
@@ -504,7 +508,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                 .fillMaxWidth()
                 .heightIn(max = 640.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(KarsyWhite)
+                .background(KarsySurface)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
@@ -524,7 +528,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                 fontFamily = Outfit,
                 fontSize = 21.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy,
+                color = KarsyInk,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -547,7 +551,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (active) Color(0xFFFFF7F7) else KarsyBg)
+                            .background(if (active) karsyTint(Color(0xFFEF4444), Color(0xFFFFF7F7)) else KarsyBg)
                             .border(
                                 if (active) 1.5.dp else 1.dp,
                                 if (active) AdminColors.Danger else KarsyBorder,
@@ -568,7 +572,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                                 fontFamily = DmSans,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = KarsyNavy
+                                color = KarsyInk
                             )
                         }
                         Spacer(Modifier.height(3.dp))
@@ -589,7 +593,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                 value = comment,
                 onValueChange = { comment = it },
                 textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, color = KarsyCharcoal),
-                cursorBrush = SolidColor(KarsyNavy),
+                cursorBrush = SolidColor(KarsyInk),
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { inner ->

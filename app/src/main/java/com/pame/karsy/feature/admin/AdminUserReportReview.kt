@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyMid
@@ -75,7 +76,7 @@ fun UserReportReviewScreen(
                 Icon(
                     Icons.Rounded.ChevronLeft,
                     contentDescription = stringResource(R.string.detail_back),
-                    tint = KarsyNavy,
+                    tint = KarsyInk,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -84,7 +85,7 @@ fun UserReportReviewScreen(
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 17.sp,
-                color = KarsyNavy,
+                color = KarsyInk,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -126,7 +127,7 @@ fun UserReportReviewScreen(
                     fontFamily = Outfit,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyNavy
+                    color = KarsyInk
                 )
                 Spacer(Modifier.height(10.dp))
                 AdminCard {
@@ -181,7 +182,7 @@ private fun ListingRow(vehicle: AdminVehicle, reported: Boolean, onClick: () -> 
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy,
+                color = KarsyInk,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

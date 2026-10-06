@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
@@ -62,7 +63,7 @@ fun SolicitudEnviadaDialog(carName: String, onClose: () -> Unit) {
                 fontFamily = Outfit,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyNavy,
+                color = KarsyInk,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             // El nombre del auto va en negritas dentro de la frase traducida.
@@ -72,7 +73,7 @@ fun SolicitudEnviadaDialog(carName: String, onClose: () -> Unit) {
                 buildAnnotatedString {
                     append(frase)
                     if (inicio >= 0) {
-                        addStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = KarsyNavy), inicio, inicio + carName.length)
+                        addStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = KarsyInk), inicio, inicio + carName.length)
                     }
                 },
                 fontFamily = DmSans,

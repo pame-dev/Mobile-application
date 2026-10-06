@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -68,7 +69,7 @@ fun TermsCheckbox(
                 .padding(top = 1.dp)
                 .size(20.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(if (checked) KarsyTeal else KarsyWhite)
+                .background(if (checked) KarsyTeal else KarsySurface)
                 .border(2.dp, if (checked) KarsyTeal else KarsyCheckBorder, RoundedCornerShape(6.dp)),
             contentAlignment = Alignment.Center
         ) {

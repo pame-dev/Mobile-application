@@ -31,6 +31,9 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyBg
+import com.pame.karsy.core.theme.KarsyNavyDeep
+import com.pame.karsy.core.theme.KarsyImagePlaceholder
+import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCheckBorder
 import com.pame.karsy.core.theme.KarsyNavy
@@ -39,7 +42,7 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 /** Fondo gris claro de las imágenes mientras cargan (#dde6ec del mockup). */
-internal val ImagePlaceholder = Color(0xFFDDE6EC)
+internal val ImagePlaceholder: Color get() = KarsyImagePlaceholder
 
 /** Sombra suave usada en las tarjetas del mockup (0 2px 12px rgba(13,43,69,0.07)). */
 internal val CardShadow = KarsyNavy.copy(alpha = 0.18f)
@@ -59,7 +62,7 @@ internal fun ProfileCard(
             .fillMaxWidth()
             .shadow(elevation, shape, ambientColor = CardShadow, spotColor = CardShadow)
             .clip(shape)
-            .background(KarsyWhite)
+            .background(KarsySurface)
             .border(1.dp, borderColor, shape),
         content = content
     )
@@ -83,7 +86,7 @@ internal fun RowChevron() {
 }
 
 /** Degradado navy → teal de la portada del perfil. */
-internal val ProfileCoverBrush = Brush.linearGradient(listOf(KarsyNavy, KarsyTeal))
+internal val ProfileCoverBrush = Brush.linearGradient(listOf(KarsyNavyDeep, KarsyTeal))
 
 /**
  * Etiqueta traducida del estado de una publicación. car.status conserva el valor en español
