@@ -563,6 +563,7 @@ private fun ListingCard(
                 ) {
                     Text(
                         when {
+                            car.featured && car.featuredUntil != null -> stringResource(R.string.profile_dashboard_featured_until, car.featuredUntil)
                             car.featured -> stringResource(R.string.profile_dashboard_featured)
                             car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
                             else -> stringResource(R.string.profile_dashboard_feature)

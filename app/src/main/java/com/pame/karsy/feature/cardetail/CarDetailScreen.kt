@@ -382,13 +382,12 @@ private fun OwnerActionsBar(
                 )
             }
             if (showFeature) OwnerButton(
-                text = stringResource(
-                    when {
-                        car.featured -> R.string.profile_dashboard_featured
-                        car.featuredPending -> R.string.profile_dashboard_request_sent
-                        else -> R.string.profile_dashboard_feature
-                    }
-                ),
+                text = when {
+                    car.featured && car.featuredUntil != null -> stringResource(R.string.profile_dashboard_featured_until, car.featuredUntil)
+                    car.featured -> stringResource(R.string.profile_dashboard_featured)
+                    car.featuredPending -> stringResource(R.string.profile_dashboard_request_sent)
+                    else -> stringResource(R.string.profile_dashboard_feature)
+                },
                 onClick = onFeature,
                 // Una solicitud a la vez.
                 enabled = !car.featured && !car.featuredPending,

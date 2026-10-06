@@ -28,6 +28,8 @@ data class Car(
     val publishedAt: String = "",
     val featured: Boolean = false,
     val featuredPending: Boolean = false,
+    /** Hasta cuándo dura el destacado vigente ("5 nov 2026"); solo se llena para el dueño. */
+    val featuredUntil: String? = null,
     /** Por qué administración deshabilitó la publicación (solo lo ven el dueño y el admin). */
     val disabledReason: String? = null,
     /**

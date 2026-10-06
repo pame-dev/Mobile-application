@@ -316,6 +316,7 @@
     <string name="profile_dashboard_publish">+ Post</string>
     <string name="profile_dashboard_no_listings">You haven\'t listed any vehicles yet. Tap \"+ Post\" to create your first one.</string>
     <string name="profile_dashboard_featured">Featured</string>
+    <string name="profile_dashboard_featured_until">Featured until %1$s</string>
     <string name="profile_dashboard_request_sent">Request sent</string>
     <string name="profile_dashboard_feature">Feature</string>
     <string name="profile_dashboard_fix_resubmit">Fix and resubmit</string>
@@ -330,11 +331,11 @@
     <!-- Feature dialog -->
     <string name="profile_feature_dialog_title">Want to feature your vehicle?</string>
     <string name="profile_feature_dialog_body">Give your listing more visibility and have it appear in a featured section of the platform.</string>
-    <string name="profile_feature_dialog_note">Before it can be featured, an administrator must review and approve your listing. Once approved, your vehicle can appear as a featured listing.</string>
+    <string name="profile_feature_dialog_note">Before it can be featured, an administrator must review and approve your request. Once approved, your vehicle will appear as a featured listing for 1 month; after that it goes back to a regular listing and you can request it again.</string>
     <string name="profile_feature_dialog_confirm">Request feature</string>
     <string name="profile_cancel">Cancel</string>
     <!-- Request sent -->
-    <string name="profile_request_sent_body">Your request to feature %1$s was sent successfully.</string>
+    <string name="profile_request_sent_body">Your request to feature %1$s was sent successfully. If approved, it will be featured for 1 month.</string>
     <string name="profile_request_sent_review">The Karsy team will review it soon.</string>
     <string name="profile_request_sent_ok">Got it</string>
     <!-- Edit profile -->
@@ -843,7 +844,7 @@
     <string name="terms_s3_title">3. Listings</string>
     <string name="terms_s3_body">Listings must describe the vehicle truthfully: price, mileage, condition and real photos of the vehicle. Every listing is reviewed by the admin team before buyers can see it and may be rejected if it does not follow these rules.</string>
     <string name="terms_s4_title">4. Featured listings</string>
-    <string name="terms_s4_body">You can request that your vehicle appear in the featured section. An administrator will review the request and may approve or reject it, stating the reason.</string>
+    <string name="terms_s4_body">You can request that your vehicle appear in the featured section. An administrator will review the request and may approve or reject it, stating the reason. An approved feature lasts 1 month from approval; when it ends, the listing stays active as a regular listing and you can request it again.</string>
     <string name="terms_s5_title">5. Contact and deals between users</string>
     <string name="terms_s5_body">Agreements, payments and deliveries happen directly between buyer and seller. We recommend checking the vehicle\'s paperwork, verifying the seller\'s identity and not paying in advance before seeing the vehicle.</string>
     <string name="terms_s6_title">6. Prohibited conduct</string>
@@ -856,12 +857,23 @@
     <string name="terms_s9_body">Karsy may update these terms at any time. We will let you know in the app when there are important changes. If you keep using Karsy after a change, you accept the updated terms.</string>
     <!-- User notifications (Settings → Notifications) -->
     <string name="notif_title">Notifications</string>
+    <string name="app_name_display">Karsy</string>
+    <string name="push_channel_name">Account notices</string>
+    <string name="push_channel_desc">Administrator decisions about your listings and other account notices.</string>
     <string name="notif_empty">You don\'t have any notifications yet.</string>
     <string name="notif_vehicle_fallback">your vehicle</string>
     <string name="notif_favorite">Someone liked your listing \"%1$s\" and added it to their favorites.</string>
     <string name="notif_sent">Your listing \"%1$s\" was sent to the administrator and is being reviewed.</string>
     <string name="notif_approved">Your listing \"%1$s\" was approved! It is now visible to everyone.</string>
-    <string name="notif_featured_mine">Your listing \"%1$s\" is now featured.</string>
-    <string name="notif_featured_new">New featured listing: \"%1$s\". Take a look!</string>
+    <string name="notif_featured_mine">Your listing \"%1$s\" is now featured for 1 month.</string>
+    <string name="notif_rejected">Your listing \"%1$s\" was rejected. Fix it and submit it again.</string>
+    <string name="notif_edit_approved">The changes to your listing \"%1$s\" were approved and are now live.</string>
+    <string name="notif_edit_rejected">The changes to \"%1$s\" were not approved. The previous version is still visible.</string>
+    <string name="notif_disabled">An administrator disabled your listing \"%1$s\". Other users can no longer see it.</string>
+    <string name="notif_reenabled">Your listing \"%1$s\" was re-enabled and is visible again.</string>
+    <string name="notif_featured_rejected">Your request to feature \"%1$s\" was rejected.</string>
+    <string name="notif_report_resolved">Thanks for your report about \"%1$s\". We reviewed it and took action.</string>
+    <string name="notif_report_dismissed">We reviewed your report about \"%1$s\" and found no violation.</string>
+    <string name="notif_reason">Reason: %1$s</string>
     <string name="notif_generic">You have an update about \"%1$s\".</string>
 </resources>

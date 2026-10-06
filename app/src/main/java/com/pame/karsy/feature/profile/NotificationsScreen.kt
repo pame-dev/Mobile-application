@@ -1,6 +1,5 @@
 package com.pame.karsy.feature.profile
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,9 +23,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.HourglassTop
-import androidx.compose.material.icons.rounded.NewReleases
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Cancel
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -44,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.push.notificationTextRes
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -57,15 +60,20 @@ import com.pame.karsy.data.remote.NotificacionDto
 import com.pame.karsy.data.repository.NotificationRepository
 
 /** Ícono, colores y texto de cada tipo de aviso (mismo estilo que las alertas del admin). */
-private data class NotifStyle(val icon: ImageVector, val color: Color, val bg: Color, @StringRes val textRes: Int)
+private data class NotifStyle(val icon: ImageVector, val color: Color, val bg: Color)
 
 private fun styleFor(tipo: String): NotifStyle = when (tipo) {
-    "favorito" -> NotifStyle(Icons.Rounded.Favorite, Color(0xFFEF4444), Color(0xFFFEF2F2), R.string.notif_favorite)
-    "propuesta_enviada" -> NotifStyle(Icons.Rounded.HourglassTop, Color(0xFFD97706), Color(0xFFFFFBEB), R.string.notif_sent)
-    "publicacion_aprobada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4), R.string.notif_approved)
-    "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, Color(0xFF8B5CF6), Color(0xFFF5F3FF), R.string.notif_featured_mine)
-    "nuevo_destacado" -> NotifStyle(Icons.Rounded.NewReleases, Color(0xFF3B82F6), Color(0xFFEFF6FF), R.string.notif_featured_new)
-    else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg, R.string.notif_generic)
+    "favorito" -> NotifStyle(Icons.Rounded.Favorite, Color(0xFFEF4444), Color(0xFFFEF2F2))
+    "propuesta_enviada" -> NotifStyle(Icons.Rounded.HourglassTop, Color(0xFFD97706), Color(0xFFFFFBEB))
+    "publicacion_aprobada", "edicion_aprobada", "publicacion_rehabilitada" ->
+        NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4))
+    "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, Color(0xFF8B5CF6), Color(0xFFF5F3FF))
+    "publicacion_rechazada", "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2))
+    "publicacion_deshabilitada" -> NotifStyle(Icons.Rounded.Block, Color(0xFFDC2626), Color(0xFFFEF2F2))
+    "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, Color(0xFFD97706), Color(0xFFFFFBEB))
+    "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, Color(0xFF2563EB), Color(0xFFEFF6FF))
+    "reporte_descartado" -> NotifStyle(Icons.Rounded.Flag, KarsyTeal, KarsyBg)
+    else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg)
 }
 
 /**
@@ -148,13 +156,24 @@ private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                stringResource(style.textRes, vehiculo),
+                stringResource(notificationTextRes(n.tipo), vehiculo),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 fontWeight = if (n.leida) FontWeight.Medium else FontWeight.SemiBold,
                 lineHeight = 17.sp,
                 color = KarsyCharcoal
             )
+            // Comentario del admin (por qué se rechazó o deshabilitó).
+            n.motivo?.takeIf { it.isNotBlank() }?.let { motivo ->
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.notif_reason, motivo),
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    color = style.color
+                )
+            }
             Spacer(Modifier.height(2.dp))
             Text(
                 Formato.haceCuanto(n.fecha),
