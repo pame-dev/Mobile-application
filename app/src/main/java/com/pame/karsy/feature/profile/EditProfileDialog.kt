@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -92,6 +93,8 @@ fun EditProfileDialog(
     onDismiss: () -> Unit,
     onSave: (User) -> Unit,
     onPickPhoto: () -> Unit,
+    onPickCover: () -> Unit,
+    onRemoveCover: () -> Unit,
     onChangePassword: () -> Unit,
     saving: Boolean = false,
     error: String? = null,
@@ -207,7 +210,55 @@ fun EditProfileDialog(
                         )
                     }
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(20.dp))
+
+                // Portada (opcional): vista previa con botones para subir/cambiar o quitar.
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                ) {
+                    ProfileCover(coverUrl = user.coverUrl, height = 96.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.Black.copy(alpha = 0.45f))
+                            .clickable(onClick = onPickCover)
+                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                    ) {
+                        Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(15.dp))
+                        Text(
+                            stringResource(R.string.profile_edit_cover),
+                            fontFamily = DmSans,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = KarsyWhite,
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
+                    if (user.coverUrl != null) {
+                        IconButton(
+                            onClick = onRemoveCover,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(6.dp)
+                                .size(30.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.45f))
+                        ) {
+                            Icon(
+                                Icons.Rounded.Close,
+                                contentDescription = stringResource(R.string.profile_remove_cover_cd),
+                                tint = KarsyWhite,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
 
                 // Avatar con botón de cámara
                 Box(

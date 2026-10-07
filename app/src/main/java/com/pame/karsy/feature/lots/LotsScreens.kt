@@ -84,7 +84,9 @@ import com.pame.karsy.feature.home.FilterSheet
 import com.pame.karsy.feature.home.HomeFilters
 import com.pame.karsy.feature.home.HomeHeader
 import com.pame.karsy.feature.home.VehicleCard
+import com.pame.karsy.feature.profile.AvatarViewer
 import com.pame.karsy.feature.profile.ProfileAvatar
+import com.pame.karsy.feature.profile.ZoomableProfileAvatar
 
 // Paleta del módulo de Lotes; en tema oscuro se usan equivalentes con el mismo contraste.
 private val LotIce: Color get() = if (Tema.oscuro) Color(0xFF1F3A4F) else Color(0xFFE2F1F8)
@@ -273,6 +275,7 @@ fun LotProfileScreen(
     // Panel de filtros (el mismo de Inicio) sobre el inventario del lote; tapa la barra inferior.
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     HideBottomBarWhile(filtersOpen)
+    var avatarOpen by rememberSaveable { mutableStateOf(false) }
     val isVisitor = !userMode.isLoggedIn
     val msgRegisterContact = stringResource(R.string.detail_toast_register_contact)
     val msgRegisterFav = stringResource(R.string.home_toast_register_favorites)
@@ -312,6 +315,7 @@ fun LotProfileScreen(
                             item {
                                 LotIdentityCard(
                                     lot = lot,
+                                    onOpenAvatar = { avatarOpen = true },
                                     // Con sesión, sin número registrado: el botón se ve deshabilitado.
                                     canCall = isVisitor || vm.contact?.phone != null,
                                     canWhatsapp = isVisitor || vm.contact?.whatsapp != null,
@@ -386,6 +390,11 @@ fun LotProfileScreen(
             }
         }
 
+        val logo = lot?.logoUrl
+        if (avatarOpen && logo != null) {
+            AvatarViewer(name = lot.name, avatarUrl = logo, onClose = { avatarOpen = false })
+        }
+
         FilterSheet(
             visible = filtersOpen,
             userMode = userMode,
@@ -420,6 +429,7 @@ fun LotProfileScreen(
 @Composable
 private fun LotIdentityCard(
     lot: Lot,
+    onOpenAvatar: () -> Unit,
     canCall: Boolean,
     canWhatsapp: Boolean,
     onCall: () -> Unit,
@@ -437,11 +447,12 @@ private fun LotIdentityCard(
             .padding(20.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ProfileAvatar(
+            ZoomableProfileAvatar(
                 name = lot.name,
                 avatarUrl = lot.logoUrl,
                 size = 68.dp,
                 initialsSize = 22.sp,
+                onOpen = onOpenAvatar,
                 modifier = Modifier.border(1.dp, LotOutline, CircleShape)
             )
             Column(Modifier.padding(start = 16.dp)) {

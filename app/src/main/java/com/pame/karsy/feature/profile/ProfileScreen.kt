@@ -98,6 +98,11 @@ fun ProfileScreen(
     val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) vm.uploadAvatar(context, uri)
     }
+    val pickCover = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) vm.uploadCover(context, uri)
+    }
+    // Foto de perfil ampliada (solo si hay foto).
+    var avatarOpen by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -141,7 +146,8 @@ fun ProfileScreen(
                     onEdit = {
                         vm.clearDialogErrors()
                         editOpen = true
-                    }
+                    },
+                    onOpenAvatar = { avatarOpen = true }
                 )
                 Spacer(Modifier.height(16.dp))
             } else if (vm.loading) {
@@ -190,11 +196,20 @@ fun ProfileScreen(
             onPickPhoto = {
                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
+            onPickCover = {
+                pickCover.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onRemoveCover = vm::removeCover,
             onChangePassword = {
                 vm.clearDialogErrors()
                 passwordOpen = true
             }
         )
+    }
+
+    val avatar = user?.avatarUrl
+    if (avatarOpen && avatar != null) {
+        AvatarViewer(name = user.displayName, avatarUrl = avatar, onClose = { avatarOpen = false })
     }
 
     // Se abre encima del diálogo de editar perfil.
@@ -214,16 +229,11 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit) {
+private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit, onOpenAvatar: () -> Unit) {
     ProfileCard {
       Box(modifier = Modifier.fillMaxWidth()) {
-        // Portada con degradado
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .background(ProfileCoverBrush)
-        )
+        // Portada: foto personalizada o degradado de la marca (no se amplía).
+        ProfileCover(coverUrl = user.coverUrl, height = 100.dp)
         // El avatar se superpone 44dp sobre la portada (marginTop: -44 del mockup).
         Column(
             modifier = Modifier
@@ -236,11 +246,12 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Box {
-                    ProfileAvatar(
+                    ZoomableProfileAvatar(
                         name = user.displayName,
                         avatarUrl = user.avatarUrl,
                         size = 88.dp,
                         initialsSize = 30.sp,
+                        onOpen = onOpenAvatar,
                         modifier = Modifier
                             .shadow(6.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
                             .border(4.dp, KarsySurface, CircleShape)

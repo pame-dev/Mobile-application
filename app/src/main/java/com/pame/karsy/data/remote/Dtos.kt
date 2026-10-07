@@ -76,6 +76,7 @@ data class CuentaDto(
     @SerialName("estado_cuenta") val estadoCuenta: String,
     @SerialName("fecha_creacion") val fechaCreacion: String,
     @SerialName("medio_contacto_principal") val medioContactoPrincipal: String? = null,
+    @SerialName("foto_portada") val fotoPortada: String? = null,
 )
 
 @Serializable
@@ -90,6 +91,10 @@ data class PerfilLoteDto(
     val municipio: String,
     val estado: String,
 )
+
+/** Solo la portada de una cuenta (UserRepository.coverOf). */
+@Serializable
+data class PortadaDto(@SerialName("foto_portada") val fotoPortada: String? = null)
 
 /** Columnas públicas de public.cuentas que usa el directorio de lotes. */
 @Serializable

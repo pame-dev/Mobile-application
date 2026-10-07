@@ -400,14 +400,25 @@ fun KarsyNavGraph(
                     Routes.PublishFlow.route,
                     arguments = listOf(navArgument(Routes.PublishFlow.ARG_EDIT) { type = NavType.LongType; defaultValue = -1L })
                 ) { entry ->
-                    val editando = (entry.arguments?.getLong(Routes.PublishFlow.ARG_EDIT) ?: -1L) > 0
+                    val editId = (entry.arguments?.getLong(Routes.PublishFlow.ARG_EDIT) ?: -1L).takeIf { it > 0 }
                     PublishFlowScreen(
                         onBack = ::back,
                         onFinished = {
-                            // Al corregir se llegó desde el panel: basta con regresar a él.
-                            if (editando) back()
-                            else navController.navigate(Routes.Dashboard.route) {
-                                popUpTo(Routes.PublishFlow.route) { inclusive = true }
+                            if (editId != null) {
+                                // Editar → "Ver publicación": abre su detalle. Si se llegó desde ese
+                                // mismo detalle, se reemplaza para que se recargue con los cambios.
+                                val prev = navController.previousBackStackEntry
+                                val desdeSuDetalle = prev?.destination?.route == Routes.CarDetail.route &&
+                                    prev.arguments?.getLong(Routes.CarDetail.ARG) == editId
+                                navController.navigate(Routes.CarDetail.createRoute(editId)) {
+                                    if (desdeSuDetalle) popUpTo(Routes.CarDetail.route) { inclusive = true }
+                                    else popUpTo(Routes.PublishFlow.route) { inclusive = true }
+                                }
+                            } else {
+                                // Crear → "Ver mi panel".
+                                navController.navigate(Routes.Dashboard.route) {
+                                    popUpTo(Routes.PublishFlow.route) { inclusive = true }
+                                }
                             }
                         }
                     )

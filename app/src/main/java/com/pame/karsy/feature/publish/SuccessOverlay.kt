@@ -37,7 +37,8 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 /**
- * Pantalla de éxito tras publicar ("¡Publicado!"). [onDone] lleva al panel del vendedor.
+ * Pantalla de éxito tras publicar ("¡Publicado!"). [onDone] lleva al panel del vendedor
+ * al crear, o al detalle de la publicación al editarla ([resubmitted]).
  * La publicación queda como propuesta pendiente hasta que un administrador la aprueba.
  */
 @Composable
@@ -98,7 +99,12 @@ fun SuccessOverlay(
             colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
             contentPadding = PaddingValues(horizontal = 40.dp, vertical = 16.dp)
         ) {
-            Text(stringResource(R.string.publish_success_go_dashboard), fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(if (resubmitted) R.string.publish_success_view_listing else R.string.publish_success_go_dashboard),
+                fontFamily = Outfit,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
