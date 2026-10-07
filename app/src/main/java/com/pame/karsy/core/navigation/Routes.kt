@@ -18,8 +18,14 @@ sealed class Routes(val route: String) {
     object RegisterLote : Routes("register_lote")
 
     object Home : Routes("home")
-    /** Catálogo solo con publicaciones de lotes/agencias (pestaña "Lotes"). */
+    /** Directorio de lotes y agencias (pestaña "Lotes"). */
     object Lots : Routes("lots")
+
+    /** Perfil de un lote: contacto e inventario. */
+    object LotProfile : Routes("lot/{lotId}") {
+        const val ARG = "lotId"
+        fun createRoute(lotId: String) = "lot/$lotId"
+    }
 
     object CarDetail : Routes("car_detail/{carId}") {
         const val ARG = "carId"

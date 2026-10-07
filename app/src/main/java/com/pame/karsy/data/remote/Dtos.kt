@@ -91,6 +91,33 @@ data class PerfilLoteDto(
     val estado: String,
 )
 
+/** Columnas públicas de public.cuentas que usa el directorio de lotes. */
+@Serializable
+data class LoteCuentaDto(
+    @SerialName("id_cuenta") val idCuenta: String,
+    @SerialName("nombre_mostrar") val nombreMostrar: String,
+    @SerialName("foto_perfil") val fotoPerfil: String? = null,
+    @SerialName("descripcion_corta") val descripcionCorta: String? = null,
+    @SerialName("estado_perfil_ubi") val estado: String,
+    @SerialName("municipio_perfil_ubi") val municipio: String,
+)
+
+/** Fila completa de public.perfiles_lote (nombre comercial, logo, dirección y horario). */
+@Serializable
+data class LotePerfilDto(
+    @SerialName("id_cuenta") val idCuenta: String,
+    @SerialName("nombre_comercial") val nombreComercial: String,
+    @SerialName("logo_lote") val logoLote: String? = null,
+    @SerialName("descripcion_lote") val descripcionLote: String? = null,
+    val calle: String = "",
+    val numero: String = "",
+    val colonia: String = "",
+    @SerialName("codigo_postal") val codigoPostal: String = "",
+    val municipio: String,
+    val estado: String,
+    @SerialName("horarios_atencion") val horarios: String? = null,
+)
+
 @Serializable
 data class TelefonoDto(
     @SerialName("id_telefono") val idTelefono: Long,

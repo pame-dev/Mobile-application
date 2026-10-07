@@ -267,7 +267,7 @@ private fun ContactButton(
 }
 
 /** Abre un chat de WhatsApp con un mensaje listo. Los números de 10 dígitos se toman como de México (+52). */
-private fun openWhatsapp(context: Context, numero: String, mensaje: String) {
+internal fun openWhatsapp(context: Context, numero: String, mensaje: String) {
     val digitos = numero.filter { it.isDigit() }
     val internacional = if (digitos.length == 10) "52$digitos" else digitos
     val uri = Uri.parse("https://wa.me/$internacional?text=${Uri.encode(mensaje)}")

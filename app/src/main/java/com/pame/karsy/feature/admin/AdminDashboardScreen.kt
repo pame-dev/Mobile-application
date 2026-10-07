@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -75,7 +74,6 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun AdminDashboardScreen(
-    onBack: () -> Unit,
     onCarClick: (Long) -> Unit,
     onReviewReport: (Long) -> Unit,
     onLogout: () -> Unit,
@@ -127,10 +125,7 @@ fun AdminDashboardScreen(
                 .fillMaxSize()
                 .background(KarsyBg)
         ) {
-            AdminTopBar(
-                onMenu = { scope.launch { drawerState.open() } },
-                onHome = onBack
-            )
+            AdminTopBar(onMenu = { scope.launch { drawerState.open() } })
             // Aviso del resultado de la última acción: se oculta solo a los MESSAGE_MS.
             // Se recuerda el último texto para que la animación de salida lo siga mostrando.
             val message = vm.message
@@ -189,7 +184,8 @@ fun AdminDashboardScreen(
 }
 
 @Composable
-private fun AdminTopBar(onMenu: () -> Unit, onHome: () -> Unit) {
+/** Barra superior del panel. Para volver al inicio se usa la barra inferior. */
+private fun AdminTopBar(onMenu: () -> Unit) {
     Column(Modifier.fillMaxWidth().background(KarsySurface)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -211,7 +207,6 @@ private fun AdminTopBar(onMenu: () -> Unit, onHome: () -> Unit) {
                 color = KarsyInk,
                 modifier = Modifier.weight(1f)
             )
-            TopBarButton(Icons.Outlined.Home, stringResource(R.string.admin1_back_home), onHome)
         }
         HorizontalDivider(thickness = 1.dp, color = KarsyBorder)
     }

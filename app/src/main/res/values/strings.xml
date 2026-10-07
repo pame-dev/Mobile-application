@@ -220,7 +220,6 @@
     <string name="nav_profile">Perfil</string>
     <string name="nav_toast_register_profile">Regístrate o inicia sesión para ver tu perfil</string>
     <string name="home_notifications">Notificaciones</string>
-    <string name="lots_title">Lotes y agencias</string>
     <string name="home_logout_title">¿Cerrar sesión?</string>
     <string name="home_logout_message">¿Estás seguro de que deseas salir de tu cuenta de Karsy? Tendrás que iniciar sesión de nuevo para gestionar tus vehículos.</string>
     <string name="home_logout_confirm">Sí, salir</string>
@@ -1012,4 +1011,24 @@
     <string name="password_error_requirements">La contraseña no cumple los requisitos de seguridad.</string>
     <string name="password_error_too_long">La contraseña puede tener máximo %1$d caracteres.</string>
     <string name="password_error_contains_email">La contraseña no debe contener tu correo.</string>
+    <!-- Lotes -->
+    <string name="lots_banner_title">Lotes</string>
+    <string name="lots_banner_subtitle">CATÁLOGO DE NEGOCIOS AUTOMOTRICES</string>
+    <string name="lots_banner_description">Vehículos de lotes y agencias. Esta sección muestra exclusivamente publicaciones de vendedores tipo lote/agencia.</string>
+    <string name="lots_search_placeholder">Buscar lote o ciudad…</string>
+    <string name="lots_empty">Aún no hay lotes registrados.</string>
+    <string name="lots_no_match">Ningún lote coincide con tu búsqueda.</string>
+    <string name="lot_not_found">No encontramos este lote.</string>
+    <string name="lot_call">Llamar</string>
+    <string name="lot_whatsapp">WhatsApp</string>
+    <string name="lot_directions">Cómo llegar</string>
+    <string name="lot_whatsapp_message">Hola, vi su lote %1$s en Karsy y me gustaría más información.</string>
+    <string name="lot_inventory_title">Vehículos en venta</string>
+    <string name="lot_search_placeholder">Buscar marca o modelo…</string>
+    <string name="lot_empty_inventory">Este lote no tiene publicaciones activas por el momento.</string>
+    <string name="lot_no_match">Ningún vehículo coincide con tu búsqueda.</string>
+    <plurals name="lots_vehicle_count">
+        <item quantity="one">%1$d vehículo</item>
+        <item quantity="other">%1$d vehículos</item>
+    </plurals>
 </resources>
