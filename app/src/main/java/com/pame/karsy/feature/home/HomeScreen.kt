@@ -127,8 +127,6 @@ fun HomeScreen(
     onAdminPanel: () -> Unit,
     onRegister: () -> Unit,
     onLogin: () -> Unit,
-    /** Pestaña "Lotes": solo publicaciones de lotes/agencias, sin portada ni destacados. */
-    lotsOnly: Boolean = false,
     vm: HomeViewModel = viewModel(),
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
@@ -141,7 +139,7 @@ fun HomeScreen(
     LaunchedEffect(Unit) { vm.refresh() }
 
     val featured = vm.featured
-    val allCars = vm.visibleCars.let { cars -> if (lotsOnly) cars.filter { it.sellerType == "lote" } else cars }
+    val allCars = vm.visibleCars
     val searching = vm.query.isNotBlank()
     val gridState = rememberLazyGridState()
     val keyboard = LocalSoftwareKeyboardController.current
@@ -202,7 +200,7 @@ fun HomeScreen(
                         .fillMaxSize()
                         .navigationBarsPadding()
                 ) {
-                    if (!lotsOnly) item(span = { GridItemSpan(maxLineSpan) }) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         HeroSection(
                             stats = vm.heroStats,
                             query = vm.query,
@@ -211,7 +209,7 @@ fun HomeScreen(
                         )
                     }
 
-                    if (isVisitor && !lotsOnly) {
+                    if (isVisitor) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             VisitorBanner(onRegister = goRegister, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp))
                         }
@@ -219,7 +217,7 @@ fun HomeScreen(
 
                     // Vehículos destacados (solicitudes de destacado aprobadas y vigentes)
                     // Mientras se busca se ocultan para que los resultados queden arriba.
-                    if (featured.isNotEmpty() && !searching && !lotsOnly) item(span = { GridItemSpan(maxLineSpan) }) {
+                    if (featured.isNotEmpty() && !searching) item(span = { GridItemSpan(maxLineSpan) }) {
                         Column(Modifier.padding(top = 8.dp)) {
                             SectionHeader(
                                 title = stringResource(R.string.home_featured_title),
@@ -266,7 +264,7 @@ fun HomeScreen(
                     // Todos los vehículos
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         SectionHeader(
-                            title = if (lotsOnly) stringResource(R.string.lots_title) else stringResource(R.string.home_all_title),
+                            title = stringResource(R.string.home_all_title),
                             subtitle = pluralStringResource(R.plurals.home_vehicles_available, allCars.size, allCars.size),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {
@@ -377,7 +375,7 @@ private fun EmptyMessage(text: String, action: String?, onAction: () -> Unit) {
  * Favoritos y Perfil están en la barra inferior.
  */
 @Composable
-private fun HomeHeader(
+internal fun HomeHeader(
     userMode: UserMode,
     menuOpen: Boolean,
     onToggleMenu: () -> Unit,

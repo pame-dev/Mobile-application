@@ -1,5 +1,7 @@
 package com.pame.karsy.core.navigation
 
+import com.pame.karsy.feature.lots.LotProfileScreen
+import com.pame.karsy.feature.lots.LotsScreen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -182,13 +184,22 @@ fun KarsyNavGraph(
         restoreState = true
     }
 
+    /** La casita siempre regresa a Inicio, quitando todo lo que haya encima (sin restaurar nada). */
+    fun goHome() {
+        if (!navController.popBackStack(Routes.Home.route, inclusive = false)) {
+            navController.navigate(Routes.Home.route) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
+
     // ── Barra inferior ───────────────────────────────────────────────────────
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     // Solo estas pantallas llevan barra; Mi Panel y el panel de admin se marcan como "Perfil".
     val currentTab = when (currentRoute) {
         Routes.Home.route -> BottomTab.Home
-        Routes.Lots.route -> BottomTab.Lots
+        Routes.Lots.route, Routes.LotProfile.route -> BottomTab.Lots
         Routes.Favorites.route -> BottomTab.Favorites
         Routes.Profile.route, Routes.Dashboard.route, Routes.AdminDashboard.route -> BottomTab.Profile
         else -> null
@@ -297,14 +308,24 @@ fun KarsyNavGraph(
                     )
                 }
                 composable(Routes.Lots.route) {
-                    HomeScreen(
+                    LotsScreen(
                         userMode = userMode,
-                        onCarClick = ::openCar,
+                        onLotClick = { navController.navigate(Routes.LotProfile.createRoute(it)) },
                         onNotifications = { navController.navigate(Routes.Notifications.route) },
                         onAdminPanel = { goTab(Routes.AdminDashboard.route) },
-                        onRegister = ::goRegister,
-                        onLogin = { navController.navigate(Routes.Login.route) },
-                        lotsOnly = true
+                        onLogin = { navController.navigate(Routes.Login.route) }
+                    )
+                }
+                composable(
+                    Routes.LotProfile.route,
+                    arguments = listOf(navArgument(Routes.LotProfile.ARG) { type = NavType.StringType })
+                ) { entry ->
+                    LotProfileScreen(
+                        lotId = entry.arguments?.getString(Routes.LotProfile.ARG).orEmpty(),
+                        userMode = userMode,
+                        onBack = ::back,
+                        onCarClick = ::openCar,
+                        onRegister = ::goRegister
                     )
                 }
                 composable(
@@ -403,7 +424,6 @@ fun KarsyNavGraph(
                 // ── Administración ───────────────────────────────────────────
                 composable(Routes.AdminDashboard.route) {
                     AdminDashboardScreen(
-                        onBack = ::back,
                         onCarClick = ::openAdminCar,
                         onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
                         onLogout = ::logout
@@ -476,8 +496,11 @@ fun KarsyNavGraph(
                 current = currentTab,
                 onTab = { tab ->
                     when (tab) {
-                        BottomTab.Home -> goTab(Routes.Home.route)
-                        BottomTab.Lots -> goTab(Routes.Lots.route)
+                        BottomTab.Home -> goHome()
+                        // Dentro del perfil de un lote, "Lotes" regresa al directorio.
+                        BottomTab.Lots ->
+                            if (currentRoute == Routes.LotProfile.route) navController.popBackStack(Routes.Lots.route, inclusive = false)
+                            else goTab(Routes.Lots.route)
                         BottomTab.Favorites ->
                             if (userMode.isLoggedIn) goTab(Routes.Favorites.route) else barToast = toastFavorites
                         BottomTab.Profile ->

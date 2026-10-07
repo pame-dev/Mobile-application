@@ -218,7 +218,6 @@
     <string name="nav_profile">Profile</string>
     <string name="nav_toast_register_profile">Sign up or log in to see your profile</string>
     <string name="home_notifications">Notifications</string>
-    <string name="lots_title">Dealerships</string>
     <string name="home_logout_title">Log out?</string>
     <string name="home_logout_message">Are you sure you want to log out of your Karsy account? You\'ll need to log in again to manage your vehicles.</string>
     <string name="home_logout_confirm">Yes, log out</string>
@@ -1010,4 +1009,24 @@
     <string name="password_error_requirements">The password doesn\'t meet the security requirements.</string>
     <string name="password_error_too_long">The password can have at most %1$d characters.</string>
     <string name="password_error_contains_email">The password must not contain your email.</string>
+    <!-- Lotes -->
+    <string name="lots_banner_title">Dealerships</string>
+    <string name="lots_banner_subtitle">AUTOMOTIVE BUSINESS DIRECTORY</string>
+    <string name="lots_banner_description">Vehicles from dealerships and car lots. This section only shows listings from dealership sellers.</string>
+    <string name="lots_search_placeholder">Search dealership or city…</string>
+    <string name="lots_empty">There are no dealerships yet.</string>
+    <string name="lots_no_match">No dealership matches your search.</string>
+    <string name="lot_not_found">We couldn\'t find this dealership.</string>
+    <string name="lot_call">Call</string>
+    <string name="lot_whatsapp">WhatsApp</string>
+    <string name="lot_directions">Directions</string>
+    <string name="lot_whatsapp_message">Hi, I saw your dealership %1$s on Karsy and I\'d like more information.</string>
+    <string name="lot_inventory_title">Vehicles for sale</string>
+    <string name="lot_search_placeholder">Search brand or model…</string>
+    <string name="lot_empty_inventory">This dealership has no active listings right now.</string>
+    <string name="lot_no_match">No vehicle matches your search.</string>
+    <plurals name="lots_vehicle_count">
+        <item quantity="one">%1$d vehicle</item>
+        <item quantity="other">%1$d vehicles</item>
+    </plurals>
 </resources>
