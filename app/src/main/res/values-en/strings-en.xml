@@ -7,6 +7,8 @@
     <string name="welcome_guest">Continue as guest</string>
     <string name="welcome_terms_prefix">"By continuing, you agree to our "</string>
     <string name="welcome_terms_link">Terms and Conditions</string>
+    <string name="welcome_privacy_prefix">"and our "</string>
+    <string name="welcome_privacy_link">Privacy Policy</string>
 
     <!-- Configuración / Settings -->
     <!-- Settings -->
@@ -14,7 +16,7 @@
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_desc">Alerts and notices for your account</string>
     <string name="settings_privacy">Privacy and security</string>
-    <string name="settings_privacy_desc">Password, sessions and privacy notice</string>
+    <string name="settings_privacy_desc">Password, sessions and privacy policy</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_es">Español</string>
     <string name="settings_language_en">English</string>
@@ -452,7 +454,7 @@
     <string name="profile_history_cd">History</string>
     <string name="profile_settings_cd">Settings</string>
     <string name="profile_panel_admin">Admin panel</string>
-    <string name="profile_panel_seller">+ My dashboard</string>
+    <string name="profile_panel_seller">My dashboard</string>
     <string name="profile_badge_admin">Administrator</string>
     <string name="profile_badge_lot">Lot</string>
     <string name="profile_my_posts">My listings</string>
@@ -936,12 +938,12 @@
     <string name="privacy_logout_all_confirm_title">Sign out everywhere?</string>
     <string name="privacy_logout_all_confirm_body">You will be signed out on this phone and on every device where you signed in. You will need to sign in again.</string>
     <string name="privacy_logout_all_confirm">Sign out all</string>
-    <string name="privacy_notice">Privacy notice</string>
+    <string name="privacy_notice">Privacy policy</string>
     <string name="privacy_notice_desc">What data we keep and why</string>
     <string name="privacy_device_notifications">Phone notifications</string>
     <string name="privacy_device_notifications_on">On</string>
     <string name="privacy_device_notifications_off">Off: tap to turn them on</string>
-    <string name="privacy_notice_title">🔒 Privacy notice</string>
+    <string name="privacy_notice_title">🔒 Privacy policy</string>
     <string name="privacy_notice_last_update">Last updated: October 2026</string>
     <string name="privacy_notice_intro">At Karsy we take care of your personal data. This notice explains what information we keep, what we use it for, who it is shared with and how you can exercise your rights.</string>
     <string name="privacy_notice_s1_title">1. Data we collect</string>
