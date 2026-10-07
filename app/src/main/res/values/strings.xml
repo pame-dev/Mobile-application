@@ -1035,7 +1035,10 @@
     <!-- Portada y foto de perfil -->
     <string name="profile_edit_cover">Editar portada</string>
     <string name="profile_remove_cover_cd">Quitar portada</string>
-    <string name="profile_cover_updated">Portada actualizada</string>
-    <string name="profile_cover_removed">Portada eliminada</string>
     <string name="profile_view_photo_cd">Ver foto de perfil</string>
+    <!-- Descartar cambios del perfil -->
+    <string name="profile_discard_title">¿Descartar cambios?</string>
+    <string name="profile_discard_message">Has realizado cambios en tu perfil. Si sales ahora, estos cambios se perderán. ¿Seguro que deseas descartar los cambios hechos?</string>
+    <string name="profile_discard_keep_editing">No, continuar editando</string>
+    <string name="profile_discard_yes">Sí, descartar</string>
 </resources>

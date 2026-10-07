@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -96,6 +97,11 @@ fun EditProfileDialog(
     onPickCover: () -> Unit,
     onRemoveCover: () -> Unit,
     onChangePassword: () -> Unit,
+    /** Foto y portada a mostrar: las elegidas sin guardar o las actuales (null = sin foto / degradado). */
+    avatarPreview: String?,
+    coverPreview: String?,
+    /** Se eligió foto o portada nueva, o se quitó la portada (aún sin guardar). */
+    photosChanged: Boolean,
     saving: Boolean = false,
     error: String? = null,
 ) {
@@ -134,6 +140,21 @@ fun EditProfileDialog(
     val anyFieldError = listOf(firstNameError, lastNameError, responsableError, phoneError, whatsappError,
         calleError, numeroError, coloniaError, cpError).any { it != null }
     var confirmSave by rememberSaveable { mutableStateOf(false) }
+    var confirmDiscard by rememberSaveable { mutableStateOf(false) }
+
+    // Hay cambios si algún campo difiere de como estaba al abrir, o cambió la foto/portada.
+    fun valoresDe(u: User) = listOf(
+        if (isLote) u.displayName else u.displayName.substringBefore(" "),
+        if (isLote) "" else u.displayName.substringAfter(" ", ""),
+        u.phone, u.whatsapp, u.medioPrincipal, u.bio, u.municipio, u.estado,
+        u.responsable, u.calle, u.numero, u.colonia, u.codigoPostal,
+    )
+    val isDirty = photosChanged || listOf(
+        firstName, lastName, phone, whatsapp, medio, bio, municipio, estado,
+        responsable, calle, numero, colonia, codigoPostal,
+    ) != valoresDe(user)
+    // Cancelar, ✕, tocar fuera o "atrás": con cambios se pregunta antes de descartarlos.
+    val requestClose = { if (isDirty) confirmDiscard = true else onDismiss() }
 
     fun buildName() = if (isLote) FormRules.limpiarEspacios(firstName)
     else listOf(firstName, lastName).map(FormRules::limpiarEspacios).filter { it.isNotEmpty() }.joinToString(" ")
@@ -156,7 +177,7 @@ fun EditProfileDialog(
     )
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = requestClose,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         val shape = RoundedCornerShape(20.dp)
@@ -168,7 +189,7 @@ fun EditProfileDialog(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = onDismiss
+                    onClick = requestClose
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -201,7 +222,7 @@ fun EditProfileDialog(
                         color = KarsyInk,
                         modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = requestClose, modifier = Modifier.size(32.dp)) {
                         Icon(
                             Icons.Rounded.Close,
                             contentDescription = stringResource(R.string.profile_close_cd),
@@ -218,7 +239,7 @@ fun EditProfileDialog(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
                 ) {
-                    ProfileCover(coverUrl = user.coverUrl, height = 96.dp)
+                    ProfileCover(coverUrl = coverPreview, height = 96.dp)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -239,7 +260,7 @@ fun EditProfileDialog(
                             modifier = Modifier.padding(start = 6.dp)
                         )
                     }
-                    if (user.coverUrl != null) {
+                    if (coverPreview != null) {
                         IconButton(
                             onClick = onRemoveCover,
                             modifier = Modifier
@@ -268,7 +289,7 @@ fun EditProfileDialog(
                     Box {
                         ProfileAvatar(
                             name = user.displayName,
-                            avatarUrl = user.avatarUrl,
+                            avatarUrl = avatarPreview,
                             size = 80.dp,
                             initialsSize = 26.sp,
                             modifier = Modifier.border(3.dp, KarsyTeal, CircleShape)
@@ -376,7 +397,7 @@ fun EditProfileDialog(
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(
-                        onClick = onDismiss,
+                        onClick = requestClose,
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.5.dp, KarsyBorder),
                         colors = ButtonDefaults.outlinedButtonColors(
@@ -440,6 +461,23 @@ fun EditProfileDialog(
             onConfirm = {
                 confirmSave = false
                 onSave(editedUser())
+            }
+        )
+
+        // Queda dentro de la ventana del Dialog: tapa todo, incluida la barra inferior.
+        ConfirmDialog(
+            visible = confirmDiscard,
+            icon = Icons.Rounded.WarningAmber,
+            // Rojo coral: acción destructiva (igual que "Cerrar sesión").
+            accent = Color(0xFFE65B5B),
+            title = stringResource(R.string.profile_discard_title),
+            message = stringResource(R.string.profile_discard_message),
+            confirmText = stringResource(R.string.profile_discard_yes),
+            cancelText = stringResource(R.string.profile_discard_keep_editing),
+            onCancel = { confirmDiscard = false },
+            onConfirm = {
+                confirmDiscard = false
+                onDismiss()
             }
         )
     }

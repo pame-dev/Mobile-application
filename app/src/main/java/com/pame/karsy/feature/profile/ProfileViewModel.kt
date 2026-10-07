@@ -62,15 +62,46 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun save(updated: User, onDone: () -> Unit) {
+    /**
+     * Guarda los datos del perfil y, si se eligieron en el diálogo, sube la foto de perfil
+     * y la portada (o quita la portada). Las fotos se suben hasta aquí para que "Descartar"
+     * no deje nada guardado. La portada se comprime (lado mayor de 1600 px, JPEG).
+     */
+    fun save(
+        context: Context,
+        updated: User,
+        newAvatar: Uri?,
+        newCover: Uri?,
+        removeCover: Boolean,
+        onDone: () -> Unit,
+    ) {
         val original = user ?: return
         if (saving) return
+        val appContext = context.applicationContext
         saving = true
         editError = null
         viewModelScope.launch {
-            safeCall { UserRepository.updateProfile(original, updated) }
+            safeCall {
+                UserRepository.updateProfile(original, updated)
+                var guardado = updated
+                if (newAvatar != null) {
+                    val url = UserRepository.uploadAvatar(Imagenes.jpegBytes(appContext, newAvatar, maxLado = 800))
+                    guardado = guardado.copy(avatarUrl = url)
+                }
+                when {
+                    newCover != null -> {
+                        val url = UserRepository.uploadCover(Imagenes.jpegBytes(appContext, newCover, maxLado = 1600, calidad = 78))
+                        guardado = guardado.copy(coverUrl = url)
+                    }
+                    removeCover -> {
+                        UserRepository.removeCover()
+                        guardado = guardado.copy(coverUrl = null)
+                    }
+                }
+                guardado
+            }
                 .onSuccess {
-                    user = updated
+                    user = it
                     message = texto(R.string.profile_saved)
                     onDone()
                 }
@@ -107,36 +138,4 @@ class ProfileViewModel : ViewModel() {
         passwordError = null
     }
 
-    fun uploadAvatar(context: Context, uri: Uri) {
-        val appContext = context.applicationContext
-        saving = true
-        viewModelScope.launch {
-            safeCall { UserRepository.uploadAvatar(Imagenes.jpegBytes(appContext, uri, maxLado = 800)) }
-                .onSuccess { url -> user = user?.copy(avatarUrl = url); message = texto(R.string.profile_photo_updated) }
-                .onFailure { message = it.mensajeUsuario() }
-            saving = false
-        }
-    }
-
-    /** Sube la portada comprimida (lado mayor de 1600 px, JPEG) para que el perfil cargue rápido. */
-    fun uploadCover(context: Context, uri: Uri) {
-        val appContext = context.applicationContext
-        saving = true
-        viewModelScope.launch {
-            safeCall { UserRepository.uploadCover(Imagenes.jpegBytes(appContext, uri, maxLado = 1600, calidad = 78)) }
-                .onSuccess { url -> user = user?.copy(coverUrl = url); message = texto(R.string.profile_cover_updated) }
-                .onFailure { message = it.mensajeUsuario() }
-            saving = false
-        }
-    }
-
-    fun removeCover() {
-        saving = true
-        viewModelScope.launch {
-            safeCall { UserRepository.removeCover() }
-                .onSuccess { user = user?.copy(coverUrl = null); message = texto(R.string.profile_cover_removed) }
-                .onFailure { message = it.mensajeUsuario() }
-            saving = false
-        }
-    }
 }
