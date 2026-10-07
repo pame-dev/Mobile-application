@@ -12,6 +12,7 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Imagenes
+import com.pame.karsy.core.util.PasswordRules
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.User
@@ -78,7 +79,7 @@ class ProfileViewModel : ViewModel() {
         if (saving) return
         passwordError = when {
             current.isEmpty() -> texto(R.string.profile_password_enter_current)
-            new.length < 6 -> texto(R.string.core_error_weak_password)
+            !PasswordRules.esValida(new, SessionManager.account?.correo) -> PasswordRules.error(new, SessionManager.account?.correo)
             new != confirm -> texto(R.string.auth_passwords_mismatch)
             new == current -> texto(R.string.core_error_same_password)
             else -> null
