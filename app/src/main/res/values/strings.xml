@@ -515,6 +515,7 @@
     <string name="publish_error_price">Escribe el precio.</string>
     <string name="publish_error_transmission">Elige la transmisión.</string>
     <string name="publish_error_mileage">Escribe el kilometraje.</string>
+    <string name="publish_error_cylinders">Los cilindros no pueden ser más de %1$d.</string>
     <string name="publish_error_body_type">Elige el tipo de carro.</string>
     <string name="publish_error_color">Elige el color.</string>
     <string name="publish_error_required_photos">Debes subir las 5 fotos obligatorias para continuar.</string>
@@ -878,7 +879,6 @@
     <string name="core_mode_guest">Visitante</string>
     <string name="core_mode_particular">Particular</string>
     <string name="core_mode_lote">Lote</string>
-    <string name="core_mode_admin">Administrador</string>
     <!-- Fechas -->
     <string name="core_months_short">ene,feb,mar,abr,may,jun,jul,ago,sep,oct,nov,dic</string>
     <string name="core_months_long">Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre</string>

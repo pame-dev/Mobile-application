@@ -133,18 +133,17 @@ fun KarsyNavGraph(
 
     /**
      * Entra a la app según el rol de la cuenta y borra el historial de onboarding:
-     * admin → panel de administración, lote → su panel de vendedor,
-     * particular → inicio. El inicio queda debajo para regresar con "atrás".
+     * admin (sea particular o lote) → panel de administración, lote → su panel de
+     * vendedor, particular → inicio. El inicio queda debajo para regresar con "atrás".
      */
     fun enterAs(account: SessionAccount) {
         SessionManager.login(account)
         navController.navigate(Routes.Home.route) {
             popUpTo(navController.graph.id) { inclusive = true }
         }
-        when (account.mode) {
-            UserMode.ADMIN -> navController.navigate(Routes.AdminDashboard.route)
-            UserMode.LOTE -> navController.navigate(Routes.Dashboard.route)
-            else -> Unit
+        when {
+            account.esAdmin -> navController.navigate(Routes.AdminDashboard.route)
+            account.mode == UserMode.LOTE -> navController.navigate(Routes.Dashboard.route)
         }
     }
 
@@ -350,11 +349,8 @@ fun KarsyNavGraph(
                     ProfileScreen(
                         userMode = userMode,
                         onBack = ::back,
-                        onPanel = {
-                            navController.navigate(
-                                if (userMode.isAdmin) Routes.AdminDashboard.route else Routes.Dashboard.route
-                            )
-                        },
+                        onPanel = { navController.navigate(Routes.Dashboard.route) },
+                        onAdminPanel = { navController.navigate(Routes.AdminDashboard.route) },
                         onHistory = { navController.navigate(Routes.History.route) },
                         onSettings = { navController.navigate(Routes.Settings.route) },
                         onCarClick = ::openCar

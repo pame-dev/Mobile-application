@@ -46,7 +46,6 @@ import com.pame.karsy.data.model.Car
 fun VehicleCard(
     car: Car,
     isFavorite: Boolean,
-    showHeart: Boolean,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
@@ -74,16 +73,14 @@ fun VehicleCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            if (showHeart) {
-                HeartToggle(
-                    filled = isFavorite,
-                    onToggle = onToggleFavorite,
-                    size = 32.dp,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(10.dp)
-                )
-            }
+            HeartToggle(
+                filled = isFavorite,
+                onToggle = onToggleFavorite,
+                size = 32.dp,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp)
+            )
         }
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 18.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {

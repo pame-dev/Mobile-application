@@ -97,6 +97,7 @@ import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.components.RegisterToast
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavyDeep
@@ -153,7 +154,6 @@ fun HomeScreen(
     val favoriteIds = vm.favoriteIds
 
     val isVisitor = !userMode.isLoggedIn
-    val showHeart = !userMode.isAdmin
     val favoritesToast = stringResource(R.string.home_toast_register_favorites)
     val filterLabel = rememberFilterLabel()
 
@@ -250,7 +250,6 @@ fun HomeScreen(
                                         FeaturedCarCard(
                                             car = car,
                                             isFavorite = car.id in favoriteIds,
-                                            showHeart = showHeart,
                                             onClick = { onCarClick(car.id) },
                                             onToggleFavorite = { toggleFavorite(car.id) },
                                             width = cardWidth
@@ -312,7 +311,6 @@ fun HomeScreen(
                         VehicleCard(
                             car = car,
                             isFavorite = car.id in favoriteIds,
-                            showHeart = showHeart,
                             onClick = { onCarClick(car.id) },
                             onToggleFavorite = { toggleFavorite(car.id) },
                             modifier = Modifier.padding(horizontal = 16.dp)
@@ -413,7 +411,7 @@ internal fun HomeHeader(
                         Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                     else -> {
-                        if (userMode.isAdmin) {
+                        if (SessionManager.isAdmin) {
                             HeaderIconButton(onClick = onAdminPanel) {
                                 Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyInk, modifier = Modifier.size(18.dp))
                             }

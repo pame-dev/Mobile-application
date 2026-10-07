@@ -64,13 +64,20 @@ para correrla en cel:
 
 ./gradlew installDebug
 
-haver respaldos de la db manuales:
+hacer respaldos de la db manuales (sin Docker, con pg_dump 17):
 
-supabase db dump -f respaldo_esquema.sql              # estructura
-supabase db dump --data-only -f respaldo_datos.sql    # datos (publicaciones, cuentas, etc.)
+# una sola vez: instalar el cliente de Postgres 17 (repo de Ubuntu 24.04 "noble", base de Mint 22)
+sudo apt install -y curl ca-certificates
+sudo install -d /usr/share/postgresql-common/pgdg
+sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+sudo apt update && sudo apt install -y postgresql-client-17
 
+# cada respaldo (la contraseña es la de la BD: Project Settings → Database; no la guardes en el repo)
+export PGPASSWORD='CONTRASEÑA_DE_LA_BD'
+PGURL="postgresql://postgres.rkuikrlejybrxrlmzsms@aws-0-us-west-2.pooler.supabase.com:5432/postgres"
+/usr/lib/postgresql/17/bin/pg_dump "$PGURL" --schema=public -f respaldos/esquema_$(date +%F).sql
+/usr/lib/postgresql/17/bin/pg_dump "$PGURL" --data-only --schema=public --schema=auth -f respaldos/datos_$(date +%F).sql
+unset PGPASSWORD
 
-
-sudo apt install postgresql-common
-sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
-sudo apt install postgresql-client-17
+estructura completa de la bd (tablas, funciones, triggers...): estructura_base_de_datos.txt

@@ -68,19 +68,17 @@ object LotRepository {
     }
 
     private fun toLot(c: LoteCuentaDto, p: LotePerfilDto?, vehicleCount: Int): Lot {
-        val municipio = p?.municipio ?: c.municipio
-        val estado = p?.estado ?: c.estado
         val direccion = p?.let {
-            listOf("${it.calle} ${it.numero}".trim(), it.colonia, "C.P. ${it.codigoPostal}", it.municipio, it.estado)
+            listOf("${it.calle} ${it.numero}".trim(), it.colonia, "C.P. ${it.codigoPostal}", c.municipio, c.estado)
                 .filter { parte -> parte.isNotBlank() && parte != "C.P. " }
                 .joinToString(", ")
         }.orEmpty()
         return Lot(
             id = c.idCuenta,
-            name = p?.nombreComercial?.takeIf { it.isNotBlank() } ?: c.nombreMostrar,
-            logoUrl = Supabase.publicUrl(p?.logoLote) ?: Supabase.publicUrl(c.fotoPerfil),
-            description = p?.descripcionLote?.takeIf { it.isNotBlank() } ?: c.descripcionCorta.orEmpty(),
-            city = "$municipio, $estado",
+            name = c.nombreMostrar,
+            logoUrl = Supabase.publicUrl(c.fotoPerfil),
+            description = c.descripcionCorta.orEmpty(),
+            city = "${c.municipio}, ${c.estado}",
             address = direccion,
             hours = p?.horarios,
             vehicleCount = vehicleCount,

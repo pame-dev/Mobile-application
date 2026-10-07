@@ -52,7 +52,7 @@ object UserRepository {
             email = correo,
             phone = telefono?.numero.orEmpty(),
             location = "${cuenta.municipio}, ${cuenta.estado}",
-            bio = cuenta.descripcionCorta ?: lote?.descripcionLote.orEmpty(),
+            bio = cuenta.descripcionCorta.orEmpty(),
             avatarUrl = Supabase.publicUrl(cuenta.fotoPerfil),
             coverUrl = Supabase.publicUrl(cuenta.fotoPortada),
             memberSince = Formato.mesAnio(cuenta.fechaCreacion),
@@ -89,15 +89,12 @@ object UserRepository {
         }) { filter { eq("id_cuenta", uid) } }
 
         if (updated.accountType == "lote") {
+            // Nombre, descripción y ubicación del lote son los de cuentas (arriba).
             db.from("perfiles_lote").update({
-                set("nombre_comercial", updated.displayName.trim())
-                set("descripcion_lote", updated.bio.trim().ifEmpty { null })
                 set("calle", updated.calle.trim())
                 set("numero", updated.numero.trim())
                 set("colonia", updated.colonia.trim())
                 set("codigo_postal", updated.codigoPostal.trim())
-                set("estado", updated.estado.trim())
-                set("municipio", updated.municipio.trim())
             }) { filter { eq("id_cuenta", uid) } }
             if (updated.responsable.trim() != original.responsable.trim()) {
                 db.auth.updateUser { data { put("responsable", updated.responsable.trim()) } }
@@ -133,10 +130,8 @@ object UserRepository {
             upsert = false
             contentType = ContentType.Image.JPEG
         }
+        // En un lote, la foto de perfil es su logo.
         db.from("cuentas").update({ set("foto_perfil", ruta) }) { filter { eq("id_cuenta", uid) } }
-        if (SessionManager.account?.tipoCuenta == "lote") {
-            db.from("perfiles_lote").update({ set("logo_lote", ruta) }) { filter { eq("id_cuenta", uid) } }
-        }
         return Supabase.publicUrl(ruta)
     }
 
