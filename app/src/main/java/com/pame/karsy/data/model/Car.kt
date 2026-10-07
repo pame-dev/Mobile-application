@@ -22,6 +22,8 @@ data class Car(
     val kilometraje: String = "",
     val ownerId: String = "",
     val ownerName: String = "",
+    /** Tipo de cuenta del vendedor: "lote" (agencia) o "particular". */
+    val sellerType: String = "",
     /** Estado para el dueño / admin: Activo, Pendiente, Rechazado, Vendido, Deshabilitado. */
     val status: String = "Activo",
     // Campos numéricos para filtrar y ordenar en la app.

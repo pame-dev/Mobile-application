@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.navigation.HideBottomBarWhile
+import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -96,6 +98,8 @@ fun DashboardScreen(
 ) {
     // Se recarga al volver (p. ej. después de publicar).
     LaunchedEffect(Unit) { vm.load() }
+    // Los avisos de "Destacar" cubren la pantalla: sin barra inferior mientras están abiertos.
+    HideBottomBarWhile(vm.destacarCar != null || vm.solicitudCar != null)
 
     Box(
         modifier = Modifier
@@ -112,7 +116,7 @@ fun DashboardScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                         .navigationBarsPadding()
-                        .padding(bottom = 32.dp),
+                        .padding(bottom = 32.dp + LocalBottomBarSpace.current),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     vm.error?.let {

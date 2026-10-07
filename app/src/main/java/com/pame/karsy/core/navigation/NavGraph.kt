@@ -1,5 +1,21 @@
 package com.pame.karsy.core.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.pame.karsy.R
+import com.pame.karsy.core.components.RegisterToast
+import com.pame.karsy.data.repository.UserRepository
+import com.pame.karsy.feature.home.AccountMenu
+import com.pame.karsy.feature.home.LogoutConfirmDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -156,246 +172,359 @@ fun KarsyNavGraph(
         navController.navigate(Routes.VerifyEmail.createRoute(email, sendCode))
     fun back() { navController.popBackStack() }
 
-    NavHost(
-        navController = navController,
-        startDestination = if (restored != null) Routes.Home.route else Routes.Welcome.route
-    ) {
-        // ── Onboarding ───────────────────────────────────────────────
-        composable(Routes.Welcome.route) {
-            WelcomeScreen(
-                onLogin = { navController.navigate(Routes.Login.route) },
-                onRegister = ::goRegister,
-                onGuest = ::enterAsGuest,
-                onTerms = { navController.navigate(Routes.Terms.route) },
-                onPrivacyNotice = { navController.navigate(Routes.PrivacyNotice.route) }
-            )
-        }
-        composable(Routes.Login.route) {
-            LoginScreen(
-                onBack = ::back,
-                onLogin = ::enterAs,
-                onVerifyEmail = { goVerifyEmail(it, sendCode = true) },
-                onRegister = ::goRegister
-            )
-        }
-        composable(
-            Routes.VerifyEmail.route,
-            arguments = listOf(
-                navArgument(Routes.VerifyEmail.ARG_EMAIL) { type = NavType.StringType },
-                navArgument(Routes.VerifyEmail.ARG_SEND) { type = NavType.BoolType; defaultValue = true },
-            )
-        ) { entry ->
-            VerifyEmailScreen(
-                email = entry.arguments?.getString(Routes.VerifyEmail.ARG_EMAIL).orEmpty(),
-                sendCode = entry.arguments?.getBoolean(Routes.VerifyEmail.ARG_SEND) ?: true,
-                onBack = ::back,
-                onVerified = ::enterAs
-            )
-        }
+    /**
+     * Cambia de pestaña de la barra inferior: deja Inicio como base de la pila y
+     * conserva el estado de cada pestaña al ir y volver.
+     */
+    fun goTab(route: String) = navController.navigate(route) {
+        popUpTo(Routes.Home.route) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
 
-        // ── Registro ─────────────────────────────────────────────────
-        composable(Routes.RegisterType.route) {
-            RegisterTypeScreen(
-                onBack = ::back,
-                onParticular = { navController.navigate(Routes.RegisterParticular.route) },
-                onLote = { navController.navigate(Routes.RegisterLote.route) },
-                onLogin = {
-                    navController.navigate(Routes.Login.route) {
-                        popUpTo(Routes.Welcome.route)
-                    }
-                }
-            )
-        }
-        // Supabase manda el código al crear la cuenta; no se pide otro al entrar.
-        composable(Routes.RegisterParticular.route) {
-            RegisterParticularScreen(
-                onBack = ::back,
-                onCreated = ::enterAs,
-                onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
-                onTerms = { navController.navigate(Routes.Terms.route) },
-                onLogin = { navController.navigate(Routes.Login.route) }
-            )
-        }
-        composable(Routes.RegisterLote.route) {
-            RegisterLoteScreen(
-                onBack = ::back,
-                onCreated = ::enterAs,
-                onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
-                onTerms = { navController.navigate(Routes.Terms.route) },
-                onLogin = { navController.navigate(Routes.Login.route) }
-            )
-        }
+    // ── Barra inferior ───────────────────────────────────────────────────────
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    // Solo estas pantallas llevan barra; Mi Panel y el panel de admin se marcan como "Perfil".
+    val currentTab = when (currentRoute) {
+        Routes.Home.route -> BottomTab.Home
+        Routes.Lots.route -> BottomTab.Lots
+        Routes.Favorites.route -> BottomTab.Favorites
+        Routes.Profile.route, Routes.Dashboard.route, Routes.AdminDashboard.route -> BottomTab.Profile
+        else -> null
+    }
+    val showBottomBar = currentTab != null && BottomBarOverlays.count == 0
+    var accountMenuOpen by rememberSaveable { mutableStateOf(false) }
+    var confirmLogout by rememberSaveable { mutableStateOf(false) }
+    var barToast by remember { mutableStateOf<String?>(null) }
+    var avatarUrl by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(currentRoute) {
+        accountMenuOpen = false
+        barToast = null
+    }
+    // Foto del menú de la cuenta; se vuelve a pedir al abrirlo por si cambió en el perfil.
+    LaunchedEffect(sessionUserId, accountMenuOpen) {
+        avatarUrl = if (sessionUserId == null) null
+        else if (!accountMenuOpen && avatarUrl != null) avatarUrl
+        else safeCall { UserRepository.currentUser()?.avatarUrl }.getOrNull() ?: avatarUrl
+    }
+    val toastFavorites = stringResource(R.string.home_toast_register_favorites)
+    val toastPublish = stringResource(R.string.home_toast_register_publish)
+    val toastProfile = stringResource(R.string.nav_toast_register_profile)
 
-        // ── Marketplace ──────────────────────────────────────────────
-        composable(Routes.Home.route) {
-            HomeScreen(
-                userMode = userMode,
-                onCarClick = ::openCar,
-                onFavorites = { navController.navigate(Routes.Favorites.route) },
-                onProfile = { navController.navigate(Routes.Profile.route) },
-                onAdminPanel = { navController.navigate(Routes.AdminDashboard.route) },
-                onPublish = { navController.navigate(Routes.PublishFlow.createRoute()) },
-                onRegister = ::goRegister,
-                onLogin = { navController.navigate(Routes.Login.route) },
-                onLogout = ::logout
-            )
-        }
-        composable(
-            Routes.CarDetail.route,
-            arguments = listOf(navArgument(Routes.CarDetail.ARG) { type = NavType.LongType })
-        ) { entry ->
-            CarDetailScreen(
-                carId = entry.arguments?.getLong(Routes.CarDetail.ARG) ?: 0L,
-                userMode = userMode,
-                onBack = ::back,
-                onRegister = ::goRegister,
-                onCarClick = ::openCar,
-                onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) }
-            )
-        }
-        composable(Routes.Favorites.route) {
-            FavoritesScreen(userMode = userMode, onBack = ::back, onCarClick = ::openCar)
-        }
-
-        // ── Perfil ───────────────────────────────────────────────────
-        composable(Routes.Profile.route) {
-            ProfileScreen(
-                userMode = userMode,
-                onBack = ::back,
-                onPanel = {
-                    navController.navigate(
-                        if (userMode.isAdmin) Routes.AdminDashboard.route else Routes.Dashboard.route
+    Box(Modifier.fillMaxSize()) {
+        // Las pantallas con barra dejan ese espacio libre al final de su lista.
+        CompositionLocalProvider(LocalBottomBarSpace provides if (currentTab != null) BOTTOM_BAR_SPACE else 0.dp) {
+            NavHost(
+                navController = navController,
+                startDestination = if (restored != null) Routes.Home.route else Routes.Welcome.route
+            ) {
+                // ── Onboarding ───────────────────────────────────────────────
+                composable(Routes.Welcome.route) {
+                    WelcomeScreen(
+                        onLogin = { navController.navigate(Routes.Login.route) },
+                        onRegister = ::goRegister,
+                        onGuest = ::enterAsGuest,
+                        onTerms = { navController.navigate(Routes.Terms.route) },
+                        onPrivacyNotice = { navController.navigate(Routes.PrivacyNotice.route) }
                     )
-                },
-                onHistory = { navController.navigate(Routes.History.route) },
-                onSettings = { navController.navigate(Routes.Settings.route) },
-                onCarClick = ::openCar
-            )
-        }
-        composable(Routes.History.route) {
-            HistoryScreen(onBack = ::back, onCarClick = ::openCar)
-        }
-        composable(Routes.Settings.route) {
-            SettingsScreen(
-                onBack = ::back,
-                onLogout = ::logout,
-                onTerms = { navController.navigate(Routes.Terms.route) },
-                onNotifications = { navController.navigate(Routes.Notifications.route) },
-                onPrivacy = { navController.navigate(Routes.Privacy.route) }
-            )
-        }
-        composable(Routes.Privacy.route) {
-            PrivacyScreen(
-                onBack = ::back,
-                onPrivacyNotice = { navController.navigate(Routes.PrivacyNotice.route) },
-                // Las sesiones ya se cerraron en Supabase; aquí solo se limpia la app.
-                onSignedOutEverywhere = {
-                    SessionManager.logout()
-                    navController.navigate(Routes.Welcome.route) {
-                        popUpTo(navController.graph.id) { inclusive = true }
+                }
+                composable(Routes.Login.route) {
+                    LoginScreen(
+                        onBack = ::back,
+                        onLogin = ::enterAs,
+                        onVerifyEmail = { goVerifyEmail(it, sendCode = true) },
+                        onRegister = ::goRegister
+                    )
+                }
+                composable(
+                    Routes.VerifyEmail.route,
+                    arguments = listOf(
+                        navArgument(Routes.VerifyEmail.ARG_EMAIL) { type = NavType.StringType },
+                        navArgument(Routes.VerifyEmail.ARG_SEND) { type = NavType.BoolType; defaultValue = true },
+                    )
+                ) { entry ->
+                    VerifyEmailScreen(
+                        email = entry.arguments?.getString(Routes.VerifyEmail.ARG_EMAIL).orEmpty(),
+                        sendCode = entry.arguments?.getBoolean(Routes.VerifyEmail.ARG_SEND) ?: true,
+                        onBack = ::back,
+                        onVerified = ::enterAs
+                    )
+                }
+
+                // ── Registro ─────────────────────────────────────────────────
+                composable(Routes.RegisterType.route) {
+                    RegisterTypeScreen(
+                        onBack = ::back,
+                        onParticular = { navController.navigate(Routes.RegisterParticular.route) },
+                        onLote = { navController.navigate(Routes.RegisterLote.route) },
+                        onLogin = {
+                            navController.navigate(Routes.Login.route) {
+                                popUpTo(Routes.Welcome.route)
+                            }
+                        }
+                    )
+                }
+                // Supabase manda el código al crear la cuenta; no se pide otro al entrar.
+                composable(Routes.RegisterParticular.route) {
+                    RegisterParticularScreen(
+                        onBack = ::back,
+                        onCreated = ::enterAs,
+                        onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
+                        onTerms = { navController.navigate(Routes.Terms.route) },
+                        onLogin = { navController.navigate(Routes.Login.route) }
+                    )
+                }
+                composable(Routes.RegisterLote.route) {
+                    RegisterLoteScreen(
+                        onBack = ::back,
+                        onCreated = ::enterAs,
+                        onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
+                        onTerms = { navController.navigate(Routes.Terms.route) },
+                        onLogin = { navController.navigate(Routes.Login.route) }
+                    )
+                }
+
+                // ── Marketplace ──────────────────────────────────────────────
+                composable(Routes.Home.route) {
+                    HomeScreen(
+                        userMode = userMode,
+                        onCarClick = ::openCar,
+                        onNotifications = { navController.navigate(Routes.Notifications.route) },
+                        onAdminPanel = { goTab(Routes.AdminDashboard.route) },
+                        onRegister = ::goRegister,
+                        onLogin = { navController.navigate(Routes.Login.route) }
+                    )
+                }
+                composable(Routes.Lots.route) {
+                    HomeScreen(
+                        userMode = userMode,
+                        onCarClick = ::openCar,
+                        onNotifications = { navController.navigate(Routes.Notifications.route) },
+                        onAdminPanel = { goTab(Routes.AdminDashboard.route) },
+                        onRegister = ::goRegister,
+                        onLogin = { navController.navigate(Routes.Login.route) },
+                        lotsOnly = true
+                    )
+                }
+                composable(
+                    Routes.CarDetail.route,
+                    arguments = listOf(navArgument(Routes.CarDetail.ARG) { type = NavType.LongType })
+                ) { entry ->
+                    CarDetailScreen(
+                        carId = entry.arguments?.getLong(Routes.CarDetail.ARG) ?: 0L,
+                        userMode = userMode,
+                        onBack = ::back,
+                        onRegister = ::goRegister,
+                        onCarClick = ::openCar,
+                        onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) }
+                    )
+                }
+                composable(Routes.Favorites.route) {
+                    FavoritesScreen(userMode = userMode, onBack = ::back, onCarClick = ::openCar)
+                }
+
+                // ── Perfil ───────────────────────────────────────────────────
+                composable(Routes.Profile.route) {
+                    ProfileScreen(
+                        userMode = userMode,
+                        onBack = ::back,
+                        onPanel = {
+                            navController.navigate(
+                                if (userMode.isAdmin) Routes.AdminDashboard.route else Routes.Dashboard.route
+                            )
+                        },
+                        onHistory = { navController.navigate(Routes.History.route) },
+                        onSettings = { navController.navigate(Routes.Settings.route) },
+                        onCarClick = ::openCar
+                    )
+                }
+                composable(Routes.History.route) {
+                    HistoryScreen(onBack = ::back, onCarClick = ::openCar)
+                }
+                composable(Routes.Settings.route) {
+                    SettingsScreen(
+                        onBack = ::back,
+                        onLogout = ::logout,
+                        onTerms = { navController.navigate(Routes.Terms.route) },
+                        onNotifications = { navController.navigate(Routes.Notifications.route) },
+                        onPrivacy = { navController.navigate(Routes.Privacy.route) }
+                    )
+                }
+                composable(Routes.Privacy.route) {
+                    PrivacyScreen(
+                        onBack = ::back,
+                        onPrivacyNotice = { navController.navigate(Routes.PrivacyNotice.route) },
+                        // Las sesiones ya se cerraron en Supabase; aquí solo se limpia la app.
+                        onSignedOutEverywhere = {
+                            SessionManager.logout()
+                            navController.navigate(Routes.Welcome.route) {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+                composable(Routes.PrivacyNotice.route) {
+                    PrivacyNoticeScreen(onBack = ::back)
+                }
+                composable(Routes.Terms.route) {
+                    TermsScreen(onBack = ::back)
+                }
+                composable(Routes.Notifications.route) {
+                    NotificationsScreen(onBack = ::back, onCarClick = ::openCar)
+                }
+
+                // ── Publicar y panel del vendedor ────────────────────────────
+                composable(
+                    Routes.PublishFlow.route,
+                    arguments = listOf(navArgument(Routes.PublishFlow.ARG_EDIT) { type = NavType.LongType; defaultValue = -1L })
+                ) { entry ->
+                    val editando = (entry.arguments?.getLong(Routes.PublishFlow.ARG_EDIT) ?: -1L) > 0
+                    PublishFlowScreen(
+                        onBack = ::back,
+                        onFinished = {
+                            // Al corregir se llegó desde el panel: basta con regresar a él.
+                            if (editando) back()
+                            else navController.navigate(Routes.Dashboard.route) {
+                                popUpTo(Routes.PublishFlow.route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+                composable(Routes.Dashboard.route) {
+                    DashboardScreen(
+                        onBack = ::back,
+                        onNewPublication = { navController.navigate(Routes.PublishFlow.createRoute()) },
+                        onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) },
+                        onCarClick = ::openCar
+                    )
+                }
+
+                // ── Administración ───────────────────────────────────────────
+                composable(Routes.AdminDashboard.route) {
+                    AdminDashboardScreen(
+                        onBack = ::back,
+                        onCarClick = ::openAdminCar,
+                        onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
+                        onLogout = ::logout
+                    )
+                }
+                // Publicación abierta desde el panel: solo acciones de admin (aunque el admin sea el dueño).
+                composable(
+                    Routes.AdminVehicleReview.route,
+                    arguments = listOf(navArgument(Routes.AdminVehicleReview.ARG) { type = NavType.LongType })
+                ) { entry ->
+                    val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
+                    val adminVm: AdminViewModel = viewModel(panelEntry)
+                    val carId = entry.arguments?.getLong(Routes.AdminVehicleReview.ARG) ?: 0L
+                    val vehicle = adminVm.vehicles.firstOrNull { it.id == carId }
+                    CarDetailScreen(
+                        carId = carId,
+                        userMode = userMode,
+                        onBack = ::back,
+                        onRegister = ::goRegister,
+                        onCarClick = ::openAdminCar,
+                        bottomBar = { vehicle?.let { AdminVehicleReviewBar(adminVm, it, onDone = ::back) } }
+                    )
+                }
+                // Comparte el AdminViewModel del panel: al resolver, la lista de reportes se recarga sola.
+                composable(
+                    Routes.AdminReportReview.route,
+                    arguments = listOf(navArgument(Routes.AdminReportReview.ARG) { type = NavType.LongType })
+                ) { entry ->
+                    val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
+                    val adminVm: AdminViewModel = viewModel(panelEntry)
+                    val reportId = entry.arguments?.getLong(Routes.AdminReportReview.ARG) ?: 0L
+                    val report = adminVm.reports.firstOrNull { it.id == reportId }
+                    if (report == null) {
+                        // Ya resuelto o la lista aún no carga: regresa al panel.
+                        LaunchedEffect(adminVm.loading) { if (!adminVm.loading) back() }
+                    } else if (report.type == "Usuario") {
+                        // Reporte de cuenta: se revisa la cuenta del vendedor, no la publicación.
+                        UserReportReviewScreen(
+                            vm = adminVm,
+                            report = report,
+                            onBack = ::back,
+                            onCarClick = ::openAdminCar,
+                            onDone = ::back
+                        )
+                    } else {
+                        CarDetailScreen(
+                            carId = report.publicationId,
+                            userMode = userMode,
+                            onBack = ::back,
+                            onRegister = ::goRegister,
+                            onCarClick = ::openCar,
+                            topNotice = { ReportReviewNotice(report) },
+                            // Sin barra del dueño aunque el admin sea quien publicó.
+                            bottomBar = {
+                                if (report.status == "Pendiente") ReportReviewBar(adminVm, report, onDone = ::back)
+                            }
+                        )
                     }
                 }
-            )
-        }
-        composable(Routes.PrivacyNotice.route) {
-            PrivacyNoticeScreen(onBack = ::back)
-        }
-        composable(Routes.Terms.route) {
-            TermsScreen(onBack = ::back)
-        }
-        composable(Routes.Notifications.route) {
-            NotificationsScreen(onBack = ::back, onCarClick = ::openCar)
-        }
-
-        // ── Publicar y panel del vendedor ────────────────────────────
-        composable(
-            Routes.PublishFlow.route,
-            arguments = listOf(navArgument(Routes.PublishFlow.ARG_EDIT) { type = NavType.LongType; defaultValue = -1L })
-        ) { entry ->
-            val editando = (entry.arguments?.getLong(Routes.PublishFlow.ARG_EDIT) ?: -1L) > 0
-            PublishFlowScreen(
-                onBack = ::back,
-                onFinished = {
-                    // Al corregir se llegó desde el panel: basta con regresar a él.
-                    if (editando) back()
-                    else navController.navigate(Routes.Dashboard.route) {
-                        popUpTo(Routes.PublishFlow.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-        composable(Routes.Dashboard.route) {
-            DashboardScreen(
-                onBack = ::back,
-                onNewPublication = { navController.navigate(Routes.PublishFlow.createRoute()) },
-                onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) },
-                onCarClick = ::openCar
-            )
-        }
-
-        // ── Administración ───────────────────────────────────────────
-        composable(Routes.AdminDashboard.route) {
-            AdminDashboardScreen(
-                onBack = ::back,
-                onCarClick = ::openAdminCar,
-                onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
-                onLogout = ::logout
-            )
-        }
-        // Publicación abierta desde el panel: solo acciones de admin (aunque el admin sea el dueño).
-        composable(
-            Routes.AdminVehicleReview.route,
-            arguments = listOf(navArgument(Routes.AdminVehicleReview.ARG) { type = NavType.LongType })
-        ) { entry ->
-            val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
-            val adminVm: AdminViewModel = viewModel(panelEntry)
-            val carId = entry.arguments?.getLong(Routes.AdminVehicleReview.ARG) ?: 0L
-            val vehicle = adminVm.vehicles.firstOrNull { it.id == carId }
-            CarDetailScreen(
-                carId = carId,
-                userMode = userMode,
-                onBack = ::back,
-                onRegister = ::goRegister,
-                onCarClick = ::openAdminCar,
-                bottomBar = { vehicle?.let { AdminVehicleReviewBar(adminVm, it, onDone = ::back) } }
-            )
-        }
-        // Comparte el AdminViewModel del panel: al resolver, la lista de reportes se recarga sola.
-        composable(
-            Routes.AdminReportReview.route,
-            arguments = listOf(navArgument(Routes.AdminReportReview.ARG) { type = NavType.LongType })
-        ) { entry ->
-            val panelEntry = remember(entry) { navController.getBackStackEntry(Routes.AdminDashboard.route) }
-            val adminVm: AdminViewModel = viewModel(panelEntry)
-            val reportId = entry.arguments?.getLong(Routes.AdminReportReview.ARG) ?: 0L
-            val report = adminVm.reports.firstOrNull { it.id == reportId }
-            if (report == null) {
-                // Ya resuelto o la lista aún no carga: regresa al panel.
-                LaunchedEffect(adminVm.loading) { if (!adminVm.loading) back() }
-            } else if (report.type == "Usuario") {
-                // Reporte de cuenta: se revisa la cuenta del vendedor, no la publicación.
-                UserReportReviewScreen(
-                    vm = adminVm,
-                    report = report,
-                    onBack = ::back,
-                    onCarClick = ::openAdminCar,
-                    onDone = ::back
-                )
-            } else {
-                CarDetailScreen(
-                    carId = report.publicationId,
-                    userMode = userMode,
-                    onBack = ::back,
-                    onRegister = ::goRegister,
-                    onCarClick = ::openCar,
-                    topNotice = { ReportReviewNotice(report) },
-                    // Sin barra del dueño aunque el admin sea quien publicó.
-                    bottomBar = {
-                        if (report.status == "Pendiente") ReportReviewBar(adminVm, report, onDone = ::back)
-                    }
-                )
             }
         }
+
+        AnimatedVisibility(
+            visible = showBottomBar,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            KarsyBottomBar(
+                current = currentTab,
+                onTab = { tab ->
+                    when (tab) {
+                        BottomTab.Home -> goTab(Routes.Home.route)
+                        BottomTab.Lots -> goTab(Routes.Lots.route)
+                        BottomTab.Favorites ->
+                            if (userMode.isLoggedIn) goTab(Routes.Favorites.route) else barToast = toastFavorites
+                        BottomTab.Profile ->
+                            if (userMode.isLoggedIn) accountMenuOpen = !accountMenuOpen else barToast = toastProfile
+                    }
+                },
+                onPublish = {
+                    if (userMode.isLoggedIn) navController.navigate(Routes.PublishFlow.createRoute())
+                    else barToast = toastPublish
+                },
+                profileMenuOpen = accountMenuOpen,
+                profileMenu = {
+                    val account = SessionManager.account
+                    AccountMenu(
+                        expanded = accountMenuOpen,
+                        name = account?.nombre.orEmpty(),
+                        email = account?.correo.orEmpty(),
+                        avatarUrl = avatarUrl,
+                        onDismiss = { accountMenuOpen = false },
+                        onProfile = { goTab(Routes.Profile.route) },
+                        onLogout = { confirmLogout = true }
+                    )
+                }
+            )
+        }
+
+        barToast?.let { msg ->
+            RegisterToast(
+                message = msg,
+                onClose = { barToast = null },
+                onRegister = {
+                    barToast = null
+                    goRegister()
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = BOTTOM_BAR_SPACE)
+            )
+        }
+
+        LogoutConfirmDialog(
+            visible = confirmLogout,
+            onCancel = { confirmLogout = false },
+            onConfirm = {
+                confirmLogout = false
+                logout()
+            }
+        )
     }
 }
-

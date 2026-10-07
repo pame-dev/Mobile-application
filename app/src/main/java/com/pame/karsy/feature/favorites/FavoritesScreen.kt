@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.favorites
 
+import com.pame.karsy.core.navigation.HideBottomBarWhile
+import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -90,6 +92,7 @@ fun FavoritesScreen(
 ) {
     LaunchedEffect(Unit) { vm.load() }
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    HideBottomBarWhile(filtersOpen)
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
     val displayed = vm.visibleCars
@@ -105,7 +108,7 @@ fun FavoritesScreen(
             KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 300.dp),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp + LocalBottomBarSpace.current),
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     modifier = Modifier

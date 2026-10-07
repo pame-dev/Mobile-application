@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.admin
 
+import com.pame.karsy.core.navigation.HideBottomBarWhile
+import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.remember
 import androidx.compose.animation.shrinkVertically
@@ -82,6 +84,8 @@ fun AdminDashboardScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var section by rememberSaveable { mutableStateOf(AdminSection.Inicio) }
+    // El menú lateral cubre la pantalla: sin barra inferior mientras se abre o está abierto.
+    HideBottomBarWhile(drawerState.isOpen || drawerState.targetValue == DrawerValue.Open)
 
     // Recarga al volver a la app / a esta pantalla y al cambiar de sección, para que
     // lo que manden los usuarios (solicitudes de destacado, reportes, publicaciones)
@@ -165,7 +169,13 @@ fun AdminDashboardScreen(
                 LinearProgressIndicator(color = KarsyTeal, modifier = Modifier.fillMaxWidth())
             }
             // Deslizar hacia abajo recarga todos los datos del panel.
-            KarsyPullToRefresh(onRefresh = { done -> vm.loadAll(done) }, modifier = Modifier.weight(1f)) {
+            // Cada sección tiene su propia lista; el espacio de la barra inferior se deja abajo.
+            KarsyPullToRefresh(
+                onRefresh = { done -> vm.loadAll(done) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = LocalBottomBarSpace.current)
+            ) {
                 when (section) {
                     AdminSection.Inicio -> AdminHomeSection(vm = vm, onNavigate = { section = it })
                     AdminSection.Usuarios -> AdminUsersSection(vm)

@@ -211,6 +211,14 @@
     <string name="home_login">Log in</string>
     <string name="home_admin_panel">Admin dashboard</string>
     <string name="home_my_profile">My profile</string>
+    <!-- Barra inferior -->
+    <string name="nav_home">Home</string>
+    <string name="nav_lots">Dealerships</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_toast_register_profile">Sign up or log in to see your profile</string>
+    <string name="home_notifications">Notifications</string>
+    <string name="lots_title">Dealerships</string>
     <string name="home_logout_title">Log out?</string>
     <string name="home_logout_message">Are you sure you want to log out of your Karsy account? You\'ll need to log in again to manage your vehicles.</string>
     <string name="home_logout_confirm">Yes, log out</string>

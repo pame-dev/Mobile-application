@@ -54,7 +54,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
@@ -92,11 +92,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
-import com.pame.karsy.core.components.HeartIcon
+import com.pame.karsy.core.navigation.HideBottomBarWhile
+import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.components.RegisterToast
-import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavyDeep
@@ -123,25 +123,25 @@ private val HomeListBg: Color get() = if (Tema.oscuro) KarsyBg else Color(0xFFE9
 fun HomeScreen(
     userMode: UserMode,
     onCarClick: (Long) -> Unit,
-    onFavorites: () -> Unit,
-    onProfile: () -> Unit,
+    onNotifications: () -> Unit,
     onAdminPanel: () -> Unit,
-    onPublish: () -> Unit,
     onRegister: () -> Unit,
     onLogin: () -> Unit,
-    onLogout: () -> Unit,
+    /** Pestaña "Lotes": solo publicaciones de lotes/agencias, sin portada ni destacados. */
+    lotsOnly: Boolean = false,
     vm: HomeViewModel = viewModel(),
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
-    var accountMenuOpen by rememberSaveable { mutableStateOf(false) }
-    var confirmLogout by rememberSaveable { mutableStateOf(false) }
     var toastMsg by remember { mutableStateOf<String?>(null) }
+    // El panel de filtros cubre la pantalla: la barra inferior se oculta mientras está abierto.
+    HideBottomBarWhile(menuOpen)
+    val bottomBarSpace = LocalBottomBarSpace.current
 
     // Recarga anuncios y favoritos cada vez que se vuelve a esta pantalla.
     LaunchedEffect(Unit) { vm.refresh() }
 
     val featured = vm.featured
-    val allCars = vm.visibleCars
+    val allCars = vm.visibleCars.let { cars -> if (lotsOnly) cars.filter { it.sellerType == "lote" } else cars }
     val searching = vm.query.isNotBlank()
     val gridState = rememberLazyGridState()
     val keyboard = LocalSoftwareKeyboardController.current
@@ -157,7 +157,6 @@ fun HomeScreen(
     val isVisitor = !userMode.isLoggedIn
     val showHeart = !userMode.isAdmin
     val favoritesToast = stringResource(R.string.home_toast_register_favorites)
-    val publishToast = stringResource(R.string.home_toast_register_publish)
     val filterLabel = rememberFilterLabel()
 
     val toggleFavorite: (Long) -> Unit = { id ->
@@ -188,36 +187,22 @@ fun HomeScreen(
                     menuOpen = false
                     onLogin()
                 },
-                onFavorites = onFavorites,
-                onAdminPanel = onAdminPanel,
-                accountMenu = {
-                    val account = SessionManager.account
-                    AccountMenu(
-                        expanded = accountMenuOpen,
-                        name = account?.nombre.orEmpty(),
-                        email = account?.correo.orEmpty(),
-                        avatarUrl = vm.avatarUrl,
-                        onDismiss = { accountMenuOpen = false },
-                        onProfile = onProfile,
-                        onLogout = { confirmLogout = true }
-                    )
-                },
-                accountMenuOpen = accountMenuOpen,
-                onToggleAccountMenu = { accountMenuOpen = !accountMenuOpen }
+                onNotifications = onNotifications,
+                onAdminPanel = onAdminPanel
             )
 
             KarsyPullToRefresh(onRefresh = { done -> vm.refresh(done) }, modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
                     state = gridState,
                     columns = GridCells.Adaptive(minSize = 280.dp),
-                    contentPadding = PaddingValues(bottom = 120.dp),
+                    contentPadding = PaddingValues(bottom = bottomBarSpace + 28.dp),
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     modifier = Modifier
                         .fillMaxSize()
                         .navigationBarsPadding()
                 ) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
+                    if (!lotsOnly) item(span = { GridItemSpan(maxLineSpan) }) {
                         HeroSection(
                             stats = vm.heroStats,
                             query = vm.query,
@@ -226,7 +211,7 @@ fun HomeScreen(
                         )
                     }
 
-                    if (isVisitor) {
+                    if (isVisitor && !lotsOnly) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             VisitorBanner(onRegister = goRegister, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp))
                         }
@@ -234,7 +219,7 @@ fun HomeScreen(
 
                     // Vehículos destacados (solicitudes de destacado aprobadas y vigentes)
                     // Mientras se busca se ocultan para que los resultados queden arriba.
-                    if (featured.isNotEmpty() && !searching) item(span = { GridItemSpan(maxLineSpan) }) {
+                    if (featured.isNotEmpty() && !searching && !lotsOnly) item(span = { GridItemSpan(maxLineSpan) }) {
                         Column(Modifier.padding(top = 8.dp)) {
                             SectionHeader(
                                 title = stringResource(R.string.home_featured_title),
@@ -281,7 +266,7 @@ fun HomeScreen(
                     // Todos los vehículos
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         SectionHeader(
-                            title = stringResource(R.string.home_all_title),
+                            title = if (lotsOnly) stringResource(R.string.lots_title) else stringResource(R.string.home_all_title),
                             subtitle = pluralStringResource(R.plurals.home_vehicles_available, allCars.size, allCars.size),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {
@@ -339,30 +324,14 @@ fun HomeScreen(
             }
         }
 
-        // Botón flotante "+" (particulares, lotes y administradores pueden publicar)
-        when {
-            isVisitor -> AddFab(
-                container = KarsyDisabled,
-                content = KarsyMid,
-                description = stringResource(R.string.home_fab_login_to_add),
-                onClick = { toastMsg = publishToast },
-                modifier = Modifier.align(Alignment.BottomEnd)
-            )
-            else -> AddFab(
-                container = KarsyTeal,
-                content = KarsyWhite,
-                description = stringResource(R.string.home_fab_add_vehicle),
-                onClick = onPublish,
-                modifier = Modifier.align(Alignment.BottomEnd)
-            )
-        }
-
         toastMsg?.let { msg ->
             RegisterToast(
                 message = msg,
                 onClose = { toastMsg = null },
                 onRegister = goRegister,
-                modifier = Modifier.align(Alignment.BottomCenter)
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = bottomBarSpace)
             )
         }
 
@@ -374,15 +343,6 @@ fun HomeScreen(
             onApply = { vm.filters = it },
             onDismiss = { menuOpen = false },
             onRegister = goRegister
-        )
-
-        LogoutConfirmDialog(
-            visible = confirmLogout,
-            onCancel = { confirmLogout = false },
-            onConfirm = {
-                confirmLogout = false
-                onLogout()
-            }
         )
     }
 }
@@ -410,27 +370,21 @@ private fun EmptyMessage(text: String, action: String?, onAction: () -> Unit) {
     }
 }
 
+/**
+ * Encabezado: logo a la izquierda; a la derecha, según el rol,
+ * visitante → "Iniciar sesión" + filtros; usuario → avisos + filtros;
+ * admin → panel de administración + avisos + filtros.
+ * Favoritos y Perfil están en la barra inferior.
+ */
 @Composable
 private fun HomeHeader(
     userMode: UserMode,
     menuOpen: Boolean,
     onToggleMenu: () -> Unit,
     onLogin: () -> Unit,
-    onFavorites: () -> Unit,
+    onNotifications: () -> Unit,
     onAdminPanel: () -> Unit,
-    accountMenuOpen: Boolean,
-    onToggleAccountMenu: () -> Unit,
-    accountMenu: @Composable () -> Unit,
 ) {
-    // Ícono de perfil: abre/cierra el menú de la cuenta, que se ancla justo debajo.
-    val profileButton = @Composable {
-        Box {
-            HeaderIconButton(onClick = onToggleAccountMenu, active = accountMenuOpen) {
-                Icon(Icons.Outlined.Person, contentDescription = stringResource(R.string.home_my_profile), tint = if (accountMenuOpen) KarsyTeal else KarsyInk, modifier = Modifier.size(19.dp))
-            }
-            accountMenu()
-        }
-    }
     Column(
         Modifier
             .fillMaxWidth()
@@ -460,17 +414,15 @@ private fun HomeHeader(
                     ) {
                         Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
-                    userMode.isAdmin -> {
-                        HeaderIconButton(onClick = onAdminPanel) {
-                            Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyInk, modifier = Modifier.size(18.dp))
-                        }
-                        profileButton()
-                    }
                     else -> {
-                        HeaderIconButton(onClick = onFavorites) {
-                            HeartIcon(filled = false, size = 17.dp)
+                        if (userMode.isAdmin) {
+                            HeaderIconButton(onClick = onAdminPanel) {
+                                Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyInk, modifier = Modifier.size(18.dp))
+                            }
                         }
-                        profileButton()
+                        HeaderIconButton(onClick = onNotifications) {
+                            Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.home_notifications), tint = KarsyInk, modifier = Modifier.size(19.dp))
+                        }
                     }
                 }
                 HeaderIconButton(onClick = onToggleMenu, active = menuOpen) {
@@ -677,29 +629,6 @@ private fun SectionHeader(
             Text(subtitle, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(top = 4.dp))
         }
         action()
-    }
-}
-
-@Composable
-private fun AddFab(
-    container: Color,
-    content: Color,
-    description: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier
-            .navigationBarsPadding()
-            .padding(24.dp)
-            .size(56.dp)
-            .shadow(if (container == KarsyTeal) 12.dp else 6.dp, CircleShape, spotColor = container)
-            .clip(CircleShape)
-            .background(container)
-            .clickable(onClickLabel = description, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(Icons.Rounded.Add, contentDescription = description, tint = content, modifier = Modifier.size(28.dp))
     }
 }
 
