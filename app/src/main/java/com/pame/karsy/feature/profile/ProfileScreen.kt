@@ -4,6 +4,10 @@ import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +31,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
@@ -44,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
@@ -161,11 +167,16 @@ fun ProfileScreen(
             Spacer(Modifier.height(16.dp))
 
             PostsCard(
-                cars = vm.cars,
+                cars = vm.visibleCars,
                 panelLabel = if (userMode.isAdmin) stringResource(R.string.profile_panel_admin) else stringResource(R.string.profile_panel_seller),
                 onPanel = onPanel,
                 onCarClick = onCarClick
             )
+            val hiddenCars = vm.hiddenCars
+            if (hiddenCars.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                HiddenPostsCard(cars = hiddenCars, onCarClick = onCarClick)
+            }
         }
     }
 
@@ -388,54 +399,109 @@ private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, 
             }
         }
         RowDivider()
-        Column(
-            modifier = Modifier.padding(3.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+        if (cars.isEmpty()) {
+            Text(
+                stringResource(R.string.profile_no_posts),
+                fontFamily = DmSans,
+                fontSize = 13.sp,
+                color = KarsyMid,
+                modifier = Modifier.padding(21.dp)
+            )
+        }
+        PostsGrid(cars, onCarClick)
+    }
+}
+
+/**
+ * Desplegable con las publicaciones que el dueño ocultó de su perfil (rechazadas o
+ * deshabilitadas). Al abrir una se puede volver a mostrar.
+ */
+@Composable
+private fun HiddenPostsCard(cars: List<Car>, onCarClick: (Long) -> Unit) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val arrowRotation by animateFloatAsState(if (expanded) 180f else 0f, label = "hiddenArrow")
+    ProfileCard {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(start = 22.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (cars.isEmpty()) {
+            Text(
+                stringResource(R.string.profile_hidden_posts, cars.size),
+                fontFamily = Outfit,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = KarsyInk,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                Icons.Rounded.KeyboardArrowDown,
+                contentDescription = null,
+                tint = KarsyMid,
+                modifier = Modifier
+                    .size(24.dp)
+                    .rotate(arrowRotation)
+            )
+        }
+        AnimatedVisibility(visible = expanded, enter = expandVertically(), exit = shrinkVertically()) {
+            Column {
+                RowDivider()
                 Text(
-                    stringResource(R.string.profile_no_posts),
+                    stringResource(R.string.profile_hidden_posts_desc),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     color = KarsyMid,
-                    modifier = Modifier.padding(18.dp)
+                    modifier = Modifier.padding(start = 22.dp, end = 22.dp, top = 12.dp, bottom = 9.dp)
                 )
+                PostsGrid(cars, onCarClick)
             }
-            cars.chunked(3).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    row.forEach { car ->
-                        Box(
-                            Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
+        }
+    }
+}
+
+/** Cuadrícula de 3 columnas con la foto y, si no está activa, su estado. */
+@Composable
+private fun PostsGrid(cars: List<Car>, onCarClick: (Long) -> Unit) {
+    Column(
+        modifier = Modifier.padding(3.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        cars.chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                row.forEach { car ->
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(ImagePlaceholder)
+                            .clickable { onCarClick(car.id) }
+                    ) {
+                        AsyncImage(
+                            model = car.imageUrl,
+                            contentDescription = "${car.title} ${car.year}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        // Estado de moderación / venta cuando no está activo.
+                        if (car.status != "Activo") Text(
+                            carStatusLabel(car.status),
+                            fontFamily = DmSans,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = KarsyWhite,
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(5.dp)
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(ImagePlaceholder)
-                                .clickable { onCarClick(car.id) }
-                        ) {
-                            AsyncImage(
-                                model = car.imageUrl,
-                                contentDescription = "${car.title} ${car.year}",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                            // Estado de moderación / venta cuando no está activo.
-                            if (car.status != "Activo") Text(
-                                carStatusLabel(car.status),
-                                fontFamily = DmSans,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = KarsyWhite,
-                                modifier = Modifier
-                                    .align(Alignment.BottomStart)
-                                    .padding(5.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(KarsyNavy.copy(alpha = 0.75f))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
+                                .background(KarsyNavy.copy(alpha = 0.75f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
                     }
-                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
+                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }

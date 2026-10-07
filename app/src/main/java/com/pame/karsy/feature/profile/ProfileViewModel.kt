@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.session.PublicacionesOcultas
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Imagenes
@@ -39,9 +40,13 @@ class ProfileViewModel : ViewModel() {
     var passwordError by mutableStateOf<String?>(null)
         private set
 
+    /** Las que el dueño ocultó (rechazadas / deshabilitadas) van aparte, en el desplegable de ocultas. */
+    val visibleCars: List<Car> get() = cars.filterNot(PublicacionesOcultas::estaOculta)
+    val hiddenCars: List<Car> get() = cars.filter(PublicacionesOcultas::estaOculta)
+
     val stats: List<Pair<String, String>>
         get() = listOf(
-            cars.size.toString() to texto(R.string.profile_stat_posts),
+            visibleCars.size.toString() to texto(R.string.profile_stat_posts),
             cars.count { it.status == "Vendido" }.toString() to texto(R.string.profile_stat_sold),
             cars.count { it.status == "Activo" }.toString() to texto(R.string.profile_stat_active),
         )

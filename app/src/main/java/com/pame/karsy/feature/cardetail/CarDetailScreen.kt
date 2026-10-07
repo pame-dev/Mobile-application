@@ -76,6 +76,7 @@ import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.StarBadge
+import com.pame.karsy.core.session.PublicacionesOcultas
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
@@ -168,7 +169,10 @@ fun CarDetailScreen(
     var confirmSold by rememberSaveable { mutableStateOf(false) }
     var askSoldVia by rememberSaveable { mutableStateOf(false) }
     var confirmAvailable by rememberSaveable { mutableStateOf(false) }
+    var confirmHide by rememberSaveable { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
+    val msgHidden = stringResource(R.string.detail_owner_hidden)
+    val msgUnhidden = stringResource(R.string.detail_owner_unhidden)
     val msgPaused = stringResource(R.string.detail_owner_paused)
     val msgResumed = stringResource(R.string.detail_owner_resumed)
     val msgSold = stringResource(R.string.detail_owner_marked_sold)
@@ -293,6 +297,11 @@ fun CarDetailScreen(
                 },
                 onMarkSold = { confirmSold = true },
                 onMarkAvailable = { confirmAvailable = true },
+                onHide = { confirmHide = true },
+                onUnhide = {
+                    PublicacionesOcultas.mostrar(detail.car.id)
+                    toastMessage = msgUnhidden
+                },
             )
             else Column(Modifier.background(KarsyBg)) {
                 HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -426,6 +435,29 @@ fun CarDetailScreen(
             )
         }
 
+        if (confirmHide) {
+            AlertDialog(
+                onDismissRequest = { confirmHide = false },
+                containerColor = KarsySurface,
+                title = { Text(stringResource(R.string.detail_owner_hide_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+                text = { Text(stringResource(R.string.detail_owner_hide_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        confirmHide = false
+                        PublicacionesOcultas.ocultar(detail.car.id)
+                        toastMessage = msgHidden
+                    }) {
+                        Text(stringResource(R.string.detail_owner_hide), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyNavy)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { confirmHide = false }) {
+                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
+                    }
+                }
+            )
+        }
+
         // Mismos diálogos que en Mi Panel para pedir que se destaque.
         if (askFeature) {
             DestacarDialog(
@@ -502,14 +534,19 @@ private fun OwnerActionsBar(
     onFeature: () -> Unit,
     onMarkSold: () -> Unit,
     onMarkAvailable: () -> Unit,
+    onHide: () -> Unit,
+    onUnhide: () -> Unit,
 ) {
     // Pausar, destacar y marcar como vendida solo aplican a una publicación aprobada que el dueño controla.
+    // Marcar como vendida, además, solo cuando está activa.
     val canToggle = car.approved && car.status in listOf("Activo", "Pausado")
     val showFeature = car.approved && car.status == "Activo"
     // Una rechazada se corrige desde el aviso de arriba.
     val canEdit = car.status != "Vendido" && car.rejectedReason == null
     val isSold = car.status == "Vendido"
-    if (!canToggle && !showFeature && !canEdit && !isSold) return
+    // Rechazada o deshabilitada: el dueño puede quitarla de su perfil (solo en este teléfono).
+    val canHide = PublicacionesOcultas.sePuedeOcultar(car)
+    if (!canToggle && !showFeature && !canEdit && !isSold && !canHide) return
 
     Column(Modifier.background(KarsyBg)) {
         HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -566,14 +603,23 @@ private fun OwnerActionsBar(
                     modifier = Modifier.weight(1f)
                 )
             }
-            // Debajo de deshabilitar / destacar / editar.
-            if (canToggle) OwnerButton(
+            // Debajo de deshabilitar / destacar / editar. Una deshabilitada primero se vuelve a habilitar.
+            if (canToggle && car.status == "Activo") OwnerButton(
                 text = stringResource(R.string.detail_owner_mark_sold),
                 onClick = onMarkSold,
                 enabled = !updating,
                 color = SoldGreen,
                 modifier = Modifier.fillMaxWidth()
             )
+            if (canHide) {
+                val hidden = PublicacionesOcultas.estaOculta(car)
+                OwnerButton(
+                    text = stringResource(if (hidden) R.string.detail_owner_unhide else R.string.detail_owner_hide),
+                    onClick = if (hidden) onUnhide else onHide,
+                    color = KarsyMid,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }

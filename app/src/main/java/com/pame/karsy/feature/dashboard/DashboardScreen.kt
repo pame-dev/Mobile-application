@@ -5,6 +5,7 @@ import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -68,6 +70,7 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.SkeletonBlock
+import com.pame.karsy.core.session.PublicacionesOcultas
 import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -136,12 +139,19 @@ fun DashboardScreen(
                         StatsRow(stats, vm.viewsTrend)
                         WeeklyInterestCard(stats.favoritosSemana, stats.diasSemana)
                     }
+                    // Las que el dueño ocultó de su perfil van en su propia sección, al final.
+                    val (hidden, visible) = vm.myListings.partition(PublicacionesOcultas::estaOculta)
                     MyListingsSection(
-                        listings = vm.myListings,
+                        listings = visible,
                         favoriteCounts = vm.favoriteCounts,
                         onDestacar = vm::askDestacar,
                         onEdit = onEditPublication,
                         onNewPublication = onNewPublication,
+                        onCarClick = onCarClick
+                    )
+                    if (hidden.isNotEmpty()) HiddenListingsSection(
+                        listings = hidden,
+                        favoriteCounts = vm.favoriteCounts,
                         onCarClick = onCarClick
                     )
                 }
@@ -445,16 +455,55 @@ private fun MyListingsSection(
                     color = KarsyMid
                 )
             }
-            listings.chunked(2).forEach { rowItems ->
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    rowItems.forEach { car ->
-                        ListingCard(car, favoriteCounts[car.id] ?: 0, onDestacar, onEdit, onCarClick, Modifier.weight(1f).fillMaxHeight())
-                    }
-                    if (rowItems.size == 1) Spacer(Modifier.weight(1f))
-                }
+            ListingsGrid(listings) { car, modifier ->
+                ListingCard(car, favoriteCounts[car.id] ?: 0, onDestacar, onEdit, onCarClick, modifier)
+            }
+        }
+    }
+}
+
+/** Rechazadas / deshabilitadas que el dueño ocultó de su perfil; desde aquí se vuelven a mostrar. */
+@Composable
+private fun HiddenListingsSection(
+    listings: List<Car>,
+    favoriteCounts: Map<Long, Int>,
+    onCarClick: (Long) -> Unit,
+) {
+    Column {
+        Text(
+            stringResource(R.string.profile_dashboard_hidden_listings),
+            fontFamily = Outfit,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = KarsyInk
+        )
+        Text(
+            stringResource(R.string.profile_dashboard_hidden_desc),
+            fontFamily = DmSans,
+            fontSize = 12.sp,
+            color = KarsyMid,
+            modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+        )
+        ListingsGrid(listings) { car, modifier ->
+            ListingCard(
+                car, favoriteCounts[car.id] ?: 0, onDestacar = {}, onEdit = {}, onCarClick = onCarClick, modifier = modifier,
+                onUnhide = { PublicacionesOcultas.mostrar(car.id) }
+            )
+        }
+    }
+}
+
+/** Tarjetas en dos columnas con la misma altura por fila. */
+@Composable
+private fun ListingsGrid(listings: List<Car>, card: @Composable (Car, Modifier) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        listings.chunked(2).forEach { rowItems ->
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowItems.forEach { car -> card(car, Modifier.weight(1f).fillMaxHeight()) }
+                if (rowItems.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
@@ -468,6 +517,8 @@ private fun ListingCard(
     onEdit: (Long) -> Unit,
     onCarClick: (Long) -> Unit,
     modifier: Modifier,
+    /** Si no es null, la tarjeta está en "Publicaciones ocultas" y su botón la vuelve a mostrar. */
+    onUnhide: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -555,8 +606,27 @@ private fun ListingCard(
                 )
             }
             Spacer(Modifier.weight(1f))
+            if (onUnhide != null) {
+                OutlinedButton(
+                    onClick = onUnhide,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, KarsyNavy),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = KarsyNavy),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .fillMaxWidth()
+                        .height(34.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.profile_dashboard_unhide),
+                        fontFamily = Outfit,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             // Rechazada: en lugar de destacar, se corrige y se reenvía a revisión.
-            if (car.rejectedReason != null) {
+            } else if (car.rejectedReason != null) {
                 Button(
                     onClick = { onEdit(car.id) },
                     shape = RoundedCornerShape(12.dp),
