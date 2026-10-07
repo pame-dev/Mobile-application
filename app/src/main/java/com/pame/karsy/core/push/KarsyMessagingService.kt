@@ -48,7 +48,13 @@ class KarsyMessagingService : FirebaseMessagingService() {
     }
 
     companion object {
-        const val CHANNEL_ID = "avisos"
+        /**
+         * Canal con importancia alta: suena, vibra y aparece arriba de la pantalla.
+         * (Una app no puede subir la importancia de un canal ya creado, por eso es uno nuevo.)
+         */
+        const val CHANNEL_ID = "avisos_cuenta"
+        /** Canal anterior (importancia normal y sin vibración): se borra al crear el nuevo. */
+        private const val OLD_CHANNEL_ID = "avisos"
         /** Extra del intent: al tocar la notificación se abre la bandeja de avisos. */
         const val EXTRA_OPEN_NOTIFICATIONS = "open_notifications"
 
@@ -59,9 +65,15 @@ class KarsyMessagingService : FirebaseMessagingService() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 local.getString(R.string.push_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply { description = local.getString(R.string.push_channel_desc) }
-            context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = local.getString(R.string.push_channel_desc)
+                enableVibration(true)
+                enableLights(true)
+            }
+            val manager = context.getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+            manager.deleteNotificationChannel(OLD_CHANNEL_ID)
         }
 
         fun show(context: Context, id: Int, tipo: String, vehiculo: String?, motivo: String?) {
@@ -86,6 +98,9 @@ class KarsyMessagingService : FirebaseMessagingService() {
             )
 
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+                // Android 7 (sin canales): prioridad alta y sonido / vibración por defecto.
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setSmallIcon(R.mipmap.ic_launcher_foreground)
                 .setColor(ContextCompat.getColor(context, R.color.ic_launcher_background))
                 .setContentTitle(local.getString(R.string.app_name_display))

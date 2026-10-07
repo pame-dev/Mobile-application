@@ -1,6 +1,21 @@
 package com.pame.karsy.feature.register
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.foundation.ScrollState
+import com.pame.karsy.core.theme.KarsyWarning
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import com.pame.karsy.core.components.PhoneVisualTransformation
+import com.pame.karsy.core.theme.KarsyTeal
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -79,11 +95,15 @@ internal fun RegisterError(message: String?) {
  * Si usa el mismo número para WhatsApp, ese campo muestra el teléfono y queda bloqueado.
  */
 @Composable
-internal fun ContactFields(vm: RegisterViewModel, phoneLabel: String) {
+internal fun ContactFields(vm: RegisterViewModel, phoneLabel: String, onPositioned: (String, Float) -> Unit = { _, _ -> }) {
     FormInput(
         label = phoneLabel, placeholder = stringResource(R.string.auth_phone_placeholder), keyboardType = KeyboardType.Phone,
-        value = vm.telefono, onValueChange = { vm.telefono = it }, error = vm.errorFor("telefono")
+        value = vm.telefono, onValueChange = { vm.telefono = it }, inputFilter = FormRules::telefonoAlEscribir, error = vm.errorFor("telefono"), onFocusLost = { vm.touch("telefono") },
+        // Se ve "871 123 4567"; se guarda "8711234567".
+        visualTransformation = PhoneVisualTransformation,
+        onPositioned = { onPositioned("telefono", it) }
     )
+    FieldNotice(vm.telefonoEnUsoAviso)
 
     FieldQuestion(stringResource(R.string.auth_same_whatsapp_question))
     OptionButtons(
@@ -98,11 +118,16 @@ internal fun ContactFields(vm: RegisterViewModel, phoneLabel: String) {
         keyboardType = KeyboardType.Phone,
         value = if (vm.mismoWhatsapp) vm.telefono else vm.whatsapp,
         onValueChange = { vm.whatsapp = it },
+        inputFilter = FormRules::telefonoAlEscribir,
         enabled = !vm.mismoWhatsapp,
-        error = vm.errorFor("whatsapp")
+        error = vm.errorFor("whatsapp"), onFocusLost = { vm.touch("whatsapp") },
+        visualTransformation = PhoneVisualTransformation,
+        onPositioned = { onPositioned("whatsapp", it) }
     )
 
-    FieldQuestion(stringResource(R.string.auth_contact_method_question))
+    Box(Modifier.onGloballyPositioned { onPositioned("medio", it.positionInRoot().y) }) {
+        FieldQuestion(stringResource(R.string.auth_contact_method_question))
+    }
     OptionButtons(
         options = listOf("WhatsApp", stringResource(R.string.auth_contact_calls)),
         selected = when (vm.medioContacto) {
@@ -163,4 +188,115 @@ private fun OptionButtons(
             }
         }
     }
+}
+
+/** "¿Quisiste decir pame@gmail.com?": un toque reemplaza el correo. No bloquea el registro. */
+@Composable
+internal fun EmailSuggestion(vm: RegisterViewModel) {
+    val sugerido = vm.correoSugerido ?: return
+    Text(
+        buildAnnotatedString {
+            append(stringResource(R.string.form_email_suggestion_prefix))
+            withStyle(SpanStyle(color = KarsyTeal, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
+                append(sugerido)
+            }
+            append("?")
+        },
+        fontFamily = DmSans,
+        fontSize = 13.sp,
+        color = KarsyCharcoal,
+        modifier = Modifier
+            .offset(y = (-8).dp)
+            .padding(bottom = 8.dp, start = 4.dp)
+            .clickable { vm.correo = sugerido }
+    )
+}
+
+/**
+ * Aviso debajo de un campo. Sin [actionLabel] es un aviso en ámbar que no bloquea
+ * (CP de otro estado, teléfono en otra cuenta); con acción se muestra como error con
+ * un botón (p. ej. "Iniciar sesión" si el correo ya tiene cuenta).
+ */
+@Composable
+internal fun FieldNotice(message: String?, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
+    if (message == null) return
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .offset(y = (-8).dp)
+            .padding(start = 4.dp, bottom = 8.dp)
+    ) {
+        Text(
+            message,
+            fontFamily = DmSans,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            color = if (actionLabel != null) KarsyError else KarsyWarning,
+            modifier = Modifier.weight(1f, fill = false)
+        )
+        if (actionLabel != null && onAction != null) {
+            Text(
+                actionLabel,
+                fontFamily = DmSans,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyTeal,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clickable(onClick = onAction)
+            )
+        }
+    }
+}
+
+/**
+ * Lleva la vista al primer campo con error al tocar "Crear perfil". Cada campo informa
+ * su posición en pantalla con [mark]; [viewport] va en el contenedor que hace scroll.
+ */
+internal class ErrorScroller(val scrollState: ScrollState) {
+    private val positions = mutableStateMapOf<String, Float>()
+    private var viewportTop = 0f
+
+    fun mark(field: String): (Float) -> Unit = { positions[field] = it }
+
+    fun markModifier(vararg fields: String): Modifier = Modifier.onGloballyPositioned { c ->
+        val y = c.positionInRoot().y
+        fields.forEach { positions[it] = y }
+    }
+
+    val viewport: Modifier = Modifier.onGloballyPositioned { viewportTop = it.positionInRoot().y }
+
+    suspend fun scrollTo(fields: List<String>, marginPx: Float) {
+        val y = fields.mapNotNull { positions[it] }.minOrNull() ?: return
+        scrollState.animateScrollTo((scrollState.value + y - viewportTop - marginPx).toInt().coerceAtLeast(0))
+    }
+}
+
+@Composable
+internal fun rememberErrorScroller(vm: RegisterViewModel, esLote: Boolean): ErrorScroller {
+    val scroller = remember { ErrorScroller(ScrollState(0)) }
+    val margin = with(LocalDensity.current) { 24.dp.toPx() }
+    LaunchedEffect(vm.scrollToErrorRequest) {
+        if (vm.scrollToErrorRequest > 0) scroller.scrollTo(vm.camposConError(esLote), margin)
+    }
+    return scroller
+}
+
+/** "Iniciar sesión" debajo del correo cuando ya tiene cuenta. */
+@Composable
+internal fun EmailExistsAction(vm: RegisterViewModel, onLogin: () -> Unit) {
+    if (!vm.correoYaRegistrado) return
+    Text(
+        stringResource(R.string.form_action_login),
+        fontFamily = DmSans,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = KarsyTeal,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier
+            .offset(y = (-8).dp)
+            .padding(start = 4.dp, bottom = 8.dp)
+            .clickable(onClick = onLogin)
+    )
 }

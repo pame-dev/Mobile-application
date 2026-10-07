@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.register
 
 import android.net.Uri
+import com.pame.karsy.core.theme.KarsyError
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +20,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.util.FormRules
+import com.pame.karsy.core.components.EstadoMunicipioPickers
 import com.pame.karsy.core.components.BackTopBar
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.components.PasswordRequirements
@@ -64,11 +67,14 @@ fun RegisterLoteScreen(
     onCreated: (SessionAccount) -> Unit,
     onVerifyEmail: (String) -> Unit,
     onTerms: () -> Unit = {},
+    onLogin: () -> Unit = {},
     vm: RegisterViewModel = viewModel(),
 ) {
     val context = LocalContext.current
+    val scroller = rememberErrorScroller(vm, esLote = true)
     val pickLogo = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) vm.logo = uri
+        // Revisa que sea imagen y de buen tamaño antes de aceptarla.
+        if (uri != null) vm.elegirLogo(context, uri)
     }
 
     Column(
@@ -85,69 +91,84 @@ fun RegisterLoteScreen(
         Column(
             Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
+                .then(scroller.viewport)
+                .verticalScroll(scroller.scrollState)
                 .navigationBarsPadding()
                 .padding(start = 24.dp, end = 24.dp, top = 4.dp)
         ) {
             SectionLabel(stringResource(R.string.auth_section_manager))
             FormInput(
                 label = stringResource(R.string.auth_manager_first_name), placeholder = stringResource(R.string.auth_manager_first_name_placeholder),
-                value = vm.nombre, onValueChange = { vm.nombre = it }, error = vm.errorFor("nombre")
+                value = vm.nombre, onValueChange = { vm.nombre = it }, inputFilter = FormRules::nombreAlEscribir, error = vm.errorFor("nombre"), onFocusLost = { vm.touch("nombre") },
+                capitalization = KeyboardCapitalization.Words, onPositioned = scroller.mark("nombre")
             )
             FormInput(
                 label = stringResource(R.string.auth_manager_last_name), placeholder = stringResource(R.string.auth_manager_last_name_placeholder),
-                value = vm.apellido, onValueChange = { vm.apellido = it }, error = vm.errorFor("apellido")
+                value = vm.apellido, onValueChange = { vm.apellido = it }, inputFilter = FormRules::nombreAlEscribir, error = vm.errorFor("apellido"), onFocusLost = { vm.touch("apellido") },
+                capitalization = KeyboardCapitalization.Words, onPositioned = scroller.mark("apellido")
             )
             FormInput(
                 label = stringResource(R.string.auth_email), placeholder = stringResource(R.string.auth_register_email_placeholder), keyboardType = KeyboardType.Email,
-                value = vm.correo, onValueChange = { vm.correo = it }, error = vm.errorFor("correo")
+                value = vm.correo, onValueChange = { vm.correo = it }, error = vm.errorFor("correo"), onFocusLost = { vm.touch("correo") },
+                onPositioned = scroller.mark("correo")
             )
+            EmailExistsAction(vm, onLogin)
+            EmailSuggestion(vm)
 
             SectionLabel(stringResource(R.string.auth_section_contact))
-            ContactFields(vm, phoneLabel = stringResource(R.string.auth_business_phone))
+            ContactFields(vm, phoneLabel = stringResource(R.string.auth_business_phone), onPositioned = { f, y -> scroller.mark(f)(y) })
 
             SectionLabel(stringResource(R.string.auth_section_lote_info))
             FormInput(
                 label = stringResource(R.string.auth_lote_name), placeholder = stringResource(R.string.auth_lote_name_placeholder),
-                value = vm.nombreLote, onValueChange = { vm.nombreLote = it }, error = vm.errorFor("nombreLote")
+                value = vm.nombreLote, onValueChange = { vm.nombreLote = it }, error = vm.errorFor("nombreLote"), onFocusLost = { vm.touch("nombreLote") },
+                inputFilter = FormRules.maximo(FormRules.LOTE_MAX), capitalization = KeyboardCapitalization.Words, onPositioned = scroller.mark("nombreLote")
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FormInput(
                     label = stringResource(R.string.auth_street), placeholder = stringResource(R.string.auth_street_placeholder), modifier = Modifier.weight(2f),
-                    value = vm.calle, onValueChange = { vm.calle = it }, error = vm.errorFor("calle")
+                    value = vm.calle, onValueChange = { vm.calle = it }, error = vm.errorFor("calle"), onFocusLost = { vm.touch("calle") },
+                    inputFilter = FormRules.maximo(FormRules.DIRECCION_MAX), onPositioned = scroller.mark("calle")
                 )
                 FormInput(
                     label = stringResource(R.string.auth_street_number), placeholder = "123", modifier = Modifier.weight(1f),
-                    value = vm.numero, onValueChange = { vm.numero = it }, error = vm.errorFor("numero")
+                    value = vm.numero, onValueChange = { vm.numero = it }, error = vm.errorFor("numero"), onFocusLost = { vm.touch("numero") },
+                    inputFilter = FormRules.maximo(FormRules.NUMERO_MAX), onPositioned = scroller.mark("numero")
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FormInput(
                     label = stringResource(R.string.auth_neighborhood), placeholder = stringResource(R.string.auth_neighborhood_placeholder), modifier = Modifier.weight(2f),
-                    value = vm.colonia, onValueChange = { vm.colonia = it }, error = vm.errorFor("colonia")
+                    value = vm.colonia, onValueChange = { vm.colonia = it }, error = vm.errorFor("colonia"), onFocusLost = { vm.touch("colonia") },
+                    inputFilter = FormRules.maximo(FormRules.DIRECCION_MAX), onPositioned = scroller.mark("colonia")
                 )
                 FormInput(
                     label = stringResource(R.string.auth_zip_code), placeholder = "27000", keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f),
-                    value = vm.codigoPostal, onValueChange = { vm.codigoPostal = it }, error = vm.errorFor("codigoPostal")
+                    value = vm.codigoPostal, onValueChange = { vm.codigoPostal = it }, inputFilter = { FormRules.soloDigitos(it, 5) }, error = vm.errorFor("codigoPostal"), onFocusLost = { vm.touch("codigoPostal") },
+                    onPositioned = scroller.mark("codigoPostal")
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FormInput(
-                    label = stringResource(R.string.auth_city), placeholder = stringResource(R.string.auth_city_placeholder), modifier = Modifier.weight(1f),
-                    value = vm.ciudad, onValueChange = { vm.ciudad = it }, error = vm.errorFor("ciudad")
-                )
-                FormInput(
-                    label = stringResource(R.string.auth_state), placeholder = stringResource(R.string.auth_state_placeholder), modifier = Modifier.weight(1f),
-                    value = vm.estado, onValueChange = { vm.estado = it }, error = vm.errorFor("estado")
-                )
-            }
+            // Aviso (no bloquea) si el CP parece de otro estado.
+            FieldNotice(vm.codigoPostalAviso)
+            // Estado y municipio de México (catálogo del INEGI): el municipio depende del estado.
+            EstadoMunicipioPickers(
+                estado = vm.estado,
+                municipio = vm.ciudad,
+                onEstado = { vm.estado = it },
+                onMunicipio = { vm.ciudad = it },
+                estadoError = vm.errorFor("estado"),
+                municipioError = vm.errorFor("ciudad"),
+                modifier = scroller.markModifier("estado", "ciudad")
+            )
             FormInput(
                 label = stringResource(R.string.auth_lote_description),
                 placeholder = stringResource(R.string.auth_lote_description_placeholder),
                 singleLine = false,
                 minLines = 4,
                 value = vm.descripcion,
-                onValueChange = { vm.descripcion = it }
+                onValueChange = { vm.descripcion = it },
+                inputFilter = FormRules.maximo(FormRules.DESCRIPCION_MAX),
+                maxChars = FormRules.DESCRIPCION_MAX
             )
 
             SectionLabel(stringResource(R.string.auth_section_profile_photo))
@@ -158,6 +179,18 @@ fun RegisterLoteScreen(
                 },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+            vm.logoError?.let {
+                Text(
+                    it,
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    color = KarsyError,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
+            }
             Spacer(Modifier.height(20.dp))
             Text(
                 stringResource(R.string.auth_lote_logo_hint),
@@ -173,16 +206,21 @@ fun RegisterLoteScreen(
             SectionLabel(stringResource(R.string.auth_section_security))
             FormInput(
                 label = stringResource(R.string.auth_password), placeholder = stringResource(R.string.auth_password_placeholder), isPassword = true,
-                value = vm.password, onValueChange = { vm.password = it }, error = vm.errorFor("password")
+                value = vm.password, onValueChange = { vm.password = it }, error = vm.errorFor("password"), onFocusLost = { vm.touch("password") },
+                onPositioned = scroller.mark("password")
             )
             PasswordRequirements(vm.password, Modifier.padding(start = 4.dp, bottom = 14.dp))
             FormInput(
                 label = stringResource(R.string.auth_confirm_password), placeholder = stringResource(R.string.auth_confirm_password_placeholder), isPassword = true,
-                value = vm.confirmPassword, onValueChange = { vm.confirmPassword = it }, error = vm.passwordMismatch
+                value = vm.confirmPassword, onValueChange = { vm.confirmPassword = it }, error = vm.passwordMismatch,
+                onPositioned = scroller.mark("confirmPassword")
             )
 
             Spacer(Modifier.height(24.dp))
-            TermsCheckbox(checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it }, onOpenTerms = onTerms)
+            TermsCheckbox(
+                checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it }, onOpenTerms = onTerms,
+                error = vm.termsError, modifier = scroller.markModifier("terminos")
+            )
             PrimaryButton(
                 text = if (vm.loading) stringResource(R.string.auth_creating_profile) else stringResource(R.string.auth_create_profile),
                 enabled = !vm.loading,

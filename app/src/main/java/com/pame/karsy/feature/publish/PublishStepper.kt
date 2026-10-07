@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.components.rememberFilteredFieldValue
+import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -220,11 +222,17 @@ fun PublishTextInput(
     placeholder: String,
     modifier: Modifier = Modifier,
     numeric: Boolean = false,
+    /** Máximo de dígitos de un campo numérico (año = 4). */
+    maxDigits: Int = Int.MAX_VALUE,
     background: Color = KarsySurface,
 ) {
+    // Numérico: solo dígitos, también si pegan texto (sin desincronizar el teclado).
+    val (fieldValue, onFieldChange) = rememberFilteredFieldValue(
+        value, if (numeric) { t -> FormRules.soloDigitos(t, maxDigits) } else null, onValueChange
+    )
     BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = fieldValue,
+        onValueChange = onFieldChange,
         singleLine = true,
         textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal),
         cursorBrush = SolidColor(KarsyInk),

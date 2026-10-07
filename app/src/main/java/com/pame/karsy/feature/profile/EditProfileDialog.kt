@@ -57,6 +57,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.pame.karsy.R
+import com.pame.karsy.core.components.rememberFilteredFieldValue
+import com.pame.karsy.core.util.FormRules
+import com.pame.karsy.core.components.PickerStyle
+import com.pame.karsy.core.components.EstadoMunicipioPickers
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.components.karsyTextFieldColors
@@ -112,15 +116,30 @@ fun EditProfileDialog(
     var colonia by rememberSaveable { mutableStateOf(user.colonia) }
     var codigoPostal by rememberSaveable { mutableStateOf(user.codigoPostal) }
     var missing by rememberSaveable { mutableStateOf(false) }
+    var attempted by rememberSaveable { mutableStateOf(false) }
+    // Mismas reglas que el registro (FormRules); vacío lo revisa "missing".
+    fun fieldError(valor: String, regla: (String) -> String?) = if (attempted) regla(valor) else null
+    val firstNameError = fieldError(firstName, if (isLote) FormRules::nombreLote else FormRules::nombrePersona)
+    val lastNameError = fieldError(lastName, FormRules::nombrePersona)
+    val responsableError = fieldError(responsable, FormRules::nombrePersona)
+    val phoneError = fieldError(phone, FormRules::telefono)
+    val whatsappError = fieldError(whatsapp, FormRules::telefono)
+    val calleError = fieldError(calle, FormRules::textoDireccion)
+    val numeroError = fieldError(numero, FormRules::numeroExterior)
+    val coloniaError = fieldError(colonia, FormRules::textoDireccion)
+    val cpError = fieldError(codigoPostal, FormRules::codigoPostal)
+    val anyFieldError = listOf(firstNameError, lastNameError, responsableError, phoneError, whatsappError,
+        calleError, numeroError, coloniaError, cpError).any { it != null }
     var confirmSave by rememberSaveable { mutableStateOf(false) }
 
-    fun buildName() = if (isLote) firstName.trim()
-    else listOf(firstName.trim(), lastName.trim()).filter { it.isNotEmpty() }.joinToString(" ")
+    fun buildName() = if (isLote) FormRules.limpiarEspacios(firstName)
+    else listOf(firstName, lastName).map(FormRules::limpiarEspacios).filter { it.isNotEmpty() }.joinToString(" ")
 
     fun editedUser() = user.copy(
         displayName = buildName(),
-        phone = phone.trim(),
-        whatsapp = whatsapp.trim(),
+        // Se guardan a 10 dígitos ("+52 871 123 4567" → "8711234567").
+        phone = if (phone.isBlank()) "" else FormRules.normalizarTelefono(phone),
+        whatsapp = if (whatsapp.isBlank()) "" else FormRules.normalizarTelefono(whatsapp),
         medioPrincipal = medio,
         bio = bio.trim(),
         municipio = municipio.trim(),
@@ -227,21 +246,21 @@ fun EditProfileDialog(
                 Spacer(Modifier.height(24.dp))
 
                 if (isLote) {
-                    EditField(stringResource(R.string.profile_edit_lot_name), firstName, { firstName = it })
+                    EditField(stringResource(R.string.profile_edit_lot_name), firstName, { firstName = it }, error = firstNameError)
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        EditField(stringResource(R.string.profile_edit_first_name), firstName, { firstName = it }, Modifier.weight(1f))
-                        EditField(stringResource(R.string.profile_edit_last_name), lastName, { lastName = it }, Modifier.weight(1f))
+                        EditField(stringResource(R.string.profile_edit_first_name), firstName, { firstName = it }, Modifier.weight(1f), inputFilter = FormRules::soloLetras, error = firstNameError)
+                        EditField(stringResource(R.string.profile_edit_last_name), lastName, { lastName = it }, Modifier.weight(1f), inputFilter = FormRules::soloLetras, error = lastNameError)
                     }
                 }
                 if (isLote) {
                     Spacer(Modifier.height(14.dp))
-                    EditField(stringResource(R.string.profile_edit_responsible), responsable, { responsable = it })
+                    EditField(stringResource(R.string.profile_edit_responsible), responsable, { responsable = it }, inputFilter = FormRules::soloLetras, error = responsableError)
                 }
                 Spacer(Modifier.height(14.dp))
-                EditField(stringResource(R.string.profile_edit_phone), phone, { phone = it }, keyboardType = KeyboardType.Phone)
+                EditField(stringResource(R.string.profile_edit_phone), phone, { phone = it }, inputFilter = FormRules::telefonoAlEscribir, keyboardType = KeyboardType.Phone, error = phoneError)
                 Spacer(Modifier.height(14.dp))
-                EditField(stringResource(R.string.profile_edit_whatsapp), whatsapp, { whatsapp = it }, keyboardType = KeyboardType.Phone)
+                EditField(stringResource(R.string.profile_edit_whatsapp), whatsapp, { whatsapp = it }, inputFilter = FormRules::telefonoAlEscribir, keyboardType = KeyboardType.Phone, error = whatsappError)
                 Spacer(Modifier.height(10.dp))
                 MainContactPicker(selected = medio, onSelect = { medio = it })
                 phonesError?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp)) }
@@ -256,22 +275,28 @@ fun EditProfileDialog(
                     modifier = Modifier.padding(top = 4.dp)
                 )
                 Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    EditField(stringResource(R.string.profile_edit_city), municipio, { municipio = it }, Modifier.weight(1f))
-                    EditField(stringResource(R.string.profile_edit_state), estado, { estado = it }, Modifier.weight(1f))
-                }
+                // Estado y municipio de México (catálogo del INEGI): el municipio depende del estado.
+                EstadoMunicipioPickers(
+                    estado = estado,
+                    municipio = municipio,
+                    onEstado = { estado = it },
+                    onMunicipio = { municipio = it },
+                    estadoLabel = stringResource(R.string.profile_edit_state),
+                    municipioLabel = stringResource(R.string.profile_edit_city),
+                    style = PickerStyle.Compact
+                )
                 if (isLote) {
                     Spacer(Modifier.height(14.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        EditField(stringResource(R.string.profile_edit_street), calle, { calle = it }, Modifier.weight(2f))
-                        EditField(stringResource(R.string.profile_edit_number), numero, { numero = it }, Modifier.weight(1f))
+                        EditField(stringResource(R.string.profile_edit_street), calle, { calle = it }, Modifier.weight(2f), error = calleError)
+                        EditField(stringResource(R.string.profile_edit_number), numero, { numero = it }, Modifier.weight(1f), error = numeroError)
                     }
                     Spacer(Modifier.height(14.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        EditField(stringResource(R.string.profile_edit_colony), colonia, { colonia = it }, Modifier.weight(2f))
+                        EditField(stringResource(R.string.profile_edit_colony), colonia, { colonia = it }, Modifier.weight(2f), error = coloniaError)
                         EditField(
                             stringResource(R.string.profile_edit_zip), codigoPostal, { codigoPostal = it }, Modifier.weight(1f),
-                            keyboardType = KeyboardType.Number
+                            keyboardType = KeyboardType.Number, error = cpError, inputFilter = { FormRules.soloDigitos(it, 5) }
                         )
                     }
                 }
@@ -318,10 +343,20 @@ fun EditProfileDialog(
                             // La BD exige nombre y ubicación (y la dirección completa de un lote).
                             val required = listOf(name, municipio, estado) +
                                 if (isLote) listOf(calle, numero, colonia, codigoPostal) else emptyList()
+                            attempted = true
                             missing = required.any { it.isBlank() }
                             phonesError = validatePhones(phone.trim(), whatsapp.trim(), medio)
+                            // Reglas por campo (mismas que el registro), con los valores actuales.
+                            val reglas = listOf(
+                                (if (isLote) FormRules.nombreLote(firstName) else FormRules.nombrePersona(firstName)),
+                                if (isLote) FormRules.nombrePersona(responsable) else FormRules.nombrePersona(lastName),
+                                FormRules.telefono(phone), FormRules.telefono(whatsapp),
+                            ) + if (isLote) listOf(
+                                FormRules.textoDireccion(calle), FormRules.numeroExterior(numero),
+                                FormRules.textoDireccion(colonia), FormRules.codigoPostal(codigoPostal)
+                            ) else emptyList()
                             // Si todo es válido, se pide confirmación antes de guardar.
-                            if (!saving && !missing && phonesError == null) confirmSave = true
+                            if (!saving && !missing && phonesError == null && reglas.all { it == null }) confirmSave = true
                         },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -368,7 +403,10 @@ private fun EditField(
     singleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     enabled: Boolean = true,
+    error: String? = null,
+    inputFilter: ((String) -> String)? = null,
 ) {
+    val (fieldValue, onFieldChange) = rememberFilteredFieldValue(value, inputFilter, onValueChange)
     Column(modifier = modifier) {
         Text(
             label,
@@ -379,8 +417,8 @@ private fun EditField(
             modifier = Modifier.padding(bottom = 5.dp)
         )
         OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = fieldValue,
+            onValueChange = onFieldChange,
             singleLine = singleLine,
             enabled = enabled,
             minLines = if (singleLine) 1 else 3,
@@ -389,20 +427,21 @@ private fun EditField(
             colors = karsyTextFieldColors(container = KarsyBg),
             textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            isError = error != null,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
         )
+        if (error != null) {
+            Text(error, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp, start = 2.dp))
+        }
     }
 }
 
 /** Mismas reglas que el registro: al menos un número, de 10 dígitos o más, y el principal con número. */
 private fun validatePhones(phone: String, whatsapp: String, medio: String): String? {
-    fun valido(n: String) = n.count { it.isDigit() } >= 10
     return when {
         phone.isEmpty() && whatsapp.isEmpty() -> texto(R.string.profile_phones_empty)
-        (phone.isNotEmpty() && !valido(phone)) || (whatsapp.isNotEmpty() && !valido(whatsapp)) ->
-            texto(R.string.auth_error_phone_digits)
         medio == UserRepository.LLAMADA && phone.isEmpty() -> texto(R.string.profile_phones_main_needs_phone)
         medio == UserRepository.WHATSAPP && whatsapp.isEmpty() -> texto(R.string.profile_phones_main_needs_whatsapp)
         else -> null
