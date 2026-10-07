@@ -1,5 +1,9 @@
 package com.pame.karsy.feature.favorites
 
+import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.components.HeartCoral
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.compose.animation.core.tween
@@ -103,7 +107,12 @@ fun FavoritesScreen(
             .background(KarsyBg)
     ) {
         Column(Modifier.fillMaxSize()) {
-            SubHeader(title = stringResource(R.string.home_favorites_title), onBack = onBack)
+            SubHeader(
+                title = stringResource(R.string.home_favorites_title),
+                onBack = onBack,
+                titleIcon = Icons.Rounded.Favorite,
+                titleIconTint = HeartCoral
+            )
 
             KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
@@ -176,11 +185,11 @@ fun FavoritesScreen(
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             // Sin favoritos guardados vs. favoritos que no coinciden con búsqueda/filtros.
                             if (vm.cars.isEmpty()) EmptyState(
-                                emoji = "🤍",
+                                icon = Icons.Rounded.FavoriteBorder,
                                 title = stringResource(R.string.favorites_empty_title),
                                 subtitle = stringResource(R.string.favorites_empty_subtitle)
                             ) else EmptyState(
-                                emoji = "🔍",
+                                icon = Icons.Rounded.Search,
                                 title = stringResource(R.string.home_no_results),
                                 subtitle = stringResource(R.string.home_try_another_search)
                             )
@@ -308,7 +317,7 @@ private fun FavoriteCard(
                 Icon(
                     Icons.Rounded.Favorite,
                     contentDescription = stringResource(R.string.home_remove_favorite),
-                    tint = KarsyInk,
+                    tint = HeartCoral,
                     modifier = Modifier.size(17.dp)
                 )
             }
@@ -352,14 +361,24 @@ private fun FavoriteCard(
 }
 
 @Composable
-private fun EmptyState(emoji: String, title: String, subtitle: String) {
+private fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
     Column(
         Modifier
             .fillMaxWidth()
             .padding(vertical = 60.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(emoji, fontSize = 40.sp, modifier = Modifier.padding(bottom = 12.dp))
+        // Ícono vectorial en un círculo suave (antes era un emoji).
+        Box(
+            Modifier
+                .padding(bottom = 14.dp)
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(karsyTint(HeartCoral, HeartCoral.copy(alpha = 0.10f))),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = HeartCoral, modifier = Modifier.size(32.dp))
+        }
         Text(
             title,
             textAlign = TextAlign.Center,
