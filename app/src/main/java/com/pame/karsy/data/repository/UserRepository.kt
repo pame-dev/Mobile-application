@@ -9,11 +9,13 @@ import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.data.model.User
 import com.pame.karsy.data.remote.CuentaDto
 import com.pame.karsy.data.remote.PerfilLoteDto
+import com.pame.karsy.data.remote.PortadaDto
 import com.pame.karsy.data.remote.TelefonoDto
 import com.pame.karsy.data.remote.TelefonoInsert
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.storage
 import io.ktor.http.ContentType
 import kotlinx.serialization.json.contentOrNull
@@ -52,6 +54,7 @@ object UserRepository {
             location = "${cuenta.municipio}, ${cuenta.estado}",
             bio = cuenta.descripcionCorta ?: lote?.descripcionLote.orEmpty(),
             avatarUrl = Supabase.publicUrl(cuenta.fotoPerfil),
+            coverUrl = Supabase.publicUrl(cuenta.fotoPortada),
             memberSince = Formato.mesAnio(cuenta.fechaCreacion),
             accountType = cuenta.tipoCuenta,
             estado = cuenta.estado,
@@ -136,6 +139,30 @@ object UserRepository {
         }
         return Supabase.publicUrl(ruta)
     }
+
+    /** Sube la foto de portada (ya comprimida) y la guarda en la cuenta. Devuelve su URL. */
+    suspend fun uploadCover(bytes: ByteArray): String? {
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_first))
+        val ruta = "perfiles/$uid/portada-${UUID.randomUUID()}.jpg"
+        db.storage.from(Supabase.BUCKET).upload(ruta, bytes) {
+            upsert = false
+            contentType = ContentType.Image.JPEG
+        }
+        db.from("cuentas").update({ set("foto_portada", ruta) }) { filter { eq("id_cuenta", uid) } }
+        return Supabase.publicUrl(ruta)
+    }
+
+    /** Quita la portada: el perfil vuelve al degradado de la marca. */
+    suspend fun removeCover() {
+        val uid = SessionManager.userId ?: return
+        db.from("cuentas").update({ set("foto_portada", null as String?) }) { filter { eq("id_cuenta", uid) } }
+    }
+
+    /** Portada de cualquier cuenta (public.cuentas es de lectura pública). */
+    suspend fun coverOf(accountId: String): String? =
+        db.from("cuentas").select(Columns.list("foto_portada")) { filter { eq("id_cuenta", accountId) } }
+            .decodeSingleOrNull<PortadaDto>()?.fotoPortada
+            ?.let(Supabase::publicUrl)
 
     /**
      * Deja los teléfonos como los arma el registro (fn_auth_crear_cuenta): una fila si

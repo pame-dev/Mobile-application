@@ -117,4 +117,26 @@ class ProfileViewModel : ViewModel() {
             saving = false
         }
     }
+
+    /** Sube la portada comprimida (lado mayor de 1600 px, JPEG) para que el perfil cargue rápido. */
+    fun uploadCover(context: Context, uri: Uri) {
+        val appContext = context.applicationContext
+        saving = true
+        viewModelScope.launch {
+            safeCall { UserRepository.uploadCover(Imagenes.jpegBytes(appContext, uri, maxLado = 1600, calidad = 78)) }
+                .onSuccess { url -> user = user?.copy(coverUrl = url); message = texto(R.string.profile_cover_updated) }
+                .onFailure { message = it.mensajeUsuario() }
+            saving = false
+        }
+    }
+
+    fun removeCover() {
+        saving = true
+        viewModelScope.launch {
+            safeCall { UserRepository.removeCover() }
+                .onSuccess { user = user?.copy(coverUrl = null); message = texto(R.string.profile_cover_removed) }
+                .onFailure { message = it.mensajeUsuario() }
+            saving = false
+        }
+    }
 }

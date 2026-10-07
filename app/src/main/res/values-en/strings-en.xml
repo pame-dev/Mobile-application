@@ -500,6 +500,7 @@
     <string name="publish_success_title">Published!</string>
     <string name="publish_success_message">Your %1$s was submitted for review. It\'ll be visible to buyers as soon as an admin approves it.</string>
     <string name="publish_success_go_dashboard">Go to my dashboard</string>
+    <string name="publish_success_view_listing">View listing</string>
     <string name="publish_edit_title">Edit listing</string>
     <string name="publish_edit_rejected_title">An admin rejected your listing</string>
     <string name="publish_edit_not_found">We couldn\'t find the listing you want to fix.</string>
@@ -1029,4 +1030,10 @@
         <item quantity="one">%1$d vehicle</item>
         <item quantity="other">%1$d vehicles</item>
     </plurals>
+    <!-- Portada y foto de perfil -->
+    <string name="profile_edit_cover">Edit cover</string>
+    <string name="profile_remove_cover_cd">Remove cover</string>
+    <string name="profile_cover_updated">Cover updated</string>
+    <string name="profile_cover_removed">Cover removed</string>
+    <string name="profile_view_photo_cd">View profile photo</string>
 </resources>

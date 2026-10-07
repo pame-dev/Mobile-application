@@ -12,6 +12,8 @@ data class User(
     val location: String,
     val bio: String,
     val avatarUrl: String?,
+    /** Foto de portada del perfil; null = degradado de la marca. */
+    val coverUrl: String? = null,
     val memberSince: String,
     val accountType: String, // "particular" | "lote"
     // Ubicación del perfil (location es "municipio, estado" para mostrar).

@@ -1,5 +1,16 @@
 package com.pame.karsy.feature.cardetail
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.repository.UserRepository
+import com.pame.karsy.feature.profile.AvatarViewer
+import com.pame.karsy.feature.profile.ProfileCover
+import com.pame.karsy.feature.profile.ZoomableProfileAvatar
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -68,6 +79,12 @@ internal fun SellerProfileView(
     onCarClick: (Long) -> Unit,
 ) {
     BackHandler(onBack = onBack)
+    // Portada del vendedor (opcional; si no tiene o falla, queda el degradado).
+    var coverUrl by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(detail.sellerId) {
+        coverUrl = safeCall { UserRepository.coverOf(detail.sellerId) }.getOrNull()
+    }
+    var avatarOpen by rememberSaveable { mutableStateOf(false) }
     val tipo = if (detail.sellerType == "lote") stringResource(R.string.detail_seller_dealer) else stringResource(R.string.detail_seller_private)
     val bio = listOf(
         contact?.descripcion.orEmpty(),
@@ -129,22 +146,18 @@ internal fun SellerProfileView(
                     .border(1.dp, KarsyBorder, cardShape)
             ) {
                 Box {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(82.dp)
-                        .background(Brush.linearGradient(listOf(KarsyNavy, KarsyTeal)))
-                )
+                ProfileCover(coverUrl = coverUrl, height = 82.dp)
                 // El avatar se monta 38 dp sobre el degradado (marginTop: -38 del mockup).
                 Column(
                     Modifier.padding(start = 22.dp, end = 22.dp, top = 44.dp, bottom = 22.dp)
                 ) {
                     Box(Modifier.padding(bottom = 12.dp).size(76.dp)) {
-                        ProfileAvatar(
+                        ZoomableProfileAvatar(
                             name = detail.contactoNombre,
                             avatarUrl = detail.sellerAvatar,
                             size = 76.dp,
                             initialsSize = 26.sp,
+                            onOpen = { avatarOpen = true },
                             modifier = Modifier
                                 .shadow(4.dp, CircleShape)
                                 .border(4.dp, KarsySurface, CircleShape)
@@ -239,5 +252,10 @@ internal fun SellerProfileView(
                 }
             }
         }
+    }
+
+    val avatar = detail.sellerAvatar
+    if (avatarOpen && avatar != null) {
+        AvatarViewer(name = detail.contactoNombre, avatarUrl = avatar, onClose = { avatarOpen = false })
     }
 }
