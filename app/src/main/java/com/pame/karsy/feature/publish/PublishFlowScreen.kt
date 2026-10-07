@@ -56,9 +56,9 @@ fun PublishFlowScreen(onBack: () -> Unit, onFinished: () -> Unit) {
             // Cargando los datos de la publicación rechazada que se va a corregir.
             CircularProgressIndicator(color = KarsyTeal, modifier = Modifier.align(Alignment.Center))
         } else when (vm.step) {
-            1 -> DatosStep(form = vm, onNext = vm::next, onBack = goBack)
-            2 -> PhotosStep(form = vm, onNext = vm::next, onBack = goBack)
-            3 -> DetailsStep(form = vm, onNext = vm::next, onBack = goBack)
+            1 -> DatosStep(form = vm, onNext = { vm.next(context) }, onBack = goBack)
+            2 -> PhotosStep(form = vm, onNext = { vm.next(context) }, onBack = goBack)
+            3 -> DetailsStep(form = vm, onNext = { vm.next(context) }, onBack = goBack)
             else -> ConfirmStep(form = vm, onPublish = { vm.publish(context) }, onBack = goBack)
         }
 

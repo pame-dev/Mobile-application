@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.publish
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -300,6 +301,8 @@ fun PublishStepScaffold(
     onButtonClick: () -> Unit,
     contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp),
     spacing: Int = 16,
+    /** Para que el paso pueda subir el contenido (p. ej. a un aviso de error). */
+    scrollState: ScrollState = rememberScrollState(),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -317,7 +320,7 @@ fun PublishStepScaffold(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(contentPadding),
             verticalArrangement = Arrangement.spacedBy(spacing.dp)
         ) {

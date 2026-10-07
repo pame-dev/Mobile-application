@@ -515,7 +515,8 @@
     <string name="publish_error_mileage">Enter the mileage.</string>
     <string name="publish_error_body_type">Choose the body type.</string>
     <string name="publish_error_color">Choose the color.</string>
-    <string name="publish_error_photo">Add at least one photo.</string>
+    <string name="publish_error_required_photos">Please upload all 5 required photos to continue.</string>
+    <string name="publish_error_duplicate_photos">Duplicate photos detected. All photos must be different.</string>
     <string name="publish_error_description">Enter a description of the vehicle.</string>
     <string name="publish_next_photos">Next: Photos →</string>
     <string name="publish_next_details">Next: Details →</string>
