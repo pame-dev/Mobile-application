@@ -128,6 +128,11 @@ object AuthRepository {
         return loadAccountOrSignOut()
     }
 
+    /** true si el número ya está registrado en otra cuenta (función telefono_en_uso). */
+    suspend fun telefonoEnUso(numero: String): Boolean =
+        Supabase.client.postgrest.rpc("telefono_en_uso", buildJsonObject { put("p_numero", numero) })
+            .decodeAs<Boolean>()
+
     suspend fun signOut() {
         runCatching { auth.signOut() }
     }

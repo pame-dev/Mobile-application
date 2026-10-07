@@ -1,6 +1,7 @@
 package com.pame.karsy.core.components
 
 import androidx.compose.foundation.background
+import com.pame.karsy.core.theme.KarsyError
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,8 @@ fun TermsCheckbox(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     onOpenTerms: (() -> Unit)? = null,
+    /** Borde rojo: se intentó enviar el formulario sin aceptarlos. */
+    error: Boolean = false,
 ) {
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -58,7 +61,7 @@ fun TermsCheckbox(
             .padding(bottom = 16.dp)
             .clip(shape)
             .background(if (checked) KarsyTealLight else KarsyBg)
-            .border(1.5.dp, if (checked) KarsyTeal else KarsyBorder, shape)
+            .border(1.5.dp, if (checked) KarsyTeal else if (error) KarsyError else KarsyBorder, shape)
             .clickable { onCheckedChange(!checked) }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),

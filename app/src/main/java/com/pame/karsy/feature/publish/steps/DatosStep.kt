@@ -123,11 +123,11 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_year))
-                    PublishTextInput(form.anio, { form.anio = it }, "2023", numeric = true)
+                    PublishTextInput(form.anio, { form.anio = it }, "2023", numeric = true, maxDigits = 4)
                 }
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_price))
-                    PublishTextInput(form.precio, { form.precio = it }, "685,000", numeric = true)
+                    PublishTextInput(form.precio, { form.precio = it }, "685000", numeric = true, maxDigits = 10)
                 }
             }
 
@@ -162,7 +162,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
 
             Column {
                 FieldLabel(stringResource(R.string.publish_label_mileage))
-                PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18,500 km", numeric = true)
+                PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18500", numeric = true, maxDigits = 7)
             }
 
             Column {
@@ -197,11 +197,11 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_cylinders))
-                    PublishTextInput(form.cilindros, { form.cilindros = it }, "4", numeric = true)
+                    PublishTextInput(form.cilindros, { form.cilindros = it }, "4", numeric = true, maxDigits = 2)
                 }
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_horsepower))
-                    PublishTextInput(form.caballos, { form.caballos = it }, "184 hp", numeric = true)
+                    PublishTextInput(form.caballos, { form.caballos = it }, "184", numeric = true, maxDigits = 4)
                 }
             }
 
@@ -274,7 +274,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             SectionTitle(stringResource(R.string.publish_section_additional_info))
             Column {
                 FieldLabel(stringResource(R.string.publish_label_previous_owners))
-                PublishTextInput(form.duenos, { form.duenos = it }, "1", numeric = true)
+                PublishTextInput(form.duenos, { form.duenos = it }, "1", numeric = true, maxDigits = 2)
             }
         }
     }

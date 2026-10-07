@@ -21,6 +21,8 @@ fun notificationTextRes(tipo: String): Int = when (tipo) {
     "publicacion_deshabilitada" -> R.string.notif_disabled
     "destacado_rechazado" -> R.string.notif_featured_rejected
     "destacado_por_vencer" -> R.string.notif_featured_expiring
+    "cuenta_suspendida" -> R.string.notif_account_suspended
+    "cuenta_reactivada" -> R.string.notif_account_reactivated
     "reporte_atendido" -> R.string.notif_report_resolved
     "reporte_descartado" -> R.string.notif_report_dismissed
     else -> R.string.notif_generic

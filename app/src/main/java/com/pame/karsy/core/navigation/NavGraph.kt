@@ -211,7 +211,8 @@ fun KarsyNavGraph(
                 onBack = ::back,
                 onCreated = ::enterAs,
                 onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
-                onTerms = { navController.navigate(Routes.Terms.route) }
+                onTerms = { navController.navigate(Routes.Terms.route) },
+                onLogin = { navController.navigate(Routes.Login.route) }
             )
         }
         composable(Routes.RegisterLote.route) {
@@ -219,7 +220,8 @@ fun KarsyNavGraph(
                 onBack = ::back,
                 onCreated = ::enterAs,
                 onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
-                onTerms = { navController.navigate(Routes.Terms.route) }
+                onTerms = { navController.navigate(Routes.Terms.route) },
+                onLogin = { navController.navigate(Routes.Login.route) }
             )
         }
 
