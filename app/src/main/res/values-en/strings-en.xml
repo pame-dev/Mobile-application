@@ -335,6 +335,15 @@
     <string name="detail_owner_paused">Listing disabled: buyers no longer see it.</string>
     <string name="detail_owner_resumed">Listing enabled again.</string>
     <string name="detail_owner_mark_sold">Mark as sold</string>
+    <string name="detail_owner_hide">Hide</string>
+    <string name="detail_owner_unhide">Show on my profile</string>
+    <string name="detail_owner_hide_title">Hide listing?</string>
+    <string name="detail_owner_hide_desc">It will no longer appear in My listings. You can find it below, under Hidden listings, and show it again anytime.</string>
+    <string name="detail_owner_hidden">Listing hidden.</string>
+    <string name="detail_owner_unhidden">The listing appears in My listings again.</string>
+    <string name="profile_dashboard_hidden_listings">Hidden listings</string>
+    <string name="profile_dashboard_hidden_desc">They don\'t appear in My listings on your profile. They\'re only hidden on this phone.</string>
+    <string name="profile_dashboard_unhide">Show on profile</string>
     <string name="detail_owner_sold_title">Mark as sold?</string>
     <string name="detail_owner_sold_desc">Buyers won\'t see it anymore and anyone who saved it to favorites will see it was sold. You can mark it as available again whenever you want.</string>
     <string name="detail_owner_sold_confirm">Confirm</string>
@@ -467,6 +476,8 @@
     <string name="profile_badge_lot">Lot</string>
     <string name="profile_my_posts">My listings</string>
     <string name="profile_no_posts">You don\'t have any listings yet.</string>
+    <string name="profile_hidden_posts">Hidden listings (%1$d)</string>
+    <string name="profile_hidden_posts_desc">They don\'t appear in My listings. Open one to show it again.</string>
     <string name="profile_stat_posts">Listings</string>
     <string name="profile_stat_sold">Sold</string>
     <string name="profile_stat_active">Active</string>

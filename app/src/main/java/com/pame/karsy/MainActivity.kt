@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.navigation.KarsyNavGraph
 import com.pame.karsy.core.push.KarsyMessagingService
+import com.pame.karsy.core.session.PublicacionesOcultas
 import com.pame.karsy.core.theme.KarsyTheme
 import com.pame.karsy.core.theme.Tema
 
@@ -29,6 +30,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // Tema claro / oscuro elegido en Configuración (o el del teléfono); antes de pintar nada.
         Tema.aplicar(this)
+        PublicacionesOcultas.iniciar(this)
         val barras = if (Tema.oscuro) SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         else SystemBarStyle.light(AndroidColor.TRANSPARENT, AndroidColor.TRANSPARENT)
         enableEdgeToEdge(statusBarStyle = barras, navigationBarStyle = barras)

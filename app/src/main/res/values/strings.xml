@@ -337,6 +337,15 @@
     <string name="detail_owner_paused">Publicación deshabilitada: ya no aparece para los compradores.</string>
     <string name="detail_owner_resumed">Publicación habilitada de nuevo.</string>
     <string name="detail_owner_mark_sold">Marcar como vendido</string>
+    <string name="detail_owner_hide">Ocultar</string>
+    <string name="detail_owner_unhide">Mostrar en mi perfil</string>
+    <string name="detail_owner_hide_title">¿Ocultar publicación?</string>
+    <string name="detail_owner_hide_desc">Dejará de aparecer en Mis publicaciones. Podrás verla abajo, en Publicaciones ocultas, y volver a mostrarla cuando quieras.</string>
+    <string name="detail_owner_hidden">Publicación oculta.</string>
+    <string name="detail_owner_unhidden">La publicación vuelve a aparecer en Mis publicaciones.</string>
+    <string name="profile_dashboard_hidden_listings">Publicaciones ocultas</string>
+    <string name="profile_dashboard_hidden_desc">No aparecen en Mis publicaciones de tu perfil. Solo se ocultan en este teléfono.</string>
+    <string name="profile_dashboard_unhide">Mostrar en perfil</string>
     <string name="detail_owner_sold_title">¿Marcar como vendido?</string>
     <string name="detail_owner_sold_desc">Dejará de aparecer para los compradores y quienes lo tengan en favoritos verán que ya se vendió. Puedes volver a marcarlo como disponible cuando quieras.</string>
     <string name="detail_owner_sold_confirm">Confirmar</string>
@@ -469,6 +478,8 @@
     <string name="profile_badge_lot">Lote</string>
     <string name="profile_my_posts">Mis publicaciones</string>
     <string name="profile_no_posts">Aún no tienes publicaciones.</string>
+    <string name="profile_hidden_posts">Publicaciones ocultas (%1$d)</string>
+    <string name="profile_hidden_posts_desc">No aparecen en Mis publicaciones. Abre una para volver a mostrarla.</string>
     <string name="profile_stat_posts">Publicaciones</string>
     <string name="profile_stat_sold">Vendidos</string>
     <string name="profile_stat_active">Activas</string>
