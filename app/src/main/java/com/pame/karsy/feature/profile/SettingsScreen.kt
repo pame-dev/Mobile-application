@@ -1,5 +1,21 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.theme.KarsyTealLight
+import com.pame.karsy.core.theme.KarsyTeal
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.Icons
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.StringRes
@@ -45,7 +61,7 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.feature.home.LogoutConfirmDialog
 
 private data class SettingsItem(
-    val icon: String,
+    val icon: ImageVector,
     @StringRes val labelRes: Int,
     @StringRes val descRes: Int,
     val isLanguage: Boolean = false,
@@ -56,18 +72,18 @@ private data class SettingsItem(
 )
 
 private val settingsItems = listOf(
-    SettingsItem("🔔", R.string.settings_notifications, R.string.settings_notifications_desc, isNotifications = true),
-    SettingsItem("🔒", R.string.settings_privacy, R.string.settings_privacy_desc, isPrivacy = true),
+    SettingsItem(Icons.Outlined.Notifications, R.string.settings_notifications, R.string.settings_notifications_desc, isNotifications = true),
+    SettingsItem(Icons.Outlined.Lock, R.string.settings_privacy, R.string.settings_privacy_desc, isPrivacy = true),
     // La descripción del idioma se arma con languageSummary (idioma elegido).
-    SettingsItem("🌐", R.string.settings_language, R.string.settings_language, isLanguage = true),
+    SettingsItem(Icons.Outlined.Language, R.string.settings_language, R.string.settings_language, isLanguage = true),
     // La descripción del tema se arma con themeSummary (tema elegido).
-    SettingsItem("🌓", R.string.settings_theme, R.string.settings_theme, isTheme = true),
-    SettingsItem("📄", R.string.settings_terms, R.string.settings_terms_desc, isTerms = true),
+    SettingsItem(Icons.Outlined.DarkMode, R.string.settings_theme, R.string.settings_theme, isTheme = true),
+    SettingsItem(Icons.Outlined.Description, R.string.settings_terms, R.string.settings_terms_desc, isTerms = true),
 )
 
 /** Colores de la tarjeta de "Cerrar sesión" del mockup. */
 private val LogoutBorder: Color get() = if (Tema.oscuro) Color(0xFF5C2626) else Color(0xFFFECACA)
-private val LogoutRed = Color(0xFFD93025)
+private val LogoutRed = Color(0xFFE65B5B)
 
 /** Pantalla de configuración (WebConfigView del mockup). */
 @Composable
@@ -91,6 +107,7 @@ fun SettingsScreen(
             SubHeader(
                 title = stringResource(R.string.settings_title),
                 onBack = onBack,
+                titleIcon = Icons.Outlined.Settings,
                 modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
             )
             Column(
@@ -116,12 +133,16 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text(
-                                item.icon,
-                                fontSize = 22.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.width(36.dp)
-                            )
+                            // Ícono vectorial turquesa dentro de un cuadro redondeado suave.
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(karsyTint(KarsyTeal, KarsyTealLight)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(item.icon, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(22.dp))
+                            }
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     stringResource(item.labelRes),
@@ -157,7 +178,12 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        Text("🚪", fontSize = 20.sp)
+                        Icon(
+                            Icons.AutoMirrored.Outlined.Logout,
+                            contentDescription = null,
+                            tint = LogoutRed,
+                            modifier = Modifier.size(22.dp)
+                        )
                         Text(
                             stringResource(R.string.settings_logout),
                             fontFamily = DmSans,

@@ -1,5 +1,6 @@
 package com.pame.karsy.core.components
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,12 +25,15 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 
 /** Ícono de corazón: relleno teal cuando está activo, contorno gris si no. */
+/** Rojo coral del corazón de favoritos guardado. */
+val HeartCoral = Color(0xFFE65B5B)
+
 @Composable
 fun HeartIcon(filled: Boolean, modifier: Modifier = Modifier, size: Dp = 18.dp) {
     Icon(
         imageVector = if (filled) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
         contentDescription = stringResource(if (filled) R.string.core_remove_favorite else R.string.core_add_favorite),
-        tint = if (filled) KarsyTeal else KarsyMid,
+        tint = if (filled) HeartCoral else KarsyMid,
         modifier = modifier.size(size)
     )
 }

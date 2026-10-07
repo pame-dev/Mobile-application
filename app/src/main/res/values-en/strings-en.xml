@@ -12,7 +12,7 @@
 
     <!-- Configuración / Settings -->
     <!-- Settings -->
-    <string name="settings_title">⚙️ Settings</string>
+    <string name="settings_title">Settings</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_desc">Alerts and notices for your account</string>
     <string name="settings_privacy">Privacy and security</string>
@@ -233,7 +233,7 @@
     <string name="home_visitor_message">Sign up to save favorites, contact sellers, and list your vehicle.</string>
     <string name="home_create_account_free">Create a free account →</string>
     <!-- Favorites -->
-    <string name="home_favorites_title">❤️ Favorites</string>
+    <string name="home_favorites_title">Favorites</string>
     <plurals name="home_vehicles_saved">
         <item quantity="one">%1$d saved vehicle</item>
         <item quantity="other">%1$d saved vehicles</item>

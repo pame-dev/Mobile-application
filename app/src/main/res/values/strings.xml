@@ -14,7 +14,7 @@
 
     <!-- Configuración / Settings -->
     <!-- Configuración -->
-    <string name="settings_title">⚙️ Configuración</string>
+    <string name="settings_title">Configuración</string>
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notifications_desc">Alertas y avisos de tu cuenta</string>
     <string name="settings_privacy">Privacidad y seguridad</string>
@@ -235,7 +235,7 @@
     <string name="home_visitor_message">Regístrate para guardar favoritos, contactar vendedores y publicar tu vehículo.</string>
     <string name="home_create_account_free">Crear cuenta gratis →</string>
     <!-- Favoritos -->
-    <string name="home_favorites_title">❤️ Favoritos</string>
+    <string name="home_favorites_title">Favoritos</string>
     <plurals name="home_vehicles_saved">
         <item quantity="one">%1$d vehículo guardado</item>
         <item quantity="other">%1$d vehículos guardados</item>

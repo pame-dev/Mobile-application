@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,8 +59,8 @@ enum class BottomTab { Home, Lots, Favorites, Profile }
  */
 val LocalBottomBarSpace = compositionLocalOf { 0.dp }
 
-/** Alto de la barra + margen inferior + lo que sobresale el "+". */
-internal val BOTTOM_BAR_SPACE: Dp = 92.dp
+/** Alto de la barra (64) + margen inferior (4) + aire sobre la barra. */
+internal val BOTTOM_BAR_SPACE: Dp = 80.dp
 
 /**
  * Paneles que tapan la pantalla (filtros, menú del admin, modales propios) ocultan la
@@ -104,7 +103,8 @@ fun KarsyBottomBar(
         modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+            // Pegada al borde: solo 4 dp sobre la barra de navegación del sistema.
+            .padding(start = 16.dp, end = 16.dp, bottom = 4.dp)
     ) {
         Row(
             Modifier
@@ -118,8 +118,21 @@ fun KarsyBottomBar(
         ) {
             TabItem(BottomTab.Home, current, Icons.Rounded.Home, Icons.Outlined.Home, stringResource(R.string.nav_home), onTab)
             TabItem(BottomTab.Lots, current, Icons.Rounded.Business, Icons.Outlined.Business, stringResource(R.string.nav_lots), onTab)
-            // Hueco para el "+" que sobresale.
-            Box(Modifier.weight(1f))
+            // "+" central, dentro de la barra y en la misma línea que los demás íconos:
+            // 56 dp en una barra de 64 dp (4 dp libres arriba y abajo).
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(KarsyNavyDeep)
+                        .border(2.dp, KarsySurface, CircleShape)
+                        .clickable(onClick = onPublish),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.home_fab_add_vehicle), tint = KarsyWhite, modifier = Modifier.size(28.dp))
+                }
+            }
             TabItem(BottomTab.Favorites, current, Icons.Rounded.Favorite, Icons.Outlined.FavoriteBorder, stringResource(R.string.nav_favorites), onTab)
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Pill(
@@ -131,22 +144,6 @@ fun KarsyBottomBar(
                 // El menú se ancla a este Box: como no cabe abajo, se abre hacia arriba.
                 Box(Modifier.align(Alignment.TopEnd)) { profileMenu() }
             }
-        }
-
-        // "+" central: sobresale por encima de la barra.
-        Box(
-            Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = (-14).dp)
-                .size(56.dp)
-                .shadow(8.dp, CircleShape, ambientColor = BarShadow, spotColor = KarsyNavyDeep.copy(alpha = 0.25f))
-                .clip(CircleShape)
-                .background(KarsyNavyDeep)
-                .border(3.dp, KarsySurface, CircleShape)
-                .clickable(onClick = onPublish),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.home_fab_add_vehicle), tint = KarsyWhite, modifier = Modifier.size(28.dp))
         }
     }
 }

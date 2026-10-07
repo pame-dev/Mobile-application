@@ -1,5 +1,13 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.theme.karsyTint
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.outlined.Smartphone
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -165,10 +173,10 @@ fun ThemeSheet(selected: String, phoneIsDark: Boolean, onSelect: (String) -> Uni
                 color = KarsyMid,
                 modifier = Modifier.padding(bottom = 6.dp)
             )
-            LanguageOption("☀️", stringResource(R.string.settings_theme_light), null, selected == Tema.CLARO) { onSelect(Tema.CLARO) }
-            LanguageOption("🌙", stringResource(R.string.settings_theme_dark), null, selected == Tema.OSCURO) { onSelect(Tema.OSCURO) }
-            LanguageOption(
-                flag = "📱",
+            ThemeOption(Icons.Outlined.LightMode, stringResource(R.string.settings_theme_light), null, selected == Tema.CLARO) { onSelect(Tema.CLARO) }
+            ThemeOption(Icons.Outlined.DarkMode, stringResource(R.string.settings_theme_dark), null, selected == Tema.OSCURO) { onSelect(Tema.OSCURO) }
+            ThemeOption(
+                icon = Icons.Outlined.Smartphone,
                 label = stringResource(R.string.settings_theme_system),
                 description = stringResource(
                     R.string.settings_language_system_desc,
@@ -179,3 +187,46 @@ fun ThemeSheet(selected: String, phoneIsDark: Boolean, onSelect: (String) -> Uni
         }
     }
 }
+
+/**
+ * Opción del selector de tema con ícono vectorial (sol, luna, teléfono).
+ * Activa: fondo azul hielo, borde turquesa de 1.5 dp y radio relleno.
+ * Inactiva: fondo de tarjeta, borde fino de 1 dp y radio vacío.
+ */
+@Composable
+private fun ThemeOption(icon: ImageVector, label: String, description: String?, selected: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(if (selected) karsyTint(KarsyTeal, Color(0xFFE2F1F8)) else KarsySurface)
+            .border(if (selected) 1.5.dp else 1.dp, if (selected) KarsyTeal else ThemeOptionBorder, shape)
+            .clickable(role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+    ) {
+        Icon(icon, contentDescription = null, tint = if (selected) KarsyTeal else KarsyMid, modifier = Modifier.size(22.dp))
+        Column(Modifier.weight(1f)) {
+            Text(label, fontFamily = DmSans, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
+            if (description != null) {
+                Spacer(Modifier.height(2.dp))
+                Text(description, fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+            }
+        }
+        // Botón de opción (radio)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(22.dp)
+                .clip(CircleShape)
+                .border(2.dp, if (selected) KarsyTeal else KarsyBorder, CircleShape)
+        ) {
+            if (selected) Box(Modifier.size(11.dp).clip(CircleShape).background(KarsyTeal))
+        }
+    }
+}
+
+/** Borde fino de las opciones de tema no elegidas (#E5E9EC en claro). */
+private val ThemeOptionBorder: Color get() = if (Tema.oscuro) KarsyBorder else Color(0xFFE5E9EC)

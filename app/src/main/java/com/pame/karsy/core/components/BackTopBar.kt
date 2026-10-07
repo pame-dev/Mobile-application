@@ -1,5 +1,6 @@
 package com.pame.karsy.core.components
 
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -78,6 +79,9 @@ fun SubHeader(
     title: String,
     onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    /** Ícono a la izquierda del título (p. ej. engrane en Configuración, corazón en Favoritos). */
+    titleIcon: ImageVector? = null,
+    titleIconTint: Color = KarsyInk,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
@@ -110,16 +114,24 @@ fun SubHeader(
                 }
             }
         }
-        Text(
-            text = title,
-            fontFamily = Outfit,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = KarsyInk,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
-        )
+        ) {
+            if (titleIcon != null) {
+                Icon(titleIcon, contentDescription = null, tint = titleIconTint, modifier = Modifier.size(22.dp))
+            }
+            Text(
+                text = title,
+                fontFamily = Outfit,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = KarsyInk,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
         actions()
     }
 }
