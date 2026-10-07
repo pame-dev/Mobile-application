@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -49,7 +50,7 @@ private val SoftGray: Color get() = if (Tema.oscuro) Color(0xFF26313B) else Colo
 
 /**
  * Modal de confirmación sobre un fondo oscuro que cubre toda la pantalla:
- * ícono, título, mensaje y botones "Cancelar" / [confirmText].
+ * ícono, título, mensaje y botones "Cancelar" (o [cancelText]) / [confirmText].
  * Debe ir al final de un Box a pantalla completa para quedar encima del contenido.
  */
 @Composable
@@ -62,6 +63,8 @@ fun ConfirmDialog(
     confirmText: String,
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
+    /** Texto del botón secundario; por defecto "Cancelar". */
+    cancelText: String? = null,
 ) {
     if (visible) BackHandler(onBack = onCancel)
 
@@ -127,9 +130,15 @@ fun ConfirmDialog(
                         elevation = null,
                         modifier = Modifier
                             .weight(1f)
-                            .height(46.dp)
+                            .heightIn(min = 46.dp)
                     ) {
-                        Text(stringResource(R.string.detail_cancel), fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            cancelText ?: stringResource(R.string.detail_cancel),
+                            fontFamily = DmSans,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
                     }
                     Button(
                         onClick = onConfirm,
@@ -138,7 +147,7 @@ fun ConfirmDialog(
                         elevation = null,
                         modifier = Modifier
                             .weight(1f)
-                            .height(46.dp)
+                            .heightIn(min = 46.dp)
                     ) {
                         Text(confirmText, fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }

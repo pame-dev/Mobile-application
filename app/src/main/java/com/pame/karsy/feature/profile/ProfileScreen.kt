@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.profile
 
+import android.net.Uri
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -95,11 +96,23 @@ fun ProfileScreen(
     val user = vm.user
     var editOpen by rememberSaveable { mutableStateOf(false) }
     var passwordOpen by rememberSaveable { mutableStateOf(false) }
+    // Foto y portada elegidas en "Editar perfil": se suben hasta presionar Guardar.
+    var pendingAvatar by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var pendingCover by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var coverRemoved by rememberSaveable { mutableStateOf(false) }
+    val clearPending = {
+        pendingAvatar = null
+        pendingCover = null
+        coverRemoved = false
+    }
     val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) vm.uploadAvatar(context, uri)
+        if (uri != null) pendingAvatar = uri
     }
     val pickCover = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) vm.uploadCover(context, uri)
+        if (uri != null) {
+            pendingCover = uri
+            coverRemoved = false
+        }
     }
     // Foto de perfil ampliada (solo si hay foto).
     var avatarOpen by rememberSaveable { mutableStateOf(false) }
@@ -191,15 +204,33 @@ fun ProfileScreen(
             user = user,
             saving = vm.saving,
             error = vm.editError,
-            onDismiss = { editOpen = false },
-            onSave = { updated -> vm.save(updated) { editOpen = false } },
+            onDismiss = {
+                editOpen = false
+                clearPending()
+            },
+            onSave = { updated ->
+                vm.save(context, updated, pendingAvatar, pendingCover, coverRemoved) {
+                    editOpen = false
+                    clearPending()
+                }
+            },
+            avatarPreview = pendingAvatar?.toString() ?: user.avatarUrl,
+            coverPreview = when {
+                pendingCover != null -> pendingCover.toString()
+                coverRemoved -> null
+                else -> user.coverUrl
+            },
+            photosChanged = pendingAvatar != null || pendingCover != null || coverRemoved,
             onPickPhoto = {
                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
             onPickCover = {
                 pickCover.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
-            onRemoveCover = vm::removeCover,
+            onRemoveCover = {
+                pendingCover = null
+                coverRemoved = true
+            },
             onChangePassword = {
                 vm.clearDialogErrors()
                 passwordOpen = true
@@ -222,6 +253,7 @@ fun ProfileScreen(
                 vm.changePassword(current, new, confirm) {
                     passwordOpen = false
                     editOpen = false
+                    clearPending()
                 }
             }
         )

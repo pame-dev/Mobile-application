@@ -1033,7 +1033,10 @@
     <!-- Portada y foto de perfil -->
     <string name="profile_edit_cover">Edit cover</string>
     <string name="profile_remove_cover_cd">Remove cover</string>
-    <string name="profile_cover_updated">Cover updated</string>
-    <string name="profile_cover_removed">Cover removed</string>
     <string name="profile_view_photo_cd">View profile photo</string>
+    <!-- Descartar cambios del perfil -->
+    <string name="profile_discard_title">Discard changes?</string>
+    <string name="profile_discard_message">You made changes to your profile. If you leave now, they will be lost. Are you sure you want to discard them?</string>
+    <string name="profile_discard_keep_editing">No, keep editing</string>
+    <string name="profile_discard_yes">Yes, discard</string>
 </resources>
