@@ -23,7 +23,10 @@ import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.CatalogRepository
 import com.pame.karsy.data.repository.Catalogs
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.util.Calendar
@@ -95,6 +98,21 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val extraPhotos = mutableStateListOf<Uri>()
     /** Fotos que ya estaban en Storage (al corregir): no se vuelven a subir. */
     private val rutasExistentes = mutableMapOf<Uri, String>()
+
+    /** Ya se intentó pasar del paso 2: se marcan en rojo los ángulos sin foto. */
+    var photosAttempted by mutableStateOf(false)
+        private set
+    /** Fotos idénticas a otra (mismo contenido), marcadas en rojo. */
+    var duplicatePhotos by mutableStateOf<Set<Uri>>(emptySet())
+        private set
+    /** Mientras se comparan las fotos para buscar repetidas. */
+    var checkingPhotos by mutableStateOf(false)
+        private set
+    /** Cambia cada vez que falla la validación de fotos: la pantalla sube para mostrar el aviso. */
+    var photoErrorSignal by mutableIntStateOf(0)
+        private set
+    /** Huella (SHA-256 del contenido) de cada foto ya revisada, para no volver a leerla. */
+    private val huellas = mutableMapOf<Uri, String>()
 
     // Paso 3: Detalles
     var descripcion by mutableStateOf("")
@@ -192,10 +210,69 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     // ── Navegación entre pasos ───────────────────────────────────────────────
 
-    /** Valida el paso actual y avanza. */
-    fun next() {
+    /** Valida el paso actual y avanza. En el paso 2 además busca fotos repetidas. */
+    fun next(context: Context) {
+        if (step == 2) {
+            nextFromPhotos(context)
+            return
+        }
         error = validate(step)
         if (error == null && step < 4) step++
+    }
+
+    /**
+     * Paso 2 → 3: deben estar las 5 fotos obligatorias y ninguna puede repetirse.
+     * Las repetidas se detectan por contenido, así que también cuenta la misma foto
+     * elegida dos veces o dos copias idénticas con distinto nombre.
+     */
+    private fun nextFromPhotos(context: Context) {
+        if (checkingPhotos) return
+        photosAttempted = true
+        error = validate(2)
+        if (error != null) {
+            photoErrorSignal++
+            return
+        }
+        val appContext = context.applicationContext
+        checkingPhotos = true
+        viewModelScope.launch {
+            val fotos = fotosElegidas
+            val repetidas = fotos
+                .groupBy { huella(appContext, it) }
+                .values.filter { it.size > 1 }
+                .flatten().toSet()
+            duplicatePhotos = repetidas
+            checkingPhotos = false
+            if (repetidas.isNotEmpty()) {
+                error = texto(R.string.publish_error_duplicate_photos)
+                photoErrorSignal++
+            } else {
+                error = null
+                step = 3
+            }
+        }
+    }
+
+    /**
+     * SHA-256 del contenido de la foto. Las que ya estaban en Storage (al editar) se
+     * identifican por su ruta, para no descargarlas.
+     */
+    private suspend fun huella(context: Context, uri: Uri): String = huellas.getOrPut(uri) {
+        if (uri in rutasExistentes) return@getOrPut "ruta:" + rutasExistentes.getValue(uri)
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val digest = MessageDigest.getInstance("SHA-256")
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    val buffer = ByteArray(64 * 1024)
+                    while (true) {
+                        val leidos = input.read(buffer)
+                        if (leidos < 0) break
+                        digest.update(buffer, 0, leidos)
+                    }
+                } ?: return@runCatching null
+                digest.digest().joinToString("") { "%02x".format(it) }
+            }.getOrNull() ?: ("uri:$uri")
+        }
     }
 
     /** Regresa un paso. Devuelve false si ya estamos en el paso 1 (hay que salir del flujo). */
@@ -222,7 +299,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 else -> null
             }
         }
-        2 -> if (fotosElegidas.isEmpty()) texto(R.string.publish_error_photo) else null
+        2 -> if (photos.any { it == null }) texto(R.string.publish_error_required_photos) else null
         3 -> if (descripcion.isBlank()) texto(R.string.publish_error_description) else null
         else -> null
     }

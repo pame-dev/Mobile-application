@@ -1,5 +1,10 @@
 package com.pame.karsy.feature.publish.steps
 
+import com.pame.karsy.core.theme.karsyTint
+import androidx.compose.ui.unit.Dp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.BoxWithConstraints
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -10,10 +15,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,6 +65,9 @@ import com.pame.karsy.feature.publish.PublishViewModel
 
 private data class PhotoSlot(val label: String, val image: Uri?)
 
+/** Rojo coral de los avisos de error de fotos. */
+private val AlertCoral = Color(0xFFE65B5B)
+
 private val slotLabels = listOf(
     R.string.publish_photo_front,
     R.string.publish_photo_rear,
@@ -84,19 +88,30 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         ActivityResultContracts.PickMultipleVisualMedia(PublishViewModel.MAX_FOTOS - slotLabels.size)
     ) { uris -> form.addExtraPhotos(uris) }
 
+    // Si falta alguna foto o hay repetidas, se sube al inicio para que se vea el aviso.
+    val scrollState = rememberScrollState()
+    LaunchedEffect(form.photoErrorSignal) {
+        if (form.photoErrorSignal > 0) scrollState.animateScrollTo(0)
+    }
+
     PublishStepScaffold(
         step = 2,
         form = form,
         onBack = onBack,
+        // El botón siempre está activo; la validación corre al presionarlo.
         buttonText = stringResource(R.string.publish_next_details),
         onButtonClick = onNext,
-        spacing = 12
+        spacing = 12,
+        scrollState = scrollState
     ) {
-        form.error?.let { StepError(it) }
+        form.error?.let { PhotoAlertBanner(it) }
         slotLabels.forEachIndexed { i, labelRes ->
+            val uri = form.photos[i]
             PhotoSlotCard(
-                slot = PhotoSlot(stringResource(labelRes), form.photos[i]),
+                slot = PhotoSlot(stringResource(labelRes), uri),
                 isDashboard = i == 4,
+                // Borde rojo: falta la foto (después de intentar avanzar) o está repetida.
+                hasError = (form.photosAttempted && uri == null) || (uri != null && uri in form.duplicatePhotos),
                 onPick = {
                     targetSlot = i
                     picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -105,6 +120,7 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         }
         ExtraPhotosCard(
             photos = form.extraPhotos,
+            duplicates = form.duplicatePhotos,
             total = form.fotosElegidas.size,
             canAdd = form.extraPhotosLeft > 0,
             onAdd = { extrasPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
@@ -114,10 +130,10 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
 }
 
 /** Fotos adicionales a las de los ángulos, hasta completar el máximo por publicación. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ExtraPhotosCard(
     photos: List<Uri>,
+    duplicates: Set<Uri>,
     total: Int,
     canAdd: Boolean,
     onAdd: () -> Unit,
@@ -147,47 +163,21 @@ private fun ExtraPhotosCard(
             )
         }
         if (photos.isNotEmpty()) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                maxItemsInEachRow = 4,
-                modifier = Modifier.padding(top = 12.dp)
-            ) {
-                photos.forEach { uri ->
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(KarsyBg)
-                    ) {
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(4.dp)
-                                .size(22.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.55f))
-                                .clickable { onRemove(uri) },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.Close,
-                                contentDescription = stringResource(R.string.publish_remove_photo),
-                                tint = KarsyWhite,
-                                modifier = Modifier.size(14.dp)
-                            )
+            // Cuadrícula: tantas columnas de al menos 90 dp como quepan, separadas 12 dp;
+            // todas las celdas miden lo mismo y son cuadradas (también en la última fila).
+            BoxWithConstraints(Modifier.padding(top = 12.dp)) {
+                val gap = 12.dp
+                val columnas = ((maxWidth + gap) / (90.dp + gap)).toInt().coerceAtLeast(1)
+                val celda = (maxWidth - gap * (columnas - 1)) / columnas
+                Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                    photos.chunked(columnas).forEach { fila ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                            fila.forEach { uri ->
+                                ExtraPhotoThumb(uri, size = celda, isDuplicate = uri in duplicates, onRemove = { onRemove(uri) })
+                            }
                         }
                     }
                 }
-                // Huecos para que las miniaturas de la última fila no se estiren.
-                repeat((4 - photos.size % 4) % 4) { Spacer(Modifier.weight(1f)) }
             }
         }
         Row(
@@ -215,7 +205,60 @@ private fun ExtraPhotosCard(
 }
 
 @Composable
-private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, onPick: () -> Unit) {
+private fun ExtraPhotoThumb(uri: Uri, size: Dp, isDuplicate: Boolean, onRemove: () -> Unit) {
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        Modifier
+            .size(size)
+            .clip(shape)
+            .background(KarsyBg)
+            .then(if (isDuplicate) Modifier.border(2.dp, AlertCoral, shape) else Modifier)
+    ) {
+        AsyncImage(
+            model = uri,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(4.dp)
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.55f))
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Rounded.Close,
+                contentDescription = stringResource(R.string.publish_remove_photo),
+                tint = KarsyWhite,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
+
+/** Aviso rojo debajo del stepper: faltan fotos obligatorias o hay fotos repetidas. */
+@Composable
+private fun PhotoAlertBanner(message: String) {
+    Text(
+        message,
+        fontFamily = DmSans,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = AlertCoral,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(karsyTint(AlertCoral, Color(0xFFFDF2F2)))
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    )
+}
+
+@Composable
+private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, hasError: Boolean, onPick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -224,7 +267,7 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, onPick: () -> U
             .drawBehind {
                 val stroke = 1.5.dp.toPx()
                 drawRoundRect(
-                    color = KarsyMid,
+                    color = if (hasError) AlertCoral else KarsyMid,
                     topLeft = androidx.compose.ui.geometry.Offset(stroke / 2, stroke / 2),
                     size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
                     cornerRadius = CornerRadius(16.dp.toPx()),

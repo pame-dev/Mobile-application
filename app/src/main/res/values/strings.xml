@@ -517,7 +517,8 @@
     <string name="publish_error_mileage">Escribe el kilometraje.</string>
     <string name="publish_error_body_type">Elige el tipo de carro.</string>
     <string name="publish_error_color">Elige el color.</string>
-    <string name="publish_error_photo">Agrega al menos una foto.</string>
+    <string name="publish_error_required_photos">Debes subir las 5 fotos obligatorias para continuar.</string>
+    <string name="publish_error_duplicate_photos">Se detectaron fotos repetidas. Todas las fotos deben ser diferentes.</string>
     <string name="publish_error_description">Escribe una descripción del vehículo.</string>
     <string name="publish_next_photos">Siguiente: Fotos →</string>
     <string name="publish_next_details">Siguiente: Detalles →</string>
