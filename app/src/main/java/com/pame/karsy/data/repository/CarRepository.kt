@@ -280,6 +280,7 @@ object CarRepository {
             kilometraje = Formato.km(a.kilometraje),
             ownerId = a.idPropietario,
             ownerName = a.propietarioNombre,
+            sellerType = a.propietarioTipo,
             status = statusOf(a),
             priceValue = a.precio ?: 0.0,
             brandId = a.idMarca,

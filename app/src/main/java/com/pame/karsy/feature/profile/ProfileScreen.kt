@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -125,7 +126,7 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp + LocalBottomBarSpace.current)
         ) {
             if (user != null) {
                 ProfileHeaderCard(

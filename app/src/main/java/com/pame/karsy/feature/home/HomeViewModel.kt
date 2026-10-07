@@ -16,7 +16,6 @@ import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.CatalogRepository
 import com.pame.karsy.data.repository.Catalogs
-import com.pame.karsy.data.repository.UserRepository
 import kotlinx.coroutines.launch
 import java.text.Normalizer
 
@@ -104,9 +103,6 @@ class HomeViewModel : ViewModel() {
         private set
     var catalogs by mutableStateOf<Catalogs?>(null)
         private set
-    /** Foto de la cuenta en sesión para el menú del perfil. */
-    var avatarUrl by mutableStateOf<String?>(null)
-        private set
 
     var filters by mutableStateOf(HomeFilters())
     var query by mutableStateOf("")
@@ -158,10 +154,6 @@ class HomeViewModel : ViewModel() {
             favoriteIds = if (SessionManager.userId != null) {
                 safeCall { CarRepository.favoriteIds() }.getOrDefault(favoriteIds)
             } else emptySet()
-            // Se vuelve a pedir al regresar (p. ej. si cambió la foto en el perfil).
-            avatarUrl = if (SessionManager.userId != null) {
-                safeCall { UserRepository.currentUser()?.avatarUrl }.getOrDefault(avatarUrl)
-            } else null
         }
     }
 

@@ -213,6 +213,14 @@
     <string name="home_login">Iniciar sesión</string>
     <string name="home_admin_panel">Panel de administración</string>
     <string name="home_my_profile">Mi perfil</string>
+    <!-- Barra inferior -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_lots">Lotes</string>
+    <string name="nav_favorites">Favoritos</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="nav_toast_register_profile">Regístrate o inicia sesión para ver tu perfil</string>
+    <string name="home_notifications">Notificaciones</string>
+    <string name="lots_title">Lotes y agencias</string>
     <string name="home_logout_title">¿Cerrar sesión?</string>
     <string name="home_logout_message">¿Estás seguro de que deseas salir de tu cuenta de Karsy? Tendrás que iniciar sesión de nuevo para gestionar tus vehículos.</string>
     <string name="home_logout_confirm">Sí, salir</string>

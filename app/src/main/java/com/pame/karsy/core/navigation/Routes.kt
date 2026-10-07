@@ -18,6 +18,8 @@ sealed class Routes(val route: String) {
     object RegisterLote : Routes("register_lote")
 
     object Home : Routes("home")
+    /** Catálogo solo con publicaciones de lotes/agencias (pestaña "Lotes"). */
+    object Lots : Routes("lots")
 
     object CarDetail : Routes("car_detail/{carId}") {
         const val ARG = "carId"
