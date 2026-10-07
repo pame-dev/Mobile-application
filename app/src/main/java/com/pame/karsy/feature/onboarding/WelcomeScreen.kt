@@ -75,7 +75,7 @@ private val WelcomeLoginBlue = Color(0xFF56799F)
 
 /** Pantalla de bienvenida: carrusel de fotos a pantalla completa y accesos principales. */
 @Composable
-fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Unit, onTerms: () -> Unit) {
+fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Unit, onTerms: () -> Unit, onPrivacyNotice: () -> Unit) {
     val images = CarRepository.welcomeCarousel
     var current by rememberSaveable { mutableIntStateOf(0) }
     val context = LocalContext.current
@@ -202,6 +202,22 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.clickable(onClick = onTerms)
+            )
+            val privacyPrefix = stringResource(R.string.welcome_privacy_prefix)
+            val privacyLink = stringResource(R.string.welcome_privacy_link)
+            Text(
+                buildAnnotatedString {
+                    append(privacyPrefix)
+                    withStyle(SpanStyle(color = KarsyTeal, textDecoration = TextDecoration.Underline)) {
+                        append(privacyLink)
+                    }
+                },
+                fontFamily = DmSans,
+                fontSize = 11.sp,
+                lineHeight = 16.sp,
+                color = KarsyMid,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.clickable(onClick = onPrivacyNotice)
             )
         }
     }

@@ -166,7 +166,8 @@ fun KarsyNavGraph(
                 onLogin = { navController.navigate(Routes.Login.route) },
                 onRegister = ::goRegister,
                 onGuest = ::enterAsGuest,
-                onTerms = { navController.navigate(Routes.Terms.route) }
+                onTerms = { navController.navigate(Routes.Terms.route) },
+                onPrivacyNotice = { navController.navigate(Routes.PrivacyNotice.route) }
             )
         }
         composable(Routes.Login.route) {
