@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.PasswordRules
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.AuthRepository
 import kotlinx.coroutines.launch
@@ -104,6 +105,10 @@ class PasswordRecoveryViewModel : ViewModel() {
         if (loading) return
         if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
             error = texto(R.string.auth_error_new_password_required)
+            return
+        }
+        PasswordRules.error(newPassword, email)?.let {
+            error = it
             return
         }
         if (newPassword != confirmPassword) return // el aviso "no coinciden" ya está en pantalla

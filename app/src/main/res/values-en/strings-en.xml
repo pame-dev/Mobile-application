@@ -406,7 +406,7 @@
     <string name="profile_password_enter_current">Enter your current password.</string>
     <string name="profile_password_save">Change password</string>
     <string name="profile_password_confirm">Confirm new password</string>
-    <string name="profile_password_new_hint">At least 6 characters</string>
+    <string name="profile_password_new_hint">Min. 8, uppercase, number and symbol</string>
     <string name="profile_password_new">New password</string>
     <string name="profile_password_current">Current password</string>
     <string name="profile_password_desc">For security, enter your current password first.</string>
@@ -864,7 +864,7 @@
     <string name="core_error_generic">Something went wrong. Please try again.</string>
     <string name="core_error_invalid_credentials">Incorrect email or password.</string>
     <string name="core_error_email_exists">An account with that email already exists.</string>
-    <string name="core_error_weak_password">Password must be at least 6 characters.</string>
+    <string name="core_error_weak_password">Password must have at least 8 characters, an uppercase letter, a lowercase letter, a number and a symbol.</string>
     <string name="core_error_email_not_confirmed">Confirm your email before signing in.</string>
     <string name="core_error_otp_expired">The code is incorrect or has expired.</string>
     <string name="core_error_same_password">The new password must be different from the old one.</string>
@@ -958,4 +958,13 @@
     <string name="notif_report_dismissed">We reviewed your report about \"%1$s\" and found no violation.</string>
     <string name="notif_reason">Reason: %1$s</string>
     <string name="notif_generic">You have an update about \"%1$s\".</string>
+    <string name="password_rule_length">At least 8 characters</string>
+    <string name="password_rule_upper">One uppercase letter</string>
+    <string name="password_rule_lower">One lowercase letter</string>
+    <string name="password_rule_digit">One number</string>
+    <string name="password_rule_symbol">One symbol (!@#*…)</string>
+    <string name="password_rule_no_spaces">No spaces</string>
+    <string name="password_error_requirements">The password doesn\'t meet the security requirements.</string>
+    <string name="password_error_too_long">The password can have at most %1$d characters.</string>
+    <string name="password_error_contains_email">The password must not contain your email.</string>
 </resources>

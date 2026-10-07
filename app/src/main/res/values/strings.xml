@@ -408,7 +408,7 @@
     <string name="profile_password_enter_current">Escribe tu contraseña actual.</string>
     <string name="profile_password_save">Cambiar contraseña</string>
     <string name="profile_password_confirm">Confirmar contraseña nueva</string>
-    <string name="profile_password_new_hint">Mínimo 6 caracteres</string>
+    <string name="profile_password_new_hint">Mín. 8, mayúscula, número y signo</string>
     <string name="profile_password_new">Contraseña nueva</string>
     <string name="profile_password_current">Contraseña actual</string>
     <string name="profile_password_desc">Por seguridad, escribe primero tu contraseña actual.</string>
@@ -866,7 +866,7 @@
     <string name="core_error_generic">Ocurrió un error. Inténtalo de nuevo.</string>
     <string name="core_error_invalid_credentials">Correo o contraseña incorrectos.</string>
     <string name="core_error_email_exists">Ya existe una cuenta con ese correo.</string>
-    <string name="core_error_weak_password">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="core_error_weak_password">La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un signo.</string>
     <string name="core_error_email_not_confirmed">Confirma tu correo antes de iniciar sesión.</string>
     <string name="core_error_otp_expired">El código es incorrecto o ya expiró.</string>
     <string name="core_error_same_password">La nueva contraseña debe ser diferente a la anterior.</string>
@@ -960,4 +960,13 @@
     <string name="notif_report_dismissed">Revisamos tu reporte sobre \"%1$s\" y no encontramos un incumplimiento.</string>
     <string name="notif_reason">Motivo: %1$s</string>
     <string name="notif_generic">Tienes un aviso sobre \"%1$s\".</string>
+    <string name="password_rule_length">Mínimo 8 caracteres</string>
+    <string name="password_rule_upper">Una letra mayúscula</string>
+    <string name="password_rule_lower">Una letra minúscula</string>
+    <string name="password_rule_digit">Un número</string>
+    <string name="password_rule_symbol">Un signo (!@#*…)</string>
+    <string name="password_rule_no_spaces">Sin espacios</string>
+    <string name="password_error_requirements">La contraseña no cumple los requisitos de seguridad.</string>
+    <string name="password_error_too_long">La contraseña puede tener máximo %1$d caracteres.</string>
+    <string name="password_error_contains_email">La contraseña no debe contener tu correo.</string>
 </resources>

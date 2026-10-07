@@ -34,6 +34,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.pame.karsy.R
 import com.pame.karsy.core.components.FormInput
+import com.pame.karsy.core.components.PasswordRequirements
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -106,6 +107,7 @@ fun ChangePasswordDialog(
                 isPassword = true,
                 enabled = !saving
             )
+            PasswordRequirements(new, Modifier.padding(start = 4.dp, bottom = 14.dp))
             FormInput(
                 label = stringResource(R.string.profile_password_confirm),
                 placeholder = "••••••",

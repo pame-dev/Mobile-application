@@ -13,6 +13,7 @@ import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Imagenes
+import com.pame.karsy.core.util.PasswordRules
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.data.repository.EmailNotVerifiedException
@@ -24,7 +25,7 @@ import kotlinx.serialization.json.put
 /**
  * Formulario de registro (particular y lote).
  * Se exigen los campos que la BD necesita y un teléfono de contacto; la contraseña
- * solo debe coincidir con la confirmación (el mínimo de 6 caracteres lo marca el servidor).
+ * debe cumplir PasswordRules y coincidir con la confirmación.
  */
 class RegisterViewModel : ViewModel() {
     // Datos personales / del responsable
@@ -92,6 +93,7 @@ class RegisterViewModel : ViewModel() {
         val numeroTelefono = soloNumero(telefono)
         val numeroWhatsapp = if (mismoWhatsapp) numeroTelefono else soloNumero(whatsapp)
         invalid = buildMap {
+            if (password.isNotEmpty()) PasswordRules.error(password, correo)?.let { put("password", it) }
             if (telefono.isNotBlank() && !esNumeroValido(numeroTelefono)) put("telefono", texto(R.string.auth_error_phone_digits))
             if (!mismoWhatsapp && whatsapp.isNotBlank() && !esNumeroValido(numeroWhatsapp)) {
                 put("whatsapp", texto(R.string.auth_error_phone_digits))

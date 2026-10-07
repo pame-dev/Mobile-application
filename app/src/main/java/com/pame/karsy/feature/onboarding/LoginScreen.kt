@@ -61,6 +61,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.components.OtpInput
+import com.pame.karsy.core.components.PasswordRequirements
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.session.SessionAccount
@@ -77,6 +78,7 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.Formato
+import com.pame.karsy.core.util.PasswordRules
 
 /**
  * Inicio de sesión + flujo de recuperación de contraseña (pasos en [PasswordRecoveryViewModel.step]).
@@ -399,8 +401,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     }
 
                     else -> {
-                        // Supabase pide mínimo 6 caracteres; aquí solo se revisa que coincidan.
-                        val valid = vm.newPassword.isNotEmpty() && vm.newPassword == vm.confirmPassword
+                        val valid = PasswordRules.esValida(vm.newPassword) && vm.newPassword == vm.confirmPassword
                         IconInput(
                             label = stringResource(R.string.auth_new_password_label),
                             value = vm.newPassword,
@@ -408,8 +409,9 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                             placeholder = "••••••••••••",
                             leading = Icons.Outlined.Lock,
                             isPassword = true,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
+                        PasswordRequirements(vm.newPassword, Modifier.padding(start = 4.dp, bottom = 16.dp))
                         IconInput(
                             label = stringResource(R.string.auth_confirm_password_label),
                             value = vm.confirmPassword,

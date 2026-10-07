@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
 import com.pame.karsy.core.components.BackTopBar
 import com.pame.karsy.core.components.FormInput
+import com.pame.karsy.core.components.PasswordRequirements
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.TermsCheckbox
@@ -90,6 +91,7 @@ fun RegisterParticularScreen(
                 label = stringResource(R.string.auth_password), placeholder = stringResource(R.string.auth_password_placeholder), isPassword = true,
                 value = vm.password, onValueChange = { vm.password = it }, error = vm.errorFor("password")
             )
+            PasswordRequirements(vm.password, Modifier.padding(start = 4.dp, bottom = 14.dp))
             FormInput(
                 label = stringResource(R.string.auth_confirm_password), placeholder = stringResource(R.string.auth_confirm_password_placeholder), isPassword = true,
                 value = vm.confirmPassword, onValueChange = { vm.confirmPassword = it }, error = vm.passwordMismatch
