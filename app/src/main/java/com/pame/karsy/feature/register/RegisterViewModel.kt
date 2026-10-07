@@ -220,7 +220,6 @@ class RegisterViewModel : ViewModel() {
             put("descripcion", descripcion.trim())
             if (esLote) {
                 put("responsable", nombreCompleto)
-                put("nombre_comercial", FormRules.limpiarEspacios(nombreLote))
                 put("calle", FormRules.limpiarEspacios(calle))
                 put("numero", FormRules.limpiarEspacios(numero))
                 put("colonia", FormRules.limpiarEspacios(colonia))

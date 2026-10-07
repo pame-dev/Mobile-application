@@ -53,7 +53,6 @@ internal val ImagePlaceholder: Color get() = KarsyImagePlaceholder
 fun FeaturedCarCard(
     car: Car,
     isFavorite: Boolean,
-    showHeart: Boolean,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
@@ -85,15 +84,13 @@ fun FeaturedCarCard(
             car.badge?.let {
                 StarBadge(it, modifier = Modifier.align(Alignment.TopStart).padding(12.dp))
             }
-            if (showHeart) {
-                HeartToggle(
-                    filled = isFavorite,
-                    onToggle = onToggleFavorite,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 10.dp, end = 12.dp)
-                )
-            }
+            HeartToggle(
+                filled = isFavorite,
+                onToggle = onToggleFavorite,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 10.dp, end = 12.dp)
+            )
         }
         Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 20.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {

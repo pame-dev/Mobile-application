@@ -513,6 +513,7 @@
     <string name="publish_error_price">Enter the price.</string>
     <string name="publish_error_transmission">Choose the transmission.</string>
     <string name="publish_error_mileage">Enter the mileage.</string>
+    <string name="publish_error_cylinders">Cylinders can\'t be more than %1$d.</string>
     <string name="publish_error_body_type">Choose the body type.</string>
     <string name="publish_error_color">Choose the color.</string>
     <string name="publish_error_required_photos">Please upload all 5 required photos to continue.</string>
@@ -876,7 +877,6 @@
     <string name="core_mode_guest">Guest</string>
     <string name="core_mode_particular">Individual</string>
     <string name="core_mode_lote">Dealer</string>
-    <string name="core_mode_admin">Administrator</string>
     <!-- Dates -->
     <string name="core_months_short">Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec</string>
     <string name="core_months_long">January,February,March,April,May,June,July,August,September,October,November,December</string>

@@ -1,0 +1,2136 @@
+KARSY — ESTRUCTURA COMPLETA DE LA BASE DE DATOS (Supabase / PostgreSQL)
+Generado: 2026-10-07, leyendo el catálogo de Postgres del proyecto karsy-desarrollo.
+Refleja la BD con todas las migraciones aplicadas, incluida
+20261015120000_normalizacion_integridad.sql.
+PostgreSQL 17.6 on x86_64-pc-linux-gnu
+
+Contenido:
+  1. Resumen
+  2. Tablas (columnas, llaves, restricciones, índices y políticas RLS)
+  3. Vistas
+  4. Funciones
+  5. Triggers
+  6. Event triggers, tareas programadas (cron), webhooks, storage y extensiones
+
+Convenciones de nombres:
+  pk_ / *_pkey  llave primaria          fk_  llave foránea        uq_  único
+  chk_          regla CHECK             ix_  índice               trg_ trigger
+  fn_           función de trigger      admin_ función solo para administradores
+
+====================================================================================================
+1. RESUMEN
+====================================================================================================
+  Tablas: 25    Vistas: 1    Funciones: 52    Triggers: 31
+  Restricciones: 194    Índices extra: 49    Políticas RLS: 39
+
+  acciones_administrativas           61 filas   RLS: sí
+  carrocerias                         9 filas   RLS: sí
+  colores                            13 filas   RLS: sí
+  cuentas                            12 filas   RLS: sí
+  cuentas_roles                      13 filas   RLS: sí
+  dispositivos_push                   8 filas   RLS: sí
+  estados                            32 filas   RLS: sí
+  favoritos                           6 filas   RLS: sí
+  fotos_propuesta_publicacion       140 filas   RLS: sí
+  fotos_publicacion                 115 filas   RLS: sí
+  interacciones_publicacion         157 filas   RLS: sí
+  marcas                             13 filas   RLS: sí
+  modelos                            60 filas   RLS: sí
+  municipios                       2476 filas   RLS: sí
+  notificaciones                     53 filas   RLS: sí
+  perfiles_lote                       7 filas   RLS: sí
+  propuestas_publicacion             26 filas   RLS: sí
+  publicaciones                      14 filas   RLS: sí
+  reportes                            4 filas   RLS: sí
+  roles                               2 filas   RLS: sí
+  solicitudes_destacado               6 filas   RLS: sí
+  telefonos_contacto                 12 filas   RLS: sí
+  tipos_combustible                   4 filas   RLS: sí
+  tipos_traccion                      4 filas   RLS: sí
+  transmisiones                       5 filas   RLS: sí
+
+====================================================================================================
+2. TABLAS
+====================================================================================================
+
+----------------------------------------------------------------------------------------------------
+TABLA public.acciones_administrativas
+----------------------------------------------------------------------------------------------------
+    Bitácora inmutable de todo lo que hace un admin, con motivo.
+    Filas: 61   RLS activado: sí
+
+    Columnas:
+      id_accion                        bigint                       NOT NULL
+                                       Identificador de la acción administrativa.
+      id_admin                         uuid                         NOT NULL
+                                       Administrador que ejecutó la acción.
+      tipo_accion                      character varying(60)        NOT NULL
+                                       Tipo de acción administrativa.
+      motivo                           text                         NOT NULL
+                                       Justificación de la acción.
+      fecha_hora                       timestamp with time zone     NOT NULL  DEFAULT now()
+                                       Momento exacto de la acción.
+      id_cuenta_objetivo               uuid                         NULL
+                                       Cuenta objetivo cuando aplica.
+      id_publicacion_objetivo          bigint                       NULL
+                                       Publicación objetivo cuando aplica.
+      id_propuesta_objetivo            bigint                       NULL
+                                       Propuesta concreta aprobada/rechazada.
+      id_reporte_objetivo              bigint                       NULL
+                                       Reporte objetivo cuando aplica.
+      id_solicitud_destacado_objetivo  bigint                       NULL
+                                       Solicitud de destacado objetivo cuando aplica.
+
+    PK:
+      acciones_administrativas_pkey
+          PRIMARY KEY (id_accion)
+
+    FK:
+      fk_acciones_administrativas_admin
+          FOREIGN KEY (id_admin) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_acciones_administrativas_cuenta_objetivo
+          FOREIGN KEY (id_cuenta_objetivo) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_acciones_administrativas_propuesta_objetivo
+          FOREIGN KEY (id_propuesta_objetivo) REFERENCES propuestas_publicacion(id_propuesta) ON
+          DELETE RESTRICT
+      fk_acciones_administrativas_publicacion_objetivo
+          FOREIGN KEY (id_publicacion_objetivo) REFERENCES publicaciones(id_publicacion) ON
+          DELETE RESTRICT
+      fk_acciones_administrativas_reporte_objetivo
+          FOREIGN KEY (id_reporte_objetivo) REFERENCES reportes(id_reporte) ON DELETE RESTRICT
+      fk_acciones_administrativas_solicitud_objetivo
+          FOREIGN KEY (id_solicitud_destacado_objetivo) REFERENCES
+          solicitudes_destacado(id_solicitud_destacado) ON DELETE RESTRICT
+
+    CHECK:
+      chk_acciones_administrativas_motivo
+          CHECK ((char_length(TRIM(BOTH FROM motivo)) > 0))
+      chk_acciones_administrativas_motivo_largo
+          CHECK ((char_length(motivo) <= 1000))
+      chk_acciones_administrativas_tipo
+          CHECK ((char_length(TRIM(BOTH FROM tipo_accion)) > 0))
+      chk_acciones_administrativas_tipo_valido
+          CHECK (((tipo_accion)::text = ANY ((ARRAY['aprobar_propuesta'::character varying,
+          'rechazar_propuesta'::character varying, 'habilitar_publicacion'::character varying,
+          'deshabilitar_publicacion'::character varying, 'suspender_cuenta'::character varying,
+          'reactivar_cuenta'::character varying, 'resolver_reporte'::character varying,
+          'aprobar_destacado'::character varying, 'rechazar_destacado'::character
+          varying])::text[])))
+      chk_acciones_administrativas_un_objetivo
+          CHECK ((num_nonnulls(id_cuenta_objetivo, id_publicacion_objetivo,
+          id_propuesta_objetivo, id_reporte_objetivo, id_solicitud_destacado_objetivo) = 1))
+
+    Índices adicionales:
+      CREATE INDEX ix_acciones_administrativas_id_admin ON public.acciones_administrativas
+      (id_admin)
+      CREATE INDEX ix_acciones_administrativas_id_cuenta_objetivo ON
+      public.acciones_administrativas (id_cuenta_objetivo)
+      CREATE INDEX ix_acciones_administrativas_id_publicacion_objetivo ON
+      public.acciones_administrativas (id_publicacion_objetivo)
+      CREATE INDEX ix_acciones_administrativas_id_propuesta_objetivo ON
+      public.acciones_administrativas (id_propuesta_objetivo)
+      CREATE INDEX ix_acciones_administrativas_id_reporte_objetivo ON
+      public.acciones_administrativas (id_reporte_objetivo)
+      CREATE INDEX ix_acciones_administrativas_id_solicitud_destacado_objetivo ON
+      public.acciones_administrativas (id_solicitud_destacado_objetivo)
+
+    Políticas RLS:
+      acciones_leer  (SELECT para authenticated)
+          USING es_admin_actual()
+
+----------------------------------------------------------------------------------------------------
+TABLA public.carrocerias
+----------------------------------------------------------------------------------------------------
+    Catálogo de carrocerías.
+    Filas: 9   RLS activado: sí
+
+    Columnas:
+      id_carroceria      bigint                       NOT NULL
+                         Identificador del valor de catálogo.
+      nombre_carroceria  character varying(80)        NOT NULL
+                         Nombre mostrado en el selector.
+      es_otro            boolean                      NOT NULL  DEFAULT false
+                         Indica si la fila representa la opción Otros.
+
+    PK:
+      carrocerias_pkey
+          PRIMARY KEY (id_carroceria)
+
+    UNIQUE:
+      uq_carrocerias_nombre_carroceria
+          UNIQUE (nombre_carroceria)
+
+    CHECK:
+      chk_carrocerias_nombre_carroceria
+          CHECK ((char_length(TRIM(BOTH FROM nombre_carroceria)) > 0))
+
+    Índices adicionales:
+      CREATE UNIQUE INDEX uq_carrocerias_otros ON public.carrocerias (es_otro) WHERE es_otro
+      CREATE UNIQUE INDEX uq_carrocerias_nombre_ci ON public.carrocerias (lower(TRIM(BOTH FROM
+      nombre_carroceria)))
+
+    Políticas RLS:
+      carrocerias_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.colores
+----------------------------------------------------------------------------------------------------
+    Catálogo de colores.
+    Filas: 13   RLS activado: sí
+
+    Columnas:
+      id_color      bigint                       NOT NULL
+                    Identificador del valor de catálogo.
+      nombre_color  character varying(80)        NOT NULL
+                    Nombre mostrado en el selector.
+      es_otro       boolean                      NOT NULL  DEFAULT false
+                    Indica si la fila representa la opción Otros.
+
+    PK:
+      colores_pkey
+          PRIMARY KEY (id_color)
+
+    UNIQUE:
+      uq_colores_nombre_color
+          UNIQUE (nombre_color)
+
+    CHECK:
+      chk_colores_nombre_color
+          CHECK ((char_length(TRIM(BOTH FROM nombre_color)) > 0))
+
+    Índices adicionales:
+      CREATE UNIQUE INDEX uq_colores_otros ON public.colores (es_otro) WHERE es_otro
+      CREATE UNIQUE INDEX uq_colores_nombre_ci ON public.colores (lower(TRIM(BOTH FROM
+      nombre_color)))
+
+    Políticas RLS:
+      colores_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.cuentas
+----------------------------------------------------------------------------------------------------
+    Una fila por usuario registrado (mismo id que auth.users). Tipo particular o lote, nombre,
+    foto, portada, ubicación y estado.
+    Filas: 12   RLS activado: sí
+
+    Columnas:
+      id_cuenta                 uuid                         NOT NULL
+                                Identificador único de la cuenta Karsy; coincide con la
+                                identidad de Supabase Auth.
+      tipo_cuenta               character varying(12)        NOT NULL
+                                Clasifica la cuenta según el tipo de anunciante.
+      nombre_mostrar            character varying(100)       NOT NULL
+                                Nombre visible del usuario o cuenta.
+      foto_perfil               text                         NULL
+                                Ruta estable de la imagen de perfil en Supabase Storage.
+      descripcion_corta         character varying(300)       NULL
+                                Descripción breve del perfil público.
+      estado_perfil_ubi         character varying(60)        NOT NULL
+                                Estado de residencia o referencia del perfil general.
+      municipio_perfil_ubi      character varying(100)       NOT NULL
+                                Municipio del perfil general.
+      estado_cuenta             character varying(12)        NOT NULL  DEFAULT 'activa'::character varying
+                                Estado operativo actual de la cuenta.
+      fecha_creacion            timestamp with time zone     NOT NULL  DEFAULT now()
+                                Momento en que se creó la cuenta de dominio en Karsy.
+      fecha_suspension_inicio   timestamp with time zone     NULL
+                                Inicio de la suspensión vigente.
+      fecha_reactivacion        timestamp with time zone     NULL
+                                Momento de la reactivación más reciente.
+      medio_contacto_principal  character varying(10)        NULL
+                                Cómo prefiere la cuenta que la contacten: llamada o whatsapp.
+                                Nulo si no lo indicó.
+      foto_portada              text                         NULL
+                                Ruta en Storage de la foto de portada del perfil (opcional).
+
+    PK:
+      cuentas_pkey
+          PRIMARY KEY (id_cuenta)
+
+    FK:
+      fk_cuentas_auth_users
+          FOREIGN KEY (id_cuenta) REFERENCES auth.users(id) ON DELETE RESTRICT
+      fk_cuentas_municipios   [NOT VALID: solo se revisa en filas nuevas o editadas]
+          FOREIGN KEY (estado_perfil_ubi, municipio_perfil_ubi) REFERENCES
+          municipios(nombre_estado, nombre_municipio) ON UPDATE CASCADE ON DELETE RESTRICT NOT
+          VALID
+
+    CHECK:
+      chk_cuentas_descripcion_corta
+          CHECK (((descripcion_corta IS NULL) OR (char_length(TRIM(BOTH FROM descripcion_corta))
+          > 0)))
+      chk_cuentas_estado_cuenta
+          CHECK (((estado_cuenta)::text = ANY ((ARRAY['activa'::character varying,
+          'suspendida'::character varying])::text[])))
+      chk_cuentas_estado_perfil_ubi
+          CHECK ((char_length(TRIM(BOTH FROM estado_perfil_ubi)) > 0))
+      chk_cuentas_foto_perfil
+          CHECK (((foto_perfil IS NULL) OR (char_length(TRIM(BOTH FROM foto_perfil)) > 0)))
+      chk_cuentas_foto_portada
+          CHECK (((foto_portada IS NULL) OR (char_length(TRIM(BOTH FROM foto_portada)) > 0)))
+      chk_cuentas_medio_contacto_principal
+          CHECK (((medio_contacto_principal)::text = ANY ((ARRAY['llamada'::character varying,
+          'whatsapp'::character varying])::text[])))
+      chk_cuentas_municipio_perfil_ubi
+          CHECK ((char_length(TRIM(BOTH FROM municipio_perfil_ubi)) > 0))
+      chk_cuentas_nombre_mostrar
+          CHECK ((char_length(TRIM(BOTH FROM nombre_mostrar)) > 0))
+      chk_cuentas_nombre_sin_espacios
+          CHECK (((nombre_mostrar)::text = TRIM(BOTH FROM nombre_mostrar)))
+      chk_cuentas_suspension
+          CHECK (((((estado_cuenta)::text = 'activa'::text) AND (fecha_suspension_inicio IS
+          NULL)) OR (((estado_cuenta)::text = 'suspendida'::text) AND (fecha_suspension_inicio
+          IS NOT NULL))))
+      chk_cuentas_tipo_cuenta
+          CHECK (((tipo_cuenta)::text = ANY ((ARRAY['particular'::character varying,
+          'lote'::character varying])::text[])))
+
+    Índices adicionales:
+      CREATE INDEX ix_cuentas_municipio ON public.cuentas (estado_perfil_ubi,
+      municipio_perfil_ubi)
+
+    Políticas RLS:
+      cuentas_editar_propia  (UPDATE para authenticated)
+          USING (id_cuenta = auth.uid())
+          WITH CHECK (id_cuenta = auth.uid())
+      cuentas_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.cuentas_roles
+----------------------------------------------------------------------------------------------------
+    Roles de cada cuenta (N a N). Una cuenta particular o lote puede ser además administrador.
+    Filas: 13   RLS activado: sí
+
+    Columnas:
+      id_cuenta         uuid                         NOT NULL
+                        Cuenta que recibe el rol.
+      id_rol            bigint                       NOT NULL
+                        Rol asignado.
+      fecha_asignacion  timestamp with time zone     NOT NULL  DEFAULT now()
+                        Momento en que se asignó el rol.
+
+    PK:
+      pk_cuentas_roles
+          PRIMARY KEY (id_cuenta, id_rol)
+
+    FK:
+      fk_cuentas_roles_cuentas
+          FOREIGN KEY (id_cuenta) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_cuentas_roles_roles
+          FOREIGN KEY (id_rol) REFERENCES roles(id_rol) ON DELETE RESTRICT
+
+    Índices adicionales:
+      CREATE INDEX ix_cuentas_roles_id_rol ON public.cuentas_roles (id_rol)
+
+    Políticas RLS:
+      cuentas_roles_leer  (SELECT para authenticated)
+          USING ((id_cuenta = auth.uid()) OR es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.dispositivos_push
+----------------------------------------------------------------------------------------------------
+    Tokens de Firebase de los teléfonos con sesión.
+    Filas: 8   RLS activado: sí
+
+    Columnas:
+      token                text                         NOT NULL
+      id_cuenta            uuid                         NOT NULL
+      fecha_actualizacion  timestamp with time zone     NOT NULL  DEFAULT now()
+
+    PK:
+      dispositivos_push_pkey
+          PRIMARY KEY (token)
+
+    FK:
+      fk_dispositivos_push_cuentas
+          FOREIGN KEY (id_cuenta) REFERENCES cuentas(id_cuenta) ON DELETE CASCADE
+
+    CHECK:
+      chk_dispositivos_push_token
+          CHECK (((char_length(token) >= 20) AND (char_length(token) <= 4096)))
+
+    Índices adicionales:
+      CREATE INDEX ix_dispositivos_push_cuenta ON public.dispositivos_push (id_cuenta)
+
+----------------------------------------------------------------------------------------------------
+TABLA public.estados
+----------------------------------------------------------------------------------------------------
+    Catálogo de los 32 estados de México.
+    Filas: 32   RLS activado: sí
+
+    Columnas:
+      nombre_estado  character varying(60)        NOT NULL
+
+    PK:
+      estados_pkey
+          PRIMARY KEY (nombre_estado)
+
+    CHECK:
+      chk_estados_nombre
+          CHECK ((char_length(TRIM(BOTH FROM nombre_estado)) > 0))
+
+    Políticas RLS:
+      estados_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.favoritos
+----------------------------------------------------------------------------------------------------
+    Publicaciones guardadas por cada cuenta.
+    Filas: 6   RLS activado: sí
+
+    Columnas:
+      id_cuenta       uuid                         NOT NULL
+                      Cuenta que guardó la publicación.
+      id_publicacion  bigint                       NOT NULL
+                      Publicación guardada como favorita.
+      fecha_guardado  timestamp with time zone     NOT NULL  DEFAULT now()
+                      Momento en que se agregó el favorito.
+
+    PK:
+      pk_favoritos
+          PRIMARY KEY (id_cuenta, id_publicacion)
+
+    FK:
+      fk_favoritos_cuentas
+          FOREIGN KEY (id_cuenta) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_favoritos_publicaciones
+          FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE
+          RESTRICT
+
+    Índices adicionales:
+      CREATE INDEX ix_favoritos_id_publicacion ON public.favoritos (id_publicacion)
+
+    Políticas RLS:
+      favoritos_borrar_propios  (DELETE para authenticated)
+          USING (id_cuenta = auth.uid())
+      favoritos_crear_propios  (INSERT para authenticated)
+          WITH CHECK (id_cuenta = auth.uid())
+      favoritos_leer_propios  (SELECT para authenticated)
+          USING (id_cuenta = auth.uid())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.fotos_propuesta_publicacion
+----------------------------------------------------------------------------------------------------
+    Fotos de cada propuesta.
+    Filas: 140   RLS activado: sí
+
+    Columnas:
+      id_foto_propuesta  bigint                       NOT NULL
+                         Identificador de la fotografía propuesta.
+      id_propuesta       bigint                       NOT NULL
+                         Propuesta a la que pertenece.
+      ruta_storage       text                         NOT NULL
+                         Ruta estable del archivo en Storage.
+      orden_foto         smallint                     NOT NULL
+                         Posición de la imagen dentro de la galería propuesta.
+
+    PK:
+      fotos_propuesta_publicacion_pkey
+          PRIMARY KEY (id_foto_propuesta)
+
+    FK:
+      fk_fotos_propuesta_publicacion_propuestas
+          FOREIGN KEY (id_propuesta) REFERENCES propuestas_publicacion(id_propuesta) ON DELETE
+          RESTRICT
+
+    UNIQUE:
+      uq_fotos_propuesta_publicacion_id_propuesta_orden_foto
+          UNIQUE (id_propuesta, orden_foto)
+
+    CHECK:
+      chk_fotos_propuesta_publicacion_orden
+          CHECK ((orden_foto > 0))
+      chk_fotos_propuesta_publicacion_ruta
+          CHECK ((char_length(TRIM(BOTH FROM ruta_storage)) > 0))
+
+    Políticas RLS:
+      fotos_propuesta_crear  (INSERT para authenticated)
+          WITH CHECK es_propietario_propuesta(id_propuesta)
+      fotos_propuesta_leer  (SELECT para authenticated)
+          USING (es_propietario_propuesta(id_propuesta) OR es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.fotos_publicacion
+----------------------------------------------------------------------------------------------------
+    Fotos de la versión aprobada (con historial de fotos retiradas).
+    Filas: 115   RLS activado: sí
+
+    Columnas:
+      id_foto         bigint                       NOT NULL
+                      Identificador de la fotografía.
+      id_publicacion  bigint                       NOT NULL
+                      Publicación a la que pertenece.
+      ruta_storage    text                         NOT NULL
+                      Ruta estable del archivo original en Storage.
+      orden_foto      smallint                     NOT NULL
+                      Posición de la imagen en la galería vigente.
+      activa          boolean                      NOT NULL  DEFAULT true
+                      Indica si forma parte de la galería vigente.
+      fecha_retiro    timestamp with time zone     NULL
+                      Momento en que dejó de formar parte de la galería vigente.
+
+    PK:
+      fotos_publicacion_pkey
+          PRIMARY KEY (id_foto)
+
+    FK:
+      fk_fotos_publicacion_publicaciones
+          FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE
+          RESTRICT
+
+    CHECK:
+      chk_fotos_publicacion_orden
+          CHECK ((orden_foto > 0))
+      chk_fotos_publicacion_retiro
+          CHECK (((activa AND (fecha_retiro IS NULL)) OR ((NOT activa) AND (fecha_retiro IS NOT
+          NULL))))
+      chk_fotos_publicacion_ruta
+          CHECK ((char_length(TRIM(BOTH FROM ruta_storage)) > 0))
+
+    Índices adicionales:
+      CREATE INDEX ix_fotos_publicacion_id_publicacion ON public.fotos_publicacion
+      (id_publicacion)
+      CREATE UNIQUE INDEX uq_fotos_publicacion_orden_activa ON public.fotos_publicacion
+      (id_publicacion, orden_foto) WHERE activa
+
+    Políticas RLS:
+      fotos_publicacion_leer  (SELECT para anon,authenticated)
+          USING (EXISTS ( SELECT 1    FROM publicaciones p   WHERE (p.id_publicacion =
+          fotos_publicacion.id_publicacion)))
+
+----------------------------------------------------------------------------------------------------
+TABLA public.interacciones_publicacion
+----------------------------------------------------------------------------------------------------
+    Vistas de detalle y contactos por publicación (estadísticas).
+    Filas: 157   RLS activado: sí
+
+    Columnas:
+      id_interaccion    bigint                       NOT NULL
+                        Identificador del evento.
+      id_publicacion    bigint                       NOT NULL
+                        Publicación involucrada.
+      id_cuenta         uuid                         NULL
+                        Cuenta que generó el evento cuando está autenticada.
+      tipo_interaccion  character varying(16)        NOT NULL
+                        Tipo de interacción registrada.
+      fecha_hora        timestamp with time zone     NOT NULL  DEFAULT now()
+                        Momento del evento.
+
+    PK:
+      interacciones_publicacion_pkey
+          PRIMARY KEY (id_interaccion)
+
+    FK:
+      fk_interacciones_publicacion_cuentas
+          FOREIGN KEY (id_cuenta) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_interacciones_publicacion_publicaciones
+          FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE
+          RESTRICT
+
+    CHECK:
+      chk_interacciones_publicacion_contactar
+          CHECK ((((tipo_interaccion)::text <> 'contactar'::text) OR (id_cuenta IS NOT NULL)))
+      chk_interacciones_publicacion_tipo
+          CHECK (((tipo_interaccion)::text = ANY ((ARRAY['ver_detalle'::character varying,
+          'contactar'::character varying])::text[])))
+
+    Índices adicionales:
+      CREATE INDEX ix_interacciones_publicacion_id_publicacion ON
+      public.interacciones_publicacion (id_publicacion)
+      CREATE INDEX ix_interacciones_publicacion_id_cuenta ON public.interacciones_publicacion
+      (id_cuenta)
+
+    Políticas RLS:
+      interacciones_crear  (INSERT para anon,authenticated)
+          WITH CHECK (((id_cuenta IS NULL) AND ((tipo_interaccion)::text = 'ver_detalle'::text))
+          OR (id_cuenta = auth.uid()))
+      interacciones_leer  (SELECT para authenticated)
+          USING ((id_cuenta = auth.uid()) OR es_propietario_publicacion(id_publicacion) OR
+          es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.marcas
+----------------------------------------------------------------------------------------------------
+    Catálogo de marcas (incluye "Otros").
+    Filas: 13   RLS activado: sí
+
+    Columnas:
+      id_marca      bigint                       NOT NULL
+                    Identificador del valor de catálogo.
+      nombre_marca  character varying(80)        NOT NULL
+                    Nombre mostrado en el selector.
+      es_otro       boolean                      NOT NULL  DEFAULT false
+                    Indica si la fila representa la opción Otros.
+
+    PK:
+      marcas_pkey
+          PRIMARY KEY (id_marca)
+
+    UNIQUE:
+      uq_marcas_nombre_marca
+          UNIQUE (nombre_marca)
+
+    CHECK:
+      chk_marcas_nombre_marca
+          CHECK ((char_length(TRIM(BOTH FROM nombre_marca)) > 0))
+
+    Índices adicionales:
+      CREATE UNIQUE INDEX uq_marcas_otros ON public.marcas (es_otro) WHERE es_otro
+      CREATE UNIQUE INDEX uq_marcas_nombre_ci ON public.marcas (lower(TRIM(BOTH FROM
+      nombre_marca)))
+
+    Políticas RLS:
+      marcas_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.modelos
+----------------------------------------------------------------------------------------------------
+    Catálogo de modelos por marca (incluye "Otros" por marca).
+    Filas: 60   RLS activado: sí
+
+    Columnas:
+      id_modelo      bigint                       NOT NULL
+                     Identificador del modelo.
+      id_marca       bigint                       NOT NULL
+                     Marca a la que pertenece el modelo.
+      nombre_modelo  character varying(80)        NOT NULL
+                     Nombre mostrado en el selector de modelos.
+      es_otro        boolean                      NOT NULL  DEFAULT false
+                     Indica si representa Otros para esa marca.
+
+    PK:
+      modelos_pkey
+          PRIMARY KEY (id_modelo)
+
+    FK:
+      fk_modelos_marcas
+          FOREIGN KEY (id_marca) REFERENCES marcas(id_marca) ON DELETE RESTRICT
+
+    UNIQUE:
+      uq_modelos_id_marca_nombre_modelo
+          UNIQUE (id_marca, nombre_modelo)
+      uq_modelos_id_modelo_id_marca
+          UNIQUE (id_modelo, id_marca)
+
+    CHECK:
+      chk_modelos_nombre_modelo
+          CHECK ((char_length(TRIM(BOTH FROM nombre_modelo)) > 0))
+
+    Índices adicionales:
+      CREATE UNIQUE INDEX uq_modelos_otros ON public.modelos (id_marca) WHERE es_otro
+      CREATE UNIQUE INDEX uq_modelos_nombre_ci ON public.modelos (id_marca, lower(TRIM(BOTH FROM
+      nombre_modelo)))
+
+    Políticas RLS:
+      modelos_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.municipios
+----------------------------------------------------------------------------------------------------
+    Catálogo de municipios por estado (el mismo del selector de la app).
+    Filas: 2476   RLS activado: sí
+
+    Columnas:
+      nombre_estado     character varying(60)        NOT NULL
+      nombre_municipio  character varying(100)       NOT NULL
+
+    PK:
+      pk_municipios
+          PRIMARY KEY (nombre_estado, nombre_municipio)
+
+    FK:
+      fk_municipios_estados
+          FOREIGN KEY (nombre_estado) REFERENCES estados(nombre_estado) ON UPDATE CASCADE ON
+          DELETE RESTRICT
+
+    CHECK:
+      chk_municipios_nombre
+          CHECK ((char_length(TRIM(BOTH FROM nombre_municipio)) > 0))
+
+    Políticas RLS:
+      municipios_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.notificaciones
+----------------------------------------------------------------------------------------------------
+    Bandeja de avisos de cada cuenta. Cada inserción dispara el webhook de push.
+    Filas: 53   RLS activado: sí
+
+    Columnas:
+      id_notificacion  bigint                       NOT NULL
+      id_cuenta        uuid                         NOT NULL
+      tipo             character varying(32)        NOT NULL
+      id_publicacion   bigint                       NULL
+      titulo_vehiculo  character varying(120)       NULL
+      leida            boolean                      NOT NULL  DEFAULT false
+      fecha_creacion   timestamp with time zone     NOT NULL  DEFAULT now()
+      motivo           text                         NULL
+                       Comentario del administrador (rechazo / deshabilitación); NULL si no
+                       aplica.
+      push_enviado     boolean                      NOT NULL  DEFAULT false
+                       TRUE cuando enviar-push ya lo entregó a Firebase (evita reenvíos).
+
+    PK:
+      notificaciones_pkey
+          PRIMARY KEY (id_notificacion)
+
+    FK:
+      fk_notificaciones_cuentas
+          FOREIGN KEY (id_cuenta) REFERENCES cuentas(id_cuenta) ON DELETE CASCADE
+      fk_notificaciones_publicaciones
+          FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE
+          CASCADE
+
+    CHECK:
+      chk_notificaciones_motivo
+          CHECK (((motivo IS NULL) OR ((char_length(TRIM(BOTH FROM motivo)) >= 1) AND
+          (char_length(TRIM(BOTH FROM motivo)) <= 1000))))
+      chk_notificaciones_tipo
+          CHECK (((tipo)::text = ANY ((ARRAY['favorito'::character varying,
+          'propuesta_enviada'::character varying, 'publicacion_aprobada'::character varying,
+          'destacado_aprobado'::character varying, 'publicacion_rechazada'::character varying,
+          'edicion_aprobada'::character varying, 'edicion_rechazada'::character varying,
+          'publicacion_deshabilitada'::character varying, 'publicacion_rehabilitada'::character
+          varying, 'destacado_rechazado'::character varying, 'reporte_atendido'::character
+          varying, 'reporte_descartado'::character varying, 'destacado_por_vencer'::character
+          varying, 'cuenta_suspendida'::character varying, 'cuenta_reactivada'::character
+          varying])::text[])))
+      chk_notificaciones_titulo
+          CHECK (((titulo_vehiculo IS NULL) OR (char_length(TRIM(BOTH FROM titulo_vehiculo)) >
+          0)))
+
+    Índices adicionales:
+      CREATE INDEX ix_notificaciones_cuenta_fecha ON public.notificaciones (id_cuenta,
+      fecha_creacion DESC)
+      CREATE INDEX ix_notificaciones_id_publicacion ON public.notificaciones (id_publicacion)
+
+    Políticas RLS:
+      notificaciones_leer_propias  (SELECT para authenticated)
+          USING (id_cuenta = auth.uid())
+      notificaciones_marcar_propias  (UPDATE para authenticated)
+          USING (id_cuenta = auth.uid())
+          WITH CHECK (id_cuenta = auth.uid())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.perfiles_lote
+----------------------------------------------------------------------------------------------------
+    Dirección física y horario de las cuentas tipo lote. Nombre, descripción, logo y ubicación
+    están en cuentas.
+    Filas: 7   RLS activado: sí
+
+    Columnas:
+      id_cuenta          uuid                         NOT NULL
+                         Cuenta propietaria del perfil comercial.
+      calle              character varying(120)       NOT NULL
+                         Calle del establecimiento.
+      numero             character varying(20)        NOT NULL
+                         Número exterior o identificador equivalente.
+      colonia            character varying(120)       NOT NULL
+                         Colonia del establecimiento.
+      codigo_postal      character varying(10)        NOT NULL
+                         Código postal del establecimiento.
+      horarios_atencion  character varying(250)       NULL
+                         Horario comercial visible cuando el lote decide proporcionarlo.
+
+    PK:
+      perfiles_lote_pkey
+          PRIMARY KEY (id_cuenta)
+
+    FK:
+      fk_perfiles_lote_cuentas
+          FOREIGN KEY (id_cuenta) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+
+    CHECK:
+      chk_perfiles_lote_calle
+          CHECK ((char_length(TRIM(BOTH FROM calle)) > 0))
+      chk_perfiles_lote_codigo_postal
+          CHECK ((char_length(TRIM(BOTH FROM codigo_postal)) > 0))
+      chk_perfiles_lote_colonia
+          CHECK ((char_length(TRIM(BOTH FROM colonia)) > 0))
+      chk_perfiles_lote_horarios
+          CHECK (((horarios_atencion IS NULL) OR (char_length(TRIM(BOTH FROM horarios_atencion))
+          > 0)))
+      chk_perfiles_lote_numero
+          CHECK ((char_length(TRIM(BOTH FROM numero)) > 0))
+
+    Políticas RLS:
+      perfiles_lote_editar_propio  (UPDATE para authenticated)
+          USING (id_cuenta = auth.uid())
+          WITH CHECK (id_cuenta = auth.uid())
+      perfiles_lote_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.propuestas_publicacion
+----------------------------------------------------------------------------------------------------
+    Versiones enviadas a moderación (alta y ediciones). Al aprobarse se copian a publicaciones.
+    Filas: 26   RLS activado: sí
+
+    Columnas:
+      id_propuesta                      bigint                       NOT NULL
+                                        Identificador de la propuesta.
+      id_publicacion                    bigint                       NOT NULL
+                                        Publicación estable a la que pertenece.
+      titulo                            character varying(120)       NOT NULL
+                                        Título propuesto para el anuncio.
+      descripcion                       text                         NOT NULL
+                                        Descripción propuesta del vehículo/anuncio.
+      precio                            numeric(12,2)                NOT NULL
+                                        Precio propuesto del vehículo.
+      precio_negociable                 boolean                      NOT NULL
+                                        Indica si se acepta negociación del precio.
+      moneda                            character(3)                 NOT NULL
+                                        Código de moneda del precio.
+      estado_ubicacion                  character varying(60)        NOT NULL
+                                        Estado donde se encuentra u ofrece el vehículo.
+      municipio_ubicacion               character varying(100)       NOT NULL
+                                        Municipio donde se encuentra u ofrece el vehículo.
+      horario_preferido_contacto        character varying(120)       NULL
+                                        Horario orientativo preferido para contacto.
+      ruta_video                        text                         NULL
+                                        Ruta estable del único video opcional.
+      id_marca                          bigint                       NOT NULL
+                                        Marca del vehículo.
+      marca_otra                        character varying(60)        NULL
+                                        Texto libre para una marca fuera del catálogo.
+      id_modelo                         bigint                       NOT NULL
+                                        Modelo del vehículo.
+      modelo_otro                       character varying(60)        NULL
+                                        Texto libre para un modelo fuera del catálogo.
+      anio                              smallint                     NOT NULL
+                                        Año del vehículo.
+      kilometraje                       integer                      NOT NULL
+                                        Kilometraje actual.
+      id_color                          bigint                       NOT NULL
+                                        Color del vehículo.
+      color_otro                        character varying(60)        NULL
+                                        Texto libre para color fuera del catálogo.
+      id_transmision                    bigint                       NOT NULL
+                                        Transmisión del vehículo.
+      transmision_otra                  character varying(60)        NULL
+                                        Texto libre para transmisión fuera del catálogo.
+      id_carroceria                     bigint                       NOT NULL
+                                        Carrocería del vehículo.
+      carroceria_otra                   character varying(60)        NULL
+                                        Texto libre para carrocería fuera del catálogo.
+      numero_propietarios_anteriores    smallint                     NOT NULL
+                                        Cantidad declarada de propietarios anteriores.
+      tiene_adeudos                     boolean                      NOT NULL
+                                        Indica si el vehículo tiene adeudos.
+      tiene_problemas                   boolean                      NOT NULL
+                                        Indica si el vehículo tiene problemas conocidos.
+      descripcion_problemas             text                         NULL
+                                        Describe los problemas conocidos.
+      recuperado_por_seguro             boolean                      NOT NULL
+                                        Indica si fue recuperado por aseguradora.
+      tipo_combustible                  character varying(40)        NULL
+                                        Tipo de combustible.
+      numero_puertas                    smallint                     NULL
+                                        Número de puertas.
+      numero_pasajeros                  smallint                     NULL
+                                        Capacidad de pasajeros.
+      cilindros                         smallint                     NULL
+                                        Número de cilindros.
+      cilindrada                        character varying(30)        NULL
+                                        Cilindrada declarada.
+      tipo_traccion                     character varying(40)        NULL
+                                        Tipo de tracción declarado.
+      modificaciones                    text                         NULL
+                                        Describe modificaciones relevantes del vehículo.
+      estado_propuesta                  character varying(16)        NOT NULL  DEFAULT 'pendiente'::character varying
+                                        Estado actual de moderación de la propuesta.
+      motivo_rechazo                    text                         NULL
+                                        Motivo de la última decisión de rechazo.
+      id_admin_revisor                  uuid                         NULL
+                                        Administrador que realizó la última revisión.
+      fecha_envio_moderacion            timestamp with time zone     NOT NULL  DEFAULT now()
+                                        Momento en que el propietario envió la propuesta a
+                                        moderación.
+      fecha_revision                    timestamp with time zone     NULL
+                                        Momento de la última revisión administrativa.
+      fecha_ultima_edicion_propietario  timestamp with time zone     NOT NULL  DEFAULT now()
+                                        Momento de la última modificación hecha por el
+                                        propietario.
+
+    PK:
+      propuestas_publicacion_pkey
+          PRIMARY KEY (id_propuesta)
+
+    FK:
+      fk_propuestas_publicacion_admin_revisor
+          FOREIGN KEY (id_admin_revisor) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_propuestas_publicacion_carrocerias
+          FOREIGN KEY (id_carroceria) REFERENCES carrocerias(id_carroceria) ON DELETE RESTRICT
+      fk_propuestas_publicacion_colores
+          FOREIGN KEY (id_color) REFERENCES colores(id_color) ON DELETE RESTRICT
+      fk_propuestas_publicacion_marcas
+          FOREIGN KEY (id_marca) REFERENCES marcas(id_marca) ON DELETE RESTRICT
+      fk_propuestas_publicacion_modelos
+          FOREIGN KEY (id_modelo, id_marca) REFERENCES modelos(id_modelo, id_marca) ON DELETE
+          RESTRICT
+      fk_propuestas_publicacion_municipios
+          FOREIGN KEY (estado_ubicacion, municipio_ubicacion) REFERENCES
+          municipios(nombre_estado, nombre_municipio) ON UPDATE CASCADE ON DELETE RESTRICT
+      fk_propuestas_publicacion_publicaciones
+          FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE
+          RESTRICT
+      fk_propuestas_publicacion_tipos_combustible
+          FOREIGN KEY (tipo_combustible) REFERENCES tipos_combustible(nombre_combustible) ON
+          UPDATE CASCADE ON DELETE RESTRICT
+      fk_propuestas_publicacion_tipos_traccion
+          FOREIGN KEY (tipo_traccion) REFERENCES tipos_traccion(nombre_traccion) ON UPDATE
+          CASCADE ON DELETE RESTRICT
+      fk_propuestas_publicacion_transmisiones
+          FOREIGN KEY (id_transmision) REFERENCES transmisiones(id_transmision) ON DELETE
+          RESTRICT
+
+    CHECK:
+      chk_propuestas_publicacion_anio
+          CHECK (((anio >= 1900) AND (anio <= 2100)))
+      chk_propuestas_publicacion_carroceria_otra
+          CHECK (((char_length(TRIM(BOTH FROM carroceria_otra)) >= 1) AND (char_length(TRIM(BOTH
+          FROM carroceria_otra)) <= 60)))
+      chk_propuestas_publicacion_cilindrada
+          CHECK (((cilindrada IS NULL) OR (char_length(TRIM(BOTH FROM cilindrada)) > 0)))
+      chk_propuestas_publicacion_cilindros
+          CHECK (((cilindros >= 0) AND (cilindros <= 16)))
+      chk_propuestas_publicacion_color_otro
+          CHECK (((char_length(TRIM(BOTH FROM color_otro)) >= 1) AND (char_length(TRIM(BOTH FROM
+          color_otro)) <= 60)))
+      chk_propuestas_publicacion_descripcion
+          CHECK ((char_length(TRIM(BOTH FROM descripcion)) > 0))
+      chk_propuestas_publicacion_descripcion_largo
+          CHECK ((char_length(descripcion) <= 2000))
+      chk_propuestas_publicacion_descripcion_problemas
+          CHECK (((descripcion_problemas IS NULL) OR (char_length(descripcion_problemas) <=
+          1000)))
+      chk_propuestas_publicacion_estado
+          CHECK (((estado_propuesta)::text = ANY ((ARRAY['pendiente'::character varying,
+          'rechazada'::character varying, 'aprobada'::character varying])::text[])))
+      chk_propuestas_publicacion_estado_ubicacion
+          CHECK ((char_length(TRIM(BOTH FROM estado_ubicacion)) > 0))
+      chk_propuestas_publicacion_horario
+          CHECK (((horario_preferido_contacto IS NULL) OR (char_length(TRIM(BOTH FROM
+          horario_preferido_contacto)) > 0)))
+      chk_propuestas_publicacion_kilometraje
+          CHECK (((kilometraje >= 0) AND (kilometraje <= 9999999)))
+      chk_propuestas_publicacion_marca_otra
+          CHECK (((char_length(TRIM(BOTH FROM marca_otra)) >= 1) AND (char_length(TRIM(BOTH FROM
+          marca_otra)) <= 60)))
+      chk_propuestas_publicacion_modelo_otro
+          CHECK (((char_length(TRIM(BOTH FROM modelo_otro)) >= 1) AND (char_length(TRIM(BOTH
+          FROM modelo_otro)) <= 60)))
+      chk_propuestas_publicacion_modificaciones
+          CHECK (((modificaciones IS NULL) OR ((char_length(TRIM(BOTH FROM modificaciones)) >=
+          1) AND (char_length(TRIM(BOTH FROM modificaciones)) <= 1000))))
+      chk_propuestas_publicacion_moneda
+          CHECK ((moneda = ANY (ARRAY['MXN'::bpchar, 'USD'::bpchar])))
+      chk_propuestas_publicacion_motivo_rechazo_largo
+          CHECK (((motivo_rechazo IS NULL) OR ((char_length(TRIM(BOTH FROM motivo_rechazo)) >=
+          1) AND (char_length(TRIM(BOTH FROM motivo_rechazo)) <= 1000))))
+      chk_propuestas_publicacion_municipio_ubicacion
+          CHECK ((char_length(TRIM(BOTH FROM municipio_ubicacion)) > 0))
+      chk_propuestas_publicacion_numero_pasajeros
+          CHECK (((numero_pasajeros >= 1) AND (numero_pasajeros <= 99)))
+      chk_propuestas_publicacion_numero_puertas
+          CHECK (((numero_puertas >= 1) AND (numero_puertas <= 9)))
+      chk_propuestas_publicacion_precio
+          CHECK ((precio > (0)::numeric))
+      chk_propuestas_publicacion_problemas
+          CHECK ((((NOT tiene_problemas) AND (descripcion_problemas IS NULL)) OR
+          (tiene_problemas AND (COALESCE(char_length(TRIM(BOTH FROM descripcion_problemas)), 0)
+          > 0))))
+      chk_propuestas_publicacion_propietarios_anteriores
+          CHECK (((numero_propietarios_anteriores >= 0) AND (numero_propietarios_anteriores <=
+          99)))
+      chk_propuestas_publicacion_rechazo
+          CHECK ((((estado_propuesta)::text <> 'rechazada'::text) OR
+          (COALESCE(char_length(TRIM(BOTH FROM motivo_rechazo)), 0) > 0)))
+      chk_propuestas_publicacion_revision
+          CHECK ((((estado_propuesta)::text = 'pendiente'::text) OR ((id_admin_revisor IS NOT
+          NULL) AND (fecha_revision IS NOT NULL))))
+      chk_propuestas_publicacion_ruta_video
+          CHECK (((ruta_video IS NULL) OR (char_length(TRIM(BOTH FROM ruta_video)) > 0)))
+      chk_propuestas_publicacion_titulo
+          CHECK ((char_length(TRIM(BOTH FROM titulo)) > 0))
+      chk_propuestas_publicacion_transmision_otra
+          CHECK (((char_length(TRIM(BOTH FROM transmision_otra)) >= 1) AND
+          (char_length(TRIM(BOTH FROM transmision_otra)) <= 60)))
+
+    Índices adicionales:
+      CREATE INDEX ix_propuestas_publicacion_municipio ON public.propuestas_publicacion
+      (estado_ubicacion, municipio_ubicacion)
+      CREATE INDEX ix_propuestas_publicacion_id_publicacion ON public.propuestas_publicacion
+      (id_publicacion)
+      CREATE INDEX ix_propuestas_publicacion_id_admin_revisor ON public.propuestas_publicacion
+      (id_admin_revisor)
+      CREATE INDEX ix_propuestas_publicacion_id_marca ON public.propuestas_publicacion
+      (id_marca)
+      CREATE INDEX ix_propuestas_publicacion_id_modelo_id_marca ON public.propuestas_publicacion
+      (id_modelo, id_marca)
+      CREATE INDEX ix_propuestas_publicacion_id_color ON public.propuestas_publicacion
+      (id_color)
+      CREATE INDEX ix_propuestas_publicacion_id_transmision ON public.propuestas_publicacion
+      (id_transmision)
+      CREATE INDEX ix_propuestas_publicacion_id_carroceria ON public.propuestas_publicacion
+      (id_carroceria)
+      CREATE UNIQUE INDEX uq_propuestas_editable ON public.propuestas_publicacion
+      (id_publicacion) WHERE ((estado_propuesta)::text = ANY ((ARRAY['pendiente'::character
+      varying, 'rechazada'::character varying])::text[]))
+
+    Políticas RLS:
+      propuestas_crear  (INSERT para authenticated)
+          WITH CHECK (es_propietario_publicacion(id_publicacion) AND ((estado_propuesta)::text =
+          'pendiente'::text) AND (id_admin_revisor IS NULL) AND (fecha_revision IS NULL))
+      propuestas_leer  (SELECT para authenticated)
+          USING (es_propietario_publicacion(id_publicacion) OR es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.publicaciones
+----------------------------------------------------------------------------------------------------
+    Versión aprobada (pública) de cada anuncio y su estado (activa/vendida/deshabilitada y
+    estado administrativo).
+    Filas: 14   RLS activado: sí
+
+    Columnas:
+      id_publicacion                       bigint                       NOT NULL
+                                           Identificador estable del anuncio.
+      id_propietario                       uuid                         NOT NULL
+                                           Cuenta propietaria del anuncio.
+      titulo                               character varying(120)       NULL
+                                           Título público del anuncio.
+      descripcion                          text                         NULL
+                                           Descripción pública del vehículo/anuncio.
+      precio                               numeric(12,2)                NULL
+                                           Precio actual del vehículo.
+      precio_negociable                    boolean                      NULL
+                                           Indica si se acepta negociación del precio.
+      moneda                               character(3)                 NULL
+                                           Código de moneda del precio.
+      estado_ubicacion                     character varying(60)        NULL
+                                           Estado donde se encuentra u ofrece el vehículo.
+      municipio_ubicacion                  character varying(100)       NULL
+                                           Municipio donde se encuentra u ofrece el vehículo.
+      horario_preferido_contacto           character varying(120)       NULL
+                                           Horario orientativo preferido para contacto.
+      ruta_video                           text                         NULL
+                                           Ruta estable del único video opcional.
+      id_marca                             bigint                       NULL
+                                           Marca del vehículo.
+      marca_otra                           character varying(60)        NULL
+                                           Texto libre para una marca fuera del catálogo.
+      id_modelo                            bigint                       NULL
+                                           Modelo del vehículo.
+      modelo_otro                          character varying(60)        NULL
+                                           Texto libre para un modelo fuera del catálogo.
+      anio                                 smallint                     NULL
+                                           Año del vehículo.
+      kilometraje                          integer                      NULL
+                                           Kilometraje actual.
+      id_color                             bigint                       NULL
+                                           Color del vehículo.
+      color_otro                           character varying(60)        NULL
+                                           Texto libre para color fuera del catálogo.
+      id_transmision                       bigint                       NULL
+                                           Transmisión del vehículo.
+      transmision_otra                     character varying(60)        NULL
+                                           Texto libre para transmisión fuera del catálogo.
+      id_carroceria                        bigint                       NULL
+                                           Carrocería del vehículo.
+      carroceria_otra                      character varying(60)        NULL
+                                           Texto libre para carrocería fuera del catálogo.
+      numero_propietarios_anteriores       smallint                     NULL
+                                           Cantidad declarada de propietarios anteriores.
+      tiene_adeudos                        boolean                      NULL
+                                           Indica si el vehículo tiene adeudos.
+      tiene_problemas                      boolean                      NULL
+                                           Indica si el vehículo tiene problemas conocidos.
+      descripcion_problemas                text                         NULL
+                                           Describe los problemas conocidos.
+      recuperado_por_seguro                boolean                      NULL
+                                           Indica si fue recuperado por aseguradora.
+      tipo_combustible                     character varying(40)        NULL
+                                           Tipo de combustible.
+      numero_puertas                       smallint                     NULL
+                                           Número de puertas.
+      numero_pasajeros                     smallint                     NULL
+                                           Capacidad de pasajeros.
+      cilindros                            smallint                     NULL
+                                           Número de cilindros.
+      cilindrada                           character varying(30)        NULL
+                                           Cilindrada declarada.
+      tipo_traccion                        character varying(40)        NULL
+                                           Tipo de tracción declarado.
+      modificaciones                       text                         NULL
+                                           Describe modificaciones relevantes del vehículo.
+      estado_publicacion                   character varying(16)        NOT NULL  DEFAULT 'activa'::character varying
+                                           Estado controlado por el propietario.
+      estado_administrativo                character varying(32)        NOT NULL  DEFAULT 'habilitada'::character varying
+                                           Estado controlado por administración.
+      fecha_creacion                       timestamp with time zone     NOT NULL  DEFAULT now()
+                                           Momento de alta de la identidad del anuncio.
+      fecha_primera_publicacion            timestamp with time zone     NULL
+                                           Momento de la primera aprobación pública.
+      fecha_ultima_actualizacion_aprobada  timestamp with time zone     NULL
+                                           Momento de la aprobación más reciente posterior a la
+                                           primera.
+      motivo_deshabilitacion               text                         NULL
+                                           Justificación del administrador al deshabilitar; se
+                                           muestra al dueño. NULL si está habilitada.
+      fecha_deshabilitacion                timestamp with time zone     NULL
+                                           Cuándo la deshabilitó administración. NULL si está
+                                           habilitada.
+      medio_venta                          character varying(10)        NULL
+                                           Dónde se vendió: dentro_app o fuera_app. NULL si no
+                                           está vendida o se marcó antes de existir este campo.
+
+    PK:
+      publicaciones_pkey
+          PRIMARY KEY (id_publicacion)
+
+    FK:
+      fk_publicaciones_carrocerias
+          FOREIGN KEY (id_carroceria) REFERENCES carrocerias(id_carroceria) ON DELETE RESTRICT
+      fk_publicaciones_colores
+          FOREIGN KEY (id_color) REFERENCES colores(id_color) ON DELETE RESTRICT
+      fk_publicaciones_cuentas
+          FOREIGN KEY (id_propietario) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_publicaciones_marcas
+          FOREIGN KEY (id_marca) REFERENCES marcas(id_marca) ON DELETE RESTRICT
+      fk_publicaciones_modelos
+          FOREIGN KEY (id_modelo, id_marca) REFERENCES modelos(id_modelo, id_marca) ON DELETE
+          RESTRICT
+      fk_publicaciones_municipios
+          FOREIGN KEY (estado_ubicacion, municipio_ubicacion) REFERENCES
+          municipios(nombre_estado, nombre_municipio) ON UPDATE CASCADE ON DELETE RESTRICT
+      fk_publicaciones_tipos_combustible
+          FOREIGN KEY (tipo_combustible) REFERENCES tipos_combustible(nombre_combustible) ON
+          UPDATE CASCADE ON DELETE RESTRICT
+      fk_publicaciones_tipos_traccion
+          FOREIGN KEY (tipo_traccion) REFERENCES tipos_traccion(nombre_traccion) ON UPDATE
+          CASCADE ON DELETE RESTRICT
+      fk_publicaciones_transmisiones
+          FOREIGN KEY (id_transmision) REFERENCES transmisiones(id_transmision) ON DELETE
+          RESTRICT
+
+    CHECK:
+      chk_publicaciones_anio
+          CHECK (((anio >= 1900) AND (anio <= 2100)))
+      chk_publicaciones_campos_aprobada
+          CHECK (((fecha_primera_publicacion IS NULL) OR ((titulo IS NOT NULL) AND (descripcion
+          IS NOT NULL) AND (precio IS NOT NULL) AND (precio_negociable IS NOT NULL) AND (moneda
+          IS NOT NULL) AND (estado_ubicacion IS NOT NULL) AND (municipio_ubicacion IS NOT NULL)
+          AND (id_marca IS NOT NULL) AND (id_modelo IS NOT NULL) AND (anio IS NOT NULL) AND
+          (kilometraje IS NOT NULL) AND (id_color IS NOT NULL) AND (id_transmision IS NOT NULL)
+          AND (id_carroceria IS NOT NULL) AND (numero_propietarios_anteriores IS NOT NULL) AND
+          (tiene_adeudos IS NOT NULL) AND (tiene_problemas IS NOT NULL) AND
+          (recuperado_por_seguro IS NOT NULL))))
+      chk_publicaciones_carroceria_otra
+          CHECK (((char_length(TRIM(BOTH FROM carroceria_otra)) >= 1) AND (char_length(TRIM(BOTH
+          FROM carroceria_otra)) <= 60)))
+      chk_publicaciones_cilindrada
+          CHECK (((cilindrada IS NULL) OR (char_length(TRIM(BOTH FROM cilindrada)) > 0)))
+      chk_publicaciones_cilindros
+          CHECK (((cilindros >= 0) AND (cilindros <= 16)))
+      chk_publicaciones_color_otro
+          CHECK (((char_length(TRIM(BOTH FROM color_otro)) >= 1) AND (char_length(TRIM(BOTH FROM
+          color_otro)) <= 60)))
+      chk_publicaciones_descripcion
+          CHECK (((descripcion IS NULL) OR ((char_length(TRIM(BOTH FROM descripcion)) >= 1) AND
+          (char_length(TRIM(BOTH FROM descripcion)) <= 2000))))
+      chk_publicaciones_descripcion_problemas
+          CHECK (((descripcion_problemas IS NULL) OR (char_length(descripcion_problemas) <=
+          1000)))
+      chk_publicaciones_deshabilitacion
+          CHECK (((((estado_administrativo)::text = 'habilitada'::text) AND
+          (motivo_deshabilitacion IS NULL) AND (fecha_deshabilitacion IS NULL)) OR
+          (((estado_administrativo)::text = 'deshabilitada_administrador'::text) AND
+          ((COALESCE(char_length(TRIM(BOTH FROM motivo_deshabilitacion)), 0) >= 1) AND
+          (COALESCE(char_length(TRIM(BOTH FROM motivo_deshabilitacion)), 0) <= 1000)) AND
+          (fecha_deshabilitacion IS NOT NULL))))
+      chk_publicaciones_estado_administrativo
+          CHECK (((estado_administrativo)::text = ANY ((ARRAY['habilitada'::character varying,
+          'deshabilitada_administrador'::character varying])::text[])))
+      chk_publicaciones_estado_publicacion
+          CHECK (((estado_publicacion)::text = ANY ((ARRAY['activa'::character varying,
+          'vendida'::character varying, 'deshabilitada'::character varying])::text[])))
+      chk_publicaciones_fechas_aprobacion
+          CHECK (((fecha_ultima_actualizacion_aprobada IS NULL) OR (fecha_primera_publicacion IS
+          NOT NULL)))
+      chk_publicaciones_horario
+          CHECK (((horario_preferido_contacto IS NULL) OR (char_length(TRIM(BOTH FROM
+          horario_preferido_contacto)) > 0)))
+      chk_publicaciones_kilometraje
+          CHECK (((kilometraje >= 0) AND (kilometraje <= 9999999)))
+      chk_publicaciones_marca_otra
+          CHECK (((char_length(TRIM(BOTH FROM marca_otra)) >= 1) AND (char_length(TRIM(BOTH FROM
+          marca_otra)) <= 60)))
+      chk_publicaciones_medio_venta
+          CHECK (((medio_venta)::text = ANY ((ARRAY['dentro_app'::character varying,
+          'fuera_app'::character varying])::text[])))
+      chk_publicaciones_medio_venta_vendida
+          CHECK ((((estado_publicacion)::text = 'vendida'::text) = (medio_venta IS NOT NULL)))
+      chk_publicaciones_modelo_otro
+          CHECK (((char_length(TRIM(BOTH FROM modelo_otro)) >= 1) AND (char_length(TRIM(BOTH
+          FROM modelo_otro)) <= 60)))
+      chk_publicaciones_modificaciones
+          CHECK (((modificaciones IS NULL) OR ((char_length(TRIM(BOTH FROM modificaciones)) >=
+          1) AND (char_length(TRIM(BOTH FROM modificaciones)) <= 1000))))
+      chk_publicaciones_moneda
+          CHECK ((moneda = ANY (ARRAY['MXN'::bpchar, 'USD'::bpchar])))
+      chk_publicaciones_numero_pasajeros
+          CHECK (((numero_pasajeros >= 1) AND (numero_pasajeros <= 99)))
+      chk_publicaciones_numero_puertas
+          CHECK (((numero_puertas >= 1) AND (numero_puertas <= 9)))
+      chk_publicaciones_precio
+          CHECK ((precio > (0)::numeric))
+      chk_publicaciones_problemas
+          CHECK ((((tiene_problemas IS NOT TRUE) AND (descripcion_problemas IS NULL)) OR
+          ((tiene_problemas IS TRUE) AND (COALESCE(char_length(TRIM(BOTH FROM
+          descripcion_problemas)), 0) > 0))))
+      chk_publicaciones_propietarios_anteriores
+          CHECK (((numero_propietarios_anteriores >= 0) AND (numero_propietarios_anteriores <=
+          99)))
+      chk_publicaciones_ruta_video
+          CHECK (((ruta_video IS NULL) OR (char_length(TRIM(BOTH FROM ruta_video)) > 0)))
+      chk_publicaciones_titulo
+          CHECK ((char_length(TRIM(BOTH FROM titulo)) > 0))
+      chk_publicaciones_transmision_otra
+          CHECK (((char_length(TRIM(BOTH FROM transmision_otra)) >= 1) AND
+          (char_length(TRIM(BOTH FROM transmision_otra)) <= 60)))
+
+    Índices adicionales:
+      CREATE INDEX ix_publicaciones_municipio ON public.publicaciones (estado_ubicacion,
+      municipio_ubicacion)
+      CREATE INDEX ix_publicaciones_id_propietario ON public.publicaciones (id_propietario)
+      CREATE INDEX ix_publicaciones_id_marca ON public.publicaciones (id_marca)
+      CREATE INDEX ix_publicaciones_id_modelo_id_marca ON public.publicaciones (id_modelo,
+      id_marca)
+      CREATE INDEX ix_publicaciones_id_color ON public.publicaciones (id_color)
+      CREATE INDEX ix_publicaciones_id_transmision ON public.publicaciones (id_transmision)
+      CREATE INDEX ix_publicaciones_id_carroceria ON public.publicaciones (id_carroceria)
+
+    Políticas RLS:
+      publicaciones_crear  (INSERT para authenticated)
+          WITH CHECK ((id_propietario = auth.uid()) AND (fecha_primera_publicacion IS NULL) AND
+          ((estado_administrativo)::text = 'habilitada'::text))
+      publicaciones_editar_propia  (UPDATE para authenticated)
+          USING (id_propietario = auth.uid())
+          WITH CHECK (id_propietario = auth.uid())
+      publicaciones_leer  (SELECT para anon,authenticated)
+          USING (((fecha_primera_publicacion IS NOT NULL) AND ((estado_administrativo)::text =
+          'habilitada'::text) AND ((estado_publicacion)::text = ANY ((ARRAY['activa'::character
+          varying, 'vendida'::character varying])::text[]))) OR (id_propietario = auth.uid()) OR
+          es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.reportes
+----------------------------------------------------------------------------------------------------
+    Reportes de usuarios sobre publicaciones y su resolución.
+    Filas: 4   RLS activado: sí
+
+    Columnas:
+      id_reporte          bigint                       NOT NULL
+                          Identificador del reporte.
+      id_publicacion      bigint                       NOT NULL
+                          Publicación reportada.
+      id_reportante       uuid                         NOT NULL
+                          Usuario autenticado que realizó el reporte.
+      motivo_reporte      text                         NOT NULL
+                          Motivo proporcionado por el usuario.
+      estado_reporte      character varying(12)        NOT NULL  DEFAULT 'pendiente'::character varying
+                          Estado actual del reporte.
+      id_admin_resolutor  uuid                         NULL
+                          Administrador que resolvió el reporte.
+      motivo_resolucion   text                         NULL
+                          Justificación administrativa de atención/descarte.
+      fecha_reporte       timestamp with time zone     NOT NULL  DEFAULT now()
+                          Momento de creación del reporte.
+      fecha_resolucion    timestamp with time zone     NULL
+                          Momento de la resolución administrativa.
+
+    PK:
+      reportes_pkey
+          PRIMARY KEY (id_reporte)
+
+    FK:
+      fk_reportes_admin_resolutor
+          FOREIGN KEY (id_admin_resolutor) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_reportes_publicaciones
+          FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE
+          RESTRICT
+      fk_reportes_reportante
+          FOREIGN KEY (id_reportante) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+
+    UNIQUE:
+      uq_reportes_id_reportante_id_publicacion
+          UNIQUE (id_reportante, id_publicacion)
+
+    CHECK:
+      chk_reportes_estado
+          CHECK (((estado_reporte)::text = ANY ((ARRAY['pendiente'::character varying,
+          'atendido'::character varying, 'descartado'::character varying])::text[])))
+      chk_reportes_motivo
+          CHECK ((char_length(TRIM(BOTH FROM motivo_reporte)) > 0))
+      chk_reportes_motivo_largo
+          CHECK ((char_length(motivo_reporte) <= 1000))
+      chk_reportes_resolucion
+          CHECK (((((estado_reporte)::text = 'pendiente'::text) AND (id_admin_resolutor IS NULL)
+          AND (motivo_resolucion IS NULL) AND (fecha_resolucion IS NULL)) OR
+          (((estado_reporte)::text = ANY ((ARRAY['atendido'::character varying,
+          'descartado'::character varying])::text[])) AND (id_admin_resolutor IS NOT NULL) AND
+          (fecha_resolucion IS NOT NULL) AND (COALESCE(char_length(TRIM(BOTH FROM
+          motivo_resolucion)), 0) > 0))))
+      chk_reportes_resolucion_largo
+          CHECK (((motivo_resolucion IS NULL) OR (char_length(motivo_resolucion) <= 1000)))
+
+    Índices adicionales:
+      CREATE INDEX ix_reportes_id_publicacion ON public.reportes (id_publicacion)
+      CREATE INDEX ix_reportes_id_admin_resolutor ON public.reportes (id_admin_resolutor)
+
+    Políticas RLS:
+      reportes_crear  (INSERT para authenticated)
+          WITH CHECK ((id_reportante = auth.uid()) AND ((estado_reporte)::text =
+          'pendiente'::text))
+      reportes_leer  (SELECT para authenticated)
+          USING ((id_reportante = auth.uid()) OR es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.roles
+----------------------------------------------------------------------------------------------------
+    Roles del sistema: "usuario" (todos) y "administrador".
+    Filas: 2   RLS activado: sí
+
+    Columnas:
+      id_rol           bigint                       NOT NULL
+                       Identificador interno del rol.
+      nombre_rol       character varying(40)        NOT NULL
+                       Nombre estable y único del rol.
+      descripcion_rol  character varying(250)       NULL
+                       Explica el alcance general del rol.
+
+    PK:
+      roles_pkey
+          PRIMARY KEY (id_rol)
+
+    UNIQUE:
+      uq_roles_nombre_rol
+          UNIQUE (nombre_rol)
+
+    CHECK:
+      chk_roles_descripcion
+          CHECK (((descripcion_rol IS NULL) OR (char_length(TRIM(BOTH FROM descripcion_rol)) >
+          0)))
+      chk_roles_nombre_rol
+          CHECK ((char_length(TRIM(BOTH FROM nombre_rol)) > 0))
+
+    Índices adicionales:
+      CREATE UNIQUE INDEX uq_roles_nombre_ci ON public.roles (lower(TRIM(BOTH FROM nombre_rol)))
+
+    Políticas RLS:
+      roles_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.solicitudes_destacado
+----------------------------------------------------------------------------------------------------
+    Solicitudes para destacar una publicación (1 mes) y su resolución.
+    Filas: 6   RLS activado: sí
+
+    Columnas:
+      id_solicitud_destacado     bigint                       NOT NULL
+                                 Identificador de la solicitud.
+      id_publicacion             bigint                       NOT NULL
+                                 Publicación que se solicita destacar.
+      fecha_solicitud            timestamp with time zone     NOT NULL  DEFAULT now()
+                                 Momento en que se creó la solicitud.
+      estado_solicitud           character varying(12)        NOT NULL  DEFAULT 'pendiente'::character varying
+                                 Estado actual de la solicitud.
+      id_admin_resuelve          uuid                         NULL
+                                 Administrador que aprueba o rechaza.
+      motivo_rechazo             text                         NULL
+                                 Motivo administrativo del rechazo.
+      fecha_resolucion           timestamp with time zone     NULL
+                                 Momento de aprobación o rechazo.
+      fecha_inicio_destacado     timestamp with time zone     NULL
+                                 Inicio del periodo aprobado.
+      fecha_fin_destacado        timestamp with time zone     NULL
+                                 Fin del periodo aprobado.
+      fecha_cancelacion          timestamp with time zone     NULL
+                                 Momento en que el propietario canceló una solicitud pendiente.
+      aviso_vencimiento_enviado  boolean                      NOT NULL  DEFAULT false
+                                 TRUE cuando ya se avisó al dueño que este destacado está por
+                                 terminar.
+
+    PK:
+      solicitudes_destacado_pkey
+          PRIMARY KEY (id_solicitud_destacado)
+
+    FK:
+      fk_solicitudes_destacado_admin_resuelve
+          FOREIGN KEY (id_admin_resuelve) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+      fk_solicitudes_destacado_publicaciones
+          FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE
+          RESTRICT
+
+    CHECK:
+      chk_solicitudes_destacado_campos
+          CHECK (((((estado_solicitud)::text = 'pendiente'::text) AND (id_admin_resuelve IS
+          NULL) AND (motivo_rechazo IS NULL) AND (fecha_resolucion IS NULL) AND
+          (fecha_inicio_destacado IS NULL) AND (fecha_fin_destacado IS NULL) AND
+          (fecha_cancelacion IS NULL)) OR (((estado_solicitud)::text = 'aprobada'::text) AND
+          (id_admin_resuelve IS NOT NULL) AND (motivo_rechazo IS NULL) AND (fecha_resolucion IS
+          NOT NULL) AND (fecha_inicio_destacado IS NOT NULL) AND (fecha_fin_destacado =
+          (fecha_inicio_destacado + '1 mon'::interval)) AND (fecha_cancelacion IS NULL)) OR
+          (((estado_solicitud)::text = 'rechazada'::text) AND (id_admin_resuelve IS NOT NULL)
+          AND (COALESCE(char_length(TRIM(BOTH FROM motivo_rechazo)), 0) > 0) AND
+          (fecha_resolucion IS NOT NULL) AND (fecha_inicio_destacado IS NULL) AND
+          (fecha_fin_destacado IS NULL) AND (fecha_cancelacion IS NULL)) OR
+          (((estado_solicitud)::text = 'cancelada'::text) AND (id_admin_resuelve IS NULL) AND
+          (motivo_rechazo IS NULL) AND (fecha_resolucion IS NULL) AND (fecha_inicio_destacado IS
+          NULL) AND (fecha_fin_destacado IS NULL) AND (fecha_cancelacion IS NOT NULL))))
+      chk_solicitudes_destacado_estado
+          CHECK (((estado_solicitud)::text = ANY ((ARRAY['pendiente'::character varying,
+          'aprobada'::character varying, 'rechazada'::character varying, 'cancelada'::character
+          varying])::text[])))
+      chk_solicitudes_destacado_motivo_largo
+          CHECK (((motivo_rechazo IS NULL) OR (char_length(motivo_rechazo) <= 1000)))
+
+    Índices adicionales:
+      CREATE INDEX ix_solicitudes_destacado_id_publicacion ON public.solicitudes_destacado
+      (id_publicacion)
+      CREATE INDEX ix_solicitudes_destacado_id_admin_resuelve ON public.solicitudes_destacado
+      (id_admin_resuelve)
+      CREATE UNIQUE INDEX uq_solicitudes_pendiente ON public.solicitudes_destacado
+      (id_publicacion) WHERE ((estado_solicitud)::text = 'pendiente'::text)
+
+    Políticas RLS:
+      solicitudes_crear  (INSERT para authenticated)
+          WITH CHECK (es_propietario_publicacion(id_publicacion) AND ((estado_solicitud)::text =
+          'pendiente'::text))
+      solicitudes_leer  (SELECT para anon,authenticated)
+          USING (((estado_solicitud)::text = 'aprobada'::text) OR
+          es_propietario_publicacion(id_publicacion) OR es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.telefonos_contacto
+----------------------------------------------------------------------------------------------------
+    Teléfonos de cada cuenta: llamadas, WhatsApp, principal y activo.
+    Filas: 12   RLS activado: sí
+
+    Columnas:
+      id_telefono       bigint                       NOT NULL
+                        Identificador del contacto telefónico.
+      id_cuenta         uuid                         NOT NULL
+                        Cuenta propietaria del número.
+      numero_telefono   character varying(20)        NOT NULL
+                        Número de contacto, con prefijo cuando aplique.
+      permite_llamadas  boolean                      NOT NULL  DEFAULT true
+                        Indica si el número admite llamadas.
+      es_whatsapp       boolean                      NOT NULL  DEFAULT false
+                        Indica si el mismo número admite WhatsApp.
+      es_principal      boolean                      NOT NULL  DEFAULT false
+                        Señala el número principal de la cuenta.
+      activo            boolean                      NOT NULL  DEFAULT true
+                        Indica si el contacto está habilitado para mostrarse y usarse.
+
+    PK:
+      telefonos_contacto_pkey
+          PRIMARY KEY (id_telefono)
+
+    FK:
+      fk_telefonos_contacto_cuentas
+          FOREIGN KEY (id_cuenta) REFERENCES cuentas(id_cuenta) ON DELETE RESTRICT
+
+    UNIQUE:
+      uq_telefonos_contacto_id_cuenta_numero_telefono
+          UNIQUE (id_cuenta, numero_telefono)
+
+    CHECK:
+      chk_telefonos_contacto_medio
+          CHECK (((NOT activo) OR permite_llamadas OR es_whatsapp))
+      chk_telefonos_contacto_numero
+          CHECK ((char_length(TRIM(BOTH FROM numero_telefono)) > 0))
+      chk_telefonos_contacto_principal_activo
+          CHECK ((activo OR (NOT es_principal)))
+
+    Índices adicionales:
+      CREATE UNIQUE INDEX uq_telefonos_contacto_principal ON public.telefonos_contacto
+      (id_cuenta) WHERE (es_principal AND activo)
+
+    Políticas RLS:
+      telefonos_borrar_propio  (DELETE para authenticated)
+          USING (id_cuenta = auth.uid())
+      telefonos_editar_propio  (UPDATE para authenticated)
+          USING (id_cuenta = auth.uid())
+          WITH CHECK (id_cuenta = auth.uid())
+      telefonos_insertar_propio  (INSERT para authenticated)
+          WITH CHECK (id_cuenta = auth.uid())
+      telefonos_leer  (SELECT para anon,authenticated)
+          USING (activo OR (id_cuenta = auth.uid()) OR es_admin_actual())
+
+----------------------------------------------------------------------------------------------------
+TABLA public.tipos_combustible
+----------------------------------------------------------------------------------------------------
+    Catálogo de combustibles (Gasolina, Diésel, Híbrido, Eléctrico).
+    Filas: 4   RLS activado: sí
+
+    Columnas:
+      nombre_combustible  character varying(40)        NOT NULL
+
+    PK:
+      tipos_combustible_pkey
+          PRIMARY KEY (nombre_combustible)
+
+    CHECK:
+      chk_tipos_combustible_nombre
+          CHECK ((char_length(TRIM(BOTH FROM nombre_combustible)) > 0))
+
+    Políticas RLS:
+      tipos_combustible_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.tipos_traccion
+----------------------------------------------------------------------------------------------------
+    Catálogo de tracciones.
+    Filas: 4   RLS activado: sí
+
+    Columnas:
+      nombre_traccion  character varying(40)        NOT NULL
+
+    PK:
+      tipos_traccion_pkey
+          PRIMARY KEY (nombre_traccion)
+
+    CHECK:
+      chk_tipos_traccion_nombre
+          CHECK ((char_length(TRIM(BOTH FROM nombre_traccion)) > 0))
+
+    Políticas RLS:
+      tipos_traccion_leer  (SELECT para anon,authenticated)
+          USING true
+
+----------------------------------------------------------------------------------------------------
+TABLA public.transmisiones
+----------------------------------------------------------------------------------------------------
+    Catálogo de transmisiones.
+    Filas: 5   RLS activado: sí
+
+    Columnas:
+      id_transmision      bigint                       NOT NULL
+                          Identificador del valor de catálogo.
+      nombre_transmision  character varying(80)        NOT NULL
+                          Nombre mostrado en el selector.
+      es_otro             boolean                      NOT NULL  DEFAULT false
+                          Indica si la fila representa la opción Otros.
+
+    PK:
+      transmisiones_pkey
+          PRIMARY KEY (id_transmision)
+
+    UNIQUE:
+      uq_transmisiones_nombre_transmision
+          UNIQUE (nombre_transmision)
+
+    CHECK:
+      chk_transmisiones_nombre_transmision
+          CHECK ((char_length(TRIM(BOTH FROM nombre_transmision)) > 0))
+
+    Índices adicionales:
+      CREATE UNIQUE INDEX uq_transmisiones_otros ON public.transmisiones (es_otro) WHERE es_otro
+      CREATE UNIQUE INDEX uq_transmisiones_nombre_ci ON public.transmisiones (lower(TRIM(BOTH
+      FROM nombre_transmision)))
+
+    Políticas RLS:
+      transmisiones_leer  (SELECT para anon,authenticated)
+          USING true
+
+====================================================================================================
+3. VISTAS
+====================================================================================================
+
+----------------------------------------------------------------------------------------------------
+VISTA public.v_anuncios  {security_invoker=true}
+----------------------------------------------------------------------------------------------------
+    Anuncio listo para mostrar: une publicación, propuesta vigente, catálogos, dueño, fotos,
+    destacado y estado. El dueño y el admin ven la versión en revisión; el público solo lo
+    aprobado (security_invoker: respeta el RLS de quien consulta). "vendido" se calcula de
+    estado_publicacion.
+
+    Columnas:
+      id_publicacion, id_propietario, propietario_nombre, propietario_tipo, propietario_foto,
+      titulo, descripcion, precio, precio_negociable, moneda, estado_ubicacion,
+      municipio_ubicacion, horario_preferido_contacto, id_marca, marca, id_modelo, modelo, anio,
+      kilometraje, id_color, color, id_transmision, transmision, id_carroceria, carroceria,
+      numero_propietarios_anteriores, tiene_adeudos, tiene_problemas, descripcion_problemas,
+      recuperado_por_seguro, tipo_combustible, numero_puertas, numero_pasajeros, cilindros,
+      cilindrada, tipo_traccion, modificaciones, estado_publicacion, estado_administrativo,
+      fecha_creacion, fecha_primera_publicacion, aprobada, visible, id_ultima_propuesta,
+      estado_ultima_propuesta, motivo_rechazo_propuesta, destacado, destacado_pendiente, fotos,
+      motivo_deshabilitacion, fecha_deshabilitacion, vendido, medio_venta
+
+====================================================================================================
+4. FUNCIONES
+====================================================================================================
+
+----------------------------------------------------------------------------------------------------
+FUNCIONES RPC QUE LLAMA LA APP
+----------------------------------------------------------------------------------------------------
+
+  contacto_vendedor(p_id_publicacion bigint)
+      Devuelve: jsonb   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      Datos públicos del vendedor de una publicación. Teléfono, WhatsApp y correo solo con
+      sesión iniciada.
+
+  crear_publicacion(p_datos jsonb, p_fotos text[])
+      Devuelve: bigint   Lenguaje: plpgsql   VOLATILE
+      Crea una publicación nueva (vacía) y su primera propuesta con los datos y fotos; queda
+      pendiente de revisión.
+
+  editar_publicacion(p_id_publicacion bigint, p_datos jsonb, p_fotos text[])
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Edita una publicación propia: crea o reutiliza la propuesta pendiente/rechazada, reemplaza
+      fotos (1 a 15, solo de la carpeta del dueño) y la manda a moderación.
+
+  favoritos_mis_publicaciones()
+      Devuelve: TABLE(id_publicacion bigint, total integer)   Lenguaje: sql   STABLE   SECURITY DEFINER
+      Cuántos favoritos tiene cada publicación de la cuenta en sesión.
+
+  marcar_publicacion_vendida(p_id_publicacion bigint, p_vendida boolean, p_medio_venta text DEFAULT NULL::text)
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      El dueño marca su publicación como vendida (dentro_app/fuera_app) o la regresa a activa.
+      Cancela solicitudes de destacado pendientes.
+
+  mi_correo()
+      Devuelve: text   Lenguaje: sql   STABLE   SECURITY DEFINER
+      Correo de la cuenta en sesión (auth.users).
+
+  quitar_dispositivo(p_token text)
+      Devuelve: void   Lenguaje: sql   VOLATILE   SECURITY DEFINER
+      Borra el token de Firebase al cerrar sesión.
+
+  registrar_dispositivo(p_token text)
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Guarda el token de Firebase del teléfono para la cuenta en sesión (push).
+
+  telefono_en_uso(p_numero text)
+      Devuelve: boolean   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      TRUE si el número (10 dígitos, acepta +52) ya lo usa otra cuenta activa. Se usa en
+      registro y Editar perfil.
+
+  vendedor_estadisticas()
+      Devuelve: jsonb   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      Indicadores del panel del vendedor (vistas, contactos, favoritos, publicaciones).
+
+----------------------------------------------------------------------------------------------------
+FUNCIONES DEL PANEL DE ADMINISTRACIÓN (VALIDAN EL ROL CON EXIGIR_ADMIN)
+----------------------------------------------------------------------------------------------------
+
+  admin_cambiar_estado_cuenta(p_id_cuenta uuid, p_suspender boolean, p_motivo text DEFAULT NULL::text)
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Admin suspende o reactiva una cuenta, con motivo.
+
+  admin_cambiar_estado_publicacion(p_id_publicacion bigint, p_habilitar boolean, p_motivo text DEFAULT NULL::text)
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Admin habilita o deshabilita una publicación (deshabilitar exige comentario de 10+
+      caracteres).
+
+  admin_estadisticas(p_dias integer DEFAULT 7)
+      Devuelve: jsonb   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      Panel admin: indicadores y gráficas de los últimos N días.
+
+  admin_listar_cuentas()
+      Devuelve: TABLE(id_cuenta uuid, nombre_mostrar text, correo text, tipo_cuenta text, estado_cuenta text, fecha_creacion timestamp with time zone, es_admin boolean, municipio text, estado text, responsable text, publicaciones bigint, activas bigint)   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      Panel admin: todas las cuentas con correo, tipo, estado, rol admin, ubicación y conteo de
+      publicaciones.
+
+  admin_listar_destacados()
+      Devuelve: TABLE(id_solicitud_destacado bigint, id_publicacion bigint, estado_solicitud text, fecha_solicitud timestamp with time zone, motivo_rechazo text, solicitante text, solicitante_foto text)   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      Panel admin: solicitudes de destacado con solicitante.
+
+  admin_listar_reportes()
+      Devuelve: TABLE(id_reporte bigint, id_publicacion bigint, publicacion text, reportante text, motivo_reporte text, estado_reporte text, motivo_resolucion text, fecha_reporte timestamp with time zone)   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      Panel admin: reportes de publicaciones con reportante y estado.
+
+  admin_moderar_propuesta(p_id_propuesta bigint, p_aprobar boolean, p_motivo text DEFAULT NULL::text)
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Admin aprueba (copia la propuesta y sus fotos a la publicación) o rechaza (motivo
+      obligatorio) una propuesta pendiente.
+
+  admin_resolver_destacado(p_id_solicitud bigint, p_aprobar boolean, p_motivo text DEFAULT NULL::text)
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Admin aprueba (1 mes de destacado) o rechaza (con motivo) una solicitud de destacado.
+
+  admin_resolver_reporte(p_id_reporte bigint, p_estado text, p_motivo text, p_deshabilitar boolean DEFAULT false)
+      Devuelve: void   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Admin marca un reporte como atendido o descartado; opcionalmente deshabilita la
+      publicación.
+
+----------------------------------------------------------------------------------------------------
+FUNCIONES AUXILIARES (RLS, VALIDACIONES, CRON)
+----------------------------------------------------------------------------------------------------
+
+  es_admin_actual()
+      Devuelve: boolean   Lenguaje: sql   STABLE   SECURITY DEFINER
+      es_administrador() de la cuenta en sesión. Se usa en las políticas RLS.
+
+  es_administrador(p_id_cuenta uuid)
+      Devuelve: boolean   Lenguaje: sql   STABLE   SECURITY DEFINER
+      TRUE si la cuenta indicada tiene el rol "administrador" (cuentas_roles).
+
+  es_propietario_propuesta(p_id_propuesta bigint)
+      Devuelve: boolean   Lenguaje: sql   STABLE   SECURITY DEFINER
+      TRUE si la propuesta pertenece a una publicación de la cuenta en sesión.
+
+  es_propietario_publicacion(p_id_publicacion bigint)
+      Devuelve: boolean   Lenguaje: sql   STABLE   SECURITY DEFINER
+      TRUE si la publicación es de la cuenta en sesión.
+
+  exigir_admin()
+      Devuelve: void   Lenguaje: plpgsql   STABLE   SECURITY DEFINER
+      Lanza error si la cuenta en sesión no es administrador. La llaman las funciones admin_*.
+
+  exigir_motivo(p_motivo text, p_accion text, p_minimo integer DEFAULT 10)
+      Devuelve: text   Lenguaje: plpgsql   IMMUTABLE
+      Valida que un comentario de admin tenga el mínimo de caracteres y lo devuelve recortado.
+
+  notificar_destacados_por_vencer()
+      Devuelve: integer   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Avisa a los dueños cuyo destacado vence en 3 días o menos. La ejecuta el cron diario
+      "destacados-por-vencer".
+
+----------------------------------------------------------------------------------------------------
+FUNCIONES DE TRIGGER
+----------------------------------------------------------------------------------------------------
+
+  fn_acciones_administrativas_inmutable()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      La bitácora de acciones administrativas no se puede editar ni borrar.
+      Usada por triggers en: acciones_administrativas
+
+  fn_auth_crear_cuenta()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Al registrarse en Supabase Auth crea la fila de cuentas, sus teléfonos y, si es lote, su
+      perfiles_lote (dirección), con los metadatos del registro.
+      Usada por triggers en: auth.users
+
+  fn_cuentas_fechas_estado()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Pone fecha de suspensión/reactivación al cambiar estado_cuenta e impide cambiar el tipo de
+      cuenta.
+      Usada por triggers en: cuentas
+
+  fn_cuentas_rol_inicial()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Toda cuenta nueva recibe el rol "usuario".
+      Usada por triggers en: cuentas
+
+  fn_fotos_propuesta_maximo()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Máximo 15 fotos por propuesta.
+      Usada por triggers en: fotos_propuesta_publicacion
+
+  fn_fotos_publicacion_maximo()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Máximo 15 fotos activas por publicación.
+      Usada por triggers en: fotos_publicacion
+
+  fn_fotos_publicacion_retiro()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Al retirar una foto pone fecha_retiro; una foto retirada no se reactiva.
+      Usada por triggers en: fotos_publicacion
+
+  fn_interacciones_ignorar_propietario()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      No registra vistas/contactos del propio dueño de la publicación.
+      Usada por triggers en: interacciones_publicacion
+
+  fn_lote_requiere_perfil()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Toda cuenta tipo lote debe tener perfil de lote (se revisa al terminar la transacción;
+      también impide borrarlo).
+      Usada por triggers en: cuentas, perfiles_lote
+
+  fn_notificar_destacado()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Notifica al dueño si su solicitud de destacado fue aprobada o rechazada.
+      Usada por triggers en: solicitudes_destacado
+
+  fn_notificar_estado_administrativo()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Notifica al dueño cuando un admin deshabilita o rehabilita su publicación.
+      Usada por triggers en: publicaciones
+
+  fn_notificar_estado_cuenta()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Notifica a la cuenta cuando un admin la suspende o reactiva.
+      Usada por triggers en: acciones_administrativas
+
+  fn_notificar_favorito()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Avisa al dueño cuando alguien guarda su publicación en favoritos (no si es el propio
+      dueño).
+      Usada por triggers en: favoritos
+
+  fn_notificar_propuesta()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Notifica al dueño: propuesta enviada, publicación/edición aprobada o rechazada.
+      Usada por triggers en: propuestas_publicacion
+
+  fn_notificar_reporte()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Notifica a quien reportó que su reporte fue atendido o descartado.
+      Usada por triggers en: reportes
+
+  fn_perfiles_lote_validar_tipo()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Solo una cuenta tipo lote puede tener perfil de lote.
+      Usada por triggers en: perfiles_lote
+
+  fn_rehabilitar_al_aprobar_propuesta()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Si se aprueba la edición de una publicación deshabilitada por admin, se rehabilita sola.
+      Usada por triggers en: propuestas_publicacion
+
+  fn_reportes_no_propios()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Nadie puede reportar su propia publicación.
+      Usada por triggers en: reportes
+
+  fn_solicitudes_destacado_transicion()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      Solo una solicitud de destacado pendiente puede resolverse o cancelarse.
+      Usada por triggers en: solicitudes_destacado
+
+  fn_validar_admin_columna()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      La columna indicada (id_admin, id_admin_revisor, ...) debe apuntar a una cuenta con rol
+      administrador.
+      Usada por triggers en: acciones_administrativas, propuestas_publicacion, reportes, solicitudes_destacado
+
+  fn_validar_anio_vehiculo()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      El año del vehículo no puede pasar del año actual + 1.
+      Usada por triggers en: propuestas_publicacion
+
+  fn_validar_catalogo_otros()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      marca_otra / modelo_otro / color_otro / transmision_otra / carroceria_otra son
+      obligatorios solo si se eligió "Otros" en el catálogo.
+      Usada por triggers en: propuestas_publicacion, publicaciones
+
+  fn_validar_codigo_postal()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      El código postal debe tener 5 dígitos.
+      Usada por triggers en: perfiles_lote
+
+  fn_validar_nombre_cuenta()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      El nombre de la cuenta debe tener al menos 2 caracteres sin contar espacios.
+      Usada por triggers en: cuentas
+
+  fn_validar_telefono()
+      Devuelve: trigger   Lenguaje: plpgsql   VOLATILE
+      El teléfono debe tener exactamente 10 dígitos.
+      Usada por triggers en: telefonos_contacto
+
+  rls_auto_enable()
+      Devuelve: event_trigger   Lenguaje: plpgsql   VOLATILE   SECURITY DEFINER
+      Event trigger: activa RLS automáticamente en toda tabla nueva del esquema public.
+
+====================================================================================================
+5. TRIGGERS
+====================================================================================================
+  (BEFORE = valida o ajusta antes de guardar; AFTER = reacciona después;
+   CONSTRAINT ... DEFERRABLE = se revisa al terminar la transacción)
+
+----------------------------------------------------------------------------------------------------
+Tabla acciones_administrativas
+----------------------------------------------------------------------------------------------------
+
+  trg_acciones_administrativas_admin
+      Cuándo: BEFORE INSERT
+      Ejecuta: fn_validar_admin_columna()
+      La columna indicada (id_admin, id_admin_revisor, ...) debe apuntar a una cuenta con rol
+      administrador.
+
+  trg_acciones_administrativas_inmutable
+      Cuándo: BEFORE DELETE OR UPDATE
+      Ejecuta: fn_acciones_administrativas_inmutable()
+      La bitácora de acciones administrativas no se puede editar ni borrar.
+
+  trg_acciones_notificar_estado_cuenta
+      Cuándo: AFTER INSERT
+      Ejecuta: fn_notificar_estado_cuenta()
+      Notifica a la cuenta cuando un admin la suspende o reactiva.
+
+----------------------------------------------------------------------------------------------------
+Tabla auth.users
+----------------------------------------------------------------------------------------------------
+
+  trg_auth_crear_cuenta
+      Cuándo: AFTER INSERT
+      Ejecuta: fn_auth_crear_cuenta()
+      Al registrarse en Supabase Auth crea la fila de cuentas, sus teléfonos y, si es lote, su
+      perfiles_lote (dirección), con los metadatos del registro.
+
+----------------------------------------------------------------------------------------------------
+Tabla cuentas
+----------------------------------------------------------------------------------------------------
+
+  trg_cuentas_fechas_estado
+      Cuándo: BEFORE INSERT OR UPDATE
+      Ejecuta: fn_cuentas_fechas_estado()
+      Pone fecha de suspensión/reactivación al cambiar estado_cuenta e impide cambiar el tipo de
+      cuenta.
+
+  trg_cuentas_lote_requiere_perfil
+      Cuándo: AFTER INSERT
+      Ejecuta: fn_lote_requiere_perfil()
+      Toda cuenta tipo lote debe tener perfil de lote (se revisa al terminar la transacción;
+      también impide borrarlo).
+
+  trg_cuentas_rol_inicial
+      Cuándo: AFTER INSERT
+      Ejecuta: fn_cuentas_rol_inicial()
+      Toda cuenta nueva recibe el rol "usuario".
+
+  trg_cuentas_validar_nombre
+      Cuándo: BEFORE INSERT OR UPDATE OF nombre_mostrar
+      Ejecuta: fn_validar_nombre_cuenta()
+      El nombre de la cuenta debe tener al menos 2 caracteres sin contar espacios.
+
+----------------------------------------------------------------------------------------------------
+Tabla favoritos
+----------------------------------------------------------------------------------------------------
+
+  trg_favoritos_notificar
+      Cuándo: AFTER INSERT
+      Ejecuta: fn_notificar_favorito()
+      Avisa al dueño cuando alguien guarda su publicación en favoritos (no si es el propio
+      dueño).
+
+----------------------------------------------------------------------------------------------------
+Tabla fotos_propuesta_publicacion
+----------------------------------------------------------------------------------------------------
+
+  trg_fotos_propuesta_maximo
+      Cuándo: BEFORE INSERT OR UPDATE OF id_propuesta
+      Ejecuta: fn_fotos_propuesta_maximo()
+      Máximo 15 fotos por propuesta.
+
+----------------------------------------------------------------------------------------------------
+Tabla fotos_publicacion
+----------------------------------------------------------------------------------------------------
+
+  trg_fotos_publicacion_maximo
+      Cuándo: BEFORE INSERT OR UPDATE OF activa, id_publicacion
+      Ejecuta: fn_fotos_publicacion_maximo()
+      Máximo 15 fotos activas por publicación.
+
+  trg_fotos_publicacion_retiro
+      Cuándo: BEFORE UPDATE OF activa
+      Ejecuta: fn_fotos_publicacion_retiro()
+      Al retirar una foto pone fecha_retiro; una foto retirada no se reactiva.
+
+----------------------------------------------------------------------------------------------------
+Tabla interacciones_publicacion
+----------------------------------------------------------------------------------------------------
+
+  trg_interacciones_ignorar_propietario
+      Cuándo: BEFORE INSERT
+      Ejecuta: fn_interacciones_ignorar_propietario()
+      No registra vistas/contactos del propio dueño de la publicación.
+
+----------------------------------------------------------------------------------------------------
+Tabla notificaciones
+----------------------------------------------------------------------------------------------------
+
+  enviar_push
+      Cuándo: AFTER INSERT
+      Ejecuta: webhook HTTP POST a la Edge Function enviar-push (supabase_functions.http_request)
+      Manda cada notificación nueva a la Edge Function, que la envía por Firebase a los
+      teléfonos de la cuenta. Autenticado con la service_role key (oculta en este archivo).
+
+----------------------------------------------------------------------------------------------------
+Tabla perfiles_lote
+----------------------------------------------------------------------------------------------------
+
+  trg_perfiles_lote_no_borrar
+      Cuándo: AFTER DELETE
+      Ejecuta: fn_lote_requiere_perfil()
+      Toda cuenta tipo lote debe tener perfil de lote (se revisa al terminar la transacción;
+      también impide borrarlo).
+
+  trg_perfiles_lote_validar_cp
+      Cuándo: BEFORE INSERT OR UPDATE OF codigo_postal
+      Ejecuta: fn_validar_codigo_postal()
+      El código postal debe tener 5 dígitos.
+
+  trg_perfiles_lote_validar_tipo
+      Cuándo: BEFORE INSERT OR UPDATE OF id_cuenta
+      Ejecuta: fn_perfiles_lote_validar_tipo()
+      Solo una cuenta tipo lote puede tener perfil de lote.
+
+----------------------------------------------------------------------------------------------------
+Tabla propuestas_publicacion
+----------------------------------------------------------------------------------------------------
+
+  trg_propuestas_notificar
+      Cuándo: AFTER INSERT OR UPDATE OF estado_propuesta
+      Ejecuta: fn_notificar_propuesta()
+      Notifica al dueño: propuesta enviada, publicación/edición aprobada o rechazada.
+
+  trg_propuestas_publicacion_admin
+      Cuándo: BEFORE INSERT OR UPDATE OF id_admin_revisor
+      Ejecuta: fn_validar_admin_columna()
+      La columna indicada (id_admin, id_admin_revisor, ...) debe apuntar a una cuenta con rol
+      administrador.
+
+  trg_propuestas_publicacion_catalogo_otros
+      Cuándo: BEFORE INSERT OR UPDATE
+      Ejecuta: fn_validar_catalogo_otros()
+      marca_otra / modelo_otro / color_otro / transmision_otra / carroceria_otra son
+      obligatorios solo si se eligió "Otros" en el catálogo.
+
+  trg_propuestas_rehabilitar
+      Cuándo: AFTER UPDATE OF estado_propuesta
+      Ejecuta: fn_rehabilitar_al_aprobar_propuesta()
+      Si se aprueba la edición de una publicación deshabilitada por admin, se rehabilita sola.
+
+  trg_propuestas_validar_anio
+      Cuándo: BEFORE INSERT OR UPDATE OF anio
+      Ejecuta: fn_validar_anio_vehiculo()
+      El año del vehículo no puede pasar del año actual + 1.
+
+----------------------------------------------------------------------------------------------------
+Tabla publicaciones
+----------------------------------------------------------------------------------------------------
+
+  trg_publicaciones_catalogo_otros
+      Cuándo: BEFORE INSERT OR UPDATE
+      Ejecuta: fn_validar_catalogo_otros()
+      marca_otra / modelo_otro / color_otro / transmision_otra / carroceria_otra son
+      obligatorios solo si se eligió "Otros" en el catálogo.
+
+  trg_publicaciones_estado_admin_notificar
+      Cuándo: AFTER UPDATE OF estado_administrativo
+      Ejecuta: fn_notificar_estado_administrativo()
+      Notifica al dueño cuando un admin deshabilita o rehabilita su publicación.
+
+----------------------------------------------------------------------------------------------------
+Tabla reportes
+----------------------------------------------------------------------------------------------------
+
+  trg_reportes_admin
+      Cuándo: BEFORE INSERT OR UPDATE OF id_admin_resolutor
+      Ejecuta: fn_validar_admin_columna()
+      La columna indicada (id_admin, id_admin_revisor, ...) debe apuntar a una cuenta con rol
+      administrador.
+
+  trg_reportes_no_propios
+      Cuándo: BEFORE INSERT OR UPDATE OF id_publicacion, id_reportante
+      Ejecuta: fn_reportes_no_propios()
+      Nadie puede reportar su propia publicación.
+
+  trg_reportes_notificar
+      Cuándo: AFTER UPDATE OF estado_reporte
+      Ejecuta: fn_notificar_reporte()
+      Notifica a quien reportó que su reporte fue atendido o descartado.
+
+----------------------------------------------------------------------------------------------------
+Tabla solicitudes_destacado
+----------------------------------------------------------------------------------------------------
+
+  trg_solicitudes_destacado_admin
+      Cuándo: BEFORE INSERT OR UPDATE OF id_admin_resuelve
+      Ejecuta: fn_validar_admin_columna()
+      La columna indicada (id_admin, id_admin_revisor, ...) debe apuntar a una cuenta con rol
+      administrador.
+
+  trg_solicitudes_destacado_notificar
+      Cuándo: AFTER UPDATE OF estado_solicitud
+      Ejecuta: fn_notificar_destacado()
+      Notifica al dueño si su solicitud de destacado fue aprobada o rechazada.
+
+  trg_solicitudes_destacado_transicion
+      Cuándo: BEFORE UPDATE OF estado_solicitud, id_admin_resuelve, fecha_resolucion, fecha_inicio_destacado, fecha_fin_destacado, fecha_cancelacion, motivo_rechazo
+      Ejecuta: fn_solicitudes_destacado_transicion()
+      Solo una solicitud de destacado pendiente puede resolverse o cancelarse.
+
+----------------------------------------------------------------------------------------------------
+Tabla telefonos_contacto
+----------------------------------------------------------------------------------------------------
+
+  trg_telefonos_validar
+      Cuándo: BEFORE INSERT OR UPDATE OF numero_telefono
+      Ejecuta: fn_validar_telefono()
+      El teléfono debe tener exactamente 10 dígitos.
+
+====================================================================================================
+6. OTROS OBJETOS
+====================================================================================================
+
+----------------------------------------------------------------------------------------------------
+Event triggers
+----------------------------------------------------------------------------------------------------
+  issue_graphql_placeholder    sql_drop         -> set_graphql_placeholder (interno de Supabase)
+  pgrst_ddl_watch              ddl_command_end  -> pgrst_ddl_watch (interno de Supabase)
+  pgrst_drop_watch             sql_drop         -> pgrst_drop_watch (interno de Supabase)
+  issue_pg_cron_access         ddl_command_end  -> grant_pg_cron_access (interno de Supabase)
+  issue_pg_net_access          ddl_command_end  -> grant_pg_net_access (interno de Supabase)
+  issue_pg_graphql_access      ddl_command_end  -> grant_pg_graphql_access (interno de Supabase)
+  ensure_rls                   ddl_command_end  -> rls_auto_enable (activa RLS en tablas nuevas)
+
+----------------------------------------------------------------------------------------------------
+Tareas programadas (pg_cron)
+----------------------------------------------------------------------------------------------------
+  destacados-por-vencer   horario "0 15 * * *" (UTC)   activo: sí
+      SELECT public.notificar_destacados_por_vencer()
+      0 15 * * * = todos los días a las 15:00 UTC (9:00 hora del centro de México).
+
+----------------------------------------------------------------------------------------------------
+Webhooks / Edge Functions
+----------------------------------------------------------------------------------------------------
+  enviar_push (trigger AFTER INSERT en notificaciones) -> Edge Function "enviar-push"
+  Código en supabase/functions/enviar-push/.
+
+----------------------------------------------------------------------------------------------------
+Storage
+----------------------------------------------------------------------------------------------------
+  Bucket "karsy"   público: sí   límite: sin límite   tipos: cualquiera
+  Carpetas usadas por la app: perfiles/<id_cuenta>/ (foto, logo y portada-*.jpg) y publicaciones/<id_cuenta>/ (fotos de autos)
+
+  Políticas de storage.objects:
+    karsy_borrar_propio  (DELETE para authenticated)
+        USING ((bucket_id = 'karsy'::text) AND ((storage.foldername(name))[2] =
+        (auth.uid())::text))
+    karsy_editar_propio  (UPDATE para authenticated)
+        USING ((bucket_id = 'karsy'::text) AND ((storage.foldername(name))[2] =
+        (auth.uid())::text))
+    karsy_subir_propio  (INSERT para authenticated)
+        WITH CHECK ((bucket_id = 'karsy'::text) AND ((storage.foldername(name))[1] = ANY
+        (ARRAY['publicaciones'::text, 'perfiles'::text])) AND ((storage.foldername(name))[2] =
+        (auth.uid())::text))
+
+----------------------------------------------------------------------------------------------------
+Extensiones instaladas
+----------------------------------------------------------------------------------------------------
+  pg_cron 1.6.4, pg_net 0.20.4, pg_stat_statements 1.11, pgcrypto 1.3, plpgsql 1.0,
+  supabase_vault 0.3.1, uuid-ossp 1.1
+
+----------------------------------------------------------------------------------------------------
+Trigger en auth.users (Supabase Auth)
+----------------------------------------------------------------------------------------------------
+  trg_auth_crear_cuenta  AFTER INSERT ON auth.users -> public.fn_auth_crear_cuenta()
+      Al registrarse en Supabase Auth crea la fila de cuentas, sus teléfonos y, si es lote, su
+      perfiles_lote (dirección), con los metadatos del registro.
+

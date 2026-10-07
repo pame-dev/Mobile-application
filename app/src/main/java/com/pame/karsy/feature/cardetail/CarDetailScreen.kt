@@ -238,7 +238,7 @@ fun CarDetailScreen(
     ) {
         Column(Modifier.fillMaxSize()) {
             DetailHeader(
-                showActions = userMode != UserMode.ADMIN && !isOwner,
+                showActions = !isOwner,
                 fav = vm.favorite,
                 onBack = onBack,
                 onFav = ::handleFav,

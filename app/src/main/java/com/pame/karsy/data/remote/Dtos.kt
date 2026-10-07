@@ -79,17 +79,14 @@ data class CuentaDto(
     @SerialName("foto_portada") val fotoPortada: String? = null,
 )
 
+/** Dirección del lote (perfiles_lote); nombre, descripción, logo y ubicación están en cuentas. */
 @Serializable
 data class PerfilLoteDto(
     @SerialName("id_cuenta") val idCuenta: String,
-    @SerialName("nombre_comercial") val nombreComercial: String,
-    @SerialName("descripcion_lote") val descripcionLote: String? = null,
     val calle: String = "",
     val numero: String = "",
     val colonia: String = "",
     @SerialName("codigo_postal") val codigoPostal: String = "",
-    val municipio: String,
-    val estado: String,
 )
 
 /** Solo la portada de una cuenta (UserRepository.coverOf). */
@@ -107,19 +104,14 @@ data class LoteCuentaDto(
     @SerialName("municipio_perfil_ubi") val municipio: String,
 )
 
-/** Fila completa de public.perfiles_lote (nombre comercial, logo, dirección y horario). */
+/** Fila completa de public.perfiles_lote (dirección y horario). */
 @Serializable
 data class LotePerfilDto(
     @SerialName("id_cuenta") val idCuenta: String,
-    @SerialName("nombre_comercial") val nombreComercial: String,
-    @SerialName("logo_lote") val logoLote: String? = null,
-    @SerialName("descripcion_lote") val descripcionLote: String? = null,
     val calle: String = "",
     val numero: String = "",
     val colonia: String = "",
     @SerialName("codigo_postal") val codigoPostal: String = "",
-    val municipio: String,
-    val estado: String,
     @SerialName("horarios_atencion") val horarios: String? = null,
 )
 

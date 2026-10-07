@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -64,6 +66,7 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.components.SkeletonBlock
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -86,6 +89,7 @@ fun ProfileScreen(
     userMode: UserMode,
     onBack: () -> Unit,
     onPanel: () -> Unit,
+    onAdminPanel: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
     onCarClick: (Long) -> Unit,
@@ -185,9 +189,14 @@ fun ProfileScreen(
             }
             Spacer(Modifier.height(16.dp))
 
+            // El admin conserva su cuenta (particular o lote) y además tiene el panel de administración.
+            if (SessionManager.isAdmin) {
+                AdminPanelButton(onClick = onAdminPanel)
+                Spacer(Modifier.height(16.dp))
+            }
+
             PostsCard(
                 cars = vm.visibleCars,
-                panelLabel = if (userMode.isAdmin) stringResource(R.string.profile_panel_admin) else stringResource(R.string.profile_panel_seller),
                 onPanel = onPanel,
                 onCarClick = onCarClick
             )
@@ -334,12 +343,8 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                         color = KarsyInk,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (userMode == UserMode.LOTE || userMode.isAdmin) {
-                        AccountBadge(
-                            if (userMode.isAdmin) stringResource(R.string.profile_badge_admin)
-                            else stringResource(R.string.profile_badge_lot)
-                        )
-                    }
+                    if (userMode == UserMode.LOTE) AccountBadge(stringResource(R.string.profile_badge_lot))
+                    if (SessionManager.isAdmin) AccountBadge(stringResource(R.string.profile_badge_admin))
                 }
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -407,7 +412,31 @@ private fun StatBox(num: String, label: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, onCarClick: (Long) -> Unit) {
+private fun AdminPanelButton(onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.5.dp, KarsyNavy),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = KarsySurface,
+            contentColor = KarsyNavy
+        ),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(Icons.Outlined.SpaceDashboard, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(
+            stringResource(R.string.profile_panel_admin),
+            fontFamily = DmSans,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+private fun PostsCard(cars: List<Car>, onPanel: () -> Unit, onCarClick: (Long) -> Unit) {
     ProfileCard {
         Row(
             modifier = Modifier
@@ -434,7 +463,7 @@ private fun PostsCard(cars: List<Car>, panelLabel: String, onPanel: () -> Unit, 
                 modifier = Modifier.height(34.dp)
             ) {
                 Text(
-                    panelLabel,
+                    stringResource(R.string.profile_panel_seller),
                     fontFamily = DmSans,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp

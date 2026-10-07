@@ -376,7 +376,6 @@ fun LotProfileScreen(
                                 VehicleCard(
                                     car = car,
                                     isFavorite = car.id in vm.favoriteIds,
-                                    showHeart = !userMode.isAdmin,
                                     onClick = { onCarClick(car.id) },
                                     onToggleFavorite = {
                                         if (isVisitor) toastMsg = msgRegisterFav

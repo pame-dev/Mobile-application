@@ -11,18 +11,19 @@ import com.pame.karsy.core.locale.texto
  * Tipo de usuario con el que se navega la app.
  * VISITANTE: sin sesión, solo puede ver anuncios.
  * PARTICULAR / LOTE: cuenta registrada (cuentas.tipo_cuenta en Supabase).
- * ADMIN: cuenta con el rol "administrador" (public.es_administrador()).
+ *
+ * Ser administrador NO es un modo: es un rol extra (cuentas_roles) encima de una
+ * cuenta particular o lote, que conserva todo lo suyo y además ve el panel de
+ * administración. Se consulta con [SessionManager.isAdmin].
  */
 enum class UserMode(@StringRes val labelRes: Int) {
     VISITANTE(R.string.core_mode_guest),
     PARTICULAR(R.string.core_mode_particular),
-    LOTE(R.string.core_mode_lote),
-    ADMIN(R.string.core_mode_admin);
+    LOTE(R.string.core_mode_lote);
 
     val label: String get() = texto(labelRes)
 
     val isLoggedIn: Boolean get() = this != VISITANTE
-    val isAdmin: Boolean get() = this == ADMIN
 
     /** Particulares y lotes pueden publicar, guardar favoritos y ver su panel. */
     val isSeller: Boolean get() = this == PARTICULAR || this == LOTE
@@ -36,12 +37,9 @@ data class SessionAccount(
     val esAdmin: Boolean,
     val correo: String,
 ) {
+    /** El modo sale solo del tipo de cuenta; el rol de admin se suma aparte. */
     val mode: UserMode
-        get() = when {
-            esAdmin -> UserMode.ADMIN
-            tipoCuenta == "lote" -> UserMode.LOTE
-            else -> UserMode.PARTICULAR
-        }
+        get() = if (tipoCuenta == "lote") UserMode.LOTE else UserMode.PARTICULAR
 }
 
 /**
@@ -55,6 +53,9 @@ object SessionManager {
         private set
 
     val userId: String? get() = account?.id
+
+    /** La cuenta en sesión tiene además el rol "administrador". */
+    val isAdmin: Boolean get() = account?.esAdmin == true
 
     fun login(account: SessionAccount) {
         this.account = account

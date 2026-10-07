@@ -294,6 +294,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> texto(R.string.publish_error_price)
                 idTransmision == null -> texto(R.string.publish_error_transmission)
                 kilometraje.filter(Char::isDigit).isEmpty() -> texto(R.string.publish_error_mileage)
+                (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
                 idCarroceria == null -> texto(R.string.publish_error_body_type)
                 idColor == null -> texto(R.string.publish_error_color)
                 else -> null
@@ -358,7 +359,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         /** Máximo de fotos por publicación (editar_publicacion valida lo mismo). */
         const val MAX_FOTOS = 15
 
-        /** Opciones de combustible; se guardan tal cual en tipo_combustible. */
+        /** Máximo de publicaciones.cilindros (chk_publicaciones_cilindros). */
+        const val MAX_CILINDROS = 16
+
+        /** Opciones de combustible; se guardan tal cual en tipo_combustible (catálogo tipos_combustible). */
         val COMBUSTIBLES = listOf("Gasolina", "Diésel", "Híbrido", "Eléctrico")
 
         /** Largo máximo de publicaciones.cilindrada (VARCHAR(30)). */
