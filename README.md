@@ -9,7 +9,7 @@ Las migraciones están en `supabase/migrations`. Para aplicarlas al proyecto vin
 npx supabase db push
 ```
 
-Cuentas de prueba (contraseña `6767`):
+Cuentas de prueba (la contraseña se comparte por privado con el equipo):
 
 | Cuenta | Correo | Rol |
 |---|---|---|
