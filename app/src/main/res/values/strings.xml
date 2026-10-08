@@ -226,7 +226,7 @@
     <string name="home_logout_confirm">Sí, salir</string>
     <string name="home_close_filters">Cerrar filtros</string>
     <string name="home_filter">Filtrar</string>
-    <string name="home_hero_tagline">🚗 MARKETPLACE AUTOMOTRIZ #1 EN MÉXICO</string>
+    <string name="home_hero_tagline">MARKETPLACE AUTOMOTRIZ #1 EN MÉXICO</string>
     <string name="home_hero_title">Encuentra tu próximo\nvehículo ideal</string>
     <string name="home_hero_subtitle">Miles de vehículos verificados en toda la república mexicana. Compra, vende y negocia con confianza.</string>
     <string name="home_search_placeholder">Buscar marca, modelo o año...</string>

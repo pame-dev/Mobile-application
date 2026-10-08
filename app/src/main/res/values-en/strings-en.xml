@@ -224,7 +224,7 @@
     <string name="home_logout_confirm">Yes, log out</string>
     <string name="home_close_filters">Close filters</string>
     <string name="home_filter">Filter</string>
-    <string name="home_hero_tagline">🚗 THE #1 CAR MARKETPLACE IN MEXICO</string>
+    <string name="home_hero_tagline">THE #1 CAR MARKETPLACE IN MEXICO</string>
     <string name="home_hero_title">Find your next\nperfect vehicle</string>
     <string name="home_hero_subtitle">Thousands of verified vehicles all across Mexico. Buy, sell, and negotiate with confidence.</string>
     <string name="home_search_placeholder">Search make, model, or year...</string>

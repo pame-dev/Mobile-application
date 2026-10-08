@@ -1,5 +1,15 @@
 package com.pame.karsy.feature.home
 
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.runtime.DisposableEffect
+import android.content.ContextWrapper
+import android.app.Activity
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.draw.alpha
 import com.pame.karsy.core.components.PrimaryButton
@@ -131,6 +141,10 @@ fun HomeScreen(
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var toastMsg by remember { mutableStateOf<String?>(null) }
+    LightStatusBarIcons()
+    // Encabezado y banner comparten un solo degradado diagonal; cada uno pinta su parte.
+    var headerHeightPx by remember { mutableFloatStateOf(0f) }
+    var heroHeightPx by remember { mutableFloatStateOf(0f) }
     var eligiendoLugar by rememberSaveable { mutableStateOf(false) }
     if (eligiendoLugar) {
         ElegirLugarSheet(
@@ -192,7 +206,9 @@ fun HomeScreen(
                     onLogin()
                 },
                 onNotifications = onNotifications,
-                onAdminPanel = onAdminPanel
+                onAdminPanel = onAdminPanel,
+                heroHeightPx = heroHeightPx,
+                onHeight = { headerHeightPx = it }
             )
 
             KarsyPullToRefresh(onRefresh = { done -> vm.refresh(done) }, modifier = Modifier.fillMaxSize()) {
@@ -211,7 +227,9 @@ fun HomeScreen(
                             stats = vm.heroStats,
                             query = vm.query,
                             onQueryChange = { vm.query = it },
-                            onSearch = showResults
+                            onSearch = showResults,
+                            headerHeightPx = headerHeightPx,
+                            onHeight = { heroHeightPx = it }
                         )
                     }
 
@@ -388,12 +406,19 @@ internal fun HomeHeader(
     onLogin: () -> Unit,
     onNotifications: () -> Unit,
     onAdminPanel: () -> Unit,
+    /** Alto del banner de abajo, para continuar el mismo degradado. */
+    heroHeightPx: Float,
+    onHeight: (Float) -> Unit,
 ) {
+    val p = heroPalette()
+    // Pinta la parte de arriba del degradado que sigue en el banner: sin línea ni corte entre ambos.
     Column(
         Modifier
             .fillMaxWidth()
-            .shadow(6.dp, spotColor = KarsyNavy.copy(alpha = 0.10f), ambientColor = KarsyNavy.copy(alpha = 0.07f))
-            .background(KarsySurface)
+            .onSizeChanged { onHeight(it.height.toFloat()) }
+            .drawBehind {
+                drawRect(heroBrush(p, width = size.width, top = 0f, totalHeight = size.height + heroHeightPx))
+            }
             .statusBarsPadding()
     ) {
         Row(
@@ -404,53 +429,52 @@ internal fun HomeHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            KarsyBrand()
+            KarsyBrand(color = p.headerContent)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 when {
                     !userMode.isLoggedIn -> Button(
                         onClick = onLogin,
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
+                        // Turquesa: sobre el azul del encabezado un botón azul no se vería.
+                        colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
                         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
-                        modifier = Modifier
-                            .height(38.dp)
-                            .shadow(4.dp, RoundedCornerShape(10.dp), spotColor = KarsyNavy.copy(alpha = 0.3f))
+                        modifier = Modifier.height(38.dp)
                     ) {
                         Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                     else -> {
                         if (SessionManager.isAdmin) {
-                            HeaderIconButton(onClick = onAdminPanel) {
-                                Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = KarsyInk, modifier = Modifier.size(18.dp))
+                            HeaderIconButton(p, onClick = onAdminPanel) {
+                                Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = p.headerContent, modifier = Modifier.size(18.dp))
                             }
                         }
-                        HeaderIconButton(onClick = onNotifications) {
-                            Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.home_notifications), tint = KarsyInk, modifier = Modifier.size(19.dp))
+                        HeaderIconButton(p, onClick = onNotifications) {
+                            Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.home_notifications), tint = p.headerContent, modifier = Modifier.size(19.dp))
                         }
                     }
                 }
-                HeaderIconButton(onClick = onToggleMenu, active = menuOpen) {
+                HeaderIconButton(p, onClick = onToggleMenu, active = menuOpen) {
                     if (menuOpen) {
                         Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.home_close_filters), tint = KarsyTeal, modifier = Modifier.size(17.dp))
                     } else {
-                        Icon(Icons.Rounded.FilterList, contentDescription = stringResource(R.string.home_filter), tint = KarsyInk, modifier = Modifier.size(19.dp))
+                        Icon(Icons.Rounded.FilterList, contentDescription = stringResource(R.string.home_filter), tint = p.headerContent, modifier = Modifier.size(19.dp))
                     }
                 }
             }
         }
-        HorizontalDivider(color = KarsyBorder)
     }
 }
 
 @Composable
-private fun HeaderIconButton(onClick: () -> Unit, active: Boolean = false, content: @Composable () -> Unit) {
+private fun HeaderIconButton(p: HeroPalette, onClick: () -> Unit, active: Boolean = false, content: @Composable () -> Unit) {
     val shape = RoundedCornerShape(10.dp)
     Box(
         Modifier
             .size(38.dp)
             .clip(shape)
-            .background(if (active) KarsyTealLight else KarsyBg)
-            .border(1.5.dp, if (active) KarsyTeal else KarsyBorder, shape)
+            // Botones translúcidos sobre el degradado del encabezado.
+            .background(if (active) p.headerButtonActiveBg else p.headerButtonBg)
+            .border(1.5.dp, if (active) KarsyTeal else p.headerButtonBorder, shape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) { content() }
@@ -462,38 +486,46 @@ private fun HeroSection(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
+    /** Alto del encabezado de arriba: el degradado empieza en él. */
+    headerHeightPx: Float,
+    onHeight: (Float) -> Unit,
 ) {
+    val p = heroPalette()
+    // Bloque recto de borde a borde (sin esquinas redondeadas), pegado al encabezado.
     Box(
         Modifier
             .fillMaxWidth()
-            .background(
-                Brush.linearGradient(
-                    0f to KarsyNavyDeep,
-                    0.6f to Color(0xFF1A4A6E),
-                    1f to KarsyTeal
-                )
-            )
-            .padding(horizontal = 20.dp, vertical = 36.dp),
+            .onSizeChanged { onHeight(it.height.toFloat()) }
+            .drawBehind {
+                drawRect(heroBrush(p, width = size.width, top = -headerHeightPx, totalHeight = headerHeightPx + size.height))
+            }
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 36.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                stringResource(R.string.home_hero_tagline),
-                fontFamily = DmSans,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = KarsyTeal,
-                letterSpacing = 0.1.em,
-                textAlign = TextAlign.Center,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.padding(bottom = 12.dp)
-            )
+            ) {
+                Icon(Icons.Rounded.VerifiedUser, contentDescription = null, tint = p.tagline, modifier = Modifier.size(15.dp))
+                Text(
+                    stringResource(R.string.home_hero_tagline),
+                    fontFamily = DmSans,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = p.tagline,
+                    letterSpacing = 0.1.em,
+                    textAlign = TextAlign.Center
+                )
+            }
             Text(
                 stringResource(R.string.home_hero_title),
                 fontFamily = Outfit,
                 fontSize = 32.sp,
                 lineHeight = 37.sp,
                 fontWeight = FontWeight.Bold,
-                color = KarsyWhite,
+                color = p.title,
                 letterSpacing = (-0.02).em,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 14.dp)
@@ -503,19 +535,20 @@ private fun HeroSection(
                 fontFamily = DmSans,
                 fontSize = 14.sp,
                 lineHeight = 22.sp,
-                color = Color.White.copy(alpha = 0.72f),
+                color = p.subtitle,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
-            HeroSearch(query = query, onQueryChange = onQueryChange, onSearch = onSearch)
+            HeroSearch(query = query, onQueryChange = onQueryChange, onSearch = onSearch, p = p)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
                 modifier = Modifier.padding(top = 24.dp)
             ) {
                 stats.forEach { (num, lbl) ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(num, fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = KarsyWhite)
-                        Text(lbl, fontFamily = DmSans, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
+                        // Números en turquesa en ambos temas (identidad de la marca).
+                        Text(num, fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = p.statNumber)
+                        Text(lbl, fontFamily = DmSans, fontSize = 12.sp, color = p.statLabel)
                     }
                 }
             }
@@ -523,17 +556,113 @@ private fun HeroSection(
     }
 }
 
+/**
+ * Degradado diagonal de encabezado + banner como si fueran una sola pieza: va de la esquina
+ * superior izquierda del encabezado a la inferior derecha del banner. [top] es dónde empieza
+ * la pieza completa en las coordenadas de quien dibuja (0 en el encabezado, -alto del
+ * encabezado en el banner), así ambos pintan el mismo color en la línea donde se unen.
+ */
+private fun heroBrush(p: HeroPalette, width: Float, top: Float, totalHeight: Float): Brush =
+    Brush.linearGradient(
+        colors = listOf(p.gradientStart, p.gradientEnd),
+        start = Offset(0f, top),
+        end = Offset(width, top + totalHeight.coerceAtLeast(1f))
+    )
+
+/**
+ * El encabezado de Inicio tiene fondo de color en ambos temas: mientras esta pantalla
+ * está visible, la hora y los íconos de la barra de estado van en blanco.
+ */
+@Composable
+private fun LightStatusBarIcons() {
+    val view = LocalView.current
+    DisposableEffect(view) {
+        var ctx = view.context
+        while (ctx is ContextWrapper && ctx !is Activity) ctx = ctx.baseContext
+        val window = (ctx as? Activity)?.window
+        val controller = window?.let { WindowCompat.getInsetsController(it, view) }
+        val antes = controller?.isAppearanceLightStatusBars
+        controller?.isAppearanceLightStatusBars = false
+        onDispose { if (controller != null && antes != null) controller.isAppearanceLightStatusBars = antes }
+    }
+}
+
+/** Colores del encabezado y el banner de Inicio para el tema en uso. */
+private data class HeroPalette(
+    val gradientStart: Color,
+    val gradientEnd: Color,
+    val tagline: Color,
+    val title: Color,
+    val subtitle: Color,
+    val statNumber: Color,
+    val statLabel: Color,
+    val searchBg: Color,
+    val searchBorder: Color,
+    val searchText: Color,
+    val searchHint: Color,
+    val searchButton: Color,
+    /** Logo, "Karsy" e íconos del encabezado. */
+    val headerContent: Color,
+    val headerButtonBg: Color,
+    val headerButtonActiveBg: Color,
+    val headerButtonBorder: Color,
+)
+
+/**
+ * Claro: azul petróleo profundo con textos blancos, buscador blanco y "Buscar"
+ * en turquesa intenso.
+ * Oscuro: azul marino a noche oscura, contadores turquesa y buscador oscuro.
+ * El encabezado comparte el degradado del banner (ver heroBrush).
+ */
+private fun heroPalette(): HeroPalette = if (Tema.oscuro) HeroPalette(
+    gradientStart = Color(0xFF0D2B45),
+    gradientEnd = Color(0xFF081726),
+    tagline = KarsyTeal,
+    title = Color.White,
+    subtitle = Color(0xFF94A3B8),
+    statNumber = KarsyTeal,
+    statLabel = Color(0xFF94A3B8),
+    searchBg = Color(0xFF061523),
+    searchBorder = Color(0xFF1E293B),
+    searchText = Color.White,
+    searchHint = Color(0xFF94A3B8),
+    searchButton = KarsyTeal,
+    headerContent = Color.White,
+    headerButtonBg = Color.White.copy(alpha = 0.10f),
+    headerButtonActiveBg = Color.White.copy(alpha = 0.18f),
+    headerButtonBorder = Color.White.copy(alpha = 0.22f),
+) else HeroPalette(
+    // Azul petróleo profundo: punto medio entre el ciano anterior y el azul noche.
+    gradientStart = Color(0xFF1D4E5B),
+    gradientEnd = Color(0xFF153B46),
+    // Azul hielo: el turquesa de la marca se perdería sobre este fondo.
+    tagline = Color(0xFFE2F1F8),
+    title = Color.White,
+    subtitle = Color(0xFFE2F1F8),
+    statNumber = Color.White,
+    statLabel = Color(0xFFE2F1F8).copy(alpha = 0.85f),
+    searchBg = Color.White.copy(alpha = 0.95f),
+    searchBorder = Color.White,
+    searchText = Color(0xFF0D2B45),
+    searchHint = Color(0xFF8E9A8E),
+    searchButton = Color(0xFF2B7A8B),
+    headerContent = Color.White,
+    headerButtonBg = Color.White.copy(alpha = 0.15f),
+    headerButtonActiveBg = Color.White.copy(alpha = 0.28f),
+    headerButtonBorder = Color.White.copy(alpha = 0.35f),
+)
+
 /** Filtra mientras se escribe; "Buscar" (o la tecla del teclado) baja a los resultados. */
 @Composable
-private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch: () -> Unit) {
+private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch: () -> Unit, p: HeroPalette) {
     val shape = RoundedCornerShape(12.dp)
     Row(
         Modifier
             .fillMaxWidth()
             .height(48.dp)
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.10f))
-            .border(1.dp, Color.White.copy(alpha = 0.18f), shape),
+            .background(p.searchBg)
+            .border(1.dp, p.searchBorder, shape),
         verticalAlignment = Alignment.CenterVertically
     ) {
         BasicTextField(
@@ -542,7 +671,7 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-            textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyWhite),
+            textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = p.searchText),
             cursorBrush = SolidColor(KarsyTeal),
             modifier = Modifier
                 .weight(1f)
@@ -550,7 +679,7 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
             decorationBox = { inner ->
                 Box {
                     if (query.isEmpty()) {
-                        Text(stringResource(R.string.home_search_placeholder), fontFamily = DmSans, fontSize = 14.sp, color = Color.White.copy(alpha = 0.55f), maxLines = 1)
+                        Text(stringResource(R.string.home_search_placeholder), fontFamily = DmSans, fontSize = 14.sp, color = p.searchHint, maxLines = 1)
                     }
                     inner()
                 }
@@ -561,7 +690,7 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = stringResource(R.string.home_search_clear),
-                    tint = Color.White.copy(alpha = 0.75f),
+                    tint = p.searchHint,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -569,7 +698,7 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
         Box(
             Modifier
                 .fillMaxHeight()
-                .background(KarsyTeal)
+                .background(p.searchButton)
                 .clickable(onClick = onSearch)
                 .padding(horizontal = 18.dp),
             contentAlignment = Alignment.Center
