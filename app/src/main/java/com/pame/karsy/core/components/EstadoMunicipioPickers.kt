@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.location.MexicoCatalogo
-import com.pame.karsy.core.location.UbicacionActual
+import com.pame.karsy.core.location.Lugares
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -121,7 +121,7 @@ fun EstadoMunicipioPickers(
                 abierto = null
                 onEstado(nuevo)
                 // Un municipio de otro estado no sirve: se borra para que lo elijan de nuevo.
-                if (MexicoCatalogo.municipios(context, nuevo).none { UbicacionActual.mismoLugar(it, municipio) }) {
+                if (MexicoCatalogo.municipios(context, nuevo).none { Lugares.mismoLugar(it, municipio) }) {
                     onMunicipio("")
                 }
             },
@@ -130,7 +130,7 @@ fun EstadoMunicipioPickers(
         "municipio" -> SearchPickerSheet(
             title = municipioLabel,
             options = municipios,
-            selected = municipios.firstOrNull { UbicacionActual.mismoLugar(it, municipio) },
+            selected = municipios.firstOrNull { Lugares.mismoLugar(it, municipio) },
             onSelect = { abierto = null; onMunicipio(it) },
             onDismiss = { abierto = null }
         )

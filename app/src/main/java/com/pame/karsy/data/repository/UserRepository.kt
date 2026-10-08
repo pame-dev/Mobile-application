@@ -1,6 +1,9 @@
 package com.pame.karsy.data.repository
 
 import com.pame.karsy.R
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+import com.pame.karsy.core.location.Lugar
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
@@ -74,6 +77,21 @@ object UserRepository {
             },
         )
     }
+
+    /** Estado y municipio del perfil en sesión ("Cerca de mí"); null sin sesión o sin estado. */
+    suspend fun miUbicacion(): Lugar? {
+        val uid = SessionManager.userId ?: return null
+        val fila = db.from("cuentas")
+            .select(Columns.list("estado_perfil_ubi", "municipio_perfil_ubi")) { filter { eq("id_cuenta", uid) } }
+            .decodeSingleOrNull<UbicacionDto>() ?: return null
+        return Lugar(fila.municipio.orEmpty().trim(), fila.estado.orEmpty().trim()).takeIf { it.estado.isNotEmpty() }
+    }
+
+    @Serializable
+    private data class UbicacionDto(
+        @SerialName("estado_perfil_ubi") val estado: String? = null,
+        @SerialName("municipio_perfil_ubi") val municipio: String? = null,
+    )
 
     /**
      * Guarda nombre, descripción, ubicación y teléfono; en un lote también su nombre
