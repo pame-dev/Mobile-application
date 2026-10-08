@@ -1,16 +1,15 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.foundation.BorderStroke
-import com.pame.karsy.core.location.UbicacionActual
+import androidx.compose.ui.draw.alpha
+import com.pame.karsy.core.components.PrimaryButton
+import com.pame.karsy.core.components.EstadoMunicipioPickers
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import com.pame.karsy.core.location.Lugares
 import com.pame.karsy.core.location.Lugar
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.rememberLauncherForActivityResult
-import android.widget.Toast
-import android.content.pm.PackageManager
-import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -132,6 +131,13 @@ fun HomeScreen(
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var toastMsg by remember { mutableStateOf<String?>(null) }
+    var eligiendoLugar by rememberSaveable { mutableStateOf(false) }
+    if (eligiendoLugar) {
+        ElegirLugarSheet(
+            onElegir = { vm.cercaDe = it; eligiendoLugar = false },
+            onDismiss = { eligiendoLugar = false }
+        )
+    }
     // El panel de filtros cubre la pantalla: la barra inferior se oculta mientras está abierto.
     HideBottomBarWhile(menuOpen)
     val bottomBarSpace = LocalBottomBarSpace.current
@@ -281,7 +287,9 @@ fun HomeScreen(
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         NearMeChip(
                             lugar = vm.cercaDe,
-                            onChange = { vm.cercaDe = it },
+                            buscando = vm.buscandoUbicacion,
+                            onActivar = { vm.activarCercaDeMi(elegirLugar = { eligiendoLugar = true }) },
+                            onQuitar = { vm.cercaDe = null },
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
@@ -677,31 +685,19 @@ private fun AutoScroll(state: LazyListState) {
 }
 
 /**
- * "Cerca de mí": pide la ubicación aproximada (con permiso la primera vez) y filtra por el
- * estado del teléfono, con los del mismo municipio primero. Activo, muestra el lugar y se
- * quita con un toque.
+ * "Cerca de mí": filtra por el estado y municipio del perfil (los mismos datos que se
+ * capturan a mano en el registro), sin pedir permiso de ubicación. Sin sesión, o si el
+ * perfil no tiene ubicación, se eligen en una hoja. Activo, muestra el lugar y se quita
+ * con un toque.
  */
 @Composable
-private fun NearMeChip(lugar: Lugar?, onChange: (Lugar?) -> Unit, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var buscando by remember { mutableStateOf(false) }
-    val sinUbicacion = stringResource(R.string.home_near_me_failed)
-
-    fun buscar() {
-        buscando = true
-        scope.launch {
-            val encontrado = UbicacionActual.obtener(context)
-            buscando = false
-            if (encontrado == null) Toast.makeText(context, sinUbicacion, Toast.LENGTH_LONG).show()
-            onChange(encontrado)
-        }
-    }
-    val permiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
-        if (concedido) buscar()
-        else Toast.makeText(context, context.getString(R.string.home_near_me_denied), Toast.LENGTH_LONG).show()
-    }
-
+private fun NearMeChip(
+    lugar: Lugar?,
+    buscando: Boolean,
+    onActivar: () -> Unit,
+    onQuitar: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val activo = lugar != null
     val shape = RoundedCornerShape(999.dp)
     Row(modifier.fillMaxWidth()) {
@@ -724,15 +720,52 @@ private fun NearMeChip(lugar: Lugar?, onChange: (Lugar?) -> Unit, modifier: Modi
                 .clip(shape)
                 .background(if (activo) KarsyTeal else KarsySurface)
                 .border(1.dp, if (activo) KarsyTeal else KarsyBorder, shape)
-                .clickable(enabled = !buscando) {
-                    when {
-                        activo -> onChange(null)
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                            PackageManager.PERMISSION_GRANTED -> buscar()
-                        else -> permiso.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    }
-                }
+                .clickable(enabled = !buscando) { if (activo) onQuitar() else onActivar() }
                 .padding(horizontal = 14.dp, vertical = 9.dp)
         )
+    }
+}
+
+/** Hoja para elegir estado y municipio a mano (visitantes o perfiles sin ubicación). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ElegirLugarSheet(onElegir: (Lugar) -> Unit, onDismiss: () -> Unit) {
+    var estado by rememberSaveable { mutableStateOf("") }
+    var municipio by rememberSaveable { mutableStateOf("") }
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = KarsySurface) {
+        Column(
+            Modifier
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp)
+                .navigationBarsPadding()
+        ) {
+            Text(
+                stringResource(R.string.home_near_me_pick_title),
+                fontFamily = Outfit,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyInk
+            )
+            Text(
+                stringResource(R.string.home_near_me_pick_subtitle),
+                fontFamily = DmSans,
+                fontSize = 13.sp,
+                color = KarsyTextSecondary,
+                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+            )
+            EstadoMunicipioPickers(
+                estado = estado,
+                municipio = municipio,
+                onEstado = { estado = it },
+                onMunicipio = { municipio = it }
+            )
+            // El municipio es opcional: solo con el estado ya se filtra.
+            PrimaryButton(
+                text = stringResource(R.string.home_near_me_apply),
+                enabled = estado.isNotBlank(),
+                onClick = { onElegir(Lugar(municipio, estado)) },
+                modifier = Modifier.alpha(if (estado.isNotBlank()) 1f else 0.5f)
+            )
+        }
     }
 }

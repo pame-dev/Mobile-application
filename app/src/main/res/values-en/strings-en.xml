@@ -195,8 +195,9 @@
     <string name="home_near_me">📍 Near me</string>
     <string name="home_near_me_searching">📍 Finding your location…</string>
     <string name="home_near_me_active">📍 Near %1$s  ✕</string>
-    <string name="home_near_me_failed">We could not get your location. Make sure location is turned on.</string>
-    <string name="home_near_me_denied">To show cars near you, allow access to your location.</string>
+    <string name="home_near_me_pick_title">Where are you looking?</string>
+    <string name="home_near_me_pick_subtitle">Choose a state and municipality to see cars in that area.</string>
+    <string name="home_near_me_apply">Show cars in this area</string>
     <plurals name="home_vehicles_available">
         <item quantity="one">%1$d vehicle available</item>
         <item quantity="other">%1$d vehicles available</item>

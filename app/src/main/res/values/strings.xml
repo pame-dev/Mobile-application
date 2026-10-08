@@ -197,8 +197,9 @@
     <string name="home_near_me">📍 Cerca de mí</string>
     <string name="home_near_me_searching">📍 Buscando tu ubicación…</string>
     <string name="home_near_me_active">📍 Cerca de %1$s  ✕</string>
-    <string name="home_near_me_failed">No pudimos obtener tu ubicación. Revisa que la ubicación del teléfono esté activada.</string>
-    <string name="home_near_me_denied">Para mostrar autos cerca de ti, permite el acceso a tu ubicación.</string>
+    <string name="home_near_me_pick_title">¿Dónde buscas?</string>
+    <string name="home_near_me_pick_subtitle">Elige estado y municipio para ver los autos de esa zona.</string>
+    <string name="home_near_me_apply">Ver autos de la zona</string>
     <plurals name="home_vehicles_available">
         <item quantity="one">%1$d vehículo disponible</item>
         <item quantity="other">%1$d vehículos disponibles</item>

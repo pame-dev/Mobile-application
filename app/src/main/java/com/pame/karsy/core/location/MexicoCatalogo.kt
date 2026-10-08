@@ -29,9 +29,9 @@ object MexicoCatalogo {
      * p. ej. "Coahuila de Zaragoza"). Lista vacía si el estado no está en el catálogo.
      */
     fun municipios(context: Context, estado: String): List<String> =
-        datos(context).firstOrNull { UbicacionActual.mismoLugar(it.estado, estado) }?.municipios.orEmpty()
+        datos(context).firstOrNull { Lugares.mismoLugar(it.estado, estado) }?.municipios.orEmpty()
 
     /** Nombre del catálogo para un estado escrito de otra forma ("coahuila" → "Coahuila"), o null. */
     fun estadoDelCatalogo(context: Context, estado: String): String? =
-        datos(context).firstOrNull { UbicacionActual.mismoLugar(it.estado, estado) }?.estado
+        datos(context).firstOrNull { Lugares.mismoLugar(it.estado, estado) }?.estado
 }

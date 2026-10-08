@@ -1,7 +1,8 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.runtime.getValue
-import com.pame.karsy.core.location.UbicacionActual
+import com.pame.karsy.data.repository.UserRepository
+import com.pame.karsy.core.location.Lugares
 import com.pame.karsy.core.location.Lugar
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -109,8 +110,27 @@ class HomeViewModel : ViewModel() {
 
     val featured: List<Car> get() = cars.filter { it.featured }
 
-    /** "Cerca de mí": lugar del teléfono; null si el filtro está apagado. */
+    /** "Cerca de mí": lugar del perfil (o elegido a mano); null si el filtro está apagado. */
     var cercaDe by mutableStateOf<Lugar?>(null)
+
+    /** Consultando la ubicación del perfil. */
+    var buscandoUbicacion by mutableStateOf(false)
+        private set
+
+    /**
+     * Activa "Cerca de mí" con el estado y municipio del perfil (sin pedir permiso de
+     * ubicación). Sin sesión, o si el perfil no tiene ubicación, llama a [elegirLugar]
+     * para que lo escojan a mano.
+     */
+    fun activarCercaDeMi(elegirLugar: () -> Unit) {
+        if (SessionManager.userId == null) { elegirLugar(); return }
+        viewModelScope.launch {
+            buscandoUbicacion = true
+            val lugar = safeCall { UserRepository.miUbicacion() }.getOrNull()
+            buscandoUbicacion = false
+            if (lugar != null) cercaDe = lugar else elegirLugar()
+        }
+    }
 
     /** Anuncios con búsqueda, filtros y orden aplicados. */
     val visibleCars: List<Car>
@@ -118,7 +138,7 @@ class HomeViewModel : ViewModel() {
             val lugar = cercaDe
             // Cerca de mí: solo los del mismo estado.
             val lista = cars.filtrar(filters, query)
-                .let { l -> if (lugar == null) l else l.filter { UbicacionActual.mismoLugar(it.estado, lugar.estado) } }
+                .let { l -> if (lugar == null) l else l.filter { Lugares.mismoLugar(it.estado, lugar.estado) } }
             val ordenada = when (filters.orden) {
                 "Menor precio" -> lista.sortedBy { it.priceValue }
                 "Mayor precio" -> lista.sortedByDescending { it.priceValue }
@@ -126,7 +146,7 @@ class HomeViewModel : ViewModel() {
             }
             // ...y primero los del mismo municipio (sortedBy es estable: respeta el orden elegido).
             return if (lugar == null) ordenada
-            else ordenada.sortedBy { if (UbicacionActual.mismoLugar(it.municipio, lugar.municipio)) 0 else 1 }
+            else ordenada.sortedBy { if (Lugares.mismoLugar(it.municipio, lugar.municipio)) 0 else 1 }
         }
 
     val filterOptions: FilterOptions get() = filterOptionsOf(catalogs, cars)
