@@ -609,8 +609,8 @@ private data class HeroPalette(
 )
 
 /**
- * Claro: azul petróleo profundo con textos blancos, buscador blanco y "Buscar"
- * en turquesa intenso.
+ * Claro: azul marino profundo a azul petróleo, textos blancos, buscador translúcido
+ * y "Buscar" en turquesa.
  * Oscuro: azul marino a noche oscura, contadores turquesa y buscador oscuro.
  * El encabezado comparte el degradado del banner (ver heroBrush).
  */
@@ -632,24 +632,24 @@ private fun heroPalette(): HeroPalette = if (Tema.oscuro) HeroPalette(
     headerButtonActiveBg = Color.White.copy(alpha = 0.18f),
     headerButtonBorder = Color.White.copy(alpha = 0.22f),
 ) else HeroPalette(
-    // Azul petróleo profundo: punto medio entre el ciano anterior y el azul noche.
-    gradientStart = Color(0xFF1D4E5B),
-    gradientEnd = Color(0xFF153B46),
-    // Azul hielo: el turquesa de la marca se perdería sobre este fondo.
-    tagline = Color(0xFFE2F1F8),
+    // Azul marino profundo a azul petróleo.
+    gradientStart = Color(0xFF0D2B45),
+    gradientEnd = Color(0xFF123B4E),
+    tagline = KarsyTeal,
     title = Color.White,
-    subtitle = Color(0xFFE2F1F8),
+    subtitle = Color(0xFFE2F1F8).copy(alpha = 0.85f),
     statNumber = Color.White,
-    statLabel = Color(0xFFE2F1F8).copy(alpha = 0.85f),
-    searchBg = Color.White.copy(alpha = 0.95f),
-    searchBorder = Color.White,
-    searchText = Color(0xFF0D2B45),
-    searchHint = Color(0xFF8E9A8E),
-    searchButton = Color(0xFF2B7A8B),
+    statLabel = Color(0xFFE2F1F8).copy(alpha = 0.75f),
+    // Buscador translúcido sobre el fondo oscuro.
+    searchBg = Color.White.copy(alpha = 0.08f),
+    searchBorder = Color.White.copy(alpha = 0.18f),
+    searchText = Color.White,
+    searchHint = Color.White.copy(alpha = 0.55f),
+    searchButton = KarsyTeal,
     headerContent = Color.White,
-    headerButtonBg = Color.White.copy(alpha = 0.15f),
-    headerButtonActiveBg = Color.White.copy(alpha = 0.28f),
-    headerButtonBorder = Color.White.copy(alpha = 0.35f),
+    headerButtonBg = Color.White.copy(alpha = 0.10f),
+    headerButtonActiveBg = Color.White.copy(alpha = 0.18f),
+    headerButtonBorder = Color.White.copy(alpha = 0.22f),
 )
 
 /** Filtra mientras se escribe; "Buscar" (o la tecla del teclado) baja a los resultados. */
