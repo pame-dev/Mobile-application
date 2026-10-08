@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.lots
 
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.activity.compose.BackHandler
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -82,7 +85,6 @@ import com.pame.karsy.data.model.Lot
 import com.pame.karsy.feature.cardetail.openWhatsapp
 import com.pame.karsy.feature.home.FilterSheet
 import com.pame.karsy.feature.home.HomeFilters
-import com.pame.karsy.feature.home.HomeHeader
 import com.pame.karsy.feature.home.VehicleCard
 import com.pame.karsy.feature.profile.AvatarViewer
 import com.pame.karsy.feature.profile.ProfileAvatar
@@ -101,12 +103,13 @@ fun LotsScreen(
     userMode: UserMode,
     onLotClick: (String) -> Unit,
     onNotifications: () -> Unit,
-    onAdminPanel: () -> Unit,
-    onLogin: () -> Unit,
+    /** Regresa a la pantalla desde la que se entró (Perfil, Favoritos…) o a Inicio. */
+    onBack: () -> Unit,
     vm: LotsViewModel = viewModel(),
 ) {
     LaunchedEffect(Unit) { vm.load() }
-    // El botón de filtros del encabezado muestra/oculta el buscador de lotes.
+    BackHandler(onBack = onBack)
+    // La lupa del encabezado muestra/oculta el buscador de lotes.
     var searchOpen by rememberSaveable { mutableStateOf(false) }
     val lots = vm.visibleLots
 
@@ -115,17 +118,26 @@ fun LotsScreen(
             .fillMaxSize()
             .background(KarsyBg)
     ) {
-        HomeHeader(
-            userMode = userMode,
-            menuOpen = searchOpen,
-            onToggleMenu = {
-                searchOpen = !searchOpen
-                if (!searchOpen) vm.query = ""
-            },
-            onLogin = onLogin,
-            onNotifications = onNotifications,
-            onAdminPanel = onAdminPanel
-        )
+        // Mismo encabezado que Favoritos y Perfil: flecha + "Lotes"; a la derecha lupa y avisos.
+        SubHeader(title = stringResource(R.string.nav_lots), onBack = onBack) {
+            HeaderSquareButton(
+                icon = if (searchOpen) Icons.Rounded.Close else Icons.Rounded.Search,
+                description = stringResource(R.string.lots_search_placeholder),
+                active = searchOpen,
+                onClick = {
+                    searchOpen = !searchOpen
+                    if (!searchOpen) vm.query = ""
+                }
+            )
+            // Los avisos son de la cuenta: un visitante no tiene.
+            if (userMode.isLoggedIn) {
+                HeaderSquareButton(
+                    icon = Icons.Outlined.Notifications,
+                    description = stringResource(R.string.home_notifications),
+                    onClick = onNotifications
+                )
+            }
+        }
         KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 28.dp + LocalBottomBarSpace.current),
@@ -550,6 +562,23 @@ private fun SearchField(value: String, onChange: (String) -> Unit, placeholder: 
                 }
             }
         )
+    }
+}
+
+/** Botón cuadrado del encabezado (mismo estilo que la flecha de regreso). */
+@Composable
+private fun HeaderSquareButton(icon: ImageVector, description: String, onClick: () -> Unit, active: Boolean = false) {
+    val shape = RoundedCornerShape(10.dp)
+    Box(
+        Modifier
+            .size(38.dp)
+            .clip(shape)
+            .background(if (active) LotIce else Color.Transparent)
+            .border(1.5.dp, if (active) KarsyTeal else KarsyBorder, shape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, contentDescription = description, tint = if (active) KarsyTeal else KarsyInk, modifier = Modifier.size(19.dp))
     }
 }
 

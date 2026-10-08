@@ -2,6 +2,7 @@ package com.pame.karsy.feature.favorites
 
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.components.HeartCoral
+import com.pame.karsy.core.components.HeartToggle
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import com.pame.karsy.core.navigation.HideBottomBarWhile
@@ -303,24 +304,15 @@ private fun FavoriteCard(
                     .align(Alignment.TopStart)
                     .padding(12.dp)
             )
-            Box(
-                Modifier
+            // Mismo botón de corazón que las demás tarjetas (guardado: coral, buen contraste en ambos temas).
+            HeartToggle(
+                filled = true,
+                onToggle = onRemove,
+                size = 34.dp,
+                modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(10.dp)
-                    .size(34.dp)
-                    .shadow(3.dp, CircleShape)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.92f))
-                    .clickable(onClick = onRemove),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Rounded.Favorite,
-                    contentDescription = stringResource(R.string.home_remove_favorite),
-                    tint = HeartCoral,
-                    modifier = Modifier.size(17.dp)
-                )
-            }
+            )
         }
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp)) {
             Text(
