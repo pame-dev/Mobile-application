@@ -1,5 +1,7 @@
 package com.pame.karsy.core.navigation
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.activity.compose.BackHandler
 import com.pame.karsy.feature.lots.LotProfileScreen
 import com.pame.karsy.feature.lots.LotsScreen
 import androidx.compose.animation.AnimatedVisibility
@@ -183,14 +185,43 @@ fun KarsyNavGraph(
         restoreState = true
     }
 
+    /**
+     * Historial de secciones de la barra (Lotes, Favoritos, Perfil, Mi Panel…).
+     * Cambiar de sección regresa primero a Inicio, así que la pila de navegación no
+     * recuerda de dónde se venía; este historial sí, para que la flecha / "atrás" de
+     * Lotes, Favoritos y Perfil regrese a la sección anterior.
+     */
+    val sectionHistory = remember { mutableStateListOf<String>() }
+
+    /** Rutas de la barra a las que se puede regresar (sin argumentos, se navega con goTab). */
+    val sectionRoutes = setOf(
+        Routes.Home.route, Routes.Lots.route, Routes.Favorites.route,
+        Routes.Profile.route, Routes.Dashboard.route, Routes.AdminDashboard.route,
+    )
+
     /** La casita siempre regresa a Inicio, quitando todo lo que haya encima (sin restaurar nada). */
     fun goHome() {
+        sectionHistory.clear()
         if (!navController.popBackStack(Routes.Home.route, inclusive = false)) {
             navController.navigate(Routes.Home.route) {
                 popUpTo(navController.graph.id) { inclusive = true }
             }
         }
     }
+
+    /** Va a una sección de la barra anotando de cuál se viene. */
+    fun goSection(route: String) {
+        val actual = navController.currentDestination?.route
+        if (actual != route && actual in sectionRoutes) sectionHistory.add(actual!!)
+        goTab(route)
+    }
+
+    /** Flecha / "atrás" de una sección: a la anterior del historial; si no hay, a Inicio. */
+    fun leaveSection() {
+        val anterior = sectionHistory.removeLastOrNull()
+        if (anterior == null || anterior == Routes.Home.route) goHome() else goTab(anterior)
+    }
+
 
     // ── Barra inferior ───────────────────────────────────────────────────────
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -311,8 +342,7 @@ fun KarsyNavGraph(
                         userMode = userMode,
                         onLotClick = { navController.navigate(Routes.LotProfile.createRoute(it)) },
                         onNotifications = { navController.navigate(Routes.Notifications.route) },
-                        onAdminPanel = { goTab(Routes.AdminDashboard.route) },
-                        onLogin = { navController.navigate(Routes.Login.route) }
+                        onBack = ::leaveSection
                     )
                 }
                 composable(
@@ -341,14 +371,17 @@ fun KarsyNavGraph(
                     )
                 }
                 composable(Routes.Favorites.route) {
-                    FavoritesScreen(userMode = userMode, onBack = ::back, onCarClick = ::openCar)
+                    // "Atrás" del sistema igual que la flecha (los paneles de la pantalla tienen prioridad).
+                    BackHandler(onBack = ::leaveSection)
+                    FavoritesScreen(userMode = userMode, onBack = ::leaveSection, onCarClick = ::openCar)
                 }
 
                 // ── Perfil ───────────────────────────────────────────────────
                 composable(Routes.Profile.route) {
+                    BackHandler(onBack = ::leaveSection)
                     ProfileScreen(
                         userMode = userMode,
-                        onBack = ::back,
+                        onBack = ::leaveSection,
                         onPanel = { navController.navigate(Routes.Dashboard.route) },
                         onAdminPanel = { navController.navigate(Routes.AdminDashboard.route) },
                         onHistory = { navController.navigate(Routes.History.route) },
@@ -507,9 +540,11 @@ fun KarsyNavGraph(
                         // Dentro del perfil de un lote, "Lotes" regresa al directorio.
                         BottomTab.Lots ->
                             if (currentRoute == Routes.LotProfile.route) navController.popBackStack(Routes.Lots.route, inclusive = false)
-                            else goTab(Routes.Lots.route)
+                            else {
+                                goSection(Routes.Lots.route)
+                            }
                         BottomTab.Favorites ->
-                            if (userMode.isLoggedIn) goTab(Routes.Favorites.route) else barToast = toastFavorites
+                            if (userMode.isLoggedIn) goSection(Routes.Favorites.route) else barToast = toastFavorites
                         BottomTab.Profile ->
                             if (userMode.isLoggedIn) accountMenuOpen = !accountMenuOpen else barToast = toastProfile
                     }
@@ -527,7 +562,7 @@ fun KarsyNavGraph(
                         email = account?.correo.orEmpty(),
                         avatarUrl = avatarUrl,
                         onDismiss = { accountMenuOpen = false },
-                        onProfile = { goTab(Routes.Profile.route) },
+                        onProfile = { goSection(Routes.Profile.route) },
                         onLogout = { confirmLogout = true }
                     )
                 }
