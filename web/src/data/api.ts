@@ -1,7 +1,7 @@
 // Acceso a datos. Usa las MISMAS tablas, vista (v_anuncios) y funciones que la app de
 // Android (data/repository/*.kt), así lo que se haga aquí se ve en la app y al revés.
 import { publicUrl, supabase } from '../lib/supabase'
-import type { AnuncioRow, Car, CarDetail, Catalogs, SellerContact } from './types'
+import type { AnuncioRow, Car, CarDetail, Catalogs, Lot, LotContact, SellerContact, SellerProfile } from './types'
 
 const VISTA = 'v_anuncios'
 
@@ -142,6 +142,14 @@ export async function favoriteIds(userId: string | null): Promise<Set<number>> {
   return new Set(rows.map((r) => r.id_publicacion))
 }
 
+/** Favoritos de la cuenta, del guardado más reciente al más antiguo (CarRepository.favoriteCars). */
+export async function favoriteCars(userId: string): Promise<Car[]> {
+  const rows = check(
+    await supabase.from('favoritos').select('id_publicacion').eq('id_cuenta', userId).order('fecha_guardado', { ascending: false }),
+  ) as { id_publicacion: number }[]
+  return carsByIds(rows.map((r) => r.id_publicacion))
+}
+
 export async function setFavorite(userId: string, id: number, favorite: boolean): Promise<void> {
   if (favorite) check(await supabase.from('favoritos').insert({ id_cuenta: userId, id_publicacion: id }))
   else check(await supabase.from('favoritos').delete().eq('id_cuenta', userId).eq('id_publicacion', id))
@@ -175,4 +183,122 @@ export async function sellerContact(id: number, userId: string | null): Promise<
     await supabase.from('interacciones_publicacion').insert({ id_publicacion: id, id_cuenta: userId, tipo_interaccion: 'contactar' })
   }
   return data
+}
+
+// ── Lotes y vendedores (LotRepository) ──────────────────────────────────────
+
+interface CuentaRow {
+  id_cuenta: string
+  nombre_mostrar: string
+  tipo_cuenta: 'particular' | 'lote'
+  foto_perfil: string | null
+  foto_portada: string | null
+  descripcion_corta: string | null
+  estado_perfil_ubi: string | null
+  municipio_perfil_ubi: string | null
+  estado_cuenta: string
+  fecha_creacion: string
+}
+
+interface PerfilLoteRow {
+  id_cuenta: string
+  calle: string | null
+  numero: string | null
+  colonia: string | null
+  codigo_postal: string | null
+  horarios_atencion: string | null
+}
+
+const CUENTA_COLS =
+  'id_cuenta,nombre_mostrar,tipo_cuenta,foto_perfil,foto_portada,descripcion_corta,estado_perfil_ubi,municipio_perfil_ubi,estado_cuenta,fecha_creacion'
+
+const ciudadDe = (c: CuentaRow) => [c.municipio_perfil_ubi, c.estado_perfil_ubi].filter(Boolean).join(', ')
+
+function toLot(c: CuentaRow, p: PerfilLoteRow | undefined, vehicleCount: number): Lot {
+  const direccion = p
+    ? [`${p.calle ?? ''} ${p.numero ?? ''}`.trim(), p.colonia ?? '', p.codigo_postal ? `C.P. ${p.codigo_postal}` : '', c.municipio_perfil_ubi ?? '', c.estado_perfil_ubi ?? '']
+        .filter((x) => x.trim())
+        .join(', ')
+    : ''
+  return {
+    id: c.id_cuenta,
+    name: c.nombre_mostrar,
+    logoUrl: publicUrl(c.foto_perfil),
+    coverUrl: publicUrl(c.foto_portada),
+    description: c.descripcion_corta ?? '',
+    city: ciudadDe(c),
+    address: direccion,
+    hours: p?.horarios_atencion ?? null,
+    vehicleCount,
+  }
+}
+
+/**
+ * Lotes con cuenta activa, de los que tienen más vehículos a los que tienen menos.
+ * No incluye el lote de la cuenta en sesión: el directorio es para ver a los demás.
+ */
+export async function lots(selfId: string | null): Promise<Lot[]> {
+  const [cuentas, perfiles, cars] = await Promise.all([
+    supabase.from('cuentas').select(CUENTA_COLS).eq('tipo_cuenta', 'lote').eq('estado_cuenta', 'activa'),
+    supabase.from('perfiles_lote').select('*'),
+    visibleCars(),
+  ])
+  const porId = new Map((check(perfiles) as PerfilLoteRow[]).map((p) => [p.id_cuenta, p]))
+  const conteo = new Map<string, number>()
+  for (const c of cars) conteo.set(c.ownerId, (conteo.get(c.ownerId) ?? 0) + 1)
+  return (check(cuentas) as CuentaRow[])
+    .filter((c) => c.id_cuenta !== selfId)
+    .map((c) => toLot(c, porId.get(c.id_cuenta), conteo.get(c.id_cuenta) ?? 0))
+    .sort((a, b) => b.vehicleCount - a.vehicleCount || a.name.localeCompare(b.name, 'es'))
+}
+
+export async function lot(id: string): Promise<Lot | null> {
+  const [cuenta, perfil] = await Promise.all([
+    supabase.from('cuentas').select(CUENTA_COLS).eq('id_cuenta', id).eq('tipo_cuenta', 'lote').maybeSingle(),
+    supabase.from('perfiles_lote').select('*').eq('id_cuenta', id).maybeSingle(),
+  ])
+  const c = check(cuenta) as CuentaRow | null
+  return c ? toLot(c, (check(perfil) as PerfilLoteRow | null) ?? undefined, 0) : null
+}
+
+/** Teléfono y WhatsApp del lote. Igual que contacto_vendedor, solo con sesión iniciada. */
+export async function lotContact(id: string, userId: string | null): Promise<LotContact | null> {
+  if (!userId) return null
+  const tels = (
+    check(await supabase.from('telefonos_contacto').select('*').eq('id_cuenta', id).eq('activo', true)) as {
+      numero_telefono: string
+      permite_llamadas: boolean
+      es_whatsapp: boolean
+      es_principal: boolean
+    }[]
+  ).sort((a, b) => Number(b.es_principal) - Number(a.es_principal))
+  return {
+    phone: tels.find((t) => t.permite_llamadas)?.numero_telefono ?? null,
+    whatsapp: tels.find((t) => t.es_whatsapp)?.numero_telefono ?? null,
+  }
+}
+
+/** Perfil público de cualquier vendedor. */
+export async function sellerProfile(id: string): Promise<SellerProfile | null> {
+  const c = check(await supabase.from('cuentas').select(CUENTA_COLS).eq('id_cuenta', id).maybeSingle()) as CuentaRow | null
+  if (!c) return null
+  return {
+    id: c.id_cuenta,
+    name: c.nombre_mostrar,
+    type: c.tipo_cuenta,
+    avatarUrl: publicUrl(c.foto_perfil),
+    coverUrl: publicUrl(c.foto_portada),
+    description: c.descripcion_corta ?? '',
+    city: ciudadDe(c),
+    since: c.fecha_creacion,
+    active: c.estado_cuenta === 'activa',
+  }
+}
+
+/** Publicaciones visibles de una cuenta (CarRepository.ownerCars con onlyVisible). */
+export async function ownerVisibleCars(ownerId: string): Promise<Car[]> {
+  const rows = check(
+    await supabase.from(VISTA).select('*').eq('id_propietario', ownerId).eq('visible', true).order('fecha_creacion', { ascending: false }),
+  ) as AnuncioRow[]
+  return rows.map(toCar)
 }
