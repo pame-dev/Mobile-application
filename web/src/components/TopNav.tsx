@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { unreadCount } from '../data/account'
 import { FILTER_KEYS, SIN_FILTROS, filtrosDeUrl, type Filtros } from '../lib/filtros'
 import { iniciales } from '../lib/format'
 import { publicUrl } from '../lib/supabase'
@@ -75,7 +76,7 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
   )
 }
 
-function LogoutModal() {
+export function LogoutModal() {
   const { closeModal } = useUi()
   const { signOut } = useSession()
   const navigate = useNavigate()
@@ -112,6 +113,16 @@ export function TopNav() {
   const [q, setQ] = useState(params.get('q') ?? '')
   const searchRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [sinLeer, setSinLeer] = useState(0)
+
+  // Puntito en la campana si hay avisos sin leer (se revisa al cambiar de pantalla).
+  useEffect(() => {
+    if (!account) return setSinLeer(0)
+    const revisar = () => void unreadCount(account.id).then(setSinLeer).catch(() => undefined)
+    revisar()
+    window.addEventListener('karsy:notificaciones', revisar)
+    return () => window.removeEventListener('karsy:notificaciones', revisar)
+  }, [account, location.pathname])
 
   // La búsqueda refleja la URL (p. ej. al volver atrás).
   useEffect(() => {
@@ -208,8 +219,9 @@ export function TopNav() {
                 <Icon name="plus" size={18} />
                 Publicar
               </button>
-              <button className="iconbtn" aria-label="Notificaciones" onClick={() => navigate('/notificaciones')}>
+              <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? `Notificaciones (${sinLeer} sin leer)` : 'Notificaciones'} onClick={() => navigate('/notificaciones')}>
                 <Icon name="bell" size={19} />
+                {sinLeer > 0 && <span className="dot" />}
               </button>
               <div style={{ position: 'relative' }} ref={menuRef}>
                 <button
