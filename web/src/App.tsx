@@ -1,7 +1,12 @@
-import { Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Detail } from './pages/Detail'
 import { Home } from './pages/Home'
+import { Login } from './pages/auth/Login'
+import { Recover } from './pages/auth/Recover'
+import { RegisterForm, RegisterType } from './pages/auth/Register'
+import { VerifyEmail } from './pages/auth/VerifyEmail'
 import { NotFound, Placeholder } from './pages/Placeholder'
 
 /**
@@ -9,17 +14,17 @@ import { NotFound, Placeholder } from './pages/Placeholder'
  * directo en Inicio como visitante; Iniciar sesión y Registrarse están en la barra.
  */
 export function App() {
+  const { pathname } = useLocation()
+  // Cada pantalla nueva empieza arriba.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="vehiculo/:id" element={<Detail />} />
-
-        {/* Fase 2: acceso */}
-        <Route path="login" element={<Placeholder title="Iniciar sesión" />} />
-        <Route path="registro/*" element={<Placeholder title="Registro" />} />
-        <Route path="verificar" element={<Placeholder title="Verificar correo" />} />
-        <Route path="recuperar" element={<Placeholder title="Recuperar contraseña" />} />
 
         {/* Fase 3: comprador */}
         <Route path="lotes" element={<Placeholder title="Lotes" />} />
@@ -42,6 +47,14 @@ export function App() {
 
         <Route path="*" element={<NotFound />} />
       </Route>
+
+      {/* Acceso: pantalla completa, sin la barra de navegación */}
+      <Route path="login" element={<Login />} />
+      <Route path="registro" element={<RegisterType />} />
+      <Route path="registro/particular" element={<RegisterForm key="particular" tipo="particular" />} />
+      <Route path="registro/lote" element={<RegisterForm key="lote" tipo="lote" />} />
+      <Route path="verificar" element={<VerifyEmail />} />
+      <Route path="recuperar" element={<Recover />} />
 
       {/* Fase 6: administración (tiene su propio layout con panel lateral) */}
       <Route path="admin/*" element={<Placeholder title="Panel de administración" />} />

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useSession } from '../session/SessionContext'
 import { TopNav } from './TopNav'
 import { useUi } from './Ui'
@@ -42,13 +42,9 @@ export function Footer() {
 
 /** Barra superior + contenido + pie, para las pantallas del marketplace y de la cuenta. */
 export function Layout() {
-  const { pathname } = useLocation()
   const { notice, clearNotice } = useSession()
   const { toast } = useUi()
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
   // Sesión cerrada sola (cuenta suspendida, etc.): se avisa una vez.
   useEffect(() => {
     if (notice) {

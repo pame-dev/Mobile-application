@@ -27,3 +27,4 @@ respaldo_*.sql
 .env.*
 !.env.example
 web/dist/
+web/*.tsbuildinfo

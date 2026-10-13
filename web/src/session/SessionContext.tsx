@@ -13,11 +13,21 @@ interface SessionValue {
   /** Mensaje si la sesión se cerró sola (cuenta suspendida o sin cuenta de Karsy). */
   notice: string | null
   clearNotice: () => void
-  reload: () => Promise<void>
+  /** Vuelve a leer la cuenta; devuelve la cuenta (o null) y el aviso si se cerró la sesión. */
+  reload: () => Promise<{ account: Account | null; notice: string | null }>
   signOut: () => Promise<void>
 }
 
 const SessionContext = createContext<SessionValue | null>(null)
+
+/**
+ * Durante "¿Olvidaste tu contraseña?" el código abre una sesión temporal que solo
+ * sirve para cambiar la contraseña: mientras tanto la web sigue como visitante.
+ */
+let recoveryMode = false
+export function setRecoveryMode(on: boolean) {
+  recoveryMode = on
+}
 
 /**
  * Lee la cuenta de public.cuentas y el rol con es_administrador(), igual que
@@ -62,9 +72,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
+    if (recoveryMode) return { account: null, notice: null }
     const r = await loadAccount()
     setAccount(r.account)
     if (r.notice) setNotice(r.notice)
+    return r
   }, [])
 
   useEffect(() => {
