@@ -14,7 +14,7 @@ interface FavoritesValue {
 const FavoritesContext = createContext<FavoritesValue | null>(null)
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const { account, mode } = useSession()
+  const { account } = useSession()
   const { toast } = useUi()
   const navigate = useNavigate()
   const [ids, setIds] = useState<Set<number>>(new Set())
@@ -35,10 +35,6 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         toast('Regístrate para guardar tus favoritos', { label: 'Registrarme', onClick: () => navigate('/registro') })
         return
       }
-      if (mode === 'admin') {
-        toast('Los administradores no guardan favoritos')
-        return
-      }
       const agregar = !ids.has(id)
       // Cambio inmediato; si la BD falla se revierte (igual que la app).
       setIds((s) => {
@@ -57,7 +53,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         toast('No se pudo guardar el favorito. Intenta de nuevo.')
       })
     },
-    [account, ids, mode, navigate, toast],
+    [account, ids, navigate, toast],
   )
 
   return (

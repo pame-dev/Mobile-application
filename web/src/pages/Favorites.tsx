@@ -69,13 +69,6 @@ export function Favorites() {
       </div>
     )
   }
-  if (mode === 'admin') {
-    return (
-      <div className="wrap" style={{ maxWidth: 820, paddingTop: 28 }}>
-        <Aviso titulo="Los administradores no guardan favoritos" texto="Esta sección es para compradores y vendedores." />
-      </div>
-    )
-  }
 
   return (
     <div className="wrap">
