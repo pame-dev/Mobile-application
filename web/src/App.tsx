@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { Layout } from './components/Layout'
+import { Notifications, Privacy, PrivacyPolicy, Settings, Terms } from './pages/Account'
+import { Admin } from './pages/admin/Admin'
 import { Dashboard } from './pages/Dashboard'
 import { Detail } from './pages/Detail'
 import { History } from './pages/History'
@@ -15,7 +17,7 @@ import { Login } from './pages/auth/Login'
 import { Recover } from './pages/auth/Recover'
 import { RegisterForm, RegisterType } from './pages/auth/Register'
 import { VerifyEmail } from './pages/auth/VerifyEmail'
-import { NotFound, Placeholder } from './pages/Placeholder'
+import { NotFound } from './pages/Placeholder'
 
 /**
  * Rutas de Karsy Web. A diferencia de la app (que abre en Bienvenida), la web abre
@@ -45,12 +47,11 @@ export function App() {
         <Route path="panel" element={<Dashboard />} />
         <Route path="historial" element={<History />} />
 
-        {/* Fase 5: cuenta */}
-        <Route path="notificaciones" element={<Placeholder title="Notificaciones" />} />
-        <Route path="configuracion" element={<Placeholder title="Configuración" />} />
-        <Route path="privacidad" element={<Placeholder title="Privacidad y seguridad" />} />
-        <Route path="privacidad/politicas" element={<Placeholder title="Políticas de privacidad" />} />
-        <Route path="terminos" element={<Placeholder title="Términos y condiciones" />} />
+        <Route path="notificaciones" element={<Notifications />} />
+        <Route path="configuracion" element={<Settings />} />
+        <Route path="privacidad" element={<Privacy />} />
+        <Route path="privacidad/politicas" element={<PrivacyPolicy />} />
+        <Route path="terminos" element={<Terms />} />
 
         <Route path="*" element={<NotFound />} />
       </Route>
@@ -63,8 +64,9 @@ export function App() {
       <Route path="verificar" element={<VerifyEmail />} />
       <Route path="recuperar" element={<Recover />} />
 
-      {/* Fase 6: administración (tiene su propio layout con panel lateral) */}
-      <Route path="admin/*" element={<Placeholder title="Panel de administración" />} />
+      {/* Administración: su propio layout con panel lateral */}
+      <Route path="admin" element={<Admin />} />
+      <Route path="admin/:sec" element={<Admin />} />
     </Routes>
   )
 }

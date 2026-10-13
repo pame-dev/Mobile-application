@@ -39,6 +39,7 @@ export interface AnuncioRow {
   aprobada: boolean
   visible: boolean
   estado_ultima_propuesta: string | null
+  id_ultima_propuesta?: number | null
   motivo_rechazo_propuesta: string | null
   motivo_deshabilitacion: string | null
   destacado: boolean
