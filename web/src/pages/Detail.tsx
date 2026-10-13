@@ -310,11 +310,21 @@ export function Detail() {
       </div>
 
       {esDueno && (
-        <div className="card row" style={{ padding: '14px 18px', marginBottom: 18 }}>
+        <div className="card row" style={{ padding: '14px 18px', marginBottom: 18, flexWrap: 'wrap' }}>
           <span className={`badge ${STATUS_BADGE[c.status]}`}>{c.status}</span>
           <div className="grow muted" style={{ fontSize: 13 }}>
             {c.status === 'Activo' ? 'Tu publicación está visible para los compradores.' : 'Así se verá tu publicación para los compradores.'}
           </div>
+          {c.status !== 'Vendido' && c.status !== 'Deshabilitado' && (
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/publicar/${c.id}`)}>
+              <Icon name="edit" size={14} />
+              {c.status === 'Rechazado' ? 'Corregir y reenviar' : 'Editar'}
+            </button>
+          )}
+          <button className="btn btn-soft btn-sm" onClick={() => navigate('/panel')}>
+            <Icon name="chart" size={14} />
+            Mi panel
+          </button>
         </div>
       )}
 
