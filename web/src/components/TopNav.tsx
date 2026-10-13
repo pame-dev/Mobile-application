@@ -268,7 +268,7 @@ export function TopNav() {
         <div className="row" style={{ marginLeft: 'auto', gap: 10 }}>
           {mode === 'guest' ? (
             <>
-              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login')}>
+              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login', { state: { from: location.pathname + location.search } })}>
                 Iniciar sesión
               </button>
               <button className="btn btn-primary btn-sm" onClick={() => navigate('/registro')}>
