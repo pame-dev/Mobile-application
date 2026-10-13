@@ -1,0 +1,106 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { supabase } from '../lib/supabase'
+import type { Account } from '../data/types'
+
+/** Visitante (sin sesión), usuario (particular o lote) o administrador. */
+export type Mode = 'guest' | 'user' | 'admin'
+
+interface SessionValue {
+  account: Account | null
+  mode: Mode
+  /** true mientras se restaura la sesión guardada al abrir la web. */
+  loading: boolean
+  /** Mensaje si la sesión se cerró sola (cuenta suspendida o sin cuenta de Karsy). */
+  notice: string | null
+  clearNotice: () => void
+  reload: () => Promise<void>
+  signOut: () => Promise<void>
+}
+
+const SessionContext = createContext<SessionValue | null>(null)
+
+/**
+ * Lee la cuenta de public.cuentas y el rol con es_administrador(), igual que
+ * AuthRepository.loadAccountOrSignOut en la app: sin cuenta o suspendida → se cierra la sesión.
+ */
+async function loadAccount(): Promise<{ account: Account | null; notice: string | null }> {
+  const { data: userData } = await supabase.auth.getUser()
+  const user = userData.user
+  if (!user) return { account: null, notice: null }
+
+  const { data: cuenta } = await supabase
+    .from('cuentas')
+    .select('id_cuenta,nombre_mostrar,tipo_cuenta,estado_cuenta,foto_perfil')
+    .eq('id_cuenta', user.id)
+    .maybeSingle()
+
+  if (!cuenta) {
+    await supabase.auth.signOut()
+    return { account: null, notice: 'Esta cuenta no tiene un perfil de Karsy.' }
+  }
+  if (cuenta.estado_cuenta === 'suspendida') {
+    await supabase.auth.signOut()
+    return { account: null, notice: 'Tu cuenta está suspendida. Escríbenos si crees que es un error.' }
+  }
+  const { data: esAdmin } = await supabase.rpc('es_administrador', { p_id_cuenta: user.id })
+  return {
+    account: {
+      id: cuenta.id_cuenta,
+      nombre: cuenta.nombre_mostrar,
+      tipoCuenta: cuenta.tipo_cuenta,
+      esAdmin: esAdmin === true,
+      correo: user.email ?? '',
+      fotoPerfil: cuenta.foto_perfil,
+    },
+    notice: null,
+  }
+}
+
+export function SessionProvider({ children }: { children: ReactNode }) {
+  const [account, setAccount] = useState<Account | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    const r = await loadAccount()
+    setAccount(r.account)
+    if (r.notice) setNotice(r.notice)
+  }, [])
+
+  useEffect(() => {
+    reload().finally(() => setLoading(false))
+    // Inicio/cierre de sesión (también en otra pestaña) → se vuelve a leer la cuenta.
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        // Fuera del callback: Supabase no permite llamar a la API dentro de él.
+        setTimeout(() => void reload(), 0)
+      }
+    })
+    return () => data.subscription.unsubscribe()
+  }, [reload])
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut()
+    setAccount(null)
+  }, [])
+
+  const value = useMemo<SessionValue>(
+    () => ({
+      account,
+      mode: !account ? 'guest' : account.esAdmin ? 'admin' : 'user',
+      loading,
+      notice,
+      clearNotice: () => setNotice(null),
+      reload,
+      signOut,
+    }),
+    [account, loading, notice, reload, signOut],
+  )
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+}
+
+export function useSession(): SessionValue {
+  const ctx = useContext(SessionContext)
+  if (!ctx) throw new Error('useSession debe usarse dentro de <SessionProvider>')
+  return ctx
+}

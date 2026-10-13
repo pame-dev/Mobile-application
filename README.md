@@ -1,6 +1,51 @@
 # Mobile-application
 Proyecto integrador de 5to semestre
 
+Karsy tiene dos clientes que usan **el mismo proyecto de Supabase** (mismas tablas,
+mismo inicio de sesión y mismas fotos), así que lo que se hace en uno se ve en el otro.
+
+```
+app/        App de Android (Kotlin + Jetpack Compose)
+web/        Versión web (React + Vite + TypeScript)
+supabase/   Migraciones y plantillas de correo, compartidas por las dos
+```
+
+## App de Android
+
+1. En `local.properties` (no se sube al repo) pon los datos de Supabase:
+   ```
+   SUPABASE_URL=https://<proyecto>.supabase.co
+   SUPABASE_ANON_KEY=<anon / publishable key>
+   ```
+2. Con un emulador o celular conectado:
+   ```powershell
+   .\gradlew.bat installDebug
+   ```
+
+La app abre en la pantalla de **Bienvenida**.
+
+## Web
+
+Requiere Node 20 o más nuevo.
+
+1. Copia `web/.env.example` como `web/.env` y llena los **mismos** valores que la app:
+   ```
+   VITE_SUPABASE_URL=https://<proyecto>.supabase.co
+   VITE_SUPABASE_ANON_KEY=<anon / publishable key>
+   ```
+   Solo va la llave pública (anon). `.env` está en `.gitignore`; nunca subas la
+   `service_role`.
+2. Instala y corre:
+   ```powershell
+   cd web
+   npm install
+   npm run dev      # http://localhost:5173
+   ```
+3. Para generar la versión final: `npm run build` (queda en `web/dist/`).
+
+A diferencia de la app, la web abre directo en el **Inicio como visitante**;
+*Iniciar sesión* y *Regístrate* están en la barra de arriba.
+
 ## Base de datos
 
 Las migraciones están en `supabase/migrations`. Para aplicarlas al proyecto vinculado:
