@@ -2,6 +2,10 @@ import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Detail } from './pages/Detail'
+import { Favorites } from './pages/Favorites'
+import { LotProfile } from './pages/LotProfile'
+import { Lots } from './pages/Lots'
+import { SellerProfile } from './pages/SellerProfile'
 import { Home } from './pages/Home'
 import { Login } from './pages/auth/Login'
 import { Recover } from './pages/auth/Recover'
@@ -26,11 +30,10 @@ export function App() {
         <Route index element={<Home />} />
         <Route path="vehiculo/:id" element={<Detail />} />
 
-        {/* Fase 3: comprador */}
-        <Route path="lotes" element={<Placeholder title="Lotes" />} />
-        <Route path="lotes/:id" element={<Placeholder title="Perfil de lote" />} />
-        <Route path="vendedor/:id" element={<Placeholder title="Perfil del vendedor" />} />
-        <Route path="favoritos" element={<Placeholder title="Favoritos" />} />
+        <Route path="lotes" element={<Lots />} />
+        <Route path="lotes/:id" element={<LotProfile />} />
+        <Route path="vendedor/:id" element={<SellerProfile />} />
+        <Route path="favoritos" element={<Favorites />} />
 
         {/* Fase 4: vendedor */}
         <Route path="publicar" element={<Placeholder title="Publicar vehículo" />} />

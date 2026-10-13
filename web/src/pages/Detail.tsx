@@ -6,7 +6,7 @@ import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
 import { carDetail, registerView, reportListing, sellerContact, UserError, visibleCars } from '../data/api'
 import type { Car, CarDetail, SellerContact } from '../data/types'
-import { iniciales, km, precio } from '../lib/format'
+import { iniciales, km, precio, whatsappUrl } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
 
@@ -17,13 +17,6 @@ const STATUS_BADGE: Record<Car['status'], string> = {
   Deshabilitado: 'b-neu',
   Vendido: 'b-info',
   Pausado: 'b-neu',
-}
-
-/** Números de 10 dígitos se toman como de México (+52), igual que la app. */
-function whatsappUrl(numero: string, mensaje: string) {
-  const digitos = numero.replace(/\D/g, '')
-  const internacional = digitos.length === 10 ? '52' + digitos : digitos
-  return `https://wa.me/${internacional}?text=${encodeURIComponent(mensaje)}`
 }
 
 function ContactModal({ detail }: { detail: CarDetail }) {

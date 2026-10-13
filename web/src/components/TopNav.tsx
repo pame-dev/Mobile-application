@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { catalogs } from '../data/api'
-import type { Catalogs } from '../data/types'
+import { FILTER_KEYS, SIN_FILTROS, filtrosDeUrl, type Filtros } from '../lib/filtros'
 import { iniciales } from '../lib/format'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
+import { FilterFields } from './Filters'
 import { Icon, type IconName } from './Icon'
 import { ModalHead, useUi } from './Ui'
 
@@ -18,27 +18,14 @@ export function Brand({ light = false }: { light?: boolean }) {
   )
 }
 
-/** Claves de búsqueda/filtros en la URL de Inicio. */
-export const FILTER_KEYS = ['tipo', 'marca', 'modelo', 'anio', 'min', 'max'] as const
-
-const anioActual = new Date().getFullYear()
-const ANIOS = Array.from({ length: 35 }, (_, i) => String(anioActual + 1 - i))
-
-/** Panel de filtros (mismos campos que el menú de filtros de la app). */
+/** Panel de filtros de la barra (mismos campos que el menú de filtros de la app); se aplica a Inicio. */
 function FilterPanel({ onClose }: { onClose: () => void }) {
   const { mode } = useSession()
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const [cat, setCat] = useState<Catalogs | null>(null)
-  const [draft, setDraft] = useState<Record<string, string>>(() =>
-    Object.fromEntries(FILTER_KEYS.map((k) => [k, params.get(k) ?? ''])),
-  )
-  useEffect(() => {
-    catalogs().then(setCat).catch(() => setCat(null))
-  }, [])
-  const set = (k: string, v: string) => setDraft((d) => ({ ...d, [k]: v, ...(k === 'marca' ? { modelo: '' } : {}) }))
+  const [draft, setDraft] = useState<Filtros>(() => filtrosDeUrl(params))
 
-  const aplicar = (valores: Record<string, string>) => {
+  const aplicar = (valores: Filtros) => {
     const next = new URLSearchParams(params)
     for (const k of FILTER_KEYS) {
       const v = valores[k]?.trim()
@@ -72,75 +59,15 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
     )
   }
 
-  const marcaSel = cat?.marcas.find((m) => String(m.id) === draft.marca)
   return (
     <div className="filterpop">
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <h3>FILTROS</h3>
-        <button
-          style={{ background: 'none', border: 0, color: 'var(--teal)', fontWeight: 600 }}
-          onClick={() => aplicar(Object.fromEntries(FILTER_KEYS.map((k) => [k, ''])))}
-        >
+        <button style={{ background: 'none', border: 0, color: 'var(--teal)', fontWeight: 600 }} onClick={() => aplicar(SIN_FILTROS)}>
           Limpiar
         </button>
       </div>
-      <div className="field">
-        <label>Tipo</label>
-        <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
-          <button className={`chip ${!draft.tipo ? 'on' : ''}`} onClick={() => set('tipo', '')}>
-            Todos
-          </button>
-          {cat?.carrocerias
-            .filter((c) => !c.esOtro)
-            .map((c) => (
-              <button key={c.id} className={`chip ${draft.tipo === c.nombre ? 'on' : ''}`} onClick={() => set('tipo', c.nombre)}>
-                {c.nombre}
-              </button>
-            ))}
-        </div>
-      </div>
-      <div className="field">
-        <label htmlFor="fb">Marca</label>
-        <select className="input" id="fb" value={draft.marca} onChange={(e) => set('marca', e.target.value)}>
-          <option value="">Todas</option>
-          {cat?.marcas
-            .filter((m) => !m.esOtro)
-            .map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.nombre}
-              </option>
-            ))}
-        </select>
-      </div>
-      <div className="field">
-        <label htmlFor="fm">Modelo</label>
-        <select className="input" id="fm" value={draft.modelo} disabled={!marcaSel} onChange={(e) => set('modelo', e.target.value)}>
-          <option value="">Todos</option>
-          {cat?.modelos
-            .filter((m) => m.idMarca === marcaSel?.id && !m.esOtro)
-            .map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.nombre}
-              </option>
-            ))}
-        </select>
-      </div>
-      <div className="field">
-        <label htmlFor="fy">Año</label>
-        <select className="input" id="fy" value={draft.anio} onChange={(e) => set('anio', e.target.value)}>
-          <option value="">Cualquiera</option>
-          {ANIOS.map((a) => (
-            <option key={a}>{a}</option>
-          ))}
-        </select>
-      </div>
-      <div className="field">
-        <label>Rango de precio</label>
-        <div className="grid2" style={{ gap: 8 }}>
-          <input className="input" inputMode="numeric" placeholder="Mín. $0" aria-label="Precio mínimo" value={draft.min} onChange={(e) => set('min', e.target.value.replace(/\D/g, ''))} />
-          <input className="input" inputMode="numeric" placeholder="Máx. $2M" aria-label="Precio máximo" value={draft.max} onChange={(e) => set('max', e.target.value.replace(/\D/g, ''))} />
-        </div>
-      </div>
+      <FilterFields draft={draft} onChange={setDraft} />
       <button className="btn btn-primary btn-block" onClick={() => aplicar(draft)}>
         Aplicar
       </button>

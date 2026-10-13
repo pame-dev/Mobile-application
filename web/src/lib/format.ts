@@ -29,3 +29,10 @@ export function haceCuanto(iso: string | null | undefined): string {
 /** Iniciales para avatares sin foto: "Auto Premium" → "AP". */
 export const iniciales = (nombre: string) =>
   nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join('')
+
+/** Números de 10 dígitos se toman como de México (+52), igual que la app. */
+export function whatsappUrl(numero: string, mensaje: string) {
+  const digitos = numero.replace(/\D/g, '')
+  const internacional = digitos.length === 10 ? '52' + digitos : digitos
+  return `https://wa.me/${internacional}?text=${encodeURIComponent(mensaje)}`
+}

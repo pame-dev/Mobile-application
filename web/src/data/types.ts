@@ -127,3 +127,38 @@ export interface Account {
   correo: string
   fotoPerfil: string | null
 }
+
+/** Lote o agencia del directorio (cuentas tipo "lote" + perfiles_lote). */
+export interface Lot {
+  id: string
+  name: string
+  logoUrl: string | null
+  coverUrl: string | null
+  description: string
+  /** "Municipio, Estado". */
+  city: string
+  /** Calle, número, colonia, CP, municipio y estado; vacío si el lote no la registró. */
+  address: string
+  hours: string | null
+  /** Publicaciones visibles (aprobadas, activas y habilitadas). */
+  vehicleCount: number
+}
+
+/** Números del lote para "Llamar" y "WhatsApp" (solo se piden con sesión iniciada). */
+export interface LotContact {
+  phone: string | null
+  whatsapp: string | null
+}
+
+/** Perfil público de un vendedor (cualquier tipo de cuenta). */
+export interface SellerProfile {
+  id: string
+  name: string
+  type: 'particular' | 'lote'
+  avatarUrl: string | null
+  coverUrl: string | null
+  description: string
+  city: string
+  since: string
+  active: boolean
+}

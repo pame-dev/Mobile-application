@@ -2,43 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
-import { FILTER_KEYS } from '../components/TopNav'
 import { VehicleCard } from '../components/VehicleCard'
 import { heroStats, visibleCars } from '../data/api'
 import type { Car } from '../data/types'
+import { FILTER_KEYS, ORDEN, filtrarCars, filtrosDeUrl } from '../lib/filtros'
 import { entero, km, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
-
-const ORDEN = [
-  ['recientes', 'Más recientes'],
-  ['menor', 'Menor precio'],
-  ['mayor', 'Mayor precio'],
-] as const
-
-/** Búsqueda + filtros de la URL (misma lógica que filtrar() en HomeViewModel.kt). */
-function aplicarFiltros(cars: Car[], p: URLSearchParams): Car[] {
-  const q = (p.get('q') ?? '').trim().toLowerCase()
-  const min = Number(p.get('min')) || null
-  const max = Number(p.get('max')) || null
-  const lista = cars.filter(
-    (c) =>
-      (!q || `${c.brand} ${c.model} ${c.year}`.toLowerCase().includes(q)) &&
-      (!p.get('marca') || String(c.brandId) === p.get('marca')) &&
-      (!p.get('modelo') || String(c.modelId) === p.get('modelo')) &&
-      (!p.get('anio') || String(c.year) === p.get('anio')) &&
-      (!p.get('tipo') || c.bodyType === p.get('tipo')) &&
-      (min == null || c.priceValue >= min) &&
-      (max == null || c.priceValue <= max),
-  )
-  switch (p.get('orden')) {
-    case 'menor':
-      return [...lista].sort((a, b) => a.priceValue - b.priceValue)
-    case 'mayor':
-      return [...lista].sort((a, b) => b.priceValue - a.priceValue)
-    default:
-      return [...lista].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-  }
-}
 
 const POR_PAGINA_DESTACADOS = 3
 
@@ -64,7 +33,7 @@ export function Home() {
     cargar()
   }, [cargar])
 
-  const lista = useMemo(() => (cars ? aplicarFiltros(cars, params) : []), [cars, params])
+  const lista = useMemo(() => (cars ? filtrarCars(cars, filtrosDeUrl(params), params.get('q') ?? '', params.get('orden') ?? '') : []), [cars, params])
   const destacados = useMemo(() => (cars ?? []).filter((c) => c.featured), [cars])
   const hayFiltros = params.has('q') || FILTER_KEYS.some((k) => params.has(k))
   const paginas = Math.max(1, Math.ceil(destacados.length / POR_PAGINA_DESTACADOS))
