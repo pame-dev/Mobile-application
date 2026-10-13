@@ -273,8 +273,8 @@ export function Detail() {
 
   const c = detail.car
   const esDueno = !!account && account.id === c.ownerId
-  // Igual que la app: el dueño y el admin no ven favorito, contactar ni reportar.
-  const acciones = mode !== 'admin' && !esDueno
+  // El dueño no ve favorito, contactar ni reportar en sus propias publicaciones.
+  const acciones = !esDueno
   const fotos = detail.gallery.length ? detail.gallery : [null]
   const on = fav.isFavorite(c.id)
   const seminuevo = c.year >= new Date().getFullYear() - 3
@@ -337,7 +337,7 @@ export function Detail() {
                   {foto + 1} de {fotos.length}
                 </span>
               )}
-              {acciones && (
+              {!esDueno && (
                 <button
                   className={`heart ${on ? 'on' : ''}`}
                   style={{ width: 42, height: 42, top: 14, right: 14 }}

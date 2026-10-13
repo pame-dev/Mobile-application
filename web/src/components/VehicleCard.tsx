@@ -10,7 +10,7 @@ import { STATUS_BADGE } from './OwnerActions'
 /** Tarjeta de la cuadrícula de vehículos (vcard del diseño). */
 export function VehicleCard({ car, showStatus = false, note }: { car: Car; showStatus?: boolean; note?: string }) {
   const navigate = useNavigate()
-  const { mode, account } = useSession()
+  const { account } = useSession()
   const fav = useFavorites()
   const on = fav.isFavorite(car.id)
   const abrir = () => navigate(`/vehiculo/${car.id}`)
@@ -24,8 +24,8 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), abrir())}
     >
       <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`}>
-        {/* Los administradores no guardan favoritos (igual que la app). */}
-        {mode !== 'admin' && account?.id !== car.ownerId && (
+        {/* Tus propias publicaciones no se guardan en favoritos. */}
+        {account?.id !== car.ownerId && (
           <button
             className={`heart ${on ? 'on' : ''}`}
             aria-label={on ? 'Quitar de favoritos' : 'Guardar en favoritos'}
