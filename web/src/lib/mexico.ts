@@ -23,7 +23,7 @@ export function estadosMunicipios(): Promise<EstadoMunicipios[]> {
  * Comprime una imagen a JPEG con el lado mayor de [maxLado] px (Imagenes.jpegBytes de la app).
  * Devuelve también el lado menor original, para validar el tamaño mínimo.
  */
-export async function jpegDe(file: File, maxLado = 800): Promise<{ blob: Blob; ladoMenor: number }> {
+export async function jpegDe(file: Blob, maxLado = 800, calidad = 0.85): Promise<{ blob: Blob; ladoMenor: number }> {
   const url = URL.createObjectURL(file)
   try {
     const img = await new Promise<HTMLImageElement>((ok, fail) => {
@@ -41,7 +41,7 @@ export async function jpegDe(file: File, maxLado = 800): Promise<{ blob: Blob; l
     ctx.fillStyle = '#fff' // los PNG transparentes quedan con fondo blanco en JPEG
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-    const blob = await new Promise<Blob>((ok, fail) => canvas.toBlob((b) => (b ? ok(b) : fail(new Error('toBlob'))), 'image/jpeg', 0.85))
+    const blob = await new Promise<Blob>((ok, fail) => canvas.toBlob((b) => (b ? ok(b) : fail(new Error('toBlob'))), 'image/jpeg', calidad))
     return { blob, ladoMenor: Math.min(w, h) }
   } finally {
     URL.revokeObjectURL(url)
