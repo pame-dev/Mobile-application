@@ -21,3 +21,9 @@ respaldo_*.sql
 # Cuenta de servicio de Firebase (secreto: va solo en los secretos de Supabase)
 *firebase-adminsdk*.json
 *service-account*.json
+
+# Web (web/): variables de entorno locales y compilados
+.env
+.env.*
+!.env.example
+web/dist/
