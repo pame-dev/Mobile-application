@@ -16,6 +16,7 @@ import { precargarTapaPlacas, taparPlacas } from '../lib/tapaPlacas'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
 import { traducir, useI18n } from '../i18n/I18nContext'
+import { nombreCatalogo } from '../lib/catalogo'
 import type { Clave } from '../i18n/es'
 
 /** Máximo de fotos por publicación (editar_publicacion valida lo mismo). */
@@ -208,7 +209,7 @@ export function Publish() {
 
   const marcaSel = cat?.marcas.find((m) => String(m.id) === d.idMarca)
   const modeloSel = cat?.modelos.find((m) => String(m.id) === d.idModelo)
-  const nombre = (lista: { id: number; nombre: string }[] | undefined, v: string) => lista?.find((x) => String(x.id) === v)?.nombre ?? ''
+  const nombre = (lista: { id: number; nombre: string }[] | undefined, v: string) => nombreCatalogo(lista?.find((x) => String(x.id) === v)?.nombre ?? '')
   const marcaNombre = marcaSel?.esOtro ? d.marcaOtra.trim() : marcaSel?.nombre ?? ''
   const modeloNombre = modeloSel?.esOtro ? d.modeloOtro.trim() : modeloSel?.nombre ?? ''
   const titulo = [marcaNombre, modeloNombre, d.anio.trim()].filter(Boolean).join(' ')
@@ -452,7 +453,7 @@ export function Publish() {
       <option value="">{placeholder}</option>
       {lista?.map((x) => (
         <option key={x.id} value={x.id}>
-          {x.nombre}
+          {nombreCatalogo(x.nombre)}
         </option>
       ))}
     </select>
@@ -572,7 +573,7 @@ export function Publish() {
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {cat.transmisiones.map((t) => (
                       <button type="button" key={t.id} className={d.idTransmision === String(t.id) ? 'on' : ''} onClick={() => set('idTransmision', String(t.id))}>
-                        {t.nombre}
+                        {nombreCatalogo(t.nombre)}
                       </button>
                     ))}
                   </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { mensajeUsuario } from '../data/auth'
-import { requestFeatured, setPaused, setSold, type OwnCar } from '../data/seller'
+import { requestFeatured, sePuedeOcultar, setPaused, setSold, type OwnCar } from '../data/seller'
 import { traducir, useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { ConfirmModal } from './Confirm'
@@ -166,4 +166,66 @@ export function useOwnerActions(onChanged: () => void) {
         />,
       ),
   }
+}
+
+/**
+ * Botones de gestión de una publicación propia según su estado (destacar, editar, vendido,
+ * deshabilitar/habilitar, ocultar). Se usan en Mi panel y en el detalle de la publicación.
+ */
+export function OwnerButtons({ c, acciones, oculta, onOcultar }: { c: OwnCar; acciones: ReturnType<typeof useOwnerActions>; oculta: boolean; onOcultar: (v: boolean) => void }) {
+  const { t } = useI18n()
+  return (
+    <>
+      {c.status === 'Rechazado' && (
+        <button className="btn btn-primary btn-sm" onClick={() => acciones.editar(c)}>
+          {t('perfil.fixResubmit')}
+        </button>
+      )}
+      {c.status === 'Activo' &&
+        (c.featuredPending ? (
+          <button className="btn btn-ghost btn-sm" disabled>
+            {t('perfil.requestSent')}
+          </button>
+        ) : !c.featured || c.featuredEndsSoon ? (
+          <button className="btn btn-soft btn-sm" onClick={() => acciones.destacar(c)}>
+            <Icon name="star" size={14} />
+            {c.featured ? t('perfil.renewFeatured') : t('perfil.feature')}
+          </button>
+        ) : null)}
+      {(c.status === 'Activo' || c.status === 'Pausado' || c.status === 'Pendiente') && (
+        <button className="btn btn-ghost btn-sm" onClick={() => acciones.editar(c)}>
+          <Icon name="edit" size={14} />
+          {t('perfil.edit')}
+        </button>
+      )}
+      {c.status === 'Activo' && (
+        <>
+          <button className="btn btn-ghost btn-sm" onClick={() => acciones.vendido(c)}>
+            <Icon name="sold" size={14} />
+            {t('perfil.markSold')}
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => acciones.pausar(c)}>
+            <Icon name="pause" size={14} />
+            {t('perfil.disable')}
+          </button>
+        </>
+      )}
+      {c.status === 'Pausado' && (
+        <button className="btn btn-primary btn-sm" onClick={() => acciones.habilitar(c)}>
+          {t('perfil.enable')}
+        </button>
+      )}
+      {c.status === 'Vendido' && (
+        <button className="btn btn-ghost btn-sm" onClick={() => acciones.disponible(c)}>
+          {t('perfil.markAvailable')}
+        </button>
+      )}
+      {sePuedeOcultar(c) && (
+        <button className="btn btn-ghost btn-sm" onClick={() => onOcultar(!oculta)}>
+          <Icon name="eye" size={14} />
+          {oculta ? t('perfil.showOnProfile') : t('perfil.hide')}
+        </button>
+      )}
+    </>
+  )
 }

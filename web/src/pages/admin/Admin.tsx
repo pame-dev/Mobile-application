@@ -23,6 +23,7 @@ import {
 import { toCar } from '../../data/api'
 import { mensajeUsuario } from '../../data/auth'
 import { traducir, useI18n } from '../../i18n/I18nContext'
+import { nombreCatalogo } from '../../lib/catalogo'
 import type { Clave } from '../../i18n/es'
 import type { AnuncioRow, Car } from '../../data/types'
 import { entero, haceCuanto, km, precio } from '../../lib/format'
@@ -653,11 +654,11 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
       <div className="ficha">
         {(
           [
-            [t('admin.transmission'), row.transmision ?? '—'],
+            [t('admin.transmission'), row.transmision ? nombreCatalogo(row.transmision) : '—'],
             [t('admin.mileage'), km(row.kilometraje)],
-            [t('admin.bodyType'), row.carroceria ?? '—'],
-            [t('admin.color'), row.color ?? '—'],
-            [t('admin.fuel'), row.tipo_combustible ?? '—'],
+            [t('admin.bodyType'), row.carroceria ? nombreCatalogo(row.carroceria) : '—'],
+            [t('admin.color'), row.color ? nombreCatalogo(row.color) : '—'],
+            [t('admin.fuel'), row.tipo_combustible ? nombreCatalogo(row.tipo_combustible) : '—'],
             [t('admin.location'), car.city || '—'],
           ] as [string, string][]
         ).map(([k, v]) => (
@@ -926,6 +927,17 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
               {auto.car.ownerName} · {km(auto.car.km)}
             </div>
           </div>
+        </div>
+      )}
+      {/* En otra pestaña: la revisión del reporte sigue abierta aquí. */}
+      {auto ? (
+        <a className="btn btn-ghost btn-block" href={`/vehiculo/${auto.car.id}`} target="_blank" rel="noopener noreferrer">
+          <Icon name="external" size={16} />
+          {t('admin.viewListing')}
+        </a>
+      ) : (
+        <div className="note muted" style={{ background: 'var(--bg)' }}>
+          {t('admin.listingGone')}
         </div>
       )}
       {pendiente && (

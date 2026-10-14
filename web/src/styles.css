@@ -333,6 +333,8 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .nrow .nic{flex:none}
 .setrow{cursor:pointer;color:inherit;font:inherit}
 .setrow.static{cursor:default}
+.ownerbar{padding:14px 18px;margin-bottom:18px;display:flex;flex-direction:column;gap:12px}
+.ownerbar .acts{display:flex;flex-wrap:wrap;gap:8px}
 
 /* Administración */
 .admin{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh;background:var(--bg)}

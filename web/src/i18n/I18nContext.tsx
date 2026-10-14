@@ -41,6 +41,9 @@ function traducirEn(lang: Lang, clave: Clave, vars?: Record<string, string | num
   return vars ? texto.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m)) : texto
 }
 
+/** Idioma en uso, para código fuera de componentes. */
+export const idiomaActual = (): Lang => langActual
+
 /** Texto traducido para usar fuera de componentes (en componentes usa useI18n().t). */
 export const traducir: T = (clave, vars) => traducirEn(langActual, clave, vars)
 

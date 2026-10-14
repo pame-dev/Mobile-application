@@ -54,7 +54,17 @@ export function toOwnCar(a: AnuncioRow): OwnCar {
 /** Todas las publicaciones de la cuenta en sesión, incluidas pendientes y rechazadas. */
 export async function myCars(ownerId: string): Promise<OwnCar[]> {
   const rows = check(await supabase.from('v_anuncios').select('*').eq('id_propietario', ownerId).order('fecha_creacion', { ascending: false })) as AnuncioRow[]
-  const cars = rows.map(toOwnCar)
+  return conFinDestacado(rows.map(toOwnCar))
+}
+
+/** Una publicación propia con los datos de Mi panel (para sus acciones en el detalle); null si no existe. */
+export async function ownCar(id: number): Promise<OwnCar | null> {
+  const row = await ownListing(id)
+  return row ? (await conFinDestacado([toOwnCar(row)]))[0] : null
+}
+
+/** Agrega la fecha de fin del destacado vigente. */
+async function conFinDestacado(cars: OwnCar[]): Promise<OwnCar[]> {
   const ids = cars.filter((c) => c.featured).map((c) => c.id)
   if (!ids.length) return cars
   // Fin del destacado vigente; si la consulta falla, las publicaciones se muestran igual.

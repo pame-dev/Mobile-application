@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
-import { statusLabel } from '../components/OwnerActions'
+import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
 import { carDetail, registerView, reportListing, sellerContact, UserError, visibleCars } from '../data/api'
+import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
 import type { Car, CarDetail, SellerContact } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
+import { nombreCatalogo } from '../lib/catalogo'
 import { iniciales, km, precio, whatsappUrl } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
@@ -209,6 +211,9 @@ export function Detail() {
   const [detail, setDetail] = useState<CarDetail | null | undefined>(undefined)
   const [foto, setFoto] = useState(0)
   const [similares, setSimilares] = useState<Car[]>([])
+  /** La publicación con los datos de Mi panel, solo si es del usuario en sesión. */
+  const [propia, setPropia] = useState<OwnCar | null>(null)
+  const [oculta, setOcultaState] = useState(false)
 
   useEffect(() => {
     let vivo = true
@@ -233,6 +238,26 @@ export function Detail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [carId])
 
+  const esDuenoId = !!account && !!detail && account.id === detail.car.ownerId
+  const cargarPropia = useCallback(() => {
+    if (!account || !esDuenoId) return setPropia(null)
+    setOcultaState(ocultas(account.id).has(carId))
+    ownCar(carId)
+      .then(setPropia)
+      .catch(() => setPropia(null))
+  }, [account, esDuenoId, carId])
+  useEffect(() => {
+    cargarPropia()
+  }, [cargarPropia])
+
+  // Tras una acción del dueño se recargan el estado del detalle y los botones.
+  const accionesDueno = useOwnerActions(() => {
+    carDetail(carId)
+      .then((d) => d && setDetail(d))
+      .catch(() => undefined)
+    cargarPropia()
+  })
+
   const specs = useMemo(() => {
     if (!detail) return []
     const c = detail.car
@@ -241,13 +266,13 @@ export function Detail() {
       ['vehiculo.spec.brand', c.brand],
       ['vehiculo.spec.model', c.model || '—'],
       ['vehiculo.spec.year', c.year || '—'],
-      ['vehiculo.spec.transmission', detail.transmision],
+      ['vehiculo.spec.transmission', nombreCatalogo(detail.transmision)],
       ['vehiculo.spec.mileage', km(c.km)],
-      ['vehiculo.spec.fuel', detail.combustible],
+      ['vehiculo.spec.fuel', nombreCatalogo(detail.combustible)],
       ['vehiculo.spec.engine', detail.motor],
       ['vehiculo.spec.cylinders', detail.cilindros],
-      ['vehiculo.spec.bodyType', detail.tipoCarro],
-      ['vehiculo.spec.color', detail.color],
+      ['vehiculo.spec.bodyType', nombreCatalogo(detail.tipoCarro)],
+      ['vehiculo.spec.color', nombreCatalogo(detail.color)],
       ['vehiculo.spec.owners', detail.duenos],
       // Se arma aquí (no en api.ts) para que cambie al cambiar el idioma.
       ['vehiculo.spec.insurance', seguro == null ? '—' : seguro ? t('vehiculo.yes') : t('vehiculo.no')],
@@ -308,7 +333,7 @@ export function Detail() {
         {c.bodyType && (
           <>
             <Icon name="chev" size={14} />
-            <button onClick={() => navigate(`/?tipo=${encodeURIComponent(c.bodyType)}`)}>{c.bodyType}</button>
+            <button onClick={() => navigate(`/?tipo=${encodeURIComponent(c.bodyType)}`)}>{nombreCatalogo(c.bodyType)}</button>
           </>
         )}
         <Icon name="chev" size={14} />
@@ -318,21 +343,30 @@ export function Detail() {
       </div>
 
       {esDueno && (
-        <div className="card row" style={{ padding: '14px 18px', marginBottom: 18, flexWrap: 'wrap' }}>
-          <span className={`badge ${STATUS_BADGE[c.status]}`}>{t(statusLabel(c.status))}</span>
-          <div className="grow muted" style={{ fontSize: 13 }}>
-            {c.status === 'Activo' ? t('vehiculo.detail.ownerVisible') : t('vehiculo.detail.ownerPreview')}
+        <div className="card ownerbar">
+          <div className="row" style={{ flexWrap: 'wrap' }}>
+            <span className={`badge ${STATUS_BADGE[c.status]}`}>{t(statusLabel(c.status))}</span>
+            <div className="grow muted" style={{ fontSize: 13 }}>
+              {c.status === 'Activo' ? t('vehiculo.detail.ownerVisible') : t('vehiculo.detail.ownerPreview')}
+            </div>
           </div>
-          {c.status !== 'Vendido' && c.status !== 'Deshabilitado' && (
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/publicar/${c.id}`)}>
-              <Icon name="edit" size={14} />
-              {c.status === 'Rechazado' ? t('vehiculo.detail.fixResubmit') : t('vehiculo.detail.edit')}
+          <div className="acts">
+            {propia && (
+              <OwnerButtons
+                c={propia}
+                acciones={accionesDueno}
+                oculta={oculta}
+                onOcultar={(v) => {
+                  setOculta(account!.id, c.id, v)
+                  setOcultaState(v)
+                }}
+              />
+            )}
+            <button className="btn btn-soft btn-sm" onClick={() => navigate('/panel')}>
+              <Icon name="chart" size={14} />
+              {t('nav.myDashboard')}
             </button>
-          )}
-          <button className="btn btn-soft btn-sm" onClick={() => navigate('/panel')}>
-            <Icon name="chart" size={14} />
-            {t('nav.myDashboard')}
-          </button>
+          </div>
         </div>
       )}
 
