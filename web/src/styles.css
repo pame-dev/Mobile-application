@@ -299,6 +299,8 @@ button.bigavatar{cursor:zoom-in}
 .photoslot.filled.bad{outline:3px solid var(--error);outline-offset:-3px}
 .photoslot .tag{position:absolute;left:8px;bottom:8px;background:rgba(255,255,255,.92);color:#0D2B45;font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;max-width:calc(100% - 16px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .photoslot .rm{position:absolute;right:6px;top:6px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(13,43,69,.75);color:#fff;display:grid;place-items:center}
+.photoslot .autocheck{position:absolute;left:8px;right:8px;top:8px;background:rgba(255,255,255,.92);color:#0D2B45;font-size:11px;font-weight:600;padding:4px 8px;border-radius:8px;line-height:1.3}
+.photoslot .autocheck.bad{background:var(--error);color:#fff}
 .photoslot.drop{border-color:var(--teal);background:var(--teal-light)}
 .note{padding:12px 14px;border-radius:12px;font-size:13px}
 .chart text{fill:var(--mid);font-size:11px;font-family:var(--f-body)}

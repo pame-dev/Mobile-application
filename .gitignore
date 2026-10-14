@@ -28,3 +28,6 @@ respaldo_*.sql
 !.env.example
 web/dist/
 web/*.tsbuildinfo
+
+# Compilado de la web (npm run build)
+web/dist/

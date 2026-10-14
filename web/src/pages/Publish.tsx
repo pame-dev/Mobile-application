@@ -10,6 +10,7 @@ import { catalogs as cargarCatalogos } from '../data/api'
 import { crearPublicacion, editarPublicacion, ownListing, uploadPhoto } from '../data/seller'
 import type { Catalogs } from '../data/types'
 import { entero, precio as formatoPrecio } from '../lib/format'
+import { ANGULOS_CON_AUTO, pareceAuto, precargarDetector } from '../lib/detectorAutos'
 import { jpegDe } from '../lib/mexico'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
@@ -111,6 +112,9 @@ export function Publish() {
   const anguloElegido = useRef(0)
   const extrasInput = useRef<HTMLInputElement>(null)
   const huellas = useRef(new Map<string, string>())
+  /** ¿Parece auto? por foto de ángulo (key de la Foto). Sin entrada = revisando. */
+  const [revisionAuto, setRevisionAuto] = useState<Map<string, boolean>>(new Map())
+  const revisionesAuto = useRef(new Map<string, Promise<boolean>>())
   const arriba = useRef<HTMLDivElement>(null)
 
   // Catálogos primero: se usan para saber si la marca/modelo es "Otros" al precargar.
@@ -222,7 +226,10 @@ export function Publish() {
     arriba.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  /** Paso 2 → 3: deben estar las 5 fotos obligatorias y ninguna puede repetirse (por contenido). */
+  /**
+   * Paso 2 → 3: deben estar las 5 fotos obligatorias, las 4 de ángulos deben parecer de un
+   * auto (detectorAutos) y ninguna puede repetirse (por contenido).
+   */
   const siguienteDesdeFotos = async () => {
     if (revisando) return
     setIntentoFotos(true)
@@ -233,6 +240,14 @@ export function Publish() {
       return
     }
     setRevisando(true)
+    // Las fotos frontal, trasera y laterales deben mostrar el auto (espera las que se estén revisando).
+    const autos = await Promise.all(angulos.slice(0, ANGULOS_CON_AUTO).map((f) => revisarAuto(f!)))
+    if (autos.includes(false)) {
+      setRevisando(false)
+      setError('Las fotos frontal, trasera y laterales deben mostrar el auto. Cambia las marcadas en rojo.')
+      arriba.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
     const porHuella = new Map<string, string[]>()
     for (const f of fotos) {
       let h = huellas.current.get(f.key)
@@ -259,6 +274,29 @@ export function Publish() {
     else irA(step + 1)
   }
 
+  /**
+   * Revisa que la foto de un ángulo parezca de un auto (una sola vez por foto). Las que ya
+   * estaban en Storage (al editar) ya fueron aprobadas; si el detector falla, no se bloquea.
+   */
+  const revisarAuto = (f: Foto): Promise<boolean> => {
+    if (!f.file) return Promise.resolve(true)
+    let p = revisionesAuto.current.get(f.key)
+    if (!p) {
+      p = pareceAuto(f.url).then((r) => {
+        const ok = r ?? true
+        setRevisionAuto((m) => new Map(m).set(f.key, ok))
+        return ok
+      })
+      revisionesAuto.current.set(f.key, p)
+    }
+    return p
+  }
+
+  // El modelo se descarga al llegar al paso de fotos, para que la revisión sea inmediata.
+  useEffect(() => {
+    if (step === 1) precargarDetector().catch(() => undefined)
+  }, [step])
+
   const nuevaFoto = (file: File): Foto => ({ key: 'f:' + crypto.randomUUID(), url: URL.createObjectURL(file), file })
   const esImagen = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
 
@@ -266,7 +304,9 @@ export function Publish() {
     if (!file || !esImagen(file)) return
     setTocado(true)
     setRepetidas(new Set())
-    setAngulos((a) => a.map((f, i) => (i === anguloElegido.current ? nuevaFoto(file) : f)))
+    const foto = nuevaFoto(file)
+    if (anguloElegido.current < ANGULOS_CON_AUTO) void revisarAuto(foto)
+    setAngulos((a) => a.map((f, i) => (i === anguloElegido.current ? foto : f)))
   }
   const agregarExtras = (files: File[]) => {
     const validas = files.filter(esImagen).slice(0, lugaresExtra)
@@ -359,11 +399,16 @@ export function Publish() {
     </select>
   )
 
-  const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void) => {
-    const mal = f ? repetidas.has(f.key) : intentoFotos
+  const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void, debeSerAuto = false) => {
+    const revisandoAuto = debeSerAuto && !!f?.file && !revisionAuto.has(f.key)
+    const noEsAuto = debeSerAuto && !!f && revisionAuto.get(f.key) === false
+    const mal = f ? repetidas.has(f.key) || noEsAuto : intentoFotos
     return f ? (
       <div className={`photoslot filled ${mal ? 'bad' : ''}`} onClick={onPick} role="button" tabIndex={0} aria-label={`Cambiar ${etiqueta}`}>
         <img src={f.url} alt={etiqueta} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {(revisandoAuto || noEsAuto) && (
+          <span className={`autocheck ${noEsAuto ? 'bad' : ''}`}>{noEsAuto ? 'No parece un auto. Elige otra foto.' : 'Revisando foto…'}</span>
+        )}
         <span className="tag">{etiqueta}</span>
         {onRemove && (
           <button
@@ -539,10 +584,16 @@ export function Publish() {
               <div className="photogrid">
                 {angulos.map((f, i) => (
                   <div key={i}>
-                    {fotoSlot(f, ANGULOS[i], () => {
-                      anguloElegido.current = i
-                      anguloInput.current?.click()
-                    })}
+                    {fotoSlot(
+                      f,
+                      ANGULOS[i],
+                      () => {
+                        anguloElegido.current = i
+                        anguloInput.current?.click()
+                      },
+                      undefined,
+                      i < ANGULOS_CON_AUTO,
+                    )}
                   </div>
                 ))}
               </div>

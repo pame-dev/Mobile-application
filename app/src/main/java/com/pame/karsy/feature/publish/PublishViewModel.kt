@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.publish
 
 import android.content.Context
+import com.pame.karsy.core.util.DetectorAutos
+import androidx.compose.runtime.mutableStateMapOf
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -105,6 +107,30 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     /** Fotos idénticas a otra (mismo contenido), marcadas en rojo. */
     var duplicatePhotos by mutableStateOf<Set<Uri>>(emptySet())
         private set
+    /**
+     * ¿Parece auto? por foto de ángulo (frontal, trasera, laterales). Sin entrada = se está
+     * revisando. Las que ya estaban en Storage (al editar) ya fueron aprobadas y no se revisan.
+     */
+    val revisionAuto = mutableStateMapOf<Uri, Boolean>()
+
+    fun revisandoAuto(uri: Uri): Boolean = uri !in rutasExistentes && uri !in revisionAuto
+    fun noPareceAuto(uri: Uri): Boolean = revisionAuto[uri] == false
+
+    /** Pone la foto de un ángulo; las de los primeros 4 se revisan al momento. */
+    fun setAnglePhoto(context: Context, slot: Int, uri: Uri) {
+        photos[slot] = uri
+        if (slot < DetectorAutos.ANGULOS_CON_AUTO) {
+            val appContext = context.applicationContext
+            viewModelScope.launch { revisarAuto(appContext, uri) }
+        }
+    }
+
+    private suspend fun revisarAuto(context: Context, uri: Uri) {
+        if (!revisandoAuto(uri)) return
+        // Si ML Kit falla, no se bloquea al usuario (la publicación igual la revisa un admin).
+        revisionAuto[uri] = DetectorAutos.pareceAuto(context, uri) ?: true
+    }
+
     /** Mientras se comparan las fotos para buscar repetidas. */
     var checkingPhotos by mutableStateOf(false)
         private set
@@ -221,7 +247,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     /**
-     * Paso 2 → 3: deben estar las 5 fotos obligatorias y ninguna puede repetirse.
+     * Paso 2 → 3: deben estar las 5 fotos obligatorias, las 4 de ángulos deben parecer
+     * de un auto (DetectorAutos) y ninguna puede repetirse.
      * Las repetidas se detectan por contenido, así que también cuenta la misma foto
      * elegida dos veces o dos copias idénticas con distinto nombre.
      */
@@ -236,6 +263,15 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         val appContext = context.applicationContext
         checkingPhotos = true
         viewModelScope.launch {
+            // Las fotos de los ángulos deben mostrar el auto (espera las que se estén revisando).
+            val angulos = photos.take(DetectorAutos.ANGULOS_CON_AUTO).filterNotNull()
+            angulos.forEach { revisarAuto(appContext, it) }
+            if (angulos.any(::noPareceAuto)) {
+                checkingPhotos = false
+                error = texto(R.string.publish_error_not_car)
+                photoErrorSignal++
+                return@launch
+            }
             val fotos = fotosElegidas
             val repetidas = fotos
                 .groupBy { huella(appContext, it) }

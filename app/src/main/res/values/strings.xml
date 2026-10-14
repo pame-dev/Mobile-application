@@ -521,6 +521,9 @@
     <string name="publish_error_color">Elige el color.</string>
     <string name="publish_error_required_photos">Debes subir las 5 fotos obligatorias para continuar.</string>
     <string name="publish_error_duplicate_photos">Se detectaron fotos repetidas. Todas las fotos deben ser diferentes.</string>
+    <string name="publish_error_not_car">Las fotos frontal, trasera y laterales deben mostrar el auto. Cambia las marcadas en rojo.</string>
+    <string name="publish_photo_checking">Revisando foto…</string>
+    <string name="publish_photo_not_car">Esta foto no parece de un auto. Elige una donde se vea el vehículo.</string>
     <string name="publish_error_description">Escribe una descripción del vehículo.</string>
     <string name="publish_next_photos">Siguiente: Fotos →</string>
     <string name="publish_next_details">Siguiente: Detalles →</string>

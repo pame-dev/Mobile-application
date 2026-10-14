@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.publish.steps
 
 import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.util.DetectorAutos
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.rememberScrollState
@@ -79,9 +81,10 @@ private val slotLabels = listOf(
 /** Paso 2: fotos del vehículo (una por ángulo, se suben a Storage al publicar). */
 @Composable
 fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
+    val context = LocalContext.current
     var targetSlot by remember { mutableIntStateOf(0) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) form.photos[targetSlot] = uri
+        if (uri != null) form.setAnglePhoto(context, targetSlot, uri)
     }
     // El límite del selector es fijo; addExtraPhotos recorta a las que todavía caben.
     val extrasPicker = rememberLauncherForActivityResult(
@@ -110,8 +113,15 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             PhotoSlotCard(
                 slot = PhotoSlot(stringResource(labelRes), uri),
                 isDashboard = i == 4,
-                // Borde rojo: falta la foto (después de intentar avanzar) o está repetida.
-                hasError = (form.photosAttempted && uri == null) || (uri != null && uri in form.duplicatePhotos),
+                // Borde rojo: falta la foto (después de intentar avanzar), está repetida o no parece auto.
+                hasError = (form.photosAttempted && uri == null) ||
+                    (uri != null && (uri in form.duplicatePhotos || form.noPareceAuto(uri))),
+                status = when {
+                    uri == null || i >= DetectorAutos.ANGULOS_CON_AUTO -> null
+                    form.revisandoAuto(uri) -> stringResource(R.string.publish_photo_checking)
+                    form.noPareceAuto(uri) -> stringResource(R.string.publish_photo_not_car)
+                    else -> null
+                },
                 onPick = {
                     targetSlot = i
                     picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -258,7 +268,7 @@ private fun PhotoAlertBanner(message: String) {
 }
 
 @Composable
-private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, hasError: Boolean, onPick: () -> Unit) {
+private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, hasError: Boolean, status: String?, onPick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,6 +361,17 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, hasError: Boole
                     }
                 }
             }
+        }
+        // "Revisando foto…" o "No parece un auto" (solo frontal, trasera y laterales).
+        status?.let {
+            Text(
+                it,
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                fontWeight = if (hasError) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (hasError) AlertCoral else KarsyMid,
+                modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
+            )
         }
         Row(
             modifier = Modifier

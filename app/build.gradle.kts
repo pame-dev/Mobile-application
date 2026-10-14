@@ -77,6 +77,8 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    // Revisa en el teléfono (sin internet) que las fotos de los ángulos sean de un auto.
+    implementation(libs.mlkit.image.labeling)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

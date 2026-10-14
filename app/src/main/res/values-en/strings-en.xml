@@ -519,6 +519,9 @@
     <string name="publish_error_color">Choose the color.</string>
     <string name="publish_error_required_photos">Please upload all 5 required photos to continue.</string>
     <string name="publish_error_duplicate_photos">Duplicate photos detected. All photos must be different.</string>
+    <string name="publish_error_not_car">The front, rear and side photos must show the car. Replace the ones marked in red.</string>
+    <string name="publish_photo_checking">Checking photo…</string>
+    <string name="publish_photo_not_car">This photo doesn\'t look like a car. Pick one that shows the vehicle.</string>
     <string name="publish_error_description">Enter a description of the vehicle.</string>
     <string name="publish_next_photos">Next: Photos →</string>
     <string name="publish_next_details">Next: Details →</string>
