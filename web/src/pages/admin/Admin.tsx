@@ -29,6 +29,7 @@ import type { AnuncioRow, Car } from '../../data/types'
 import { entero, haceCuanto, km, precio } from '../../lib/format'
 import { publicUrl } from '../../lib/supabase'
 import { useSession } from '../../session/SessionContext'
+import { useRecargar } from '../../lib/tiempoReal'
 import { AdminHead, Badge, etiquetaEstado, fecha, Ini, LineChart, PairBars, ReasonModal, SearchBox, Tabs } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'lotes' | 'vehiculos' | 'reportes' | 'destacados'
@@ -87,6 +88,15 @@ export function Admin() {
   useEffect(() => {
     if (mode === 'admin') cargarStats()
   }, [cargarStats, mode])
+  // Lo que pasa en la app (publicaciones nuevas, reportes, ediciones) aparece sin recargar.
+  useRecargar(
+    () => {
+      if (mode !== 'admin') return
+      void cargar()
+      cargarStats()
+    },
+    ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'reportes', 'solicitudes_destacado', 'cuentas'],
+  )
 
   /** Después de una acción: aviso y todo se vuelve a leer de la BD. */
   const listo = (msg: string) => {

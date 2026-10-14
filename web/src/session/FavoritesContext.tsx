@@ -4,6 +4,7 @@ import { favoriteIds, setFavorite } from '../data/api'
 import { useUi } from '../components/Ui'
 import { useI18n } from '../i18n/I18nContext'
 import { useSession } from './SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 interface FavoritesValue {
   ids: Set<number>
@@ -30,6 +31,10 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       vivo = false
     }
   }, [account?.id])
+  // Favoritos guardados o quitados en la app con la misma cuenta.
+  useRecargar(() => {
+    if (account) void favoriteIds(account.id).then(setIds).catch(() => undefined)
+  }, ['favoritos'])
 
   const toggle = useCallback(
     (id: number) => {

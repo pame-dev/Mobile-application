@@ -14,6 +14,7 @@ import { nombreCatalogo } from '../lib/catalogo'
 import { iniciales, km, precio, whatsappUrl } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 const STATUS_BADGE: Record<Car['status'], string> = {
   Activo: 'b-succ',
@@ -249,6 +250,15 @@ export function Detail() {
   useEffect(() => {
     cargarPropia()
   }, [cargarPropia])
+
+  // Cambios hechos en otro lado (la app, el admin): se vuelve a leer sin mostrar "cargando".
+  const recargarDetalle = useCallback(() => {
+    carDetail(carId)
+      .then((d) => d && setDetail(d))
+      .catch(() => undefined)
+    cargarPropia()
+  }, [carId, cargarPropia])
+  useRecargar(recargarDetalle, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'solicitudes_destacado'])
 
   // Tras una acción del dueño se recargan el estado del detalle y los botones.
   const accionesDueno = useOwnerActions(() => {

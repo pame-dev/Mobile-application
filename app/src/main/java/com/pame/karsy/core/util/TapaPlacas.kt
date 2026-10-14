@@ -50,7 +50,8 @@ object TapaPlacas {
     suspend fun tapar(context: Context, uri: Uri, soloSiHayPlaca: Boolean = false): Uri = withContext(Dispatchers.IO) {
         runCatching {
             val bitmap = leer(context, uri) ?: return@runCatching uri
-            val zonas = reconocer(bitmap)?.let(::zonasDePlaca).orEmpty()
+            // Si en la foto completa no hay placa, se busca con zoom (placas chicas o lejanas).
+            val zonas = reconocer(bitmap)?.let(::zonasDePlaca).orEmpty().ifEmpty { zonasConZoom(bitmap) }
             if (zonas.isEmpty() && soloSiHayPlaca) return@runCatching uri
             zonas.forEach { pixelar(bitmap, it) }
             val dir = File(context.cacheDir, "fotos_publicar").apply { mkdirs() }
@@ -75,6 +76,32 @@ object TapaPlacas {
                 }
             }
         }
+    }
+
+    /**
+     * Segunda pasada: ML Kit no lee letras muy chicas (p. ej. una placa de 45 px de ancho
+     * en una foto de 736). Se analiza la foto en 4 recortes que se traslapan (60 % de ancho
+     * y alto cada uno), ampliados al doble, y las cajas se pasan a coordenadas de la foto.
+     */
+    private suspend fun zonasConZoom(bitmap: Bitmap): List<Rect> {
+        val ancho = (bitmap.width * 0.6f).toInt()
+        val alto = (bitmap.height * 0.6f).toInt()
+        if (ancho < 2 || alto < 2) return emptyList()
+        // Al doble, sin pasar de ~2000 px por lado (memoria y tiempo).
+        val escala = minOf(2f, 2000f / maxOf(ancho, alto))
+        if (escala <= 1.05f) return emptyList()
+        val zonas = mutableListOf<Rect>()
+        for (x in listOf(0, bitmap.width - ancho)) for (y in listOf(0, bitmap.height - alto)) {
+            val recorte = Bitmap.createBitmap(bitmap, x, y, ancho, alto, Matrix().apply { postScale(escala, escala) }, true)
+            reconocer(recorte)?.let(::zonasDePlaca)?.forEach { r ->
+                zonas += Rect(
+                    x + (r.left / escala).toInt(), y + (r.top / escala).toInt(),
+                    x + (r.right / escala).toInt(), y + (r.bottom / escala).toInt()
+                )
+            }
+            recorte.recycle()
+        }
+        return zonas
     }
 
     /** Pixelado grueso (unos 6 cuadros a lo ancho): ya no se puede leer. Agranda la zona un poco. */

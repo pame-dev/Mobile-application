@@ -7,11 +7,14 @@ import { LogoutModal } from '../components/TopNav'
 import { ModalHead, useUi } from '../components/Ui'
 import { changePassword, markAllRead, notifications, signOutEverywhere, type Notificacion } from '../data/account'
 import { mensajeUsuario } from '../data/auth'
+import { borrarBusqueda, describirBusqueda, misBusquedas, type BusquedaGuardada } from '../data/busquedas'
 import { POLICY_EN, POLITICAS, TERMINOS, TERMS_EN, type LegalDoc } from '../data/legal'
-import { useI18n, type Lang, type T } from '../i18n/I18nContext'
+import { useI18n, type Lang } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { passwordError } from '../lib/formRules'
+import { textoAviso } from '../lib/avisos'
 import { haceCuanto } from '../lib/format'
+import { useRecargar } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
 
 // Notificaciones, Configuración, Privacidad y seguridad, Términos y Políticas de privacidad.
@@ -69,18 +72,6 @@ function useRequireAccount(from: string) {
 
 // ── Notificaciones ─────────────────────────────────────────────────────────
 
-/** Tipos de aviso con texto propio (notif.<tipo> en i18n); los demás usan notif.generic. */
-const TIPOS = [
-  'favorito', 'propuesta_enviada', 'publicacion_aprobada', 'destacado_aprobado', 'edicion_aprobada', 'publicacion_rehabilitada',
-  'publicacion_rechazada', 'edicion_rechazada', 'publicacion_deshabilitada', 'destacado_rechazado', 'destacado_por_vencer',
-  'cuenta_suspendida', 'cuenta_reactivada', 'reporte_atendido', 'reporte_descartado',
-] as const
-
-function textoAviso(t: T, tipo: string, vehiculo: string): string {
-  const clave = (TIPOS as readonly string[]).includes(tipo) ? (`notif.${tipo}` as Clave) : 'notif.generic'
-  return t(clave, { v: vehiculo })
-}
-
 /** Ícono y colores de cada tipo de aviso (mismos que la app). */
 function estiloDe(tipo: string): [IconName, string, string] {
   switch (tipo) {
@@ -132,6 +123,7 @@ export function Notifications() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['notificaciones'])
 
   if (redirect) return redirect
 
@@ -184,6 +176,79 @@ export function Notifications() {
               </div>
             )
           })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Búsquedas guardadas ────────────────────────────────────────────────────
+
+/** Búsquedas guardadas: se crean en el inicio con "Avisarme de nuevos" y avisan de autos nuevos. */
+export function SavedSearches() {
+  const { account, redirect } = useRequireAccount('/busquedas')
+  const { t } = useI18n()
+  const { toast } = useUi()
+  const [lista, setLista] = useState<BusquedaGuardada[] | null>(null)
+  const [error, setError] = useState(false)
+
+  const cargar = useCallback(() => {
+    if (!account) return
+    setError(false)
+    misBusquedas(account.id).then(setLista).catch(() => setError(true))
+  }, [account])
+
+  useEffect(() => {
+    cargar()
+  }, [cargar])
+
+  if (redirect) return redirect
+
+  const borrar = (b: BusquedaGuardada) =>
+    borrarBusqueda(b.id_busqueda)
+      .then(() => setLista((l) => l?.filter((x) => x.id_busqueda !== b.id_busqueda) ?? null))
+      .catch((e) => toast(mensajeUsuario(e)))
+
+  return (
+    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+      <PageHead title={t('saved.title')} back="/configuracion" />
+      <p className="muted" style={{ margin: '0 0 16px' }}>
+        {t('saved.hint')}
+      </p>
+      {error ? (
+        <div className="card empty">
+          <p className="muted">{t('saved.loadError')}</p>
+          <button className="btn btn-ghost" onClick={cargar}>
+            {t('common.retry')}
+          </button>
+        </div>
+      ) : !lista ? (
+        <div className="skeleton" style={{ height: 200 }} />
+      ) : lista.length === 0 ? (
+        <div className="card empty">
+          <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
+            <Icon name="bell" size={26} />
+          </span>
+          <p className="muted">{t('saved.empty')}</p>
+        </div>
+      ) : (
+        <div className="card" style={{ overflow: 'hidden' }}>
+          {lista.map((b) => (
+            <div key={b.id_busqueda} className="nrow" style={{ alignItems: 'center' }}>
+              <span className="nic" style={{ background: 'var(--teal-light)', color: 'var(--teal)' }}>
+                <Icon name="bell" />
+              </span>
+              <div className="grow">
+                <p style={{ color: 'var(--charcoal)', fontWeight: 600 }}>{describirBusqueda(b)}</p>
+                <span className="mid" style={{ fontSize: 12 }}>
+                  {t('saved.since', { fecha: haceCuanto(b.fecha_creacion) })}
+                </span>
+              </div>
+              <button className="iconbtn" aria-label={t('saved.delete')} title={t('saved.delete')} onClick={() => void borrar(b)}>
+                <Icon name="x" size={16} />
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -265,6 +330,7 @@ export function Settings() {
       <PageHead title={t('settings.title')} back="/perfil" />
       <div className="card" style={{ overflow: 'hidden' }}>
         <SetRow icon="bell" title={t('notif.title')} desc={t('settings.notificationsDesc')} onClick={() => navigate('/notificaciones')} />
+        <SetRow icon="search" title={t('saved.title')} desc={t('saved.settingsDesc')} onClick={() => navigate('/busquedas')} />
         <SetRow icon="lock" title={t('settings.privacy')} desc={t('settings.privacyDesc')} onClick={() => navigate('/privacidad')} />
         <SetRow
           icon="globe"

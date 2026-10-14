@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.publish
 
 import android.content.Context
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.util.TapaPlacas
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.Job
@@ -424,8 +425,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             // Por si alguna foto todavía se está procesando (placas).
             trabajosFotos.toList().joinAll()
             safeCall {
+                // editar_publicacion solo acepta fotos de la carpeta del dueño. Las ya publicadas
+                // que están en otra (datos de prueba, links externos) se suben de nuevo a la suya.
+                val propia = "publicaciones/${SessionManager.userId}/"
                 val rutas = fotosElegidas.map { uri ->
-                    rutasExistentes[uri] ?: CarRepository.uploadPhoto(Imagenes.jpegBytes(appContext, uri))
+                    rutasExistentes[uri]?.takeIf { it.startsWith(propia) }
+                        ?: CarRepository.uploadPhoto(Imagenes.jpegBytes(appContext, uri))
                 }
                 // "Caballos de fuerza" no tiene columna en la BD: se agrega a la descripción.
                 val potencia = caballos.filter(Char::isDigit)

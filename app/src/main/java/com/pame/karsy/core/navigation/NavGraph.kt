@@ -1,6 +1,7 @@
 package com.pame.karsy.core.navigation
 
 import androidx.compose.runtime.mutableStateListOf
+import com.pame.karsy.feature.profile.SavedSearchesScreen
 import androidx.activity.compose.BackHandler
 import com.pame.karsy.feature.lots.LotProfileScreen
 import com.pame.karsy.feature.lots.LotsScreen
@@ -398,7 +399,8 @@ fun KarsyNavGraph(
                         onLogout = ::logout,
                         onTerms = { navController.navigate(Routes.Terms.route) },
                         onNotifications = { navController.navigate(Routes.Notifications.route) },
-                        onPrivacy = { navController.navigate(Routes.Privacy.route) }
+                        onPrivacy = { navController.navigate(Routes.Privacy.route) },
+                        onSavedSearches = { navController.navigate(Routes.SavedSearches.route) }
                     )
                 }
                 composable(Routes.Privacy.route) {
@@ -422,6 +424,9 @@ fun KarsyNavGraph(
                 }
                 composable(Routes.Notifications.route) {
                     NotificationsScreen(onBack = ::back, onCarClick = ::openCar)
+                }
+                composable(Routes.SavedSearches.route) {
+                    SavedSearchesScreen(onBack = ::back)
                 }
 
                 // ── Publicar y panel del vendedor ────────────────────────────

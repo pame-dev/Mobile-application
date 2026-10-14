@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
+import { TiempoReal } from './TiempoReal'
 import { useI18n } from '../i18n/I18nContext'
 import { useSession } from '../session/SessionContext'
 import { Icon } from './Icon'
@@ -67,6 +68,7 @@ export function Layout() {
   return (
     <>
       <TopNav />
+      <TiempoReal />
       <main>
         <Outlet />
       </main>

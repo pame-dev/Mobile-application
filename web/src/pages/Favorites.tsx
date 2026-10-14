@@ -8,6 +8,7 @@ import type { Car } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
 import { ORDEN, SIN_FILTROS, filtrarCars, hayFiltros, type Filtros } from '../lib/filtros'
 import { useFavorites } from '../session/FavoritesContext'
+import { useRecargar } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
 
 function Aviso({ titulo, texto, children }: { titulo: string; texto: string; children?: ReactNode }) {
@@ -46,6 +47,7 @@ export function Favorites() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['favoritos', 'publicaciones', 'fotos_publicacion'])
 
   // Solo los que siguen marcados (quitar el corazón los saca de aquí al instante).
   const guardados = useMemo(() => (cars ?? []).filter((c) => fav.ids.has(c.id)), [cars, fav.ids])

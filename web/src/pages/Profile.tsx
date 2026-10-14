@@ -12,6 +12,7 @@ import * as R from '../lib/formRules'
 import { iniciales } from '../lib/format'
 import { estadosMunicipios, jpegDe, type EstadoMunicipios } from '../lib/mexico'
 import { useSession } from '../session/SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 /** Foto elegida en el diálogo: se sube hasta "Guardar" para que "Descartar" no deje nada guardado. */
 interface FotoNueva {
@@ -321,6 +322,7 @@ export function Profile() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['cuentas', 'publicaciones', 'propuestas_publicacion', 'fotos_publicacion'])
 
   if (!cargandoSesion && !account) return <Navigate to="/login" replace state={{ from: '/perfil' }} />
 

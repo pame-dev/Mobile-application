@@ -281,3 +281,29 @@ data class NotificacionDto(
     val leida: Boolean = false,
     @SerialName("fecha_creacion") val fecha: String,
 )
+
+/** Fila de busquedas_guardadas, con los nombres del catálogo para mostrarla. */
+@Serializable
+data class BusquedaGuardadaDto(
+    @SerialName("id_busqueda") val id: Long,
+    @SerialName("id_marca") val idMarca: Long? = null,
+    @SerialName("id_modelo") val idModelo: Long? = null,
+    val anio: Int? = null,
+    @SerialName("id_carroceria") val idCarroceria: Long? = null,
+    @SerialName("precio_min") val precioMin: Double? = null,
+    @SerialName("precio_max") val precioMax: Double? = null,
+    @SerialName("estado_ubicacion") val estado: String? = null,
+    @SerialName("fecha_creacion") val fecha: String,
+    val marcas: NombreMarcaDto? = null,
+    val modelos: NombreModeloDto? = null,
+    val carrocerias: NombreCarroceriaDto? = null,
+)
+
+@Serializable
+data class NombreMarcaDto(@SerialName("nombre_marca") val nombre: String)
+
+@Serializable
+data class NombreModeloDto(@SerialName("nombre_modelo") val nombre: String)
+
+@Serializable
+data class NombreCarroceriaDto(@SerialName("nombre_carroceria") val nombre: String)

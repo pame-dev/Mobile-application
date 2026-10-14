@@ -6,6 +6,7 @@ import type { Lot } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
 import { iniciales } from '../lib/format'
 import { useSession } from '../session/SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 /** Logo del lote o sus iniciales. */
 export function LotLogo({ lot, className = 'lotlogo' }: { lot: Pick<Lot, 'name' | 'logoUrl'>; className?: string }) {
@@ -34,6 +35,7 @@ export function Lots() {
     // Se espera a saber quién es: el lote propio no aparece en el directorio.
     if (!cargandoSesion) cargar()
   }, [cargar, cargandoSesion])
+  useRecargar(cargar, ['cuentas', 'publicaciones'])
 
   // Búsqueda por nombre o ciudad.
   const q = query.trim().toLowerCase()

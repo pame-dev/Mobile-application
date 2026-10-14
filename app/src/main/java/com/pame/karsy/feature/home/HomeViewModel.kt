@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.runtime.getValue
+import com.pame.karsy.data.repository.FiltrosBusqueda
+import com.pame.karsy.data.repository.SearchRepository
 import com.pame.karsy.data.repository.UserRepository
 import com.pame.karsy.core.location.Lugares
 import com.pame.karsy.core.location.Lugar
@@ -112,6 +114,43 @@ class HomeViewModel : ViewModel() {
 
     /** "Cerca de mí": lugar del perfil (o elegido a mano); null si el filtro está apagado. */
     var cercaDe by mutableStateOf<Lugar?>(null)
+
+    /**
+     * Filtros activos como búsqueda guardable (ids del catálogo), o null si no hay
+     * ninguno. El texto del buscador no se guarda: la alerta usa solo los filtros.
+     */
+    val busquedaParaGuardar: FiltrosBusqueda?
+        get() {
+            val c = catalogs ?: return null
+            val f = filters
+            val marca = c.marcas.firstOrNull { !it.esOtro && it.nombre == f.marca }
+            val b = FiltrosBusqueda(
+                idMarca = marca?.id,
+                idModelo = marca?.let { m -> c.modelosDe(m.id).firstOrNull { !it.esOtro && it.nombre == f.modelo }?.id },
+                anio = f.anio.takeIf { it != CUALQUIERA }?.toIntOrNull(),
+                idCarroceria = c.carrocerias.firstOrNull { !it.esOtro && it.nombre == f.tipo }?.id,
+                precioMin = f.precioMin.filter(Char::isDigit).toDoubleOrNull(),
+                precioMax = f.precioMax.filter(Char::isDigit).toDoubleOrNull(),
+                estado = cercaDe?.estado?.takeIf { it.isNotBlank() },
+            )
+            return b.takeUnless { it.vacia }
+        }
+
+    var guardandoBusqueda by mutableStateOf(false)
+        private set
+
+    /** Guarda los filtros activos para avisar de autos nuevos; [onResult] recibe el mensaje. */
+    fun guardarBusqueda(onResult: (String) -> Unit) {
+        val busqueda = busquedaParaGuardar ?: return
+        if (guardandoBusqueda) return
+        guardandoBusqueda = true
+        viewModelScope.launch {
+            safeCall { SearchRepository.save(busqueda) }
+                .onSuccess { onResult(texto(R.string.saved_search_saved)) }
+                .onFailure { onResult(it.mensajeUsuario()) }
+            guardandoBusqueda = false
+        }
+    }
 
     /** Consultando la ubicación del perfil. */
     var buscandoUbicacion by mutableStateOf(false)

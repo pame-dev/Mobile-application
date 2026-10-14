@@ -8,6 +8,7 @@ import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
 import { FilterFields } from './Filters'
 import { Icon, type IconName } from './Icon'
+import { EVENTO_CAMBIOS, type Tabla } from '../lib/tiempoReal'
 import { ModalHead, useUi } from './Ui'
 
 export function Brand({ light = false }: { light?: boolean }) {
@@ -124,8 +125,16 @@ export function TopNav() {
     if (!account) return setSinLeer(0)
     const revisar = () => void unreadCount(account.id).then(setSinLeer).catch(() => undefined)
     revisar()
+    // También cuando cambian las notificaciones en la BD (p. ej. se leyeron en la app).
+    const onCambios = (e: Event) => {
+      if ((e as CustomEvent<Tabla[]>).detail.includes('notificaciones')) revisar()
+    }
     window.addEventListener('karsy:notificaciones', revisar)
-    return () => window.removeEventListener('karsy:notificaciones', revisar)
+    window.addEventListener(EVENTO_CAMBIOS, onCambios)
+    return () => {
+      window.removeEventListener('karsy:notificaciones', revisar)
+      window.removeEventListener(EVENTO_CAMBIOS, onCambios)
+    }
   }, [account, location.pathname])
 
   // La búsqueda refleja la URL (p. ej. al volver atrás).

@@ -8,6 +8,7 @@ import type { Car, Lot, LotContact } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
 import { whatsappUrl } from '../lib/format'
 import { useSession } from '../session/SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 /** Perfil de un lote: datos, contacto e inventario visible (LotProfileScreen de la app). */
 export function LotProfile() {
@@ -34,6 +35,7 @@ export function LotProfile() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['cuentas', 'publicaciones', 'fotos_publicacion'])
 
   // El contacto no bloquea la pantalla; si falla, los botones quedan deshabilitados.
   useEffect(() => {
