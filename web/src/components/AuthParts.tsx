@@ -1,40 +1,40 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { visibleCars } from '../data/api'
 import { EMAIL_CODE_LENGTH } from '../data/auth'
 import { useI18n } from '../i18n/I18nContext'
 import { PASSWORD_RULES } from '../lib/formRules'
-import { CarPhoto } from './CarPhoto'
 import { Icon, type IconName } from './Icon'
 import { Brand } from './TopNav'
 
 // Piezas compartidas por las pantallas de acceso (login, registro, verificación, recuperación).
 
-/** Fotos de vehículos publicados para el panel izquierdo (una sola consulta por visita). */
-let fotos: Promise<string[]> | null = null
-function fotosDeAutos(): Promise<string[]> {
-  fotos ??= visibleCars()
-    .then((cars) => cars.map((c) => c.imageUrl).filter((u): u is string => !!u))
-    .catch(() => [])
-  return fotos
-}
+/**
+ * Fotos del panel izquierdo: las mismas del carrusel de bienvenida de la app
+ * (CarRepository.welcomeCarousel). Son material fijo, no publicaciones de usuarios.
+ */
+const CARRUSEL = ['1767749995450-7b63ab7cd4fd', '1580273916550-e323be2ae537', '1571987502227-9231b837d92a', '1758411898152-5fde4b5eef56'].map(
+  (id) => `https://images.unsplash.com/photo-${id}?w=1200&h=1500&fit=crop&auto=format`,
+)
+const CAMBIO_MS = 5000
 
-/** Pantalla dividida: foto con mensaje a la izquierda y formulario a la derecha. */
+/** Pantalla dividida: carrusel de fotos con mensaje a la izquierda y formulario a la derecha. [photo] = foto inicial. */
 export function AuthShell({ title, sub, photo = 0, children }: { title: string; sub: string; photo?: number; children: ReactNode }) {
-  const [src, setSrc] = useState<string | null>(null)
+  const { t } = useI18n()
+  const [actual, setActual] = useState(photo % CARRUSEL.length)
+
+  // Avanza cada 5 s (igual que la app); al elegir una foto, el conteo vuelve a empezar.
   useEffect(() => {
-    let vivo = true
-    fotosDeAutos().then((f) => {
-      if (vivo && f.length) setSrc(f[photo % f.length])
-    })
-    return () => {
-      vivo = false
-    }
-  }, [photo])
+    const id = window.setTimeout(() => setActual((i) => (i + 1) % CARRUSEL.length), CAMBIO_MS)
+    return () => window.clearTimeout(id)
+  }, [actual])
 
   return (
     <div className="auth">
       <div className="authart">
-        <CarPhoto src={src} />
+        <div className="authslides" aria-hidden="true">
+          {CARRUSEL.map((src, i) => (
+            <img key={src} src={src} alt="" className={i === actual ? 'on' : ''} />
+          ))}
+        </div>
         <div className="grad" />
         <div>
           <Brand light />
@@ -42,6 +42,11 @@ export function AuthShell({ title, sub, photo = 0, children }: { title: string; 
         <div className="col" style={{ gap: 12, display: 'flex', flexDirection: 'column' }}>
           <h1>{title}</h1>
           <p style={{ color: '#C9D6E2', maxWidth: 420 }}>{sub}</p>
+          <div className="authdots">
+            {CARRUSEL.map((src, i) => (
+              <button key={src} className={i === actual ? 'on' : ''} aria-label={t('auth.slide', { n: i + 1 })} aria-current={i === actual} onClick={() => setActual(i)} />
+            ))}
+          </div>
         </div>
       </div>
       <div className="authform">
