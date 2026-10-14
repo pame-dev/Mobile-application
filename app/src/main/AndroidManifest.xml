@@ -28,6 +28,19 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Enlaces compartidos (https://karsy.netlify.app/vehiculo/<id>): abren el auto en la app.
+                 autoVerify: Android comprueba web/public/.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="${webHost}"
+                    android:pathPrefix="/vehiculo/" />
+            </intent-filter>
         </activity>
 
         <!-- Recibe los avisos de Firebase Cloud Messaging (Edge Function enviar-push). -->

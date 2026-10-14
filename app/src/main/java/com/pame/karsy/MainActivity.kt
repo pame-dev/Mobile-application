@@ -1,6 +1,8 @@
 package com.pame.karsy
 
 import android.content.Context
+import androidx.core.net.toUri
+import androidx.compose.runtime.mutableStateOf
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,6 +23,8 @@ import com.pame.karsy.core.theme.Tema
 class MainActivity : ComponentActivity() {
     // Cada toque en una notificación push incrementa el contador y abre la bandeja.
     private var openNotificationsRequest by mutableIntStateOf(0)
+    // Enlace compartido https://karsy.netlify.app/vehiculo/<id>: (número de petición, id del auto).
+    private var openCarRequest by mutableStateOf<Pair<Int, Long>?>(null)
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(Idioma.envolver(newBase))
@@ -36,9 +40,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge(statusBarStyle = barras, navigationBarStyle = barras)
         KarsyMessagingService.createChannel(this)
         handlePushIntent(intent)
+        // Solo al abrir; al girar la pantalla el enlace ya se atendió.
+        if (savedInstanceState == null) handleCarLink(intent)
         setContent {
             KarsyTheme {
-                KarsyNavGraph(openNotificationsRequest = openNotificationsRequest)
+                KarsyNavGraph(openNotificationsRequest = openNotificationsRequest, openCarRequest = openCarRequest)
             }
         }
     }
@@ -46,6 +52,14 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handlePushIntent(intent)
+        handleCarLink(intent)
+    }
+
+    private fun handleCarLink(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (intent.action != Intent.ACTION_VIEW || uri.host != BuildConfig.WEB_URL.toUri().host) return
+        val id = uri.pathSegments.takeIf { it.firstOrNull() == "vehiculo" }?.getOrNull(1)?.toLongOrNull() ?: return
+        openCarRequest = ((openCarRequest?.first ?: 0) + 1) to id
     }
 
     private fun handlePushIntent(intent: Intent?) {

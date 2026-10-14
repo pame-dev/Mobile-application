@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.cardetail
 
 import androidx.activity.compose.BackHandler
+import com.pame.karsy.BuildConfig
 import androidx.compose.material.icons.rounded.Share
 import android.content.Intent
 import android.content.Context
@@ -1117,8 +1118,8 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
 }
 
 /**
- * Comparte la publicación con el menú de Android (WhatsApp, Messenger, correo…).
- * Va solo texto: sin un dominio web propio no hay enlace que abra la app en esta publicación.
+ * Comparte la publicación con el menú de Android (WhatsApp, Messenger, correo…). El enlace
+ * de la web muestra la foto y el precio en WhatsApp y, en un Android con Karsy, abre la app.
  */
 private fun shareCar(context: Context, detail: CarDetail) {
     val car = detail.car
@@ -1128,6 +1129,8 @@ private fun shareCar(context: Context, detail: CarDetail) {
         listOf(detail.ubicacion, car.kilometraje).filter { it.isNotBlank() && it != "—" }
             .takeIf { it.isNotEmpty() }
             ?.let { context.getString(R.string.detail_share_place, it.joinToString(" · ")) },
+        "",
+        "${BuildConfig.WEB_URL}/vehiculo/${car.id}",
         "",
         context.getString(R.string.detail_share_footer),
     )

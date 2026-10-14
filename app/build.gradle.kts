@@ -17,6 +17,8 @@ val localProps = Properties().apply {
 }
 val supabaseUrl: String = localProps.getProperty("SUPABASE_URL", "https://rkuikrlejybrxrlmzsms.supabase.co")
 val supabaseAnonKey: String = localProps.getProperty("SUPABASE_ANON_KEY", "")
+// Web publicada (Netlify): los enlaces compartidos apuntan aquí y la app los abre.
+val webHost = "karsy.netlify.app"
 
 android {
     namespace = "com.pame.karsy"
@@ -37,6 +39,8 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
+        buildConfigField("String", "WEB_URL", "\"https://$webHost\"")
+        manifestPlaceholders["webHost"] = webHost
     }
 
     buildTypes {
