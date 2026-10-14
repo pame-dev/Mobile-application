@@ -52,24 +52,37 @@ export function escucharCambios(uid: string | null, onAviso: (a: AvisoNuevo) => 
     }, 400)
   }
 
-  let canal: RealtimeChannel = supabase.channel(`karsy-cambios-${uid ?? 'visitante'}`)
-  for (const tabla of TABLAS) {
-    // Las notificaciones solo interesan las propias.
-    if (tabla === 'notificaciones' && !uid) continue
-    canal = canal.on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: tabla, ...(tabla === 'notificaciones' ? { filter: `id_cuenta=eq.${uid}` } : {}) },
-      (payload) => {
-        avisar(tabla)
-        if (tabla === 'notificaciones' && payload.eventType === 'INSERT') onAviso(payload.new as AvisoNuevo)
-      },
-    )
-  }
-  canal.subscribe()
+  let canal: RealtimeChannel | null = null
+  let cerrado = false
+
+  void (async () => {
+    // Realtime revisa los permisos con el token del canal: con sesión hay que pasárselo
+    // antes de suscribirse; si no, entra como visitante y la BD rechaza las notificaciones.
+    if (uid) {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) await supabase.realtime.setAuth(data.session.access_token)
+    }
+    if (cerrado) return
+    let c = supabase.channel(`karsy-cambios-${uid ?? 'visitante'}`)
+    for (const tabla of TABLAS) {
+      // Las notificaciones solo interesan las propias.
+      if (tabla === 'notificaciones' && !uid) continue
+      c = c.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: tabla, ...(tabla === 'notificaciones' ? { filter: `id_cuenta=eq.${uid}` } : {}) },
+        (payload) => {
+          avisar(tabla)
+          if (tabla === 'notificaciones' && payload.eventType === 'INSERT') onAviso(payload.new as AvisoNuevo)
+        },
+      )
+    }
+    canal = c.subscribe()
+  })()
 
   return () => {
+    cerrado = true
     clearTimeout(timer)
-    void supabase.removeChannel(canal)
+    if (canal) void supabase.removeChannel(canal)
   }
 }
 
