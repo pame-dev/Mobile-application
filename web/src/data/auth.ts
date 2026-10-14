@@ -77,7 +77,17 @@ export async function signIn(email: string, password: string): Promise<void> {
  */
 export async function signUp(email: string, password: string, data: Record<string, string | null>): Promise<void> {
   const { data: r, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { data } })
-  if (error) throw error
+  if (error) {
+    // Supabase crea la cuenta y manda el correo antes de responder; si el envío tarda, la
+    // respuesta puede no llegar (error de red o 5xx) aunque la cuenta sí se creó. Se
+    // comprueba entrando: "correo sin verificar" = sí existe → a escribir el código.
+    if (error instanceof AuthError && (error.name === 'AuthRetryableFetchError' || error.status === 0 || (error.status ?? 0) >= 500)) {
+      const intento = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (intento.error?.code === 'email_not_confirmed') throw new EmailNotVerifiedError(email.trim())
+      if (!intento.error) return
+    }
+    throw error
+  }
   if (!r.session) {
     // Si el correo ya tiene cuenta verificada, Supabase responde un usuario sin
     // identidades y no manda nada (para no revelar qué correos existen).
