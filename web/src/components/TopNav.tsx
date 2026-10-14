@@ -8,6 +8,7 @@ import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
 import { FilterFields } from './Filters'
 import { Icon, type IconName } from './Icon'
+import { LangSwitch } from './LangSwitch'
 import { EVENTO_CAMBIOS, type Tabla } from '../lib/tiempoReal'
 import { ModalHead, useUi } from './Ui'
 
@@ -297,6 +298,8 @@ export function TopNav() {
           )}
         </div>
       </div>
+      {/* Fuera del contenido centrado: queda en el extremo derecho del encabezado. */}
+      <LangSwitch />
     </header>
   )
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../../components/CarPhoto'
 import { Icon, type IconName } from '../../components/Icon'
 import { Brand, LogoutModal } from '../../components/TopNav'
@@ -12,7 +12,6 @@ import {
   adminStats,
   moderateProposal,
   resolveFeatured,
-  resolveReport,
   setAccountSuspended,
   setCarEnabled,
   type AdminStats,
@@ -30,7 +29,7 @@ import { entero, haceCuanto, km, precio } from '../../lib/format'
 import { publicUrl } from '../../lib/supabase'
 import { useSession } from '../../session/SessionContext'
 import { useRecargar } from '../../lib/tiempoReal'
-import { AdminHead, Badge, etiquetaEstado, fecha, Ini, LineChart, PairBars, ReasonModal, SearchBox, Tabs } from './AdminParts'
+import { AdminHead, Badge, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'lotes' | 'vehiculos' | 'reportes' | 'destacados'
 
@@ -42,12 +41,6 @@ interface Datos {
   destacados: DestacadoAdmin[]
 }
 
-/** Vehículo como lo ve el admin: "Cambios pendientes" si está aprobado y tiene una edición sin revisar. */
-function estadoAdmin(row: AnuncioRow, car: Car): string {
-  return row.aprobada && row.estado_ultima_propuesta === 'pendiente' ? 'Cambios pendientes' : car.status
-}
-const propuestaPendiente = (row: AnuncioRow) => (row.estado_ultima_propuesta === 'pendiente' ? row.id_ultima_propuesta ?? null : null)
-const esReporteDeCuenta = (r: ReporteAdmin) => r.motivo_reporte.startsWith('Cuenta del vendedor')
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 /**
@@ -154,25 +147,34 @@ export function Admin() {
             {!!n && <span className="cnt">{n}</span>}
           </button>
         ))}
-        <div className="sp" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-          <div className="row" style={{ padding: '0 10px 10px' }}>
+        {/* Minimenú del administrador: siempre visible al fondo de la barra. */}
+        <nav className="adminmenu" aria-label={t('nav.myAccount')}>
+          <div className="amhead">
             <Ini name={account.nombre} src={publicUrl(account.fotoPerfil)} />
             <div style={{ minWidth: 0 }}>
-              <b style={{ color: 'var(--ink)', fontSize: 13 }}>{account.nombre}</b>
-              <div className="muted" style={{ fontSize: 11.5 }}>
-                {t('admin.administrator')}
-              </div>
+              <b>{account.nombre}</b>
+              <span>{t('admin.administrator')}</span>
             </div>
           </div>
-        </div>
-        <button className="it" onClick={() => navigate('/')}>
-          <Icon name="back" />
-          {t('admin.backHome')}
-        </button>
-        <button className="it" style={{ color: 'var(--error)' }} onClick={() => openModal(<LogoutModal />)}>
-          <Icon name="logout" />
-          {t('nav.logout')}
-        </button>
+          <hr />
+          <button className="it" onClick={() => navigate('/')}>
+            <Icon name="home" />
+            {t('admin.backHome')}
+          </button>
+          <button className="it" onClick={() => navigate('/perfil')}>
+            <Icon name="user" />
+            {t('nav.myProfile')}
+          </button>
+          <button className="it" onClick={() => navigate('/configuracion')}>
+            <Icon name="settings" />
+            {t('nav.settings')}
+          </button>
+          <hr />
+          <button className="it danger" onClick={() => openModal(<LogoutModal />)}>
+            <Icon name="logout" />
+            {t('nav.logout')}
+          </button>
+        </nav>
       </aside>
       <main className="adminmain">{contenido}</main>
     </div>
@@ -625,6 +627,7 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
   const propuesta = propuestaPendiente(row)
   const habilitada = row.estado_administrativo === 'habilitada'
   const estado = estadoAdmin(row, car)
+  const moderacion = useModeracion()
 
   const correr = async (accion: () => Promise<void>, msg: string) => {
     setBusy(true)
@@ -689,21 +692,7 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
             <button
               className="btn btn-ghost"
               disabled={busy}
-              onClick={() =>
-                openModal(
-                  <ReasonModal
-                    title={t('admin.rejectTitle')}
-                    desc={t('admin.rejectDesc')}
-                    hint={t('admin.rejectHint')}
-                    confirm={t('admin.reject')}
-                    working={t('admin.rejecting')}
-                    onConfirm={async (m) => {
-                      await moderateProposal(propuesta, false, m)
-                      listo(t('admin.msgRejected'))
-                    }}
-                  />,
-                )
-              }
+              onClick={() => moderacion.rechazar(propuesta, listo)}
             >
               {t('admin.reject')}
             </button>
@@ -711,7 +700,7 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
               className="btn btn-ghost"
               onClick={() => {
                 closeModal()
-                navigate(`/vehiculo/${car.id}`)
+                navigate(`/vehiculo/${car.id}`, { state: { revisionAdmin: true } })
               }}
             >
               {t('admin.viewListing')}
@@ -726,7 +715,7 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
               className="btn btn-ghost"
               onClick={() => {
                 closeModal()
-                navigate(`/vehiculo/${car.id}`)
+                navigate(`/vehiculo/${car.id}`, { state: { revisionAdmin: true } })
               }}
             >
               {t('admin.viewListing')}
@@ -846,59 +835,19 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
 
 // ── Reportes ───────────────────────────────────────────────────────────────
 
-function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; listo: (m: string) => void }) {
-  const { openModal } = useUi()
+function ReportReview({ r, datos, listo, tab }: { r: ReporteAdmin; datos: Datos; listo: (m: string) => void; tab: TabReportes }) {
+  const { closeModal } = useUi()
+  const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useI18n()
   const auto = datos.autos.find((a) => a.car.id === r.id_publicacion)
   const deCuenta = esReporteDeCuenta(r)
   const pendiente = r.estado_reporte === 'pendiente'
   const dueno = auto ? datos.cuentas.find((c) => c.id_cuenta === auto.car.ownerId) : undefined
 
-  const descartar = () =>
-    openModal(
-      <ReasonModal
-        title={t('admin.dismissTitle')}
-        desc={t(deCuenta ? 'admin.dismissDescAccount' : 'admin.dismissDescListing')}
-        hint={t('admin.dismissHint')}
-        confirm={t('admin.dismissReport')}
-        working={t('admin.dismissing')}
-        onConfirm={async (m) => {
-          await resolveReport(r.id_reporte, 'descartado', m, false)
-          listo(t('admin.msgDismissed'))
-        }}
-      />,
-    )
-  const proceder = () =>
-    openModal(
-      deCuenta ? (
-        <ReasonModal
-          title={t('admin.suspendTitle')}
-          desc={t('admin.suspendDesc')}
-          hint={t('admin.suspendHint')}
-          confirm={t('admin.suspend')}
-          working={t('admin.suspending')}
-          onConfirm={async (m) => {
-            // Si la cuenta ya estaba suspendida, solo se atiende el reporte.
-            if (!dueno) throw new Error(t('admin.ownerNotFound'))
-            if (dueno.estado_cuenta !== 'suspendida') await setAccountSuspended(dueno.id_cuenta, true, m)
-            await resolveReport(r.id_reporte, 'atendido', m, false)
-            listo(t('admin.msgResolvedSuspended'))
-          }}
-        />
-      ) : (
-        <ReasonModal
-          title={t('admin.disableTitle')}
-          desc={t('admin.disableDesc')}
-          hint={t('admin.disableHint')}
-          confirm={t('admin.disable')}
-          working={t('admin.disabling')}
-          onConfirm={async (m) => {
-            await resolveReport(r.id_reporte, 'atendido', m, true)
-            listo(t('admin.msgResolvedDisabled'))
-          }}
-        />
-      ),
-    )
+  const acciones = useAccionesReporte()
+  const descartar = () => acciones.descartar(r, listo)
+  const proceder = () => acciones.proceder(r, dueno, listo)
 
   return (
     <div className="modal wide">
@@ -939,12 +888,18 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
           </div>
         </div>
       )}
-      {/* En otra pestaña: la revisión del reporte sigue abierta aquí. */}
       {auto ? (
-        <a className="btn btn-ghost btn-block" href={`/vehiculo/${auto.car.id}`} target="_blank" rel="noopener noreferrer">
-          <Icon name="external" size={16} />
+        <button
+          className="btn btn-ghost btn-block"
+          onClick={() => {
+            closeModal()
+            // El panel recuerda el reporte abierto y el filtro: al volver se restauran.
+            navigate(location.pathname, { replace: true, state: { reporte: r.id_reporte, tabReportes: tab } })
+            navigate(`/vehiculo/${auto.car.id}`, { state: { revisionReporte: r.id_reporte } })
+          }}
+        >
           {t('admin.viewListing')}
-        </a>
+        </button>
       ) : (
         <div className="note muted" style={{ background: 'var(--bg)' }}>
           {t('admin.listingGone')}
@@ -967,7 +922,20 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
 function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
   const { openModal } = useUi()
   const { t } = useI18n()
-  const [tab, setTab] = useState<'pendiente' | 'resueltos' | 'todos'>('pendiente')
+  const navigate = useNavigate()
+  const location = useLocation()
+  const volviendo = location.state as { reporte?: number; tabReportes?: TabReportes } | null
+  const [tab, setTab] = useState<TabReportes>(volviendo?.tabReportes ?? 'pendiente')
+
+  // De regreso del detalle ("Volver al reporte"): se vuelve a abrir el reporte que se revisaba.
+  useEffect(() => {
+    if (!volviendo?.reporte) return
+    const r = datos.reportes.find((x) => x.id_reporte === volviendo.reporte)
+    navigate(location.pathname, { replace: true, state: null })
+    if (r) openModal(<ReportReview r={r} datos={datos} listo={listo} tab={volviendo.tabReportes ?? tab} />)
+    // Solo al regresar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const pendientes = datos.reportes.filter((r) => r.estado_reporte === 'pendiente')
   const resueltos = datos.reportes.filter((r) => r.estado_reporte !== 'pendiente')
   const lista = tab === 'pendiente' ? pendientes : tab === 'resueltos' ? resueltos : datos.reportes
@@ -1021,7 +989,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
                     <Badge s={capital(r.estado_reporte)} />
                   </td>
                   <td>
-                    <button className="btn btn-ghost btn-sm" onClick={() => openModal(<ReportReview r={r} datos={datos} listo={listo} />)}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => openModal(<ReportReview r={r} datos={datos} listo={listo} tab={tab} />)}>
                       {t('admin.review')}
                     </button>
                   </td>
