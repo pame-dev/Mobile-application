@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
@@ -11,6 +11,7 @@ import type { Car, CarDetail, SellerContact } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { nombreCatalogo } from '../lib/catalogo'
+import { AdminReportBar, AdminReviewBar } from './admin/AdminParts'
 import { iniciales, km, precio, whatsappUrl } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
@@ -206,6 +207,12 @@ export function Detail() {
   const carId = Number(id)
   const navigate = useNavigate()
   const { account, mode } = useSession()
+  const location = useLocation()
+  /** Abierto con "Ver publicación" desde la revisión de Vehículos del panel de administración. */
+  const origen = location.state as { revisionAdmin?: boolean; revisionReporte?: number } | null
+  /** Abierto con "Ver publicación" desde la revisión de un reporte (id del reporte). */
+  const desdeReporte = mode === 'admin' && typeof origen?.revisionReporte === 'number' ? origen.revisionReporte : null
+  const desdeRevision = mode === 'admin' && desdeReporte == null && origen?.revisionAdmin === true
   const { toast, openModal } = useUi()
   const { t } = useI18n()
   const fav = useFavorites()
@@ -353,6 +360,29 @@ export function Detail() {
           {c.brand} {c.model}
         </span>
       </div>
+
+      {desdeReporte != null && (
+        <AdminReportBar
+          idReporte={desdeReporte}
+          ownerId={c.ownerId}
+          onChanged={() =>
+            carDetail(carId)
+              .then((d) => d && setDetail(d))
+              .catch(() => undefined)
+          }
+        />
+      )}
+      {desdeRevision && (
+        <AdminReviewBar
+          car={c}
+          row={detail.row}
+          onChanged={() =>
+            carDetail(carId)
+              .then((d) => d && setDetail(d))
+              .catch(() => undefined)
+          }
+        />
+      )}
 
       {esDueno && (
         <div className="card ownerbar">
