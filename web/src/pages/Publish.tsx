@@ -10,7 +10,9 @@ import { catalogs as cargarCatalogos } from '../data/api'
 import { crearPublicacion, editarPublicacion, ownListing, uploadPhoto } from '../data/seller'
 import type { Catalogs } from '../data/types'
 import { entero, precio as formatoPrecio } from '../lib/format'
+import { ANGULOS_CON_AUTO, pareceAuto, precargarDetector } from '../lib/detectorAutos'
 import { jpegDe } from '../lib/mexico'
+import { precargarTapaPlacas, taparPlacas } from '../lib/tapaPlacas'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
 
@@ -111,6 +113,15 @@ export function Publish() {
   const anguloElegido = useRef(0)
   const extrasInput = useRef<HTMLInputElement>(null)
   const huellas = useRef(new Map<string, string>())
+  /** ¿Parece auto? por foto de ángulo (key de la Foto). Sin entrada = revisando. */
+  const [revisionAuto, setRevisionAuto] = useState<Map<string, boolean>>(new Map())
+  const revisionesAuto = useRef(new Map<string, Promise<boolean>>())
+  /** Fotos a las que se les están tapando las placas (key de la Foto). */
+  const [tapando, setTapando] = useState<Set<string>>(new Set())
+  const trabajosPlacas = useRef<Promise<void>[]>([])
+  const existentesRevisadas = useRef(false)
+  /** Fotos más recientes (después de un await, las variables del render ya pueden ser viejas). */
+  const fotosActuales = useRef<Foto[]>([])
   const arriba = useRef<HTMLDivElement>(null)
 
   // Catálogos primero: se usan para saber si la marca/modelo es "Otros" al precargar.
@@ -194,6 +205,7 @@ export function Publish() {
   const modeloNombre = modeloSel?.esOtro ? d.modeloOtro.trim() : modeloSel?.nombre ?? ''
   const titulo = [marcaNombre, modeloNombre, d.anio.trim()].filter(Boolean).join(' ')
   const fotos = [...angulos.filter((f): f is Foto => !!f), ...extras]
+  fotosActuales.current = fotos
   const lugaresExtra = MAX_FOTOS - fotos.length
 
   const validar = (paso: number): string | null => {
@@ -222,7 +234,10 @@ export function Publish() {
     arriba.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  /** Paso 2 → 3: deben estar las 5 fotos obligatorias y ninguna puede repetirse (por contenido). */
+  /**
+   * Paso 2 → 3: deben estar las 5 fotos obligatorias, las 4 de ángulos deben parecer de un
+   * auto (detectorAutos) y ninguna puede repetirse (por contenido).
+   */
   const siguienteDesdeFotos = async () => {
     if (revisando) return
     setIntentoFotos(true)
@@ -233,6 +248,16 @@ export function Publish() {
       return
     }
     setRevisando(true)
+    // Primero terminan de taparse las placas.
+    await Promise.all(trabajosPlacas.current)
+    // Las fotos frontal, trasera y laterales deben mostrar el auto (espera las que se estén revisando).
+    const autos = await Promise.all(angulos.slice(0, ANGULOS_CON_AUTO).map((f) => revisarAuto(f!)))
+    if (autos.includes(false)) {
+      setRevisando(false)
+      setError('Las fotos frontal, trasera y laterales deben mostrar el auto. Cambia las marcadas en rojo.')
+      arriba.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
     const porHuella = new Map<string, string[]>()
     for (const f of fotos) {
       let h = huellas.current.get(f.key)
@@ -259,6 +284,64 @@ export function Publish() {
     else irA(step + 1)
   }
 
+  /**
+   * Revisa que la foto de un ángulo parezca de un auto (una sola vez por foto). Las que ya
+   * estaban en Storage (al editar) ya fueron aprobadas; si el detector falla, no se bloquea.
+   */
+  const revisarAuto = (f: Foto): Promise<boolean> => {
+    if (!f.file || f.key.startsWith('r:')) return Promise.resolve(true)
+    let p = revisionesAuto.current.get(f.key)
+    if (!p) {
+      p = pareceAuto(f.url).then((r) => {
+        const ok = r ?? true
+        setRevisionAuto((m) => new Map(m).set(f.key, ok))
+        return ok
+      })
+      revisionesAuto.current.set(f.key, p)
+    }
+    return p
+  }
+
+  // Los modelos se descargan al llegar al paso de fotos, para que la revisión sea inmediata.
+  useEffect(() => {
+    if (step !== 1) return
+    precargarDetector().catch(() => undefined)
+    precargarTapaPlacas().catch(() => undefined)
+  }, [step])
+
+  /**
+   * Tapa las placas de una foto (menos la del tablero, que no tiene y donde se ve el
+   * kilometraje). Si encontró alguna, la Foto pasa a ser la versión tapada; una foto ya
+   * publicada (al editar) deja de usar su ruta y se sube de nuevo, ya censurada.
+   */
+  const prepararFoto = (f: Foto) => {
+    setTapando((t) => new Set(t).add(f.key))
+    const trabajo = taparPlacas(f.file ?? f.url).then((blob) => {
+      if (blob) {
+        const tapada: Foto = { key: f.key, url: URL.createObjectURL(blob), file: new File([blob], 'foto.jpg', { type: 'image/jpeg' }) }
+        // Solo si la foto sigue en el formulario (no la quitaron o cambiaron mientras tanto).
+        setAngulos((a) => a.map((x) => (x?.key === f.key ? tapada : x)))
+        setExtras((x) => x.map((y) => (y.key === f.key ? tapada : y)))
+      }
+      setTapando((t) => {
+        const n = new Set(t)
+        n.delete(f.key)
+        return n
+      })
+    })
+    trabajosPlacas.current.push(trabajo)
+  }
+
+  // Al editar, también se tapan las placas de las fotos que ya estaban publicadas: así, aunque
+  // el dueño no cambie las fotos, el admin las ve censuradas al revisar la edición.
+  useEffect(() => {
+    if (step !== 1 || !editId || cargandoEdicion || existentesRevisadas.current) return
+    existentesRevisadas.current = true
+    angulos.forEach((f, i) => f?.ruta && i !== ANGULOS.length - 1 && prepararFoto(f))
+    extras.forEach((f) => f.ruta && prepararFoto(f))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, editId, cargandoEdicion])
+
   const nuevaFoto = (file: File): Foto => ({ key: 'f:' + crypto.randomUUID(), url: URL.createObjectURL(file), file })
   const esImagen = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
 
@@ -266,14 +349,19 @@ export function Publish() {
     if (!file || !esImagen(file)) return
     setTocado(true)
     setRepetidas(new Set())
-    setAngulos((a) => a.map((f, i) => (i === anguloElegido.current ? nuevaFoto(file) : f)))
+    const foto = nuevaFoto(file)
+    if (anguloElegido.current < ANGULOS_CON_AUTO) void revisarAuto(foto)
+    if (anguloElegido.current !== ANGULOS.length - 1) prepararFoto(foto)
+    setAngulos((a) => a.map((f, i) => (i === anguloElegido.current ? foto : f)))
   }
   const agregarExtras = (files: File[]) => {
     const validas = files.filter(esImagen).slice(0, lugaresExtra)
     if (!validas.length) return
     setTocado(true)
     setRepetidas(new Set())
-    setExtras((x) => [...x, ...validas.map(nuevaFoto)])
+    const nuevas = validas.map(nuevaFoto)
+    nuevas.forEach(prepararFoto)
+    setExtras((x) => [...x, ...nuevas])
   }
 
   const publicar = async () => {
@@ -282,9 +370,12 @@ export function Publish() {
     if (e) return setError(e)
     setPublicando(true)
     setError(null)
+    // Por si alguna foto todavía se está procesando (placas).
+    await Promise.all(trabajosPlacas.current)
     try {
       const rutas: string[] = []
-      for (const f of fotos) rutas.push(f.ruta ?? (await uploadPhoto((await jpegDe(f.file!, 1600, 0.82)).blob)))
+      // Las de fotosActuales ya tienen las placas tapadas.
+      for (const f of fotosActuales.current) rutas.push(f.ruta ?? (await uploadPhoto((await jpegDe(f.file!, 1600, 0.82)).blob)))
       // "Caballos de fuerza" no tiene columna en la BD: se agrega a la descripción.
       const descripcionFinal = d.descripcion.trim() + (d.caballos ? `\n\nPotencia: ${d.caballos} hp` : '')
       const datos = {
@@ -359,11 +450,17 @@ export function Publish() {
     </select>
   )
 
-  const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void) => {
-    const mal = f ? repetidas.has(f.key) : intentoFotos
+  const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void, debeSerAuto = false) => {
+    const revisandoAuto =
+      !!f && (tapando.has(f.key) || (debeSerAuto && !!f.file && !f.key.startsWith('r:') && !revisionAuto.has(f.key)))
+    const noEsAuto = debeSerAuto && !!f && revisionAuto.get(f.key) === false
+    const mal = f ? repetidas.has(f.key) || noEsAuto : intentoFotos
     return f ? (
       <div className={`photoslot filled ${mal ? 'bad' : ''}`} onClick={onPick} role="button" tabIndex={0} aria-label={`Cambiar ${etiqueta}`}>
         <img src={f.url} alt={etiqueta} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {(revisandoAuto || noEsAuto) && (
+          <span className={`autocheck ${noEsAuto ? 'bad' : ''}`}>{noEsAuto ? 'No parece un auto. Elige otra foto.' : 'Revisando foto…'}</span>
+        )}
         <span className="tag">{etiqueta}</span>
         {onRemove && (
           <button
@@ -536,13 +633,22 @@ export function Publish() {
                   {fotos.length}/{MAX_FOTOS} fotos
                 </span>
               </div>
+              <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                Por tu seguridad, las placas que aparezcan en las fotos se tapan automáticamente.
+              </p>
               <div className="photogrid">
                 {angulos.map((f, i) => (
                   <div key={i}>
-                    {fotoSlot(f, ANGULOS[i], () => {
-                      anguloElegido.current = i
-                      anguloInput.current?.click()
-                    })}
+                    {fotoSlot(
+                      f,
+                      ANGULOS[i],
+                      () => {
+                        anguloElegido.current = i
+                        anguloInput.current?.click()
+                      },
+                      undefined,
+                      i < ANGULOS_CON_AUTO,
+                    )}
                   </div>
                 ))}
               </div>

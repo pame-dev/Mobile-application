@@ -1,6 +1,9 @@
 package com.pame.karsy.feature.publish.steps
 
 import com.pame.karsy.core.theme.karsyTint
+import androidx.compose.material3.CircularProgressIndicator
+import com.pame.karsy.core.util.DetectorAutos
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.rememberScrollState
@@ -79,14 +82,18 @@ private val slotLabels = listOf(
 /** Paso 2: fotos del vehículo (una por ángulo, se suben a Storage al publicar). */
 @Composable
 fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
+    val context = LocalContext.current
     var targetSlot by remember { mutableIntStateOf(0) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) form.photos[targetSlot] = uri
+        if (uri != null) form.setAnglePhoto(context, targetSlot, uri)
     }
     // El límite del selector es fijo; addExtraPhotos recorta a las que todavía caben.
     val extrasPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(PublishViewModel.MAX_FOTOS - slotLabels.size)
-    ) { uris -> form.addExtraPhotos(uris) }
+    ) { uris -> form.addExtraPhotos(context, uris) }
+
+    // Al editar, también se tapan las placas de las fotos que ya estaban publicadas.
+    LaunchedEffect(form.loadingEdit) { form.taparPlacasExistentes(context) }
 
     // Si falta alguna foto o hay repetidas, se sube al inicio para que se vea el aviso.
     val scrollState = rememberScrollState()
@@ -105,13 +112,29 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         scrollState = scrollState
     ) {
         form.error?.let { PhotoAlertBanner(it) }
+        Text(
+            stringResource(R.string.publish_photos_plates_hint),
+            fontFamily = DmSans,
+            fontSize = 12.sp,
+            color = KarsyMid,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
         slotLabels.forEachIndexed { i, labelRes ->
             val uri = form.photos[i]
             PhotoSlotCard(
                 slot = PhotoSlot(stringResource(labelRes), uri),
                 isDashboard = i == 4,
-                // Borde rojo: falta la foto (después de intentar avanzar) o está repetida.
-                hasError = (form.photosAttempted && uri == null) || (uri != null && uri in form.duplicatePhotos),
+                // Borde rojo: falta la foto (después de intentar avanzar), está repetida o no parece auto.
+                hasError = (form.photosAttempted && uri == null) ||
+                    (uri != null && (uri in form.duplicatePhotos || form.noPareceAuto(uri))),
+                status = when {
+                    uri == null -> null
+                    form.procesandoFoto(uri) -> stringResource(R.string.publish_photo_checking)
+                    i >= DetectorAutos.ANGULOS_CON_AUTO -> null
+                    form.revisandoAuto(uri) -> stringResource(R.string.publish_photo_checking)
+                    form.noPareceAuto(uri) -> stringResource(R.string.publish_photo_not_car)
+                    else -> null
+                },
                 onPick = {
                     targetSlot = i
                     picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -124,7 +147,8 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             total = form.fotosElegidas.size,
             canAdd = form.extraPhotosLeft > 0,
             onAdd = { extrasPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-            onRemove = form::removeExtraPhoto
+            onRemove = form::removeExtraPhoto,
+            isProcessing = form::procesandoFoto
         )
     }
 }
@@ -138,6 +162,7 @@ private fun ExtraPhotosCard(
     canAdd: Boolean,
     onAdd: () -> Unit,
     onRemove: (Uri) -> Unit,
+    isProcessing: (Uri) -> Boolean,
 ) {
     Column(
         modifier = Modifier
@@ -173,7 +198,10 @@ private fun ExtraPhotosCard(
                     photos.chunked(columnas).forEach { fila ->
                         Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
                             fila.forEach { uri ->
-                                ExtraPhotoThumb(uri, size = celda, isDuplicate = uri in duplicates, onRemove = { onRemove(uri) })
+                                ExtraPhotoThumb(
+                                    uri, size = celda, isDuplicate = uri in duplicates,
+                                    processing = isProcessing(uri), onRemove = { onRemove(uri) }
+                                )
                             }
                         }
                     }
@@ -205,7 +233,7 @@ private fun ExtraPhotosCard(
 }
 
 @Composable
-private fun ExtraPhotoThumb(uri: Uri, size: Dp, isDuplicate: Boolean, onRemove: () -> Unit) {
+private fun ExtraPhotoThumb(uri: Uri, size: Dp, isDuplicate: Boolean, processing: Boolean, onRemove: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         Modifier
@@ -220,6 +248,17 @@ private fun ExtraPhotoThumb(uri: Uri, size: Dp, isDuplicate: Boolean, onRemove: 
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+        // Mientras se tapan las placas.
+        if (processing) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.35f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = KarsyWhite, strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
+            }
+        }
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -258,7 +297,7 @@ private fun PhotoAlertBanner(message: String) {
 }
 
 @Composable
-private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, hasError: Boolean, onPick: () -> Unit) {
+private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, hasError: Boolean, status: String?, onPick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,6 +390,17 @@ private fun PhotoSlotCard(slot: PhotoSlot, isDashboard: Boolean, hasError: Boole
                     }
                 }
             }
+        }
+        // "Revisando foto…" o "No parece un auto" (solo frontal, trasera y laterales).
+        status?.let {
+            Text(
+                it,
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                fontWeight = if (hasError) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (hasError) AlertCoral else KarsyMid,
+                modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
+            )
         }
         Row(
             modifier = Modifier
