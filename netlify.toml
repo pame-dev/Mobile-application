@@ -7,6 +7,8 @@
   command = "npm run build"
   # Relativo a base: web/dist
   publish = "dist"
+  # Vista previa al compartir un auto (og:image, título y precio en /vehiculo/<id>).
+  edge_functions = "netlify/edge-functions"
 
 [build.environment]
   # Vite 7 necesita Node 20.19+ o 22.12+.

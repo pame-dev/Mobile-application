@@ -324,9 +324,11 @@ export function Detail() {
   const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
 
   const compartir = async () => {
-    const url = window.location.href
+    // Enlace limpio: en WhatsApp muestra la foto y el precio (Edge Function vista-previa) y,
+    // en un Android con Karsy instalada, abre la app en este auto.
+    const url = `${window.location.origin}/vehiculo/${c.id}`
     try {
-      if (navigator.share) await navigator.share({ title: `${c.brand} ${c.model} ${c.year}`, url })
+      if (navigator.share) await navigator.share({ title: `${c.brand} ${c.model} ${c.year}`, text: t('vehiculo.detail.shareText'), url })
       else {
         await navigator.clipboard.writeText(url)
         toast(t('vehiculo.detail.linkCopied'))

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pame.karsy",
+      "sha256_cert_fingerprints": [
+        "C4:B8:C8:43:F7:6E:CF:74:B7:21:DA:9F:74:F0:F0:1D:99:8D:C0:C7:BC:07:5A:22:19:A1:49:B9:ED:DB:96:36"
+      ]
+    }
+  }
+]

@@ -88,6 +88,8 @@ fun KarsyNavGraph(
     navController: NavHostController = rememberNavController(),
     /** Cambia cada vez que el usuario toca una notificación push. */
     openNotificationsRequest: Int = 0,
+    /** Enlace compartido abierto con la app: (número de petición, id del auto). */
+    openCarRequest: Pair<Int, Long>? = null,
 ) {
     val userMode = SessionManager.userMode
     val scope = rememberCoroutineScope()
@@ -126,6 +128,10 @@ fun KarsyNavGraph(
                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+    }
+    // Un enlace compartido (https://karsy.netlify.app/vehiculo/<id>) abre ese auto, con o sin sesión.
+    LaunchedEffect(openCarRequest) {
+        openCarRequest?.let { (_, id) -> navController.navigate(Routes.CarDetail.createRoute(id)) }
     }
     // Tocar una notificación push abre la bandeja de avisos (si hay sesión).
     LaunchedEffect(openNotificationsRequest, sessionUserId) {
