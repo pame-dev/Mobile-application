@@ -121,6 +121,10 @@ export const es = {
   // Navegación
   'publicar.previous': 'Anterior',
   'publicar.checkingPhotos': 'Revisando fotos…',
+  'publicar.checkingPhoto': 'Revisando foto…',
+  'publicar.notACar': 'No parece un auto. Elige otra foto.',
+  'publicar.photosMustShowCar': 'Las fotos frontal, trasera y laterales deben mostrar el auto. Cambia las marcadas en rojo.',
+  'publicar.platesHidden': 'Por tu seguridad, las placas que aparezcan en las fotos se tapan automáticamente.',
   'publicar.nextTo': 'Siguiente: {paso} →',
   'publicar.resubmitting': 'Reenviando…',
   'publicar.publishing': 'Publicando…',
@@ -246,6 +250,10 @@ export const en: Record<keyof typeof es, string> = {
 
   'publicar.previous': 'Previous',
   'publicar.checkingPhotos': 'Checking photos…',
+  'publicar.checkingPhoto': 'Checking photo…',
+  'publicar.notACar': "This doesn't look like a car. Choose another photo.",
+  'publicar.photosMustShowCar': 'The front, rear and side photos must show the car. Replace the ones marked in red.',
+  'publicar.platesHidden': 'For your safety, license plates that appear in the photos are covered automatically.',
   'publicar.nextTo': 'Next: {paso} →',
   'publicar.resubmitting': 'Resubmitting…',
   'publicar.publishing': 'Publishing…',
