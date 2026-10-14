@@ -1,3 +1,6 @@
+import { traducir } from '../i18n/I18nContext'
+import type { Clave } from '../i18n/es'
+
 // Reglas de los formularios de cuenta: las mismas que FormRules.kt y PasswordRules.kt de la app.
 // Cada función devuelve el mensaje de error o null si el valor es válido; un valor vacío
 // se considera válido aquí (lo obligatorio se revisa aparte). Los máximos son los de la BD.
@@ -101,24 +104,24 @@ export function sugerenciaCorreo(valor: string): string | null {
 
 export function correo(v: string): string | null {
   const c = limpiarCorreo(v)
-  return !c || CORREO.test(c) ? null : 'Escribe un correo válido (ej. nombre@gmail.com).'
+  return !c || CORREO.test(c) ? null : traducir('auth.rules.email')
 }
 
 export function nombrePersona(valor: string): string | null {
   const v = limpiarEspacios(valor)
   if (!v) return null
-  if (!NOMBRE.test(v)) return 'Usa solo letras (sin números ni símbolos).'
-  if ((v.match(/\p{L}/gu) ?? []).length < 2) return 'Escribe al menos 2 caracteres.'
-  if (v.length > NOMBRE_MAX) return `Máximo ${NOMBRE_MAX} caracteres.`
+  if (!NOMBRE.test(v)) return traducir('auth.rules.lettersOnly')
+  if ((v.match(/\p{L}/gu) ?? []).length < 2) return traducir('auth.rules.minChars', { n: 2 })
+  if (v.length > NOMBRE_MAX) return traducir('auth.rules.maxChars', { n: NOMBRE_MAX })
   return null
 }
 
 export function nombreLote(valor: string): string | null {
   const v = limpiarEspacios(valor)
   if (!v) return null
-  if (!NOMBRE_LOTE.test(v)) return 'Usa letras, números y signos comunes.'
-  if (v.length < 3) return 'Escribe al menos 3 caracteres.'
-  if (v.length > LOTE_MAX) return `Máximo ${LOTE_MAX} caracteres.`
+  if (!NOMBRE_LOTE.test(v)) return traducir('auth.rules.lotName')
+  if (v.length < 3) return traducir('auth.rules.minChars', { n: 3 })
+  if (v.length > LOTE_MAX) return traducir('auth.rules.maxChars', { n: LOTE_MAX })
   return null
 }
 
@@ -126,22 +129,22 @@ export function nombreLote(valor: string): string | null {
 export function textoDireccion(valor: string): string | null {
   const v = limpiarEspacios(valor)
   if (!v) return null
-  if (v.length < 3) return 'Escribe al menos 3 caracteres.'
-  if (v.length > DIRECCION_MAX) return `Máximo ${DIRECCION_MAX} caracteres.`
+  if (v.length < 3) return traducir('auth.rules.minChars', { n: 3 })
+  if (v.length > DIRECCION_MAX) return traducir('auth.rules.maxChars', { n: DIRECCION_MAX })
   return null
 }
 
 export function numeroExterior(valor: string): string | null {
   const v = limpiarEspacios(valor)
   if (!v) return null
-  if (v.length > NUMERO_MAX) return `Máximo ${NUMERO_MAX} caracteres.`
-  if (!NUMERO_EXT.test(v)) return 'Escribe un número válido (ej. 123, 123-A o S/N).'
+  if (v.length > NUMERO_MAX) return traducir('auth.rules.maxChars', { n: NUMERO_MAX })
+  if (!NUMERO_EXT.test(v)) return traducir('auth.rules.extNumber')
   return null
 }
 
 export function codigoPostal(valor: string): string | null {
   const v = valor.trim()
-  return !v || /^\d{5}$/.test(v) ? null : 'El código postal debe tener 5 dígitos.'
+  return !v || /^\d{5}$/.test(v) ? null : traducir('auth.rules.zip')
 }
 
 /**
@@ -161,8 +164,8 @@ function esTelefonoFalso(n: string): boolean {
 export function telefono(valor: string): string | null {
   if (!valor.trim()) return null
   const n = normalizarTelefono(valor)
-  if (n.length !== 10) return 'El teléfono debe tener 10 dígitos.'
-  if (esTelefonoFalso(n)) return 'Escribe un número de teléfono real.'
+  if (n.length !== 10) return traducir('auth.rules.phoneDigits')
+  if (esTelefonoFalso(n)) return traducir('auth.rules.phoneReal')
   return null
 }
 
@@ -190,7 +193,7 @@ export function avisoCodigoPostalEstado(cp: string, estado: string): string | nu
   if (!delCp) return null
   const a = sinAcentos(delCp)
   const b = sinAcentos(estado)
-  return a === b || b.startsWith(a) ? null : `Este código postal es de ${delCp}, no de ${estado}. Revísalo.`
+  return a === b || b.startsWith(a) ? null : traducir('auth.rules.zipState', { cp: delCp, estado })
 }
 
 // ── Contraseña (PasswordRules.kt) ──
@@ -199,20 +202,21 @@ export const PASSWORD_MIN = 8
 /** Supabase (bcrypt) solo toma en cuenta los primeros 72 bytes. */
 export const PASSWORD_MAX = 72
 
-export const PASSWORD_RULES: [string, (p: string) => boolean][] = [
-  ['Mínimo 8 caracteres', (p) => p.length >= PASSWORD_MIN],
-  ['Una letra mayúscula', (p) => /\p{Lu}/u.test(p)],
-  ['Una letra minúscula', (p) => /\p{Ll}/u.test(p)],
-  ['Un número', (p) => /\d/.test(p)],
-  ['Un signo (!@#*…)', (p) => /[^\p{L}\p{N}\s]/u.test(p)],
-  ['Sin espacios', (p) => p.length > 0 && !/\s/.test(p)],
+/** [clave del texto, regla]; el texto se traduce al mostrarlo. */
+export const PASSWORD_RULES: [Clave, (p: string) => boolean][] = [
+  ['auth.rule.min', (p) => p.length >= PASSWORD_MIN],
+  ['auth.rule.upper', (p) => /\p{Lu}/u.test(p)],
+  ['auth.rule.lower', (p) => /\p{Ll}/u.test(p)],
+  ['auth.rule.number', (p) => /\d/.test(p)],
+  ['auth.rule.symbol', (p) => /[^\p{L}\p{N}\s]/u.test(p)],
+  ['auth.rule.noSpaces', (p) => p.length > 0 && !/\s/.test(p)],
 ]
 
 /** Primer problema de la contraseña, o null si es válida. [correo] evita que la contenga. */
 export function passwordError(password: string, correo?: string): string | null {
   const usuario = (correo ?? '').split('@')[0].trim()
-  if (password.length > PASSWORD_MAX) return `La contraseña puede tener máximo ${PASSWORD_MAX} caracteres.`
-  if (PASSWORD_RULES.some(([, ok]) => !ok(password))) return 'La contraseña no cumple los requisitos de seguridad.'
-  if (usuario.length >= 3 && password.toLowerCase().includes(usuario.toLowerCase())) return 'La contraseña no debe contener tu correo.'
+  if (password.length > PASSWORD_MAX) return traducir('auth.rules.passwordMax', { n: PASSWORD_MAX })
+  if (PASSWORD_RULES.some(([, ok]) => !ok(password))) return traducir('auth.rules.passwordWeak')
+  if (usuario.length >= 3 && password.toLowerCase().includes(usuario.toLowerCase())) return traducir('auth.rules.passwordEmail')
   return null
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { visibleCars } from '../data/api'
 import { EMAIL_CODE_LENGTH } from '../data/auth'
+import { useI18n } from '../i18n/I18nContext'
 import { PASSWORD_RULES } from '../lib/formRules'
 import { CarPhoto } from './CarPhoto'
 import { Icon, type IconName } from './Icon'
@@ -51,10 +52,11 @@ export function AuthShell({ title, sub, photo = 0, children }: { title: string; 
 }
 
 export function BackButton({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n()
   return (
     <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }} onClick={onClick}>
       <Icon name="back" size={16} />
-      Regresar
+      {t('auth.back')}
     </button>
   )
 }
@@ -93,6 +95,7 @@ export function PasswordInput({
   onBlur?: () => void
   autoComplete?: string
 }) {
+  const { t } = useI18n()
   const [ver, setVer] = useState(false)
   const input = (
     <input
@@ -116,7 +119,7 @@ export function PasswordInput({
       ) : (
         input
       )}
-      <button type="button" className="eyebtn" aria-label={ver ? 'Ocultar contraseña' : 'Mostrar contraseña'} onClick={() => setVer((v) => !v)}>
+      <button type="button" className="eyebtn" aria-label={ver ? t('auth.hidePassword') : t('auth.showPassword')} onClick={() => setVer((v) => !v)}>
         <Icon name={ver ? 'x' : 'eye'} size={18} />
       </button>
     </div>
@@ -125,14 +128,15 @@ export function PasswordInput({
 
 /** Requisitos de la contraseña, en verde los que ya cumple. */
 export function PasswordRulesList({ password }: { password: string }) {
+  const { t } = useI18n()
   return (
     <div className="rules">
-      {PASSWORD_RULES.map(([t, ok]) => {
+      {PASSWORD_RULES.map(([clave, ok]) => {
         const cumple = ok(password)
         return (
-          <span key={t} className={cumple ? 'ok' : ''}>
+          <span key={clave} className={cumple ? 'ok' : ''}>
             <Icon name={cumple ? 'check' : 'x'} size={14} />
-            {t}
+            {t(clave)}
           </span>
         )
       })}
@@ -142,6 +146,7 @@ export function PasswordRulesList({ password }: { password: string }) {
 
 /** Cajitas del código de 6 dígitos: avanza solo, Retroceso regresa y acepta pegar el código completo. */
 export function OtpInput({ value, onChange, onComplete }: { value: string; onChange: (v: string) => void; onComplete?: (v: string) => void }) {
+  const { t } = useI18n()
   const refs = useRef<(HTMLInputElement | null)[]>([])
   const digits = Array.from({ length: EMAIL_CODE_LENGTH }, (_, i) => value[i] ?? '')
 
@@ -171,7 +176,7 @@ export function OtpInput({ value, onChange, onComplete }: { value: string; onCha
           inputMode="numeric"
           autoComplete={i === 0 ? 'one-time-code' : 'off'}
           maxLength={EMAIL_CODE_LENGTH}
-          aria-label={`Dígito ${i + 1}`}
+          aria-label={t('auth.otpDigit', { n: i + 1 })}
           value={d}
           onFocus={(e) => e.target.select()}
           onChange={(e) => {
@@ -213,17 +218,18 @@ export function useCountdown() {
 
 /** "¿No recibiste el código? Reenviar código", o la espera mientras no se puede pedir otro. */
 export function ResendRow({ sending, seconds, onResend }: { sending: boolean; seconds: number; onResend: () => void }) {
+  const { t } = useI18n()
   return (
     <p className="muted" style={{ fontSize: 13, textAlign: 'center' }}>
       {sending ? (
-        'Enviando código…'
+        t('auth.sendingCode')
       ) : seconds > 0 ? (
-        `Puedes pedir otro código en ${seconds} s`
+        t('auth.resendWait', { s: seconds })
       ) : (
         <>
-          ¿No recibiste el código?{' '}
+          {t('auth.noCode')}{' '}
           <button className="linkbtn" onClick={onResend}>
-            Reenviar código
+            {t('auth.resendCode')}
           </button>
         </>
       )}

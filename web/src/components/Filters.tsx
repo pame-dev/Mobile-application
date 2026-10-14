@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { catalogs } from '../data/api'
 import type { Car, Catalogs } from '../data/types'
+import { useI18n } from '../i18n/I18nContext'
 import { FILTER_KEYS, SIN_FILTROS, type Filtros } from '../lib/filtros'
 import { Icon } from './Icon'
 import { ModalHead, useUi } from './Ui'
@@ -10,6 +11,7 @@ const ANIOS = Array.from({ length: 35 }, (_, i) => String(anioActual + 1 - i))
 
 /** Campos del panel de filtros: tipo, marca, modelo, año y rango de precio. */
 export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtros; onChange: (f: Filtros) => void; anios?: string[] }) {
+  const { t } = useI18n()
   const [cat, setCat] = useState<Catalogs | null>(null)
   useEffect(() => {
     catalogs().then(setCat).catch(() => setCat(null))
@@ -21,10 +23,10 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
   return (
     <>
       <div className="field">
-        <label>Tipo</label>
+        <label>{t('filters.type')}</label>
         <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
           <button type="button" className={`chip ${!draft.tipo ? 'on' : ''}`} onClick={() => set('tipo', '')}>
-            Todos
+            {t('filters.all')}
           </button>
           {cat?.carrocerias
             .filter((c) => !c.esOtro)
@@ -36,9 +38,9 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
         </div>
       </div>
       <div className="field">
-        <label htmlFor="fb">Marca</label>
+        <label htmlFor="fb">{t('filters.brand')}</label>
         <select className="input" id="fb" value={draft.marca} onChange={(e) => set('marca', e.target.value)}>
-          <option value="">Todas</option>
+          <option value="">{t('filters.allBrands')}</option>
           {cat?.marcas
             .filter((m) => !m.esOtro)
             .map((m) => (
@@ -49,9 +51,9 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
         </select>
       </div>
       <div className="field">
-        <label htmlFor="fm">Modelo</label>
+        <label htmlFor="fm">{t('filters.model')}</label>
         <select className="input" id="fm" value={draft.modelo} disabled={!marcaSel} onChange={(e) => set('modelo', e.target.value)}>
-          <option value="">Todos</option>
+          <option value="">{t('filters.all')}</option>
           {cat?.modelos
             .filter((m) => m.idMarca === marcaSel?.id && !m.esOtro)
             .map((m) => (
@@ -62,19 +64,19 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
         </select>
       </div>
       <div className="field">
-        <label htmlFor="fy">Año</label>
+        <label htmlFor="fy">{t('filters.year')}</label>
         <select className="input" id="fy" value={draft.anio} onChange={(e) => set('anio', e.target.value)}>
-          <option value="">Cualquiera</option>
+          <option value="">{t('filters.anyYear')}</option>
           {anios.map((a) => (
             <option key={a}>{a}</option>
           ))}
         </select>
       </div>
       <div className="field">
-        <label>Rango de precio</label>
+        <label>{t('filters.price')}</label>
         <div className="grid2" style={{ gap: 8 }}>
-          <input className="input" inputMode="numeric" placeholder="Mín. $0" aria-label="Precio mínimo" value={draft.min} onChange={(e) => set('min', e.target.value.replace(/\D/g, ''))} />
-          <input className="input" inputMode="numeric" placeholder="Máx. $2M" aria-label="Precio máximo" value={draft.max} onChange={(e) => set('max', e.target.value.replace(/\D/g, ''))} />
+          <input className="input" inputMode="numeric" placeholder={t('filters.min')} aria-label={t('filters.minLabel')} value={draft.min} onChange={(e) => set('min', e.target.value.replace(/\D/g, ''))} />
+          <input className="input" inputMode="numeric" placeholder={t('filters.max')} aria-label={t('filters.maxLabel')} value={draft.max} onChange={(e) => set('max', e.target.value.replace(/\D/g, ''))} />
         </div>
       </div>
     </>
@@ -86,10 +88,11 @@ export const aniosDe = (cars: Car[]) => [...new Set(cars.map((c) => String(c.yea
 
 function FiltersModal({ value, anios, onApply }: { value: Filtros; anios?: string[]; onApply: (f: Filtros) => void }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   const [draft, setDraft] = useState(value)
   return (
     <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <ModalHead title="Filtros" />
+      <ModalHead title={t('filters.modalTitle')} />
       <FilterFields draft={draft} onChange={setDraft} anios={anios} />
       <div className="grid2">
         <button
@@ -99,7 +102,7 @@ function FiltersModal({ value, anios, onApply }: { value: Filtros; anios?: strin
             closeModal()
           }}
         >
-          Limpiar
+          {t('filters.clear')}
         </button>
         <button
           className="btn btn-primary"
@@ -108,7 +111,7 @@ function FiltersModal({ value, anios, onApply }: { value: Filtros; anios?: strin
             closeModal()
           }}
         >
-          Aplicar
+          {t('filters.apply')}
         </button>
       </div>
     </div>
@@ -118,6 +121,7 @@ function FiltersModal({ value, anios, onApply }: { value: Filtros; anios?: strin
 /** Botón de filtros junto a una búsqueda (perfil de lote, favoritos): abre el panel en un modal. */
 export function FiltersButton({ value, onApply, anios }: { value: Filtros; onApply: (f: Filtros) => void; anios?: string[] }) {
   const { openModal } = useUi()
+  const { t } = useI18n()
   const activos = FILTER_KEYS.filter((k) => value[k] && k !== 'modelo').length
   return (
     <button
@@ -126,7 +130,7 @@ export function FiltersButton({ value, onApply, anios }: { value: Filtros; onApp
       onClick={() => openModal(<FiltersModal value={value} anios={anios} onApply={onApply} />)}
     >
       <Icon name="filter" size={18} />
-      <span>Filtros{activos ? ` (${activos})` : ''}</span>
+      <span>{t('nav.filters')}{activos ? ` (${activos})` : ''}</span>
     </button>
   )
 }

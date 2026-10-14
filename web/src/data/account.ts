@@ -1,5 +1,6 @@
 // Notificaciones y seguridad de la cuenta (NotificationRepository y AuthRepository de la app).
 import { supabase } from '../lib/supabase'
+import { traducir } from '../i18n/I18nContext'
 import { UserError } from './api'
 
 export interface Notificacion {
@@ -42,7 +43,7 @@ export async function markAllRead(userId: string): Promise<void> {
 export async function changePassword(email: string, current: string, next: string): Promise<void> {
   const r = await supabase.auth.signInWithPassword({ email, password: current })
   if (r.error) {
-    if (r.error.code === 'invalid_credentials' || r.error.code === 'invalid_grant') throw new UserError('La contraseña actual no es correcta.')
+    if (r.error.code === 'invalid_credentials' || r.error.code === 'invalid_grant') throw new UserError(traducir('perfil.wrongPassword'))
     throw r.error
   }
   const { error } = await supabase.auth.updateUser({ password: next })

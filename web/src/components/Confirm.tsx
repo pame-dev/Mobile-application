@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 import { ModalHead, useUi } from './Ui'
 
 /** Ventana de confirmación (ConfirmDialog de la app). [onConfirm] puede ser asíncrono: el botón espera. */
@@ -6,7 +7,7 @@ export function ConfirmModal({
   title,
   message,
   confirm,
-  cancel = 'Cancelar',
+  cancel,
   danger = false,
   onConfirm,
 }: {
@@ -18,13 +19,14 @@ export function ConfirmModal({
   onConfirm: () => void | Promise<void>
 }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   const [busy, setBusy] = useState(false)
   return (
     <div className="modal">
       <ModalHead title={title} sub={message} />
       <div className="grid2">
         <button className="btn btn-ghost" disabled={busy} onClick={closeModal}>
-          {cancel}
+          {cancel ?? t('common.cancel')}
         </button>
         <button
           className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`}

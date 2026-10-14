@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { mensajeUsuario } from '../data/auth'
 import { requestFeatured, setPaused, setSold, type OwnCar } from '../data/seller'
+import { traducir, useI18n } from '../i18n/I18nContext'
+import type { Clave } from '../i18n/es'
 import { ConfirmModal } from './Confirm'
 import { Icon } from './Icon'
 import { ModalHead, useUi } from './Ui'
@@ -15,11 +17,17 @@ export const STATUS_BADGE: Record<string, string> = {
   Pausado: 'b-neu',
 }
 
-export const fechaCorta = (iso: string) => new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+/** Clave del texto para un estado de publicación (el estado es un valor interno en español). */
+export const statusLabel = (status: string): Clave =>
+  status in STATUS_BADGE ? (`vehiculo.status.${status}` as Clave) : 'vehiculo.status.Activo'
+
+export const fechaCorta = (iso: string) =>
+  new Date(iso).toLocaleDateString(traducir('vehiculo.locale'), { day: 'numeric', month: 'short' })
 
 /** "¿Dónde lo vendiste?" (dentro o fuera de la app). */
 function SoldViaModal({ onDone }: { onDone: (via: string) => Promise<void> }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   const [busy, setBusy] = useState(false)
   const elegir = async (via: string) => {
     setBusy(true)
@@ -28,12 +36,12 @@ function SoldViaModal({ onDone }: { onDone: (via: string) => Promise<void> }) {
   }
   return (
     <div className="modal">
-      <ModalHead title="¿Dónde lo vendiste?" sub="Cuéntanos si la venta se cerró por medio de Karsy o por otro lado." />
+      <ModalHead title={t('vehiculo.soldVia.title')} sub={t('vehiculo.soldVia.sub')} />
       <button className="btn btn-primary btn-block" disabled={busy} onClick={() => void elegir('dentro_app')}>
-        Dentro de la app
+        {t('vehiculo.soldVia.inside')}
       </button>
       <button className="btn btn-ghost btn-block" disabled={busy} onClick={() => void elegir('fuera_app')}>
-        Fuera de la app
+        {t('vehiculo.soldVia.outside')}
       </button>
     </div>
   )
@@ -42,22 +50,20 @@ function SoldViaModal({ onDone }: { onDone: (via: string) => Promise<void> }) {
 /** "¿Quieres destacar tu vehículo?" */
 function FeatureModal({ onConfirm }: { onConfirm: () => Promise<void> }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   const [busy, setBusy] = useState(false)
   return (
     <div className="modal">
       <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--warning-l)', color: 'var(--star)' }}>
         <Icon name="star" size={26} />
       </span>
-      <ModalHead
-        title="¿Quieres destacar tu vehículo?"
-        sub="Haz que tu publicación tenga mayor visibilidad y aparezca en una sección destacada de la plataforma."
-      />
+      <ModalHead title={t('vehiculo.feature.title')} sub={t('vehiculo.feature.sub')} />
       <div className="note" style={{ background: 'var(--teal-light)' }}>
-        Antes de destacarla, un administrador deberá revisar y aprobar tu solicitud. Una vez aprobada, tu vehículo aparecerá como publicación destacada durante 1 mes.
+        {t('vehiculo.feature.note')}
       </div>
       <div className="grid2">
         <button className="btn btn-ghost" disabled={busy} onClick={closeModal}>
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           className="btn btn-primary"
@@ -67,7 +73,7 @@ function FeatureModal({ onConfirm }: { onConfirm: () => Promise<void> }) {
             await onConfirm()
           }}
         >
-          Solicitar destacar
+          {t('vehiculo.feature.confirm')}
         </button>
       </div>
     </div>
@@ -76,17 +82,15 @@ function FeatureModal({ onConfirm }: { onConfirm: () => Promise<void> }) {
 
 function SentModal({ titulo }: { titulo: string }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   return (
     <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
       <span className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--success-l)', color: 'var(--success)' }}>
         <Icon name="check" size={30} />
       </span>
-      <ModalHead
-        title="Solicitud enviada"
-        sub={`Tu solicitud para destacar ${titulo} fue enviada correctamente. Si se aprueba, estará destacada durante 1 mes. El equipo de Karsy la revisará pronto.`}
-      />
+      <ModalHead title={t('vehiculo.feature.sentTitle')} sub={t('vehiculo.feature.sentSub', { v: titulo })} />
       <button className="btn btn-primary btn-block" onClick={closeModal}>
-        Entendido
+        {t('vehiculo.gotIt')}
       </button>
     </div>
   )
@@ -98,6 +102,7 @@ function SentModal({ titulo }: { titulo: string }) {
  */
 export function useOwnerActions(onChanged: () => void) {
   const { openModal, closeModal, toast } = useUi()
+  const { t } = useI18n()
   const navigate = useNavigate()
 
   const correr = async (accion: () => Promise<void>, ok: string) => {
@@ -131,33 +136,33 @@ export function useOwnerActions(onChanged: () => void) {
     pausar: (c: OwnCar) =>
       openModal(
         <ConfirmModal
-          title="¿Deshabilitar publicación?"
-          message="Dejará de aparecer para los compradores. Puedes volver a habilitarla cuando quieras."
-          confirm="Deshabilitar"
+          title={t('vehiculo.pause.title')}
+          message={t('vehiculo.pause.msg')}
+          confirm={t('vehiculo.pause.confirm')}
           danger
-          onConfirm={() => correr(() => setPaused(c.id, true), 'Publicación deshabilitada: ya no aparece para los compradores.')}
+          onConfirm={() => correr(() => setPaused(c.id, true), t('vehiculo.pause.done'))}
         />,
       ),
-    habilitar: (c: OwnCar) => void correr(() => setPaused(c.id, false), 'Publicación habilitada de nuevo.'),
+    habilitar: (c: OwnCar) => void correr(() => setPaused(c.id, false), t('vehiculo.enable.done')),
     vendido: (c: OwnCar) =>
       openModal(
         <ConfirmModal
-          title="¿Marcar como vendido?"
-          message="Dejará de aparecer para los compradores y quienes lo tengan en favoritos verán que ya se vendió. Puedes volver a marcarlo como disponible cuando quieras."
-          confirm="Confirmar"
+          title={t('vehiculo.sold.title')}
+          message={t('vehiculo.sold.msg')}
+          confirm={t('vehiculo.sold.confirm')}
           onConfirm={() => {
             // Se abre después de que se cierre esta ventana.
-            setTimeout(() => openModal(<SoldViaModal onDone={(via) => correr(() => setSold(c.id, true, via), 'Publicación marcada como vendida.')} />), 0)
+            setTimeout(() => openModal(<SoldViaModal onDone={(via) => correr(() => setSold(c.id, true, via), t('vehiculo.sold.done'))} />), 0)
           }}
         />,
       ),
     disponible: (c: OwnCar) =>
       openModal(
         <ConfirmModal
-          title="¿Marcar como disponible?"
-          message="Se quitará la marca de vendido y tu publicación volverá a aparecer para los compradores."
-          confirm="Marcar como disponible"
-          onConfirm={() => correr(() => setSold(c.id, false), 'Tu publicación vuelve a estar disponible.')}
+          title={t('vehiculo.available.title')}
+          message={t('vehiculo.available.msg')}
+          confirm={t('vehiculo.available.confirm')}
+          onConfirm={() => correr(() => setSold(c.id, false), t('vehiculo.available.done'))}
         />,
       ),
   }

@@ -5,6 +5,7 @@ import { Inventory, ProfileHeader } from '../components/ProfileParts'
 import { useUi } from '../components/Ui'
 import { lot as cargarLote, lotContact, ownerVisibleCars } from '../data/api'
 import type { Car, Lot, LotContact } from '../data/types'
+import { traducir, useI18n } from '../i18n/I18nContext'
 import { whatsappUrl } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 
@@ -14,6 +15,7 @@ export function LotProfile() {
   const navigate = useNavigate()
   const { account, mode } = useSession()
   const { toast } = useUi()
+  const { t } = useI18n()
   const [lote, setLote] = useState<Lot | null | undefined>(undefined)
   const [cars, setCars] = useState<Car[]>([])
   const [contacto, setContacto] = useState<LotContact | null>(null)
@@ -26,7 +28,7 @@ export function LotProfile() {
         setLote(l ? { ...l, vehicleCount: inventario.length } : null)
         setCars(inventario)
       })
-      .catch(() => setError('No pudimos cargar este lote. Revisa tu conexión e intenta de nuevo.'))
+      .catch(() => setError(traducir('perfil.lotError')))
   }, [id])
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export function LotProfile() {
         <div className="card empty" style={{ marginTop: 40 }}>
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
-            Reintentar
+            {t('common.retry')}
           </button>
         </div>
       </div>
@@ -64,9 +66,9 @@ export function LotProfile() {
     return (
       <div className="wrap" style={{ maxWidth: 820 }}>
         <div className="card empty" style={{ marginTop: 40 }}>
-          <h2>No encontramos este lote.</h2>
+          <h2>{t('perfil.lotNotFound')}</h2>
           <button className="btn btn-primary" onClick={() => navigate('/lotes')}>
-            Ver lotes
+            {t('perfil.viewLots')}
           </button>
         </div>
       </div>
@@ -74,7 +76,7 @@ export function LotProfile() {
   }
 
   const invitado = mode === 'guest'
-  const pedirRegistro = () => toast('Regístrate para contactar al vendedor', { label: 'Registrarme', onClick: () => navigate('/registro') })
+  const pedirRegistro = () => toast(t('perfil.registerToContact'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
   // Con sesión y sin número registrado, el botón se ve deshabilitado.
   const puedeLlamar = invitado || !!contacto?.phone
   const puedeWhatsapp = invitado || !!contacto?.whatsapp
@@ -84,7 +86,7 @@ export function LotProfile() {
   return (
     <div className="wrap" style={{ paddingTop: 24 }}>
       <div className="crumbs" style={{ paddingTop: 0 }}>
-        <button onClick={() => navigate('/lotes')}>Lotes</button>
+        <button onClick={() => navigate('/lotes')}>{t('nav.lots')}</button>
         <Icon name="chev" size={14} />
         <span style={{ color: 'var(--ink)' }}>{lote.name}</span>
       </div>
@@ -92,12 +94,12 @@ export function LotProfile() {
       <ProfileHeader name={lote.name} avatarUrl={lote.logoUrl} coverUrl={lote.coverUrl} square>
         <div className="row" style={{ flexWrap: 'wrap' }}>
           <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
-          <span className="badge b-info">Lote</span>
+          <span className="badge b-info">{t('nav.lot')}</span>
         </div>
         <p className="muted">
           {lote.city}
           {lote.city && ' · '}
-          {lote.vehicleCount} {lote.vehicleCount === 1 ? 'vehículo en venta' : 'vehículos en venta'}
+          {t(lote.vehicleCount === 1 ? 'perfil.forSaleOne' : 'perfil.forSaleMany', { n: lote.vehicleCount })}
         </p>
       </ProfileHeader>
 
@@ -108,12 +110,12 @@ export function LotProfile() {
             {invitado || !contacto?.phone ? (
               <button className="btn btn-primary btn-sm" aria-disabled={!puedeLlamar} onClick={pedirRegistro}>
                 <Icon name="phone" size={16} />
-                Llamar
+                {t('perfil.call')}
               </button>
             ) : (
               <a className="btn btn-primary btn-sm" href={`tel:${contacto.phone.replace(/[^\d+]/g, '')}`}>
                 <Icon name="phone" size={16} />
-                Llamar
+                {t('perfil.call')}
               </a>
             )}
             {invitado || !contacto?.whatsapp ? (
@@ -124,7 +126,7 @@ export function LotProfile() {
             ) : (
               <a
                 className="btn btn-teal btn-sm"
-                href={whatsappUrl(contacto.whatsapp, `Hola, vi su lote ${lote.name} en Karsy y me gustaría más información.`)}
+                href={whatsappUrl(contacto.whatsapp, t('perfil.lotWhatsappMsg', { nombre: lote.name }))}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -134,29 +136,29 @@ export function LotProfile() {
             )}
             <a className="btn btn-ghost btn-sm" href={mapa} target="_blank" rel="noreferrer">
               <Icon name="map" size={16} />
-              Cómo llegar
+              {t('perfil.directions')}
             </a>
           </div>
           {lote.address && (
             <div>
-              <div className="label">Dirección</div>
+              <div className="label">{t('perfil.address')}</div>
               <p>{lote.address}</p>
             </div>
           )}
           {lote.hours && (
             <div>
-              <div className="label">Horario</div>
+              <div className="label">{t('perfil.hours')}</div>
               <p style={{ whiteSpace: 'pre-line' }}>{lote.hours}</p>
             </div>
           )}
           {contacto?.phone && (
             <div>
-              <div className="label">Teléfono</div>
+              <div className="label">{t('perfil.phone')}</div>
               <p className="num">{contacto.phone}</p>
             </div>
           )}
         </aside>
-        <Inventory cars={cars} title="Vehículos en venta" emptyText="Este lote no tiene publicaciones activas por el momento." />
+        <Inventory cars={cars} title={t('perfil.vehiclesForSale')} emptyText={t('perfil.lotInventoryEmpty')} />
       </div>
     </div>
   )

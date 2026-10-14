@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 import { Icon } from './Icon'
 
 interface ToastData {
@@ -73,13 +74,14 @@ export function useUi(): UiValue {
 /** Encabezado de modal con título, subtítulo y botón de cerrar. */
 export function ModalHead({ title, sub }: { title: string; sub?: string }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   return (
     <div className="row" style={{ alignItems: 'flex-start' }}>
       <div className="grow">
         <h3>{title}</h3>
         {sub && <p className="muted" style={{ marginTop: 4 }}>{sub}</p>}
       </div>
-      <button className="iconbtn mclose" aria-label="Cerrar" onClick={closeModal}>
+      <button className="iconbtn mclose" aria-label={t('common.close')} onClick={closeModal}>
         <Icon name="x" size={18} />
       </button>
     </div>

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { traducir } from '../i18n/I18nContext'
 import { supabase } from '../lib/supabase'
 import type { Account } from '../data/types'
 
@@ -46,11 +47,11 @@ async function loadAccount(): Promise<{ account: Account | null; notice: string 
 
   if (!cuenta) {
     await supabase.auth.signOut()
-    return { account: null, notice: 'Esta cuenta no tiene un perfil de Karsy.' }
+    return { account: null, notice: traducir('vehiculo.session.noProfile') }
   }
   if (cuenta.estado_cuenta === 'suspendida') {
     await supabase.auth.signOut()
-    return { account: null, notice: 'Tu cuenta está suspendida. Escríbenos si crees que es un error.' }
+    return { account: null, notice: traducir('vehiculo.session.suspended') }
   }
   const { data: esAdmin } = await supabase.rpc('es_administrador', { p_id_cuenta: user.id })
   return {

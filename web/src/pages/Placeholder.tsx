@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../components/Icon'
+import { useI18n } from '../i18n/I18nContext'
 
 /** Mensaje centrado con botón al inicio (pantallas pendientes, 404). */
-export function Placeholder({ title, message = 'Esta pantalla llega en la siguiente fase de la versión web.' }: { title: string; message?: string }) {
+export function Placeholder({ title, message }: { title: string; message?: string }) {
   const navigate = useNavigate()
+  const { t } = useI18n()
   return (
     <div className="wrap" style={{ maxWidth: 820 }}>
       <div className="card empty" style={{ marginTop: 40 }}>
@@ -11,9 +13,9 @@ export function Placeholder({ title, message = 'Esta pantalla llega en la siguie
           <Icon name="car" size={26} />
         </span>
         <h2>{title}</h2>
-        <p className="muted">{message}</p>
+        <p className="muted">{message ?? t('placeholder.message')}</p>
         <button className="btn btn-primary" onClick={() => navigate('/')}>
-          Ir al inicio
+          {t('common.goHome')}
         </button>
       </div>
     </div>
@@ -21,5 +23,6 @@ export function Placeholder({ title, message = 'Esta pantalla llega en la siguie
 }
 
 export function NotFound() {
-  return <Placeholder title="No encontramos esta página" message="Puede que el enlace esté mal escrito o que la página ya no exista." />
+  const { t } = useI18n()
+  return <Placeholder title={t('notFound.title')} message={t('notFound.message')} />
 }

@@ -4,6 +4,7 @@ import { AlertBox, AuthShell, BackButton, PasswordInput } from '../../components
 import { Icon } from '../../components/Icon'
 import { useUi } from '../../components/Ui'
 import { EmailNotVerifiedError, mensajeUsuario, signIn } from '../../data/auth'
+import { useI18n } from '../../i18n/I18nContext'
 import { useSession } from '../../session/SessionContext'
 
 /** A dónde volver después de entrar (la pantalla que pidió iniciar sesión) o al inicio. */
@@ -18,6 +19,7 @@ export function Login() {
   const location = useLocation()
   const { account, reload, clearNotice } = useSession()
   const { toast } = useUi()
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,7 +31,7 @@ export function Login() {
   const entrar = async () => {
     if (loading) return
     if (!email.trim() || !password) {
-      setError('Escribe tu correo y tu contraseña.')
+      setError(t('auth.login.missing'))
       return
     }
     setLoading(true)
@@ -40,11 +42,11 @@ export function Login() {
       const r = await reload()
       if (!r.account) {
         clearNotice()
-        setError(r.notice ?? 'No se pudo iniciar sesión.')
+        setError(r.notice ?? t('auth.loginFailed'))
         setLoading(false)
         return
       }
-      toast(`¡Hola, ${r.account.nombre.split(' ')[0]}!`)
+      toast(t('auth.login.hello', { nombre: r.account.nombre.split(' ')[0] }))
       navigate(destinoDe(location.state), { replace: true })
     } catch (e) {
       setLoading(false)
@@ -55,9 +57,9 @@ export function Login() {
   }
 
   return (
-    <AuthShell title="Compra y vende autos con confianza." sub="Vehículos publicados por particulares y lotes de todo el país.">
+    <AuthShell title={t('auth.login.artTitle')} sub={t('auth.login.artSub')}>
       <BackButton onClick={() => navigate('/')} />
-      <h2>Iniciar Sesión</h2>
+      <h2>{t('auth.login.title')}</h2>
       <form
         style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
         onSubmit={(e) => {
@@ -67,7 +69,7 @@ export function Login() {
       >
         <div className="field">
           <label className="label" htmlFor="le">
-            Correo electrónico
+            {t('auth.email')}
           </label>
           <div className="inputicon">
             <Icon name="mail" size={18} />
@@ -76,7 +78,7 @@ export function Login() {
               id="le"
               type="email"
               autoComplete="email"
-              placeholder="ejemplo@correo.com"
+              placeholder={t('auth.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoFocus
@@ -85,9 +87,9 @@ export function Login() {
         </div>
         <div className="field">
           <label className="label" htmlFor="lp">
-            Contraseña
+            {t('auth.login.password')}
           </label>
-          <PasswordInput id="lp" icon="lock" value={password} onChange={setPassword} placeholder="Tu contraseña" />
+          <PasswordInput id="lp" icon="lock" value={password} onChange={setPassword} placeholder={t('auth.login.passwordPlaceholder')} />
         </div>
         <button
           type="button"
@@ -95,17 +97,17 @@ export function Login() {
           style={{ alignSelf: 'flex-end' }}
           onClick={() => navigate('/recuperar', { state: { email: email.trim() } })}
         >
-          ¿Olvidaste tu contraseña?
+          {t('auth.login.forgot')}
         </button>
         <AlertBox message={error} />
         <button type="submit" className="btn btn-primary btn-block" style={{ height: 50 }} disabled={loading}>
-          {loading ? 'Iniciando sesión…' : 'Iniciar Sesión'}
+          {loading ? t('auth.login.loading') : t('auth.login.submit')}
         </button>
       </form>
       <p className="muted" style={{ textAlign: 'center' }}>
-        ¿Aún no tienes cuenta?{' '}
+        {t('auth.login.noAccount')}{' '}
         <button className="linkbtn" onClick={() => navigate('/registro')}>
-          Registrarse
+          {t('auth.login.register')}
         </button>
       </p>
     </AuthShell>

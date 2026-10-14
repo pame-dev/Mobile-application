@@ -1,6 +1,7 @@
 // Lo que hace el vendedor con sus publicaciones y su perfil: lo mismo que CarRepository,
 // StatsRepository y UserRepository de la app (mismas tablas y funciones de la BD).
 import { publicUrl, supabase, BUCKET } from '../lib/supabase'
+import { traducir } from '../i18n/I18nContext'
 import { carsByIds, toCar, UserError } from './api'
 import type { AnuncioRow, Car } from './types'
 
@@ -8,7 +9,7 @@ function check<T>(res: { data: T; error: { message: string; code?: string } | nu
   if (res.error) {
     // P0001 = RAISE EXCEPTION de las funciones de la BD, que ya vienen en español.
     if (res.error.code === 'P0001') throw new UserError(res.error.message)
-    if (res.error.code === '42501') throw new UserError('No tienes permiso para hacer esto.')
+    if (res.error.code === '42501') throw new UserError(traducir('publicar.errNoPermission'))
     throw new Error(res.error.message)
   }
   return res.data
@@ -16,7 +17,7 @@ function check<T>(res: { data: T; error: { message: string; code?: string } | nu
 
 async function uid(): Promise<string> {
   const { data } = await supabase.auth.getUser()
-  if (!data.user) throw new UserError('Inicia sesión primero.')
+  if (!data.user) throw new UserError(traducir('publicar.errLoginFirst'))
   return data.user.id
 }
 
@@ -106,7 +107,7 @@ export async function setSold(id: number, sold: boolean, via: string | null = nu
 export async function requestFeatured(id: number): Promise<void> {
   const { error } = await supabase.from('solicitudes_destacado').insert({ id_publicacion: id })
   if (error) {
-    if (error.message.includes('uq_solicitudes_pendiente') || error.code === '23505') throw new UserError('Ya hay una solicitud pendiente para este vehículo.')
+    if (error.message.includes('uq_solicitudes_pendiente') || error.code === '23505') throw new UserError(traducir('publicar.errFeaturedPending'))
     check({ data: null, error })
   }
 }

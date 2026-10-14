@@ -13,6 +13,8 @@ import { entero, precio as formatoPrecio } from '../lib/format'
 import { jpegDe } from '../lib/mexico'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
+import { traducir, useI18n } from '../i18n/I18nContext'
+import type { Clave } from '../i18n/es'
 
 /** Máximo de fotos por publicación (editar_publicacion valida lo mismo). */
 const MAX_FOTOS = 15
@@ -20,10 +22,15 @@ const MAX_FOTOS = 15
 const MAX_CILINDROS = 16
 /** Largo máximo de publicaciones.cilindrada (VARCHAR(30)). */
 const MOTOR_MAX = 30
-/** Se guardan tal cual en tipo_combustible. */
-const COMBUSTIBLES = ['Gasolina', 'Diésel', 'Híbrido', 'Eléctrico']
-const ANGULOS = ['Foto frontal', 'Foto trasera', 'Foto lateral izquierda', 'Foto lateral derecha', 'Foto del tablero']
-const PASOS = ['Datos', 'Fotos', 'Detalles', 'Confirmar']
+/** El valor se guarda tal cual en tipo_combustible; la etiqueta se traduce. */
+const COMBUSTIBLES: { valor: string; label: Clave }[] = [
+  { valor: 'Gasolina', label: 'publicar.fuelGasolina' },
+  { valor: 'Diésel', label: 'publicar.fuelDiesel' },
+  { valor: 'Híbrido', label: 'publicar.fuelHibrido' },
+  { valor: 'Eléctrico', label: 'publicar.fuelElectrico' },
+]
+const ANGULOS: Clave[] = ['publicar.photoFront', 'publicar.photoRear', 'publicar.photoLeft', 'publicar.photoRight', 'publicar.photoDashboard']
+const PASOS: Clave[] = ['publicar.stepData', 'publicar.stepPhotos', 'publicar.stepDetails', 'publicar.stepConfirm']
 /** Sufijo "Potencia: N hp" que se agrega a la descripción (no hay columna para los caballos). */
 const POTENCIA = /\n\nPotencia: (\d+) hp$/
 
@@ -90,6 +97,7 @@ export function Publish() {
   const navigate = useNavigate()
   const { account, loading: cargandoSesion } = useSession()
   const { openModal, closeModal } = useUi()
+  const { t } = useI18n()
 
   const [cat, setCat] = useState<Catalogs | null>(null)
   const [d, setD] = useState<Datos>(VACIO)
@@ -124,7 +132,7 @@ export function Publish() {
         const a = await ownListing(editId)
         if (!vivo) return
         if (!a) {
-          setError('No encontramos la publicación que quieres corregir.')
+          setError(traducir('publicar.notFound'))
         } else {
           setRechazo(a.estado_ultima_propuesta === 'rechazada' ? a.motivo_rechazo_propuesta : null)
           setEditandoAprobada(a.aprobada)
@@ -200,19 +208,19 @@ export function Publish() {
     if (paso === 0) {
       const anio = Number(d.anio)
       const max = new Date().getFullYear() + 1
-      if (!marcaSel || (marcaSel.esOtro && !d.marcaOtra.trim())) return 'Elige la marca.'
-      if (!modeloSel || (modeloSel.esOtro && !d.modeloOtro.trim())) return 'Elige el modelo.'
-      if (!Number.isInteger(anio) || anio < 1900 || anio > max) return 'Escribe un año válido.'
-      if (!(Number(d.precio) > 0)) return 'Escribe el precio.'
-      if (!d.idTransmision) return 'Elige la transmisión.'
-      if (!d.kilometraje) return 'Escribe el kilometraje.'
-      if (Number(d.cilindros || 0) > MAX_CILINDROS) return `Los cilindros no pueden ser más de ${MAX_CILINDROS}.`
-      if (!d.idCarroceria) return 'Elige el tipo de carro.'
-      if (!d.idColor) return 'Elige el color.'
+      if (!marcaSel || (marcaSel.esOtro && !d.marcaOtra.trim())) return t('publicar.errBrand')
+      if (!modeloSel || (modeloSel.esOtro && !d.modeloOtro.trim())) return t('publicar.errModel')
+      if (!Number.isInteger(anio) || anio < 1900 || anio > max) return t('publicar.errYear')
+      if (!(Number(d.precio) > 0)) return t('publicar.errPrice')
+      if (!d.idTransmision) return t('publicar.errTransmission')
+      if (!d.kilometraje) return t('publicar.errMileage')
+      if (Number(d.cilindros || 0) > MAX_CILINDROS) return t('publicar.errCylinders', { n: MAX_CILINDROS })
+      if (!d.idCarroceria) return t('publicar.errBodyType')
+      if (!d.idColor) return t('publicar.errColor')
       return null
     }
-    if (paso === 1) return angulos.some((f) => !f) ? 'Debes subir las 5 fotos obligatorias para continuar.' : null
-    if (paso === 2) return d.descripcion.trim() ? null : 'Escribe una descripción del vehículo.'
+    if (paso === 1) return angulos.some((f) => !f) ? t('publicar.errRequiredPhotos') : null
+    if (paso === 2) return d.descripcion.trim() ? null : t('publicar.errDescription')
     return null
   }
 
@@ -246,7 +254,7 @@ export function Publish() {
     setRepetidas(rep)
     setRevisando(false)
     if (rep.size) {
-      setError('Se detectaron fotos repetidas. Todas las fotos deben ser diferentes.')
+      setError(t('publicar.errDuplicatePhotos'))
       arriba.current?.scrollIntoView({ behavior: 'smooth' })
     } else irA(2)
   }
@@ -322,9 +330,9 @@ export function Publish() {
     if (!tocado) return navigate(-1)
     openModal(
       <ConfirmModal
-        title="¿Salir sin publicar?"
-        message={editId ? 'Si sales ahora, se perderán los cambios que hayas hecho.' : 'Si sales ahora, se borrarán los datos y las fotos que hayas agregado.'}
-        confirm="Sí, salir"
+        title={t('publicar.exitTitle')}
+        message={editId ? t('publicar.exitEditMessage') : t('publicar.exitMessage')}
+        confirm={t('publicar.exitYes')}
         danger
         onConfirm={() => navigate(-1)}
       />,
@@ -334,13 +342,13 @@ export function Publish() {
   const confirmarPublicar = () =>
     openModal(
       <ConfirmModal
-        title={editId ? '¿Enviar cambios?' : '¿Publicar tu vehículo?'}
+        title={editId ? t('publicar.confirmEditTitle') : t('publicar.confirmTitle')}
         message={
           editId
-            ? 'Tu publicación se enviará de nuevo a revisión con los cambios que hiciste.'
-            : 'Revisa que los datos y las fotos sean correctos. Tu publicación se enviará a revisión antes de aparecer en el inicio.'
+            ? t('publicar.confirmEditMessage')
+            : t('publicar.confirmMessage')
         }
-        confirm={editId ? 'Sí, enviar' : 'Sí, publicar'}
+        confirm={editId ? t('publicar.confirmEditYes') : t('publicar.confirmYes')}
         onConfirm={() => {
           closeModal()
           void publicar()
@@ -362,13 +370,13 @@ export function Publish() {
   const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void) => {
     const mal = f ? repetidas.has(f.key) : intentoFotos
     return f ? (
-      <div className={`photoslot filled ${mal ? 'bad' : ''}`} onClick={onPick} role="button" tabIndex={0} aria-label={`Cambiar ${etiqueta}`}>
+      <div className={`photoslot filled ${mal ? 'bad' : ''}`} onClick={onPick} role="button" tabIndex={0} aria-label={t('publicar.changePhoto', { foto: etiqueta })}>
         <img src={f.url} alt={etiqueta} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <span className="tag">{etiqueta}</span>
         {onRemove && (
           <button
             className="rm"
-            aria-label="Quitar foto"
+            aria-label={t('publicar.removePhoto')}
             onClick={(e) => {
               e.stopPropagation()
               onRemove()
@@ -386,44 +394,43 @@ export function Publish() {
     )
   }
 
-  const specs: [string, string][] = [
-    ['Marca', marcaNombre],
-    ['Modelo', modeloNombre],
-    ['Año', d.anio],
-    ['Transmisión', nombre(cat?.transmisiones, d.idTransmision)],
-    ['Kilometraje', d.kilometraje ? `${entero(Number(d.kilometraje))} km` : '—'],
-    ['Recuperado por el seguro', d.recuperado ? 'Sí' : 'No'],
-    ['Cilindros', d.cilindros || '—'],
-    ['Caballos de fuerza', d.caballos || '—'],
-    ['Motor', d.motor.trim() || '—'],
-    ['Combustible', d.combustible || '—'],
-    ['Tipo de carro', nombre(cat?.carrocerias, d.idCarroceria)],
-    ['Color', nombre(cat?.colores, d.idColor)],
-    ['Dueños anteriores', d.duenos || '0'],
+  const combustible = COMBUSTIBLES.find((c) => c.valor === d.combustible)
+  const specs: [Clave, string][] = [
+    ['publicar.brand', marcaNombre],
+    ['publicar.model', modeloNombre],
+    ['publicar.year', d.anio],
+    ['publicar.transmission', nombre(cat?.transmisiones, d.idTransmision)],
+    ['publicar.mileage', d.kilometraje ? `${entero(Number(d.kilometraje))} km` : '—'],
+    ['publicar.insuranceRecovered', d.recuperado ? t('publicar.yes') : t('publicar.no')],
+    ['publicar.cylinders', d.cilindros || '—'],
+    ['publicar.horsepower', d.caballos || '—'],
+    ['publicar.engine', d.motor.trim() || '—'],
+    ['publicar.fuel', combustible ? t(combustible.label) : d.combustible || '—'],
+    ['publicar.bodyType', nombre(cat?.carrocerias, d.idCarroceria)],
+    ['publicar.color', nombre(cat?.colores, d.idColor)],
+    ['publicar.previousOwners', d.duenos || '0'],
   ]
 
   return (
     <div className="wrap" style={{ maxWidth: 980 }} ref={arriba}>
       <div className="pagehead">
         <div>
-          <h1>{editId ? 'Editar publicación' : 'Publicar vehículo'}</h1>
-          <p className="muted">
-            Paso {step + 1} de 4 · {PASOS[step]}
-          </p>
+          <h1>{editId ? t('publicar.editTitle') : t('publicar.title')}</h1>
+          <p className="muted">{t('publicar.stepOf', { n: step + 1, paso: t(PASOS[step]) })}</p>
         </div>
         <button className="btn btn-ghost" onClick={salir}>
           <Icon name="x" size={16} />
-          Salir
+          {t('publicar.exit')}
         </button>
       </div>
 
       <div className="stepper">
-        {PASOS.map((t, i) => (
-          <span key={t} style={{ display: 'contents' }}>
+        {PASOS.map((p, i) => (
+          <span key={p} style={{ display: 'contents' }}>
             {i > 0 && <span className="stepline" />}
             <button className={`step ${i === step ? 'on' : i < step ? 'done' : ''}`} disabled={i >= step} onClick={() => irA(i)}>
               <i>{i < step ? <Icon name="check" size={16} /> : i + 1}</i>
-              <span>{t}</span>
+              <span>{t(p)}</span>
             </button>
           </span>
         ))}
@@ -431,9 +438,9 @@ export function Publish() {
 
       {rechazo && (
         <div className="note" style={{ background: 'var(--error-l)', color: 'var(--error)', marginBottom: 16 }}>
-          <b>Administración rechazó tu publicación</b>
+          <b>{t('publicar.rejectedTitle')}</b>
           <br />
-          Motivo: {rechazo}
+          {t('publicar.rejectedReason', { motivo: rechazo })}
         </div>
       )}
       <div style={{ marginBottom: error ? 16 : 0 }}>
@@ -446,25 +453,25 @@ export function Publish() {
         <>
           {step === 0 && (
             <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div className="label">Información del vehículo</div>
+              <div className="label">{t('publicar.sectionVehicleInfo')}</div>
               <div className="grid3">
-                <Campo id="idMarca" label="Marca">
-                  {select('idMarca', cat.marcas, 'Selecciona una marca')}
-                  {marcaSel?.esOtro && <input className="input" placeholder="Escribe la marca" maxLength={60} value={d.marcaOtra} onChange={(e) => set('marcaOtra', e.target.value)} />}
+                <Campo id="idMarca" label={t('publicar.brand')}>
+                  {select('idMarca', cat.marcas, t('publicar.selectBrand'))}
+                  {marcaSel?.esOtro && <input className="input" placeholder={t('publicar.enterBrand')} maxLength={60} value={d.marcaOtra} onChange={(e) => set('marcaOtra', e.target.value)} />}
                 </Campo>
-                <Campo id="idModelo" label="Modelo">
-                  {select('idModelo', cat.modelos.filter((m) => String(m.idMarca) === d.idMarca), marcaSel ? 'Selecciona un modelo' : 'Primero elige la marca', !marcaSel)}
-                  {modeloSel?.esOtro && <input className="input" placeholder="Escribe el modelo" maxLength={60} value={d.modeloOtro} onChange={(e) => set('modeloOtro', e.target.value)} />}
+                <Campo id="idModelo" label={t('publicar.model')}>
+                  {select('idModelo', cat.modelos.filter((m) => String(m.idMarca) === d.idMarca), marcaSel ? t('publicar.selectModel') : t('publicar.chooseBrandFirst'), !marcaSel)}
+                  {modeloSel?.esOtro && <input className="input" placeholder={t('publicar.enterModel')} maxLength={60} value={d.modeloOtro} onChange={(e) => set('modeloOtro', e.target.value)} />}
                 </Campo>
-                <Campo id="anio" label="Año">
+                <Campo id="anio" label={t('publicar.year')}>
                   <input className="input" id="anio" inputMode="numeric" placeholder={String(new Date().getFullYear())} value={d.anio} onChange={(e) => set('anio', digitos(e.target.value, 4))} />
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo id="precio" label="Precio ($)">
+                <Campo id="precio" label={t('publicar.price')}>
                   <input className="input" id="precio" inputMode="numeric" placeholder="250,000" value={d.precio ? entero(Number(d.precio)) : ''} onChange={(e) => set('precio', digitos(e.target.value, 10))} />
                 </Campo>
-                <Campo label="Transmisión">
+                <Campo label={t('publicar.transmission')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {cat.transmisiones.map((t) => (
                       <button type="button" key={t.id} className={d.idTransmision === String(t.id) ? 'on' : ''} onClick={() => set('idTransmision', String(t.id))}>
@@ -473,54 +480,56 @@ export function Publish() {
                     ))}
                   </div>
                 </Campo>
-                <Campo id="kilometraje" label="Kilometraje">
+                <Campo id="kilometraje" label={t('publicar.mileage')}>
                   <input className="input" id="kilometraje" inputMode="numeric" placeholder="45,000" value={d.kilometraje ? entero(Number(d.kilometraje)) : ''} onChange={(e) => set('kilometraje', digitos(e.target.value, 7))} />
                 </Campo>
               </div>
               <div className="label" style={{ marginTop: 8 }}>
-                Clasificación
+                {t('publicar.sectionClassification')}
               </div>
               <div className="grid3">
-                <Campo id="idCarroceria" label="Tipo de carro">
-                  {select('idCarroceria', cat.carrocerias, 'Selecciona')}
+                <Campo id="idCarroceria" label={t('publicar.bodyType')}>
+                  {select('idCarroceria', cat.carrocerias, t('publicar.select'))}
                 </Campo>
-                <Campo id="idColor" label="Color">
-                  {select('idColor', cat.colores, 'Selecciona')}
+                <Campo id="idColor" label={t('publicar.color')}>
+                  {select('idColor', cat.colores, t('publicar.select'))}
                 </Campo>
-                <Campo id="duenos" label="Dueños anteriores">
+                <Campo id="duenos" label={t('publicar.previousOwners')}>
                   <input className="input" id="duenos" inputMode="numeric" placeholder="0" value={d.duenos} onChange={(e) => set('duenos', digitos(e.target.value, 2))} />
                 </Campo>
               </div>
               <div className="label" style={{ marginTop: 8 }}>
-                Información adicional
+                {t('publicar.sectionAdditionalInfo')}
               </div>
               <div className="grid3">
-                <Campo id="cilindros" label="Cilindros">
+                <Campo id="cilindros" label={t('publicar.cylinders')}>
                   <input className="input" id="cilindros" inputMode="numeric" placeholder="4" value={d.cilindros} onChange={(e) => set('cilindros', digitos(e.target.value, 2))} />
                 </Campo>
-                <Campo id="motor" label="Motor">
+                <Campo id="motor" label={t('publicar.engine')}>
                   <input className="input" id="motor" placeholder="2.0 L Turbo" maxLength={MOTOR_MAX} value={d.motor} onChange={(e) => set('motor', e.target.value)} />
                 </Campo>
-                <Campo id="combustible" label="Combustible">
+                <Campo id="combustible" label={t('publicar.fuel')}>
                   <select className="input" id="combustible" value={d.combustible} onChange={(e) => set('combustible', e.target.value)}>
-                    <option value="">Selecciona</option>
+                    <option value="">{t('publicar.select')}</option>
                     {COMBUSTIBLES.map((c) => (
-                      <option key={c}>{c}</option>
+                      <option key={c.valor} value={c.valor}>
+                        {t(c.label)}
+                      </option>
                     ))}
                   </select>
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo id="caballos" label="Caballos de fuerza">
+                <Campo id="caballos" label={t('publicar.horsepower')}>
                   <input className="input" id="caballos" inputMode="numeric" placeholder="150" value={d.caballos} onChange={(e) => set('caballos', digitos(e.target.value, 4))} />
                 </Campo>
-                <Campo label="Recuperado por el seguro">
+                <Campo label={t('publicar.insuranceRecovered')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     <button type="button" className={d.recuperado ? 'on' : ''} onClick={() => set('recuperado', true)}>
-                      Sí
+                      {t('publicar.yes')}
                     </button>
                     <button type="button" className={!d.recuperado ? 'on' : ''} onClick={() => set('recuperado', false)}>
-                      No
+                      {t('publicar.no')}
                     </button>
                   </div>
                 </Campo>
@@ -531,26 +540,26 @@ export function Publish() {
           {step === 1 && (
             <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="row" style={{ justifyContent: 'space-between' }}>
-                <div className="label">Fotos obligatorias</div>
+                <div className="label">{t('publicar.requiredPhotos')}</div>
                 <span className={`badge ${angulos.every(Boolean) ? 'b-succ' : 'b-neu'}`}>
-                  {fotos.length}/{MAX_FOTOS} fotos
+                  {t('publicar.photosCount', { n: fotos.length, max: MAX_FOTOS })}
                 </span>
               </div>
               <div className="photogrid">
                 {angulos.map((f, i) => (
                   <div key={i}>
-                    {fotoSlot(f, ANGULOS[i], () => {
+                    {fotoSlot(f, t(ANGULOS[i]), () => {
                       anguloElegido.current = i
                       anguloInput.current?.click()
                     })}
                   </div>
                 ))}
               </div>
-              <div className="label">Fotos adicionales</div>
+              <div className="label">{t('publicar.extraPhotos')}</div>
               <div className="photogrid extra">
                 {extras.map((f, i) =>
                   <div key={f.key}>
-                    {fotoSlot(f, `Foto ${ANGULOS.length + i + 1}`, () => undefined, () => {
+                    {fotoSlot(f, t('publicar.photoN', { n: ANGULOS.length + i + 1 }), () => undefined, () => {
                       setRepetidas(new Set())
                       setExtras((x) => x.filter((y) => y.key !== f.key))
                     })}
@@ -575,9 +584,9 @@ export function Publish() {
                 }}
               >
                 <Icon name="upload" size={22} />
-                {lugaresExtra > 0 ? `Agregar más fotos (máx. ${lugaresExtra})` : `Llegaste al máximo de ${MAX_FOTOS} fotos`}
+                {lugaresExtra > 0 ? t('publicar.addMorePhotos', { n: lugaresExtra }) : t('publicar.photosLimit', { n: MAX_FOTOS })}
                 <span className="muted" style={{ fontSize: 12 }}>
-                  Arrastra tus imágenes aquí o elige de tu computadora
+                  {t('publicar.dropHint')}
                 </span>
               </button>
               <input ref={anguloInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => (ponerAngulo(e.target.files?.[0]), (e.target.value = ''))} />
@@ -594,14 +603,16 @@ export function Publish() {
 
           {step === 2 && (
             <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <Campo id="desc" label="Descripción del auto">
-                <textarea className="input" id="desc" placeholder="Una buena descripción aumenta las visitas" maxLength={2000} value={d.descripcion} onChange={(e) => set('descripcion', e.target.value)} />
+              <Campo id="desc" label={t('publicar.descriptionTitle')}>
+                <textarea className="input" id="desc" placeholder={t('publicar.descriptionPlaceholder')} maxLength={2000} value={d.descripcion} onChange={(e) => set('descripcion', e.target.value)} />
               </Campo>
-              <Campo id="imp" label="Detalles o imperfecciones">
-                <textarea className="input" id="imp" placeholder="La transparencia genera confianza en los compradores" maxLength={1000} value={d.imperfecciones} onChange={(e) => set('imperfecciones', e.target.value)} />
+              <Campo id="imp" label={t('publicar.imperfectionsTitle')}>
+                <textarea className="input" id="imp" placeholder={t('publicar.imperfectionsPlaceholder')} maxLength={1000} value={d.imperfecciones} onChange={(e) => set('imperfecciones', e.target.value)} />
               </Campo>
               <div className="note" style={{ background: 'var(--teal-light)' }}>
-                💡 Los anuncios con descripción completa reciben <b>40% más contactos</b> que los incompletos.
+                {t('publicar.tipBefore')}
+                <b>{t('publicar.tipBold')}</b>
+                {t('publicar.tipAfter')}
               </div>
             </section>
           )}
@@ -616,30 +627,30 @@ export function Publish() {
                   </h2>
                   <span className="price-xl num">{formatoPrecio(Number(d.precio))}</span>
                   <span className="muted">
-                    {d.anio} · {d.kilometraje ? `${entero(Number(d.kilometraje))} km` : ''} · {fotos.length} fotos
+                    {d.anio} · {d.kilometraje ? `${entero(Number(d.kilometraje))} km` : ''} · {t('publicar.photosShort', { n: fotos.length })}
                   </span>
                   <div className="note" style={{ background: 'var(--warning-l)', marginTop: 8 }}>
-                    Tu publicación se revisará antes de aparecer en el inicio.
+                    {t('publicar.reviewNotice')}
                   </div>
                 </div>
               </div>
-              <div className="label">Ficha técnica</div>
+              <div className="label">{t('publicar.specs')}</div>
               <div className="ficha">
                 {specs.map(([k, v]) => (
                   <div key={k}>
-                    <span>{k}</span>
+                    <span>{t(k)}</span>
                     <b>{v || '—'}</b>
                   </div>
                 ))}
               </div>
-              <div className="label">Descripción</div>
+              <div className="label">{t('publicar.description')}</div>
               <p className="muted" style={{ whiteSpace: 'pre-line' }}>
                 {d.descripcion.trim()}
                 {d.caballos ? `\n\nPotencia: ${d.caballos} hp` : ''}
               </p>
-              <div className="label">Detallado o imperfecciones</div>
+              <div className="label">{t('publicar.imperfectionsBlock')}</div>
               <p className="muted" style={{ whiteSpace: 'pre-line' }}>
-                {d.imperfecciones.trim() || 'Sin imperfecciones reportadas.'}
+                {d.imperfecciones.trim() || t('publicar.noImperfections')}
               </p>
             </section>
           )}
@@ -647,23 +658,23 @@ export function Publish() {
           <div className="row" style={{ justifyContent: 'space-between', margin: '20px 0 40px' }}>
             <button className="btn btn-ghost" disabled={step === 0} style={step === 0 ? { opacity: 0.4 } : undefined} onClick={() => irA(step - 1)}>
               <Icon name="back" size={16} />
-              Anterior
+              {t('publicar.previous')}
             </button>
             {step < 3 ? (
               <button className="btn btn-primary" disabled={revisando} onClick={siguiente}>
-                {revisando ? 'Revisando fotos…' : `Siguiente: ${step === 2 ? 'Confirmación' : PASOS[step + 1]} →`}
+                {revisando ? t('publicar.checkingPhotos') : t('publicar.nextTo', { paso: t(step === 2 ? 'publicar.stepConfirmation' : PASOS[step + 1]) })}
               </button>
             ) : (
               <button className="btn btn-teal" disabled={publicando} onClick={confirmarPublicar}>
                 {publicando
                   ? editId
-                    ? 'Reenviando…'
-                    : 'Publicando…'
+                    ? t('publicar.resubmitting')
+                    : t('publicar.publishing')
                   : editId
                     ? rechazo
-                      ? 'Reenviar a revisión'
-                      : 'Enviar cambios a revisión'
-                    : 'Publicar'}
+                      ? t('publicar.resubmit')
+                      : t('publicar.sendChanges')
+                    : t('publicar.publish')}
               </button>
             )}
           </div>
@@ -676,33 +687,34 @@ export function Publish() {
 /** Aviso de éxito (SuccessOverlay de la app). */
 function Exito({ titulo, editando, aprobada, editId }: { titulo: string; editando: boolean; aprobada: boolean; editId: number | null }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const ir = (to: string) => {
     closeModal()
     navigate(to, { replace: true })
   }
   const mensaje = !editando
-    ? `Tu ${titulo} se envió a revisión. Aparecerá para los compradores en cuanto un administrador lo apruebe.`
+    ? t('publicar.successMessage', { titulo })
     : aprobada
-      ? `Los cambios de tu ${titulo} se enviaron a revisión. Mientras tanto, los compradores siguen viendo la versión anterior.`
-      : `Tu ${titulo} se envió de nuevo a revisión. Aparecerá para los compradores en cuanto un administrador la apruebe.`
+      ? t('publicar.successEditMessage', { titulo })
+      : t('publicar.successResubmitMessage', { titulo })
   return (
     <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
       <span className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--success-l)', color: 'var(--success)' }}>
         <Icon name="check" size={30} />
       </span>
-      <ModalHead title={editando && !aprobada ? '¡Reenviada!' : '¡Publicado!'} sub={mensaje} />
+      <ModalHead title={editando && !aprobada ? t('publicar.successResubmitTitle') : t('publicar.successTitle')} sub={mensaje} />
       <div className="grid2" style={{ width: '100%' }}>
         <button className="btn btn-ghost" onClick={() => ir('/panel')}>
-          Ver mi panel
+          {t('publicar.goDashboard')}
         </button>
         {editId != null ? (
           <button className="btn btn-primary" onClick={() => ir(`/vehiculo/${editId}`)}>
-            Ver publicación
+            {t('publicar.viewListing')}
           </button>
         ) : (
           <button className="btn btn-primary" onClick={() => ir('/')}>
-            Ir al inicio
+            {t('common.goHome')}
           </button>
         )}
       </div>

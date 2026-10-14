@@ -1,11 +1,14 @@
 import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
+import { useI18n } from '../i18n/I18nContext'
 import { useSession } from '../session/SessionContext'
+import { Icon } from './Icon'
 import { TopNav } from './TopNav'
 import { useUi } from './Ui'
 
 export function Footer() {
   const navigate = useNavigate()
+  const { t, lang, setLang } = useI18n()
   const go = (to: string) => () => navigate(to)
   return (
     <footer className="footer">
@@ -15,27 +18,35 @@ export function Footer() {
             <img src="/logo.png" alt="" />
             Karsy
           </div>
-          <p style={{ marginTop: 12, maxWidth: 300 }}>Marketplace automotriz para comprar y vender autos nuevos y seminuevos en todo México.</p>
+          <p style={{ marginTop: 12, maxWidth: 300 }}>{t('footer.tagline')}</p>
+          <div className="footlang" role="group" aria-label={t('footer.language')}>
+            <Icon name="globe" size={16} />
+            {(['es', 'en'] as const).map((l) => (
+              <button key={l} className={lang === l ? 'on' : ''} aria-pressed={lang === l} onClick={() => setLang(l)}>
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
         <div>
-          <h4>Explorar</h4>
-          <button onClick={go('/')}>Vehículos</button>
-          <button onClick={go('/lotes')}>Lotes y agencias</button>
-          <button onClick={go('/publicar')}>Publicar vehículo</button>
+          <h4>{t('footer.explore')}</h4>
+          <button onClick={go('/')}>{t('footer.vehicles')}</button>
+          <button onClick={go('/lotes')}>{t('footer.lots')}</button>
+          <button onClick={go('/publicar')}>{t('footer.publish')}</button>
         </div>
         <div>
-          <h4>Tu cuenta</h4>
-          <button onClick={go('/perfil')}>Mi perfil</button>
-          <button onClick={go('/panel')}>Mi panel</button>
-          <button onClick={go('/favoritos')}>Favoritos</button>
+          <h4>{t('footer.account')}</h4>
+          <button onClick={go('/perfil')}>{t('nav.myProfile')}</button>
+          <button onClick={go('/panel')}>{t('nav.myDashboard')}</button>
+          <button onClick={go('/favoritos')}>{t('nav.favorites')}</button>
         </div>
         <div>
-          <h4>Legal</h4>
-          <button onClick={go('/terminos')}>Términos y condiciones</button>
-          <button onClick={go('/privacidad/politicas')}>Políticas de privacidad</button>
+          <h4>{t('footer.legal')}</h4>
+          <button onClick={go('/terminos')}>{t('legal.terms')}</button>
+          <button onClick={go('/privacidad/politicas')}>{t('legal.policy')}</button>
         </div>
       </div>
-      <div className="wrap legal">© {new Date().getFullYear()} Karsy · Hecho en Torreón, Coahuila</div>
+      <div className="wrap legal">© {new Date().getFullYear()} Karsy · {t('footer.madeIn')}</div>
     </footer>
   )
 }

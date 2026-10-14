@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Car } from '../data/types'
+import { useI18n } from '../i18n/I18nContext'
 import { ORDEN, SIN_FILTROS, filtrarCars, hayFiltros, type Filtros } from '../lib/filtros'
 import { iniciales } from '../lib/format'
 import { FiltersButton, aniosDe } from './Filters'
@@ -25,6 +26,7 @@ export function ProfileHeader({
   actions?: ReactNode
 }) {
   const { openModal, closeModal } = useUi()
+  const { t } = useI18n()
   const [portadaFallo, setPortadaFallo] = useState(false)
   const [fotoFallo, setFotoFallo] = useState(false)
   const foto = avatarUrl && !fotoFallo ? avatarUrl : null
@@ -38,7 +40,7 @@ export function ProfileHeader({
           <button
             className="bigavatar"
             style={estilo}
-            aria-label={`Ver foto de ${name}`}
+            aria-label={t('perfil.viewPhotoOf', { nombre: name })}
             onClick={() => openModal(<img className="lightbox" src={foto} alt={name} onClick={closeModal} />)}
           >
             <img src={foto} alt="" onError={() => setFotoFallo(true)} />
@@ -66,6 +68,7 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
   const [q, setQ] = useState('')
   const [filtros, setFiltros] = useState<Filtros>(SIN_FILTROS)
   const [orden, setOrden] = useState('recientes')
+  const { t } = useI18n()
   const lista = useMemo(() => filtrarCars(cars, filtros, q, orden), [cars, filtros, q, orden])
   const filtrando = !!q.trim() || hayFiltros(filtros)
 
@@ -75,20 +78,22 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
         <div>
           <h2 style={{ fontSize: 22 }}>{title}</h2>
           <p className="muted">
-            {filtrando ? `${lista.length} de ${cars.length}` : cars.length} {cars.length === 1 ? 'vehículo' : 'vehículos'}
+            {filtrando
+              ? t('perfil.ofTotal', { n: lista.length, total: t(cars.length === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: cars.length }) })
+              : t(cars.length === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: cars.length })}
           </p>
         </div>
         {cars.length > 0 && (
           <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
             <div className="inputicon" style={{ width: 240, maxWidth: '100%' }}>
               <Icon name="search" size={18} />
-              <input className="input" placeholder="Buscar marca o modelo…" aria-label="Buscar en el inventario" value={q} onChange={(e) => setQ(e.target.value)} />
+              <input className="input" placeholder={t('perfil.inventorySearchPlaceholder')} aria-label={t('perfil.inventorySearchLabel')} value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
             <FiltersButton value={filtros} onApply={setFiltros} anios={aniosDe(cars)} />
-            <select className="input" aria-label="Ordenar" value={orden} onChange={(e) => setOrden(e.target.value)} style={{ width: 'auto' }}>
-              {ORDEN.map(([v, t]) => (
+            <select className="input" aria-label={t('sort.label')} value={orden} onChange={(e) => setOrden(e.target.value)} style={{ width: 'auto' }}>
+              {ORDEN.map(([v, clave]) => (
                 <option key={v} value={v}>
-                  {t}
+                  {t(clave)}
                 </option>
               ))}
             </select>
@@ -97,7 +102,7 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
       </div>
       {lista.length === 0 ? (
         <div className="card empty">
-          <p className="muted">{cars.length === 0 ? emptyText : 'Ningún vehículo coincide con tu búsqueda.'}</p>
+          <p className="muted">{cars.length === 0 ? emptyText : t('home.noMatch')}</p>
           {filtrando && (
             <button
               className="btn btn-ghost"
@@ -106,7 +111,7 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
                 setFiltros(SIN_FILTROS)
               }}
             >
-              Limpiar filtros
+              {t('home.clearFilters')}
             </button>
           )}
         </div>

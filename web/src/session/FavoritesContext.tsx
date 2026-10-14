@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { useNavigate } from 'react-router-dom'
 import { favoriteIds, setFavorite } from '../data/api'
 import { useUi } from '../components/Ui'
+import { useI18n } from '../i18n/I18nContext'
 import { useSession } from './SessionContext'
 
 interface FavoritesValue {
@@ -16,6 +17,7 @@ const FavoritesContext = createContext<FavoritesValue | null>(null)
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const { account } = useSession()
   const { toast } = useUi()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [ids, setIds] = useState<Set<number>>(new Set())
 
@@ -32,7 +34,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   const toggle = useCallback(
     (id: number) => {
       if (!account) {
-        toast('Regístrate para guardar tus favoritos', { label: 'Registrarme', onClick: () => navigate('/registro') })
+        toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
         return
       }
       const agregar = !ids.has(id)
@@ -50,10 +52,10 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           else n.add(id)
           return n
         })
-        toast('No se pudo guardar el favorito. Intenta de nuevo.')
+        toast(t('vehiculo.fav.error'))
       })
     },
-    [account, ids, navigate, toast],
+    [account, ids, navigate, toast, t],
   )
 
   return (

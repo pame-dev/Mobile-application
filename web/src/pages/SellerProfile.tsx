@@ -3,8 +3,9 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Inventory, ProfileHeader } from '../components/ProfileParts'
 import { ownerVisibleCars, sellerProfile } from '../data/api'
 import type { Car, SellerProfile as Perfil } from '../data/types'
+import { traducir, useI18n } from '../i18n/I18nContext'
 
-const desde = (fecha: string) => new Date(fecha).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })
+const desde = (fecha: string) => new Date(fecha).toLocaleDateString(traducir('vehiculo.locale'), { month: 'long', year: 'numeric' })
 
 /** Perfil público de un vendedor particular y sus publicaciones visibles (SellerProfileView de la app). */
 export function SellerProfile() {
@@ -13,6 +14,7 @@ export function SellerProfile() {
   const [perfil, setPerfil] = useState<Perfil | null | undefined>(undefined)
   const [cars, setCars] = useState<Car[]>([])
   const [error, setError] = useState<string | null>(null)
+  const { t } = useI18n()
 
   const cargar = useCallback(() => {
     setError(null)
@@ -21,7 +23,7 @@ export function SellerProfile() {
         setPerfil(p)
         setCars(c)
       })
-      .catch(() => setError('No pudimos cargar este perfil. Revisa tu conexión e intenta de nuevo.'))
+      .catch(() => setError(traducir('perfil.sellerError')))
   }, [id])
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function SellerProfile() {
         <div className="card empty" style={{ marginTop: 40 }}>
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
-            Reintentar
+            {t('common.retry')}
           </button>
         </div>
       </div>
@@ -52,9 +54,9 @@ export function SellerProfile() {
     return (
       <div className="wrap" style={{ maxWidth: 820 }}>
         <div className="card empty" style={{ marginTop: 40 }}>
-          <h2>No encontramos este vendedor.</h2>
+          <h2>{t('perfil.sellerNotFound')}</h2>
           <button className="btn btn-primary" onClick={() => navigate('/')}>
-            Ir al inicio
+            {t('common.goHome')}
           </button>
         </div>
       </div>
@@ -63,7 +65,7 @@ export function SellerProfile() {
   // Los lotes tienen su propio perfil, con dirección y contacto.
   if (perfil.type === 'lote') return <Navigate to={`/lotes/${perfil.id}`} replace />
 
-  const datos = ['Particular', perfil.city, perfil.since ? `En Karsy desde ${desde(perfil.since)}` : ''].filter(Boolean).join(' · ')
+  const datos = [t('nav.individual'), perfil.city, perfil.since ? t('perfil.since', { fecha: desde(perfil.since) }) : ''].filter(Boolean).join(' · ')
 
   return (
     <div className="wrap" style={{ paddingTop: 24 }}>
@@ -77,7 +79,7 @@ export function SellerProfile() {
         </p>
       )}
       <div style={{ marginTop: 28 }}>
-        <Inventory cars={cars} title="Publicaciones" emptyText="Este vendedor no tiene publicaciones activas por el momento." />
+        <Inventory cars={cars} title={t('perfil.listings')} emptyText={t('perfil.sellerInventoryEmpty')} />
       </div>
     </div>
   )

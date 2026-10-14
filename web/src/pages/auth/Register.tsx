@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox, AuthShell, BackButton, PasswordInput, PasswordRulesList } from '../../components/AuthParts'
 import { Icon, type IconName } from '../../components/Icon'
 import { Brand } from '../../components/TopNav'
 import { useUi } from '../../components/Ui'
-import { EmailNotVerifiedError, holdAvatarUntilVerified, MSG_EMAIL_EXISTS, mensajeUsuario, signUp, telefonoEnUso, uploadAvatar } from '../../data/auth'
+import { EmailNotVerifiedError, holdAvatarUntilVerified, mensajeUsuario, msgEmailExiste, signUp, telefonoEnUso, uploadAvatar } from '../../data/auth'
+import { traducir, useI18n } from '../../i18n/I18nContext'
+import type { Clave } from '../../i18n/es'
 import * as R from '../../lib/formRules'
 import { estadosMunicipios, jpegDe, type EstadoMunicipios } from '../../lib/mexico'
 import { useSession } from '../../session/SessionContext'
@@ -14,42 +16,43 @@ type Tipo = 'particular' | 'lote'
 /** Registro: tipo de cliente (RegisterTypeScreen de la app). */
 export function RegisterType() {
   const navigate = useNavigate()
+  const { t } = useI18n()
   const { account } = useSession()
   const [tipo, setTipo] = useState<Tipo>('particular')
   if (account) return <Navigate to="/" replace />
 
-  const opciones: [Tipo, string, string, IconName, string | undefined][] = [
-    ['particular', 'Particular', 'Compra y vende vehículos como persona particular.', 'user', undefined],
-    ['lote', 'Lote', 'Publica y administra vehículos de tu lote o agencia.', 'building', 'var(--teal)'],
+  const opciones: [Tipo, Clave, Clave, IconName, string | undefined][] = [
+    ['particular', 'auth.type.individual', 'auth.type.individualDesc', 'user', undefined],
+    ['lote', 'auth.type.lot', 'auth.type.lotDesc', 'building', 'var(--teal)'],
   ]
   return (
-    <AuthShell title="Únete a Karsy." sub="Crea tu cuenta gratis como particular o registra tu lote para publicar todo tu inventario." photo={11}>
+    <AuthShell title={t('auth.type.artTitle')} sub={t('auth.type.artSub')} photo={11}>
       <BackButton onClick={() => navigate('/')} />
-      <h2>Registro</h2>
-      <p className="muted">Selecciona qué tipo de cliente eres</p>
-      {opciones.map(([v, t, d, i, bg]) => (
+      <h2>{t('auth.type.title')}</h2>
+      <p className="muted">{t('auth.type.sub')}</p>
+      {opciones.map(([v, titulo, d, i, bg]) => (
         <button key={v} className={`typecard ${tipo === v ? 'on' : ''}`} aria-pressed={tipo === v} onClick={() => setTipo(v)}>
           <span className="nic" style={bg ? { background: bg } : undefined}>
             <Icon name={i} size={26} />
           </span>
           <span className="grow">
-            <b style={{ fontFamily: 'var(--f-display)', fontSize: 18, color: 'var(--ink)' }}>{t}</b>
+            <b style={{ fontFamily: 'var(--f-display)', fontSize: 18, color: 'var(--ink)' }}>{t(titulo)}</b>
             <br />
-            <span className="muted">{d}</span>
+            <span className="muted">{t(d)}</span>
           </span>
           <Icon name="chev" />
         </button>
       ))}
       <button className="btn btn-primary btn-block" style={{ height: 50 }} onClick={() => navigate(`/registro/${tipo}`)}>
-        Continuar
+        {t('auth.type.continue')}
       </button>
       <p className="muted" style={{ textAlign: 'center', fontSize: 13 }}>
-        Podrás completar tu perfil después.
+        {t('auth.type.later')}
       </p>
       <p className="muted" style={{ textAlign: 'center' }}>
-        ¿Ya tienes una cuenta?{' '}
+        {t('auth.haveAccount')}{' '}
         <button className="linkbtn" onClick={() => navigate('/login')}>
-          Inicia sesión aquí
+          {t('auth.loginHere')}
         </button>
       </p>
     </AuthShell>
@@ -88,7 +91,15 @@ const VACIO: Form = {
   confirm: '', terminos: false,
 }
 
-const REQUERIDO = 'Campo obligatorio'
+/**
+ * Lo escrito en el formulario mientras se consultan los términos o las políticas de privacidad:
+ * al volver con "← Volver" se restaura. Solo vive en memoria (incluye la contraseña, así que no se
+ * guarda en el navegador) y se descarta al recargar la página.
+ */
+let borrador: { tipo: Tipo; f: Form; logo: Blob | null } | null = null
+
+/** "Campo obligatorio" en el idioma actual (se compara contra los errores armados en el mismo momento). */
+const requerido = () => traducir('auth.reg.required')
 
 /** Orden de los campos en pantalla (para llevar la vista al primer error). */
 const CAMPOS_PARTICULAR = ['nombre', 'apellido', 'correo', 'estado', 'ciudad', 'telefono', 'whatsapp', 'medio', 'password']
@@ -96,29 +107,29 @@ const CAMPOS_LOTE = ['nombre', 'apellido', 'correo', 'telefono', 'whatsapp', 'me
 
 /** Error del campo con su valor actual, o null si está bien (validar() de RegisterViewModel). */
 function validar(f: Form, campo: string, correoRegistrado: string | null): string | null {
-  const obligatorio = (v: string, regla: (x: string) => string | null) => (!v.trim() ? REQUERIDO : regla(v))
+  const obligatorio = (v: string, regla: (x: string) => string | null) => (!v.trim() ? requerido() : regla(v))
   switch (campo) {
     case 'nombre':
       return obligatorio(f.nombre, R.nombrePersona)
     case 'apellido':
       return obligatorio(f.apellido, R.nombrePersona)
     case 'correo':
-      return obligatorio(f.correo, R.correo) ?? (correoRegistrado && R.limpiarCorreo(f.correo) === correoRegistrado ? MSG_EMAIL_EXISTS : null)
+      return obligatorio(f.correo, R.correo) ?? (correoRegistrado && R.limpiarCorreo(f.correo) === correoRegistrado ? msgEmailExiste() : null)
     case 'telefono':
       return obligatorio(f.telefono, R.telefono)
     // Si no usa el mismo número, el WhatsApp es opcional (vacío = no tiene WhatsApp).
     case 'whatsapp':
       if (f.mismoWhatsapp) return null
-      if (f.medio === WHATSAPP && !f.whatsapp.trim()) return 'Escribe tu WhatsApp o elige Llamadas como método principal.'
+      if (f.medio === WHATSAPP && !f.whatsapp.trim()) return traducir('auth.reg.whatsappOrCalls')
       return R.telefono(f.whatsapp)
     case 'medio':
-      return f.medio ? null : 'Elige cómo prefieres que te contacten.'
+      return f.medio ? null : traducir('auth.reg.chooseMethod')
     case 'estado':
-      return f.estado ? null : REQUERIDO
+      return f.estado ? null : requerido()
     case 'ciudad':
-      return f.ciudad ? null : REQUERIDO
+      return f.ciudad ? null : requerido()
     case 'password':
-      return !f.password ? REQUERIDO : R.passwordError(f.password, f.correo)
+      return !f.password ? requerido() : R.passwordError(f.password, f.correo)
     case 'nombreLote':
       return obligatorio(f.nombreLote, R.nombreLote)
     case 'calle':
@@ -148,9 +159,10 @@ function Field({ id, label, error, children, span }: { id: string; label: string
 export function RegisterForm({ tipo }: { tipo: Tipo }) {
   const esLote = tipo === 'lote'
   const navigate = useNavigate()
+  const { t } = useI18n()
   const { account, reload } = useSession()
   const { toast } = useUi()
-  const [f, setF] = useState<Form>(VACIO)
+  const [f, setF] = useState<Form>(() => (borrador?.tipo === tipo ? borrador.f : VACIO))
   const [touched, setTouched] = useState<Set<string>>(new Set())
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -158,7 +170,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
   const [correoRegistrado, setCorreoRegistrado] = useState<string | null>(null)
   const [telefonoAviso, setTelefonoAviso] = useState<string | null>(null)
   const [catalogo, setCatalogo] = useState<EstadoMunicipios[]>([])
-  const [logo, setLogo] = useState<{ blob: Blob; url: string } | null>(null)
+  const [logo, setLogo] = useState<{ blob: Blob; url: string } | null>(() => {
+    const blob = borrador?.tipo === tipo ? borrador.logo : null
+    return blob ? { blob, url: URL.createObjectURL(blob) } : null
+  })
   const [logoError, setLogoError] = useState<string | null>(null)
   const logoInput = useRef<HTMLInputElement>(null)
   const [scrollPedido, setScrollPedido] = useState(0)
@@ -166,6 +181,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
   const telefonoActual = useRef(f.telefono)
   telefonoActual.current = f.telefono
 
+  // El borrador ya se restauró en el estado inicial.
+  useEffect(() => {
+    borrador = null
+  }, [])
   useEffect(() => {
     estadosMunicipios().then(setCatalogo).catch(() => setCatalogo([]))
   }, [])
@@ -212,13 +231,18 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
     if (campo === 'telefono') void revisarTelefono(f.telefono)
   }
 
+  /** Antes de ir a los términos o las políticas: se guarda lo escrito para restaurarlo al volver. */
+  const guardarBorrador = () => {
+    borrador = { tipo, f, logo: logo?.blob ?? null }
+  }
+
   const revisarTelefono = async (valor: string) => {
     setTelefonoAviso(null)
     if (R.telefono(valor) != null || !valor.trim()) return
     const numero = R.normalizarTelefono(valor)
     const enUso = await telefonoEnUso(numero).catch(() => false)
     // Solo si sigue siendo el mismo número (pudo cambiar mientras se consultaba).
-    if (enUso && R.normalizarTelefono(telefonoActual.current) === numero) setTelefonoAviso('Este teléfono ya está registrado en otra cuenta.')
+    if (enUso && R.normalizarTelefono(telefonoActual.current) === numero) setTelefonoAviso(t('auth.reg.phoneInUse'))
   }
 
   const elegirLogo = async (file: File | undefined) => {
@@ -226,13 +250,13 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
     try {
       const { blob, ladoMenor } = await jpegDe(file, 800)
       if (ladoMenor < R.LOGO_MIN_PX) {
-        setLogoError(`La imagen es muy pequeña (mínimo ${R.LOGO_MIN_PX} × ${R.LOGO_MIN_PX} px); se vería borrosa.`)
+        setLogoError(t('auth.reg.logoSmall', { n: R.LOGO_MIN_PX }))
         return
       }
       setLogo({ blob, url: URL.createObjectURL(blob) })
       setLogoError(null)
     } catch {
-      setLogoError('No pudimos leer esa imagen. Elige otra.')
+      setLogoError(t('auth.reg.logoUnreadable'))
     }
   }
 
@@ -242,14 +266,14 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
     const limpio = { ...f, nombre: R.capitalizarNombre(f.nombre), apellido: R.capitalizarNombre(f.apellido) }
     setF(limpio)
     const errores = campos.map((c) => validar(limpio, c, correoRegistrado)).filter(Boolean)
-    const e = errores.includes(REQUERIDO)
-      ? 'Completa los campos obligatorios.'
+    const e = errores.includes(requerido())
+      ? t('auth.reg.completeRequired')
       : errores.length
-        ? 'Revisa los datos marcados en rojo.'
+        ? t('auth.reg.checkRed')
         : limpio.password !== limpio.confirm
-          ? 'Las contraseñas no coinciden.'
+          ? t('auth.passwordMismatch')
           : !limpio.terminos
-            ? 'Acepta los términos y condiciones para continuar.'
+            ? t('auth.reg.acceptTerms')
             : null
     setError(e)
     if (e) {
@@ -288,7 +312,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
       // Sin verificación de correo: ya hay sesión. El logo es opcional; si falla la cuenta ya quedó creada.
       if (logo) await uploadAvatar(logo.blob).catch(() => undefined)
       await reload()
-      toast('¡Cuenta creada! Bienvenido a Karsy')
+      toast(t('auth.reg.created'))
       navigate('/', { replace: true })
     } catch (ex) {
       setLoading(false)
@@ -301,7 +325,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
       const msg = mensajeUsuario(ex)
       setError(msg)
       // Correo ya registrado: se marca el campo y se ofrece iniciar sesión.
-      if (msg === MSG_EMAIL_EXISTS) {
+      if (msg === msgEmailExiste()) {
         setCorreoRegistrado(correo)
         setScrollPedido((n) => n + 1)
       }
@@ -324,7 +348,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
 
   const ubicacion = (
     <div className="grid2">
-      <Field id="estado" label="Estado" error={err('estado')}>
+      <Field id="estado" label={t('auth.reg.state')} error={err('estado')}>
         <select
           className={`input ${err('estado') ? 'bad' : ''}`}
           id="estado"
@@ -332,13 +356,13 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           onChange={(e) => setF((x) => ({ ...x, estado: e.target.value, ciudad: '' }))}
           onBlur={() => touch('estado')}
         >
-          <option value="">Selecciona tu estado</option>
+          <option value="">{t('auth.reg.chooseState')}</option>
           {catalogo.map((e) => (
             <option key={e.estado}>{e.estado}</option>
           ))}
         </select>
       </Field>
-      <Field id="ciudad" label="Ciudad" error={err('ciudad')}>
+      <Field id="ciudad" label={t('auth.reg.city')} error={err('ciudad')}>
         <select
           className={`input ${err('ciudad') ? 'bad' : ''}`}
           id="ciudad"
@@ -347,7 +371,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           onChange={(e) => set('ciudad', e.target.value)}
           onBlur={() => touch('ciudad')}
         >
-          <option value="">{f.estado ? 'Selecciona tu ciudad' : 'Elige primero el estado'}</option>
+          <option value="">{f.estado ? t('auth.reg.chooseCity') : t('auth.reg.stateFirst')}</option>
           {municipios.map((m) => (
             <option key={m}>{m}</option>
           ))}
@@ -357,16 +381,16 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
   )
 
   const correoCampo = (
-    <Field id="correo" label="Correo electrónico" error={err('correo')}>
-      {input('correo', { placeholder: 'correo@ejemplo.com', type: 'email', autoComplete: 'email', inputMode: 'email' })}
+    <Field id="correo" label={t('auth.email')} error={err('correo')}>
+      {input('correo', { placeholder: t('auth.reg.emailPlaceholder'), type: 'email', autoComplete: 'email', inputMode: 'email' })}
       {correoYaRegistrado && (
         <span className="ferr">
-          <button onClick={() => navigate('/login')}>Iniciar sesión</button>
+          <button onClick={() => navigate('/login')}>{t('auth.login')}</button>
         </span>
       )}
       {correoSugerido && !err('correo') && (
         <span className="fwarn">
-          ¿Quisiste decir{' '}
+          {t('auth.reg.didYouMean')}{' '}
           <button onClick={() => set('correo', correoSugerido)}>{correoSugerido}</button>?
         </span>
       )}
@@ -377,40 +401,40 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
     <section className="card">
       <h3>
         <Icon name="phone" size={18} />
-        Contacto
+        {t('auth.reg.contact')}
       </h3>
       <div className="grid2">
-        <Field id="telefono" label={esLote ? 'Teléfono comercial' : 'Teléfono'} error={err('telefono')}>
-          {input('telefono', { placeholder: '10 dígitos', type: 'tel', autoComplete: 'tel-national', inputMode: 'tel', filtro: R.telefonoAlEscribir })}
+        <Field id="telefono" label={esLote ? t('auth.reg.businessPhone') : t('auth.reg.phone')} error={err('telefono')}>
+          {input('telefono', { placeholder: t('auth.reg.phonePlaceholder'), type: 'tel', autoComplete: 'tel-national', inputMode: 'tel', filtro: R.telefonoAlEscribir })}
           {telefonoAviso && !err('telefono') && <span className="fwarn">{telefonoAviso}</span>}
         </Field>
         <div className="field">
-          <label>¿Usas este mismo número para WhatsApp?</label>
+          <label>{t('auth.reg.sameWhatsapp')}</label>
           <div className="seg" style={{ alignSelf: 'flex-start' }}>
             <button type="button" className={f.mismoWhatsapp ? 'on' : ''} onClick={() => set('mismoWhatsapp', true)}>
-              Sí
+              {t('auth.reg.yes')}
             </button>
             <button type="button" className={!f.mismoWhatsapp ? 'on' : ''} onClick={() => set('mismoWhatsapp', false)}>
-              No
+              {t('auth.reg.no')}
             </button>
           </div>
         </div>
       </div>
-      <Field id="whatsapp" label="WhatsApp" error={err('whatsapp')}>
+      <Field id="whatsapp" label={t('auth.reg.whatsapp')} error={err('whatsapp')}>
         {f.mismoWhatsapp ? (
-          <input className="input" id="whatsapp" disabled value={f.telefono ? f.telefono : 'Igual a tu teléfono'} readOnly />
+          <input className="input" id="whatsapp" disabled value={f.telefono ? f.telefono : t('auth.reg.sameAsPhone')} readOnly />
         ) : (
-          input('whatsapp', { placeholder: 'Otro número (opcional)', type: 'tel', inputMode: 'tel', filtro: R.telefonoAlEscribir })
+          input('whatsapp', { placeholder: t('auth.reg.otherNumber'), type: 'tel', inputMode: 'tel', filtro: R.telefonoAlEscribir })
         )}
       </Field>
-      <Field id="medio" label="Método de contacto principal" error={err('medio')}>
+      <Field id="medio" label={t('auth.reg.mainMethod')} error={err('medio')}>
         <div className="row" style={{ gap: 8 }}>
           {(
             [
-              [WHATSAPP, 'WhatsApp', 'chat'],
-              [LLAMADA, 'Llamadas', 'phone'],
+              [WHATSAPP, 'auth.reg.whatsapp', 'chat'],
+              [LLAMADA, 'auth.reg.calls', 'phone'],
             ] as const
-          ).map(([v, t, i]) => (
+          ).map(([v, etiqueta, i]) => (
             <button
               key={v}
               type="button"
@@ -422,7 +446,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
               }}
             >
               <Icon name={i} size={16} />
-              {t}
+              {t(etiqueta)}
             </button>
           ))}
         </div>
@@ -432,11 +456,11 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
 
   const datosPersona = (
     <div className="grid2">
-      <Field id="nombre" label={esLote ? 'Nombre del responsable' : 'Nombre'} error={err('nombre')}>
-        {input('nombre', { placeholder: esLote ? 'Ingresa el nombre' : 'Ingresa tu nombre', autoComplete: 'given-name', filtro: R.nombreAlEscribir })}
+      <Field id="nombre" label={esLote ? t('auth.reg.managerName') : t('auth.reg.name')} error={err('nombre')}>
+        {input('nombre', { placeholder: esLote ? t('auth.reg.managerNamePlaceholder') : t('auth.reg.namePlaceholder'), autoComplete: 'given-name', filtro: R.nombreAlEscribir })}
       </Field>
-      <Field id="apellido" label={esLote ? 'Apellido del responsable' : 'Apellido'} error={err('apellido')}>
-        {input('apellido', { placeholder: esLote ? 'Ingresa el apellido' : 'Ingresa tu apellido', autoComplete: 'family-name', filtro: R.nombreAlEscribir })}
+      <Field id="apellido" label={esLote ? t('auth.reg.managerLast') : t('auth.reg.last')} error={err('apellido')}>
+        {input('apellido', { placeholder: esLote ? t('auth.reg.managerLastPlaceholder') : t('auth.reg.lastPlaceholder'), autoComplete: 'family-name', filtro: R.nombreAlEscribir })}
       </Field>
     </div>
   )
@@ -447,9 +471,9 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         <div className="wrap">
           <Brand />
           <div style={{ marginLeft: 'auto' }} className="muted">
-            ¿Ya tienes una cuenta?{' '}
+            {t('auth.haveAccount')}{' '}
             <button className="linkbtn" onClick={() => navigate('/login')}>
-              Inicia sesión aquí
+              {t('auth.loginHere')}
             </button>
           </div>
         </div>
@@ -464,16 +488,16 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
       >
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/registro')}>
           <Icon name="back" size={16} />
-          Regresar
+          {t('auth.back')}
         </button>
-        <h1 style={{ fontSize: 32, marginTop: 18 }}>{esLote ? 'Crear perfil de lote' : 'Registro'}</h1>
-        <p className="muted">{esLote ? 'Registra tu lote para comenzar a publicar vehículos.' : 'Registra tus datos para comenzar a ver y vender vehículos'}</p>
+        <h1 style={{ fontSize: 32, marginTop: 18 }}>{esLote ? t('auth.reg.lotTitle') : t('auth.reg.title')}</h1>
+        <p className="muted">{esLote ? t('auth.reg.lotSub') : t('auth.reg.sub')}</p>
 
         {esLote && (
           <section className="card">
             <h3>
               <Icon name="camera" size={18} />
-              Foto de perfil
+              {t('auth.reg.photo')}
             </h3>
             <div className="row" style={{ gap: 18 }}>
               <button
@@ -481,24 +505,24 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
                 className={`photoslot ${logo ? 'filled' : ''}`}
                 style={{ width: 110, height: 110, borderRadius: 24, flex: 'none' }}
                 onClick={() => logoInput.current?.click()}
-                aria-label={logo ? 'Cambiar logo' : 'Agregar logo'}
+                aria-label={logo ? t('auth.reg.changeLogo') : t('auth.reg.addLogo')}
               >
                 {logo ? (
-                  <img src={logo.url} alt="Logo del lote" />
+                  <img src={logo.url} alt={t('auth.reg.logoAlt')} />
                 ) : (
                   <>
                     <Icon name="camera" size={22} />
-                    Agregar foto
+                    {t('auth.reg.addPhoto')}
                   </>
                 )}
               </button>
               <div>
                 <p className="muted">
-                  Logo del lote o imagen de perfil (opcional). Mínimo {R.LOGO_MIN_PX} × {R.LOGO_MIN_PX} px.
+                  {t('auth.reg.logoHint', { n: R.LOGO_MIN_PX })}
                 </p>
                 {logo && (
                   <button type="button" className="linkbtn" style={{ color: 'var(--error)', marginTop: 6 }} onClick={() => setLogo(null)}>
-                    Quitar logo
+                    {t('auth.reg.removeLogo')}
                   </button>
                 )}
                 {logoError && <p className="ferr">{logoError}</p>}
@@ -521,7 +545,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           <section className="card">
             <h3>
               <Icon name="user" size={18} />
-              Datos del responsable
+              {t('auth.reg.managerData')}
             </h3>
             {datosPersona}
             {correoCampo}
@@ -530,7 +554,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           <section className="card">
             <h3>
               <Icon name="user" size={18} />
-              Información personal
+              {t('auth.reg.personal')}
             </h3>
             {datosPersona}
             {correoCampo}
@@ -544,34 +568,34 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           <section className="card">
             <h3>
               <Icon name="building" size={18} />
-              Información del lote
+              {t('auth.reg.lotInfo')}
             </h3>
-            <Field id="nombreLote" label="Nombre del lote" error={err('nombreLote')}>
-              {input('nombreLote', { placeholder: 'Ej. Auto Premium', filtro: (v) => v.slice(0, R.LOTE_MAX) })}
+            <Field id="nombreLote" label={t('auth.reg.lotName')} error={err('nombreLote')}>
+              {input('nombreLote', { placeholder: t('auth.reg.lotNamePlaceholder'), filtro: (v) => v.slice(0, R.LOTE_MAX) })}
             </Field>
             <div className="grid3">
-              <Field id="calle" label="Calle" error={err('calle')} span={2}>
-                {input('calle', { placeholder: 'Ej. Av. Juárez', filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
+              <Field id="calle" label={t('auth.reg.street')} error={err('calle')} span={2}>
+                {input('calle', { placeholder: t('auth.reg.streetPlaceholder'), filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
               </Field>
-              <Field id="numero" label="Número" error={err('numero')}>
+              <Field id="numero" label={t('auth.reg.number')} error={err('numero')}>
                 {input('numero', { placeholder: '123', filtro: (v) => v.slice(0, R.NUMERO_MAX) })}
               </Field>
             </div>
             <div className="grid2">
-              <Field id="colonia" label="Colonia" error={err('colonia')}>
-                {input('colonia', { placeholder: 'Ej. Centro', filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
+              <Field id="colonia" label={t('auth.reg.colony')} error={err('colonia')}>
+                {input('colonia', { placeholder: t('auth.reg.colonyPlaceholder'), filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
               </Field>
-              <Field id="codigoPostal" label="C.P." error={err('codigoPostal')}>
+              <Field id="codigoPostal" label={t('auth.reg.zip')} error={err('codigoPostal')}>
                 {input('codigoPostal', { placeholder: '27000', inputMode: 'numeric', autoComplete: 'postal-code', filtro: (v) => R.soloDigitos(v, 5) })}
                 {cpAviso && !err('codigoPostal') && <span className="fwarn">{cpAviso}</span>}
               </Field>
             </div>
             {ubicacion}
-            <Field id="descripcion" label="Descripción del lote (opcional)">
+            <Field id="descripcion" label={t('auth.reg.description')}>
               <textarea
                 className="input"
                 id="descripcion"
-                placeholder="Describe brevemente tu lote, los servicios que ofrece y el tipo de vehículos que maneja."
+                placeholder={t('auth.reg.descriptionPlaceholder')}
                 value={f.descripcion}
                 maxLength={R.DESCRIPCION_MAX}
                 onChange={(e) => set('descripcion', e.target.value)}
@@ -586,22 +610,22 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         <section className="card">
           <h3>
             <Icon name="lock" size={18} />
-            Seguridad
+            {t('auth.reg.security')}
           </h3>
           <div className="grid2">
-            <Field id="password" label="Contraseña" error={err('password')}>
+            <Field id="password" label={t('auth.reg.password')} error={err('password')}>
               <PasswordInput
                 id="password"
                 value={f.password}
                 onChange={(v) => set('password', v)}
                 onBlur={() => touch('password')}
-                placeholder="Ingresa una contraseña"
+                placeholder={t('auth.passwordPlaceholder')}
                 autoComplete="new-password"
                 bad={!!err('password')}
               />
             </Field>
-            <Field id="confirm" label="Confirmar contraseña" error={mismatch ? 'Las contraseñas no coinciden.' : null}>
-              <PasswordInput id="confirm" value={f.confirm} onChange={(v) => set('confirm', v)} placeholder="Repite tu contraseña" autoComplete="new-password" bad={mismatch} />
+            <Field id="confirm" label={t('auth.confirmPassword')} error={mismatch ? t('auth.passwordMismatch') : null}>
+              <PasswordInput id="confirm" value={f.confirm} onChange={(v) => set('confirm', v)} placeholder={t('auth.confirmPlaceholder')} autoComplete="new-password" bad={mismatch} />
             </Field>
           </div>
           <PasswordRulesList password={f.password} />
@@ -615,11 +639,15 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
             style={{ width: 18, height: 18, accentColor: 'var(--teal)', outline: submitted && !f.terminos ? '2px solid var(--error)' : undefined }}
           />
           <span>
-            Acepto los{' '}
-            <a href="/terminos" target="_blank" rel="noreferrer">
-              términos y condiciones
-            </a>{' '}
-            de KARSY.
+            {t('auth.reg.termsPrefix')}{' '}
+            <Link to="/terminos" onClick={guardarBorrador}>
+              {t('auth.reg.termsLink')}
+            </Link>{' '}
+            {t('auth.reg.termsMiddle')}{' '}
+            <Link to="/privacidad/politicas" onClick={guardarBorrador}>
+              {t('auth.reg.privacyLink')}
+            </Link>{' '}
+            {t('auth.reg.termsSuffix')}
           </span>
         </label>
 
@@ -629,7 +657,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
               <>
                 {' '}
                 <button type="button" className="linkbtn" onClick={() => navigate('/login')}>
-                  Iniciar sesión
+                  {t('auth.login')}
                 </button>
               </>
             )}
@@ -637,7 +665,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         </div>
 
         <button type="submit" className="btn btn-primary btn-block" style={{ height: 52, marginTop: 18 }} disabled={loading}>
-          {loading ? 'Creando perfil…' : 'Crear perfil'}
+          {loading ? t('auth.reg.creating') : t('auth.reg.create')}
         </button>
       </form>
     </>
