@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.home
 
 import androidx.core.view.WindowCompat
+import androidx.compose.foundation.layout.FlowRow
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.DisposableEffect
 import android.content.ContextWrapper
@@ -303,13 +305,25 @@ fun HomeScreen(
                         }
                     }
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        NearMeChip(
-                            lugar = vm.cercaDe,
-                            buscando = vm.buscandoUbicacion,
-                            onActivar = { vm.activarCercaDeMi(elegirLugar = { eligiendoLugar = true }) },
-                            onQuitar = { vm.cercaDe = null },
+                        val context = LocalContext.current
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.padding(horizontal = 16.dp)
-                        )
+                        ) {
+                            NearMeChip(
+                                lugar = vm.cercaDe,
+                                buscando = vm.buscandoUbicacion,
+                                onActivar = { vm.activarCercaDeMi(elegirLugar = { eligiendoLugar = true }) },
+                                onQuitar = { vm.cercaDe = null }
+                            )
+                            // Con filtros activos (y sesión): guardarlos para recibir alertas de autos nuevos.
+                            if (userMode.isLoggedIn && vm.busquedaParaGuardar != null) {
+                                SaveSearchChip(guardando = vm.guardandoBusqueda) {
+                                    vm.guardarBusqueda { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                                }
+                            }
+                        }
                     }
                     when {
                         // Mientras carga: tarjetas de esqueleto con la forma de las publicaciones.
@@ -829,7 +843,7 @@ private fun NearMeChip(
 ) {
     val activo = lugar != null
     val shape = RoundedCornerShape(999.dp)
-    Row(modifier.fillMaxWidth()) {
+    Row(modifier) {
         Text(
             when {
                 buscando -> stringResource(R.string.home_near_me_searching)
@@ -897,4 +911,24 @@ private fun ElegirLugarSheet(onElegir: (Lugar) -> Unit, onDismiss: () -> Unit) {
             )
         }
     }
+}
+
+/** "🔔 Avisarme de nuevos": guarda los filtros activos como búsqueda con alerta. */
+@Composable
+private fun SaveSearchChip(guardando: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(999.dp)
+    Text(
+        stringResource(if (guardando) R.string.saved_search_saving else R.string.saved_search_save),
+        fontFamily = DmSans,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = KarsyTeal,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(shape)
+            .background(KarsySurface)
+            .border(1.dp, KarsyTeal, shape)
+            .clickable(enabled = !guardando, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 9.dp)
+    )
 }

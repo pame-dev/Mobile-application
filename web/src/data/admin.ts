@@ -1,7 +1,7 @@
 // Panel de administración (AdminRepository y StatsRepository.admin de la app). Las escrituras
 // pasan por las funciones admin_* de la BD, que validan el rol y registran la bitácora.
 import { traducir } from '../i18n/I18nContext'
-import { supabase } from '../lib/supabase'
+import { BUCKET, supabase } from '../lib/supabase'
 import { UserError } from './api'
 import type { AnuncioRow } from './types'
 
@@ -103,6 +103,22 @@ export const adminCars = async () =>
 
 export async function moderateProposal(idPropuesta: number, aprobar: boolean, motivo: string | null) {
   check(await supabase.rpc('admin_moderar_propuesta', { p_id_propuesta: idPropuesta, p_aprobar: aprobar, p_motivo: motivo }))
+  if (aprobar) await borrarFotosRetiradas()
+}
+
+/**
+ * Borra de Storage las fotos que ya nadie usa (p. ej. la original con placa que una
+ * edición aprobada reemplazó por la tapada). Si falla, la aprobación ya quedó: se
+ * reintenta en la siguiente.
+ */
+async function borrarFotosRetiradas() {
+  try {
+    const { data } = await supabase.rpc('admin_fotos_retiradas_sin_uso')
+    const rutas = (data ?? []) as string[]
+    if (rutas.length) await supabase.storage.from(BUCKET).remove(rutas)
+  } catch {
+    // no bloquea la aprobación
+  }
 }
 
 export async function setCarEnabled(idPublicacion: number, habilitar: boolean, motivo: string | null) {

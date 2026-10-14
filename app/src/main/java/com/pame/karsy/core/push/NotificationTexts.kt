@@ -25,5 +25,6 @@ fun notificationTextRes(tipo: String): Int = when (tipo) {
     "cuenta_reactivada" -> R.string.notif_account_reactivated
     "reporte_atendido" -> R.string.notif_report_resolved
     "reporte_descartado" -> R.string.notif_report_dismissed
+    "busqueda_coincidencia" -> R.string.notif_saved_search_match
     else -> R.string.notif_generic
 }

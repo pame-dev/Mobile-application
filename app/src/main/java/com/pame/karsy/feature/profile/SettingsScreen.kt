@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.profile
 
 import com.pame.karsy.core.theme.karsyTint
+import androidx.compose.material.icons.outlined.NotificationsActive
 import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyTeal
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -69,10 +70,12 @@ private data class SettingsItem(
     val isTerms: Boolean = false,
     val isNotifications: Boolean = false,
     val isPrivacy: Boolean = false,
+    val isSavedSearches: Boolean = false,
 )
 
 private val settingsItems = listOf(
     SettingsItem(Icons.Outlined.Notifications, R.string.settings_notifications, R.string.settings_notifications_desc, isNotifications = true),
+    SettingsItem(Icons.Outlined.NotificationsActive, R.string.saved_search_title, R.string.saved_search_settings_desc, isSavedSearches = true),
     SettingsItem(Icons.Outlined.Lock, R.string.settings_privacy, R.string.settings_privacy_desc, isPrivacy = true),
     // La descripción del idioma se arma con languageSummary (idioma elegido).
     SettingsItem(Icons.Outlined.Language, R.string.settings_language, R.string.settings_language, isLanguage = true),
@@ -93,6 +96,7 @@ fun SettingsScreen(
     onTerms: () -> Unit,
     onNotifications: () -> Unit,
     onPrivacy: () -> Unit,
+    onSavedSearches: () -> Unit,
 ) {
     val context = LocalContext.current
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
@@ -128,6 +132,7 @@ fun SettingsScreen(
                                     if (item.isTerms) onTerms()
                                     if (item.isNotifications) onNotifications()
                                     if (item.isPrivacy) onPrivacy()
+                                    if (item.isSavedSearches) onSavedSearches()
                                 }
                                 .padding(horizontal = 18.dp, vertical = 18.dp),
                             verticalAlignment = Alignment.CenterVertically,

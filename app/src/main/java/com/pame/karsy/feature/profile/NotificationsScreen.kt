@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -84,6 +85,7 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
     "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, Color(0xFFD97706), Color(0xFFFFFBEB))
     "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, Color(0xFF2563EB), Color(0xFFEFF6FF))
     "reporte_descartado" -> NotifStyle(Icons.Rounded.Flag, KarsyTeal, KarsyBg)
+    "busqueda_coincidencia" -> NotifStyle(Icons.Rounded.NotificationsActive, KarsyTeal, Color(0xFFE6F6F6))
     else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg)
 }
 

@@ -8,6 +8,7 @@ import { traducir, useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { haceCuanto } from '../lib/format'
 import { useSession } from '../session/SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 /** "Hoy", "Ayer", "Esta semana" o "Antes", según la fecha de la última vista. */
 function grupoDe(iso: string): Clave {
@@ -40,6 +41,7 @@ export function History() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['publicaciones', 'fotos_publicacion'])
 
   if (!cargandoSesion && !account) return <Navigate to="/login" replace state={{ from: '/historial' }} />
 

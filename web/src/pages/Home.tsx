@@ -3,18 +3,24 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
 import { VehicleCard } from '../components/VehicleCard'
-import { heroStats, visibleCars } from '../data/api'
+import { catalogs, heroStats, visibleCars } from '../data/api'
+import { mensajeUsuario } from '../data/auth'
+import { busquedaVacia, guardarBusqueda, type FiltrosBusqueda } from '../data/busquedas'
 import type { Car } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { FILTER_KEYS, ORDEN, filtrarCars, filtrosDeUrl } from '../lib/filtros'
 import { entero, km, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
+import { useUi } from '../components/Ui'
 
 const POR_PAGINA_DESTACADOS = 3
 
 export function Home() {
-  const { mode } = useSession()
+  const { mode, account } = useSession()
+  const { toast } = useUi()
+  const [guardando, setGuardando] = useState(false)
   const { t } = useI18n()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -35,12 +41,44 @@ export function Home() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['publicaciones', 'fotos_publicacion', 'solicitudes_destacado'])
 
   const lista = useMemo(() => (cars ? filtrarCars(cars, filtrosDeUrl(params), params.get('q') ?? '', params.get('orden') ?? '') : []), [cars, params])
   const destacados = useMemo(() => (cars ?? []).filter((c) => c.featured), [cars])
   const hayFiltros = params.has('q') || FILTER_KEYS.some((k) => params.has(k))
   const paginas = Math.max(1, Math.ceil(destacados.length / POR_PAGINA_DESTACADOS))
   const verDestacados = destacados.slice(pagina * POR_PAGINA_DESTACADOS, (pagina + 1) * POR_PAGINA_DESTACADOS)
+
+  /**
+   * Guarda los filtros activos como búsqueda con alerta (el texto del buscador no se
+   * guarda: la alerta usa solo los filtros). El tipo viene por nombre en la URL.
+   */
+  const filtrosActivos = filtrosDeUrl(params)
+  const hayFiltrosGuardables = FILTER_KEYS.some((k) => filtrosActivos[k])
+  const avisarme = async () => {
+    if (!account || guardando) return
+    setGuardando(true)
+    try {
+      const f = filtrosActivos
+      const cat = await catalogs()
+      const num = (v: string) => (v && Number(v) ? Number(v) : null)
+      const busqueda: FiltrosBusqueda = {
+        id_marca: num(f.marca),
+        id_modelo: num(f.modelo),
+        anio: num(f.anio),
+        id_carroceria: cat.carrocerias.find((c) => !c.esOtro && c.nombre === f.tipo)?.id ?? null,
+        precio_min: num(f.min),
+        precio_max: num(f.max),
+      }
+      if (busquedaVacia(busqueda)) return
+      await guardarBusqueda(account.id, busqueda)
+      toast(t('saved.saved'), { label: t('saved.view'), onClick: () => navigate('/busquedas') })
+    } catch (e) {
+      toast(mensajeUsuario(e))
+    } finally {
+      setGuardando(false)
+    }
+  }
 
   const setOrden = (v: string) => {
     const next = new URLSearchParams(params)
@@ -146,6 +184,12 @@ export function Home() {
             </p>
           </div>
           <div className="row" style={{ flexWrap: 'wrap' }}>
+            {account && hayFiltrosGuardables && (
+              <button className="chip" onClick={() => void avisarme()} disabled={guardando} style={{ color: 'var(--teal)', borderColor: 'var(--teal)' }}>
+                <Icon name="bell" size={14} />
+                {guardando ? t('saved.saving') : t('saved.save')}
+              </button>
+            )}
             {hayFiltros && (
               <button className="chip" onClick={() => setParams(new URLSearchParams(), { replace: true })}>
                 <Icon name="x" size={14} />

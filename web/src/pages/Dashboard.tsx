@@ -8,6 +8,7 @@ import { traducir, useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { entero, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 /** Iniciales de los días que manda la BD (domingo a sábado). */
 const DIA: Record<string, Clave> = {
@@ -147,6 +148,7 @@ export function Dashboard() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'favoritos', 'solicitudes_destacado'])
 
   const acciones = useOwnerActions(cargar)
 

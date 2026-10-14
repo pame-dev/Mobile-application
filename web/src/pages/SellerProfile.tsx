@@ -4,6 +4,7 @@ import { Inventory, ProfileHeader } from '../components/ProfileParts'
 import { ownerVisibleCars, sellerProfile } from '../data/api'
 import type { Car, SellerProfile as Perfil } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
+import { useRecargar } from '../lib/tiempoReal'
 
 const desde = (fecha: string) => new Date(fecha).toLocaleDateString(traducir('vehiculo.locale'), { month: 'long', year: 'numeric' })
 
@@ -29,6 +30,7 @@ export function SellerProfile() {
   useEffect(() => {
     cargar()
   }, [cargar])
+  useRecargar(cargar, ['cuentas', 'publicaciones', 'fotos_publicacion'])
 
   if (error) {
     return (

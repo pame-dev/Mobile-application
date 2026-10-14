@@ -1,6 +1,7 @@
 package com.pame.karsy.data.repository
 
 import com.pame.karsy.core.supabase.Supabase
+import io.github.jan.supabase.storage.storage
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.CuentaAdminDto
@@ -41,6 +42,19 @@ object AdminRepository {
             put("p_aprobar", approve)
             put("p_motivo", reason)
         })
+        if (approve) borrarFotosRetiradas()
+    }
+
+    /**
+     * Borra de Storage las fotos que ya nadie usa (p. ej. la original con placa que una
+     * edición aprobada reemplazó por la tapada). Si falla, la aprobación ya quedó: se
+     * reintenta en la siguiente.
+     */
+    private suspend fun borrarFotosRetiradas() {
+        runCatching {
+            val rutas = db.postgrest.rpc("admin_fotos_retiradas_sin_uso").decodeAs<List<String>>()
+            if (rutas.isNotEmpty()) db.storage.from(Supabase.BUCKET).delete(rutas)
+        }
     }
 
     suspend fun setCarEnabled(idPublicacion: Long, enabled: Boolean, reason: String? = null) {

@@ -1,0 +1,28 @@
+# Despliegue de la web (carpeta web/) en Netlify.
+# La BD, el login y las fotos siguen en Supabase: en Netlify solo hay que agregar
+# VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY (Site configuration → Environment variables).
+
+[build]
+  base = "web"
+  command = "npm run build"
+  # Relativo a base: web/dist
+  publish = "dist"
+
+[build.environment]
+  # Vite 7 necesita Node 20.19+ o 22.12+.
+  NODE_VERSION = "22"
+
+# Las rutas (/vehiculo/12, /perfil…) las maneja React Router: cualquier dirección que no
+# sea un archivo real abre index.html. Los archivos que sí existen (assets, logo) se
+# sirven normal.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Los archivos de assets/ llevan un hash en el nombre: el navegador los puede guardar
+# para siempre (cada versión nueva tiene otro nombre).
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
