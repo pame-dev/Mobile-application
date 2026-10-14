@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AlertBox, PasswordInput, PasswordRulesList } from '../components/AuthParts'
 import { ConfirmModal } from '../components/Confirm'
 import { Icon, type IconName } from '../components/Icon'
@@ -7,7 +7,9 @@ import { LogoutModal } from '../components/TopNav'
 import { ModalHead, useUi } from '../components/Ui'
 import { changePassword, markAllRead, notifications, signOutEverywhere, type Notificacion } from '../data/account'
 import { mensajeUsuario } from '../data/auth'
-import { POLITICAS, TERMINOS, type LegalDoc } from '../data/legal'
+import { POLICY_EN, POLITICAS, TERMINOS, TERMS_EN, type LegalDoc } from '../data/legal'
+import { useI18n, type Lang, type T } from '../i18n/I18nContext'
+import type { Clave } from '../i18n/es'
 import { passwordError } from '../lib/formRules'
 import { haceCuanto } from '../lib/format'
 import { useSession } from '../session/SessionContext'
@@ -16,11 +18,12 @@ import { useSession } from '../session/SessionContext'
 
 function PageHead({ title, back, children }: { title: string; back?: string; children?: ReactNode }) {
   const navigate = useNavigate()
+  const { t } = useI18n()
   return (
     <div className="pagehead">
       <div className="row">
         {back && (
-          <button className="iconbtn" aria-label="Regresar" onClick={() => navigate(back)}>
+          <button className="iconbtn" aria-label={t('settings.backLabel')} onClick={() => navigate(back)}>
             <Icon name="back" size={18} />
           </button>
         )}
@@ -64,23 +67,16 @@ function useRequireAccount(from: string) {
 
 // ── Notificaciones ─────────────────────────────────────────────────────────
 
-const VEHICULO = 'tu vehículo'
-const TEXTOS: Record<string, (v: string) => string> = {
-  favorito: (v) => `A alguien le gustó tu publicación "${v}" y la agregó a sus favoritos.`,
-  propuesta_enviada: (v) => `Tu publicación "${v}" se envió al administrador y la está revisando.`,
-  publicacion_aprobada: (v) => `¡Tu publicación "${v}" fue aprobada! Ya está visible para todos.`,
-  destacado_aprobado: (v) => `Tu publicación "${v}" ahora es destacada durante 1 mes.`,
-  edicion_aprobada: (v) => `Se aprobaron los cambios a tu publicación "${v}". Ya se ven publicados.`,
-  publicacion_rehabilitada: (v) => `Tu publicación "${v}" fue rehabilitada y vuelve a estar visible.`,
-  publicacion_rechazada: (v) => `Tu publicación "${v}" fue rechazada. Corrígela y vuelve a enviarla.`,
-  edicion_rechazada: (v) => `No se aprobaron los cambios a "${v}". Sigue visible la versión anterior.`,
-  publicacion_deshabilitada: (v) => `Administración deshabilitó tu publicación "${v}". Ya no es visible para otros usuarios.`,
-  destacado_rechazado: (v) => `Tu solicitud para destacar "${v}" fue rechazada.`,
-  destacado_por_vencer: (v) => `Tu destacado de "${v}" termina en menos de 3 días. Renuévalo para seguir apareciendo en destacados.`,
-  cuenta_suspendida: () => 'Tu cuenta de Karsy fue suspendida por administración. Mientras esté suspendida no podrás entrar a la app.',
-  cuenta_reactivada: () => 'Tu cuenta de Karsy fue reactivada. Ya puedes volver a entrar.',
-  reporte_atendido: (v) => `Gracias por tu reporte sobre "${v}". Lo revisamos y tomamos medidas.`,
-  reporte_descartado: (v) => `Revisamos tu reporte sobre "${v}" y no encontramos un incumplimiento.`,
+/** Tipos de aviso con texto propio (notif.<tipo> en i18n); los demás usan notif.generic. */
+const TIPOS = [
+  'favorito', 'propuesta_enviada', 'publicacion_aprobada', 'destacado_aprobado', 'edicion_aprobada', 'publicacion_rehabilitada',
+  'publicacion_rechazada', 'edicion_rechazada', 'publicacion_deshabilitada', 'destacado_rechazado', 'destacado_por_vencer',
+  'cuenta_suspendida', 'cuenta_reactivada', 'reporte_atendido', 'reporte_descartado',
+] as const
+
+function textoAviso(t: T, tipo: string, vehiculo: string): string {
+  const clave = (TIPOS as readonly string[]).includes(tipo) ? (`notif.${tipo}` as Clave) : 'notif.generic'
+  return t(clave, { v: vehiculo })
 }
 
 /** Ícono y colores de cada tipo de aviso (mismos que la app). */
@@ -116,18 +112,19 @@ function estiloDe(tipo: string): [IconName, string, string] {
 export function Notifications() {
   const navigate = useNavigate()
   const { account, redirect } = useRequireAccount('/notificaciones')
+  const { t } = useI18n()
   const [lista, setLista] = useState<Notificacion[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState(false)
 
   const cargar = useCallback(() => {
     if (!account) return
-    setError(null)
+    setError(false)
     notifications(account.id)
       .then((n) => {
         setLista(n)
         if (n.some((x) => !x.leida)) void markAllRead(account.id).then(() => window.dispatchEvent(new Event('karsy:notificaciones')))
       })
-      .catch(() => setError('No pudimos cargar tus notificaciones. Revisa tu conexión e intenta de nuevo.'))
+      .catch(() => setError(true))
   }, [account])
 
   useEffect(() => {
@@ -138,12 +135,12 @@ export function Notifications() {
 
   return (
     <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
-      <PageHead title="Notificaciones" />
+      <PageHead title={t('notif.title')} />
       {error ? (
         <div className="card empty">
-          <p className="muted">{error}</p>
+          <p className="muted">{t('notif.loadError')}</p>
           <button className="btn btn-ghost" onClick={cargar}>
-            Reintentar
+            {t('common.retry')}
           </button>
         </div>
       ) : !lista ? (
@@ -153,14 +150,13 @@ export function Notifications() {
           <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
             <Icon name="bell" size={26} />
           </span>
-          <p className="muted">Aún no tienes notificaciones.</p>
+          <p className="muted">{t('notif.empty')}</p>
         </div>
       ) : (
         <div className="card" style={{ overflow: 'hidden' }}>
           {lista.map((n) => {
             const [icono, bg, fg] = estiloDe(n.tipo)
-            const vehiculo = n.titulo_vehiculo?.trim() || VEHICULO
-            const texto = (TEXTOS[n.tipo] ?? ((v: string) => `Tienes un aviso sobre "${v}".`))(vehiculo)
+            const texto = textoAviso(t, n.tipo, n.titulo_vehiculo?.trim() || t('notif.yourVehicle'))
             const contenido = (
               <>
                 <span className="nic" style={{ background: bg, color: fg }}>
@@ -168,7 +164,7 @@ export function Notifications() {
                 </span>
                 <div className="grow">
                   <p style={{ color: 'var(--charcoal)', fontWeight: n.leida ? 400 : 600 }}>{texto}</p>
-                  {n.motivo?.trim() && <p className="muted" style={{ fontSize: 13 }}>Motivo: {n.motivo}</p>}
+                  {n.motivo?.trim() && <p className="muted" style={{ fontSize: 13 }}>{t('notif.reason', { motivo: n.motivo })}</p>}
                   <span className="mid" style={{ fontSize: 12 }}>
                     {haceCuanto(n.fecha_creacion)}
                   </span>
@@ -217,9 +213,42 @@ function aplicarTema(t: Tema) {
   }
 }
 
+/** Selector de idioma (LanguageSheet de la app): español o inglés, se recuerda en este navegador. */
+function LanguageModal() {
+  const { closeModal } = useUi()
+  const { t, lang, setLang } = useI18n()
+  const opciones: [Lang, string][] = [
+    ['es', '🇲🇽'],
+    ['en', '🇺🇸'],
+  ]
+  return (
+    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <ModalHead title={t('lang.title')} sub={t('lang.sub')} />
+      {opciones.map(([l, bandera]) => (
+        <button
+          key={l}
+          className={`langopt ${lang === l ? 'on' : ''}`}
+          role="radio"
+          aria-checked={lang === l}
+          onClick={() => {
+            setLang(l)
+            closeModal()
+          }}
+        >
+          <span style={{ fontSize: 22 }}>{bandera}</span>
+          <b className="grow">{t(l === 'es' ? 'lang.es' : 'lang.en')}</b>
+          <span className="badge b-neu">{l.toUpperCase()}</span>
+          <span className="radio" />
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export function Settings() {
   const navigate = useNavigate()
   const { openModal } = useUi()
+  const { t, lang } = useI18n()
   const { redirect } = useRequireAccount('/configuracion')
   const [tema, setTema] = useState<Tema>(temaGuardado)
   if (redirect) return redirect
@@ -231,36 +260,47 @@ export function Settings() {
 
   return (
     <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
-      <PageHead title="Configuración" back="/perfil" />
+      <PageHead title={t('settings.title')} back="/perfil" />
       <div className="card" style={{ overflow: 'hidden' }}>
-        <SetRow icon="bell" title="Notificaciones" desc="Alertas y avisos de tu cuenta" onClick={() => navigate('/notificaciones')} />
-        <SetRow icon="lock" title="Privacidad y seguridad" desc="Contraseña, sesiones y políticas de privacidad" onClick={() => navigate('/privacidad')} />
-        <SetRow icon="globe" title="Idioma" desc="Español" right={<span className="badge b-neu">ES</span>} />
+        <SetRow icon="bell" title={t('notif.title')} desc={t('settings.notificationsDesc')} onClick={() => navigate('/notificaciones')} />
+        <SetRow icon="lock" title={t('settings.privacy')} desc={t('settings.privacyDesc')} onClick={() => navigate('/privacidad')} />
+        <SetRow
+          icon="globe"
+          title={t('settings.language')}
+          desc={t(lang === 'es' ? 'lang.es' : 'lang.en')}
+          onClick={() => openModal(<LanguageModal />)}
+          right={
+            <span className="row" style={{ gap: 6 }}>
+              <span className="badge b-neu">{lang.toUpperCase()}</span>
+              <Icon name="chev" />
+            </span>
+          }
+        />
         <SetRow
           icon="moon"
-          title="Tema"
-          desc="Claro, oscuro o el del sistema"
+          title={t('settings.theme')}
+          desc={t('settings.themeDesc')}
           right={
             <span className="seg">
               {(
                 [
-                  ['light', 'Claro'],
-                  ['dark', 'Oscuro'],
-                  ['', 'Sistema'],
+                  ['light', 'settings.themeLight'],
+                  ['dark', 'settings.themeDark'],
+                  ['', 'settings.themeSystem'],
                 ] as const
-              ).map(([v, t]) => (
-                <button key={t} className={tema === v ? 'on' : ''} onClick={() => elegirTema(v)}>
-                  {t}
+              ).map(([v, clave]) => (
+                <button key={clave} className={tema === v ? 'on' : ''} onClick={() => elegirTema(v)}>
+                  {t(clave)}
                 </button>
               ))}
             </span>
           }
         />
-        <SetRow icon="doc" title="Términos y condiciones" desc="Políticas de privacidad y uso" onClick={() => navigate('/terminos')} />
+        <SetRow icon="doc" title={t('settings.terms')} desc={t('settings.termsDesc')} onClick={() => navigate('/terminos')} />
       </div>
       <button className="btn btn-ghost btn-block" style={{ marginTop: 18, color: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => openModal(<LogoutModal />)}>
         <Icon name="logout" size={18} />
-        Cerrar sesión
+        {t('nav.logout')}
       </button>
     </div>
   )
@@ -271,6 +311,7 @@ export function Settings() {
 /** Cambiar contraseña (ChangePasswordDialog de la app). */
 function ChangePasswordModal({ email }: { email: string }) {
   const { closeModal, toast } = useUi()
+  const { t } = useI18n()
   const [actual, setActual] = useState('')
   const [nueva, setNueva] = useState('')
   const [confirmar, setConfirmar] = useState('')
@@ -279,15 +320,15 @@ function ChangePasswordModal({ email }: { email: string }) {
 
   const guardar = async () => {
     const e = !actual
-      ? 'Escribe tu contraseña actual.'
-      : passwordError(nueva, email) ?? (nueva !== confirmar ? 'Las contraseñas no coinciden.' : nueva === actual ? 'La nueva contraseña debe ser diferente a la anterior.' : null)
+      ? t('password.errCurrent')
+      : passwordError(nueva, email) ?? (nueva !== confirmar ? t('password.errMismatch') : nueva === actual ? t('password.errSame') : null)
     setError(e)
     if (e) return
     setGuardando(true)
     try {
       await changePassword(email, actual, nueva)
       closeModal()
-      toast('Contraseña actualizada.')
+      toast(t('password.updated'))
     } catch (ex) {
       setError(mensajeUsuario(ex))
       setGuardando(false)
@@ -302,27 +343,27 @@ function ChangePasswordModal({ email }: { email: string }) {
         void guardar()
       }}
     >
-      <ModalHead title="Cambiar contraseña" sub="Por seguridad, primero escribe tu contraseña actual." />
+      <ModalHead title={t('password.title')} sub={t('password.sub')} />
       <div className="field">
-        <label htmlFor="pw-a">Contraseña actual</label>
+        <label htmlFor="pw-a">{t('password.current')}</label>
         <PasswordInput id="pw-a" value={actual} onChange={setActual} />
       </div>
       <div className="field">
-        <label htmlFor="pw-n">Contraseña nueva</label>
+        <label htmlFor="pw-n">{t('password.new')}</label>
         <PasswordInput id="pw-n" value={nueva} onChange={setNueva} autoComplete="new-password" />
       </div>
       <PasswordRulesList password={nueva} />
       <div className="field">
-        <label htmlFor="pw-c">Confirmar contraseña nueva</label>
+        <label htmlFor="pw-c">{t('password.confirm')}</label>
         <PasswordInput id="pw-c" value={confirmar} onChange={setConfirmar} autoComplete="new-password" bad={!!confirmar && confirmar !== nueva} />
       </div>
       <AlertBox message={error} />
       <div className="grid2">
         <button type="button" className="btn btn-ghost" disabled={guardando} onClick={closeModal}>
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button type="submit" className="btn btn-primary" disabled={guardando}>
-          {guardando ? 'Guardando…' : 'Guardar'}
+          {guardando ? t('common.saving') : t('common.save')}
         </button>
       </div>
     </form>
@@ -334,27 +375,28 @@ export function Privacy() {
   const { openModal, toast } = useUi()
   const { account, redirect } = useRequireAccount('/privacidad')
   const { signOut } = useSession()
+  const { t } = useI18n()
   const permiso = typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
   if (redirect) return redirect
 
   return (
     <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
-      <PageHead title="Privacidad y seguridad" back="/configuracion" />
+      <PageHead title={t('settings.privacy')} back="/configuracion" />
       <div className="label" style={{ marginBottom: 10 }}>
-        Seguridad
+        {t('privacy.security')}
       </div>
       <div className="card" style={{ overflow: 'hidden' }}>
-        <SetRow icon="lock" title="Cambiar contraseña" desc="Necesitas tu contraseña actual" onClick={() => account && openModal(<ChangePasswordModal email={account.correo} />)} />
+        <SetRow icon="lock" title={t('privacy.changePassword')} desc={t('privacy.changePasswordDesc')} onClick={() => account && openModal(<ChangePasswordModal email={account.correo} />)} />
         <SetRow
           icon="devices"
-          title="Cerrar sesión en todos los dispositivos"
-          desc="Útil si perdiste tu teléfono o crees que alguien entró a tu cuenta"
+          title={t('privacy.signOutAll')}
+          desc={t('privacy.signOutAllDesc')}
           onClick={() =>
             openModal(
               <ConfirmModal
-                title="¿Cerrar sesión en todos lados?"
-                message="Se cerrará tu sesión en este navegador y en todos los dispositivos donde hayas entrado. Tendrás que volver a iniciar sesión."
-                confirm="Cerrar todas"
+                title={t('privacy.signOutAllTitle')}
+                message={t('privacy.signOutAllMsg')}
+                confirm={t('privacy.signOutAllConfirm')}
                 danger
                 onConfirm={async () => {
                   try {
@@ -372,17 +414,17 @@ export function Privacy() {
         />
       </div>
       <div className="label" style={{ margin: '22px 0 10px' }}>
-        Privacidad
+        {t('privacy.privacy')}
       </div>
       <div className="card" style={{ overflow: 'hidden' }}>
-        <SetRow icon="shield" title="Políticas de privacidad" desc="Qué datos guardamos y para qué" onClick={() => navigate('/privacidad/politicas')} />
+        <SetRow icon="shield" title={t('privacy.policy')} desc={t('privacy.policyDesc')} onClick={() => navigate('/privacidad/politicas')} />
         <SetRow
           icon="bell"
-          title="Notificaciones del navegador"
+          title={t('privacy.browserNotif')}
           desc={
             permiso === 'unsupported'
-              ? 'Este navegador no las admite. Tus avisos siempre están en Notificaciones.'
-              : 'Por ahora los avisos de Karsy se ven en Notificaciones (la campanita). Los avisos al teléfono llegan por la app.'
+              ? t('privacy.browserNotifUnsupported')
+              : t('privacy.browserNotifDesc')
           }
         />
       </div>
@@ -392,16 +434,27 @@ export function Privacy() {
 
 // ── Textos legales ─────────────────────────────────────────────────────────
 
-function Legal({ title, doc }: { title: string; doc: LegalDoc }) {
+/** Términos o políticas en el idioma elegido, con "← Volver" a la pantalla de donde se llegó. */
+function Legal({ title, doc }: { title: Clave; doc: Record<Lang, LegalDoc> }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { t, lang } = useI18n()
+  const d = doc[lang]
+  // Regresa en el historial (Registro, Configuración, pie de página…); si se abrió directo, al Inicio.
+  const volver = () => (location.key !== 'default' ? navigate(-1) : navigate('/', { replace: true }))
   return (
     <div className="wrap" style={{ padding: '28px 16px 40px' }}>
       <div className="card legaltext" style={{ margin: '0 auto' }}>
-        <h1 style={{ fontSize: 30 }}>{title}</h1>
+        <button className="backlink" onClick={volver}>
+          <Icon name="back" size={16} />
+          {t('common.back')}
+        </button>
+        <h1 style={{ fontSize: 30 }}>{t(title)}</h1>
         <p className="mid" style={{ margin: '6px 0 16px' }}>
-          {doc.update}
+          {d.update}
         </p>
-        <p>{doc.intro}</p>
-        {doc.sections.map(([h, b]) => (
+        <p>{d.intro}</p>
+        {d.sections.map(([h, b]) => (
           <div key={h}>
             <h3>{h}</h3>
             <p>{b}</p>
@@ -412,5 +465,5 @@ function Legal({ title, doc }: { title: string; doc: LegalDoc }) {
   )
 }
 
-export const Terms = () => <Legal title="Términos y condiciones" doc={TERMINOS} />
-export const PrivacyPolicy = () => <Legal title="Políticas de privacidad" doc={POLITICAS} />
+export const Terms = () => <Legal title="legal.terms" doc={{ es: TERMINOS, en: TERMS_EN }} />
+export const PrivacyPolicy = () => <Legal title="legal.policy" doc={{ es: POLITICAS, en: POLICY_EN }} />

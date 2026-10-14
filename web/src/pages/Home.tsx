@@ -5,6 +5,8 @@ import { Icon } from '../components/Icon'
 import { VehicleCard } from '../components/VehicleCard'
 import { heroStats, visibleCars } from '../data/api'
 import type { Car } from '../data/types'
+import { useI18n } from '../i18n/I18nContext'
+import type { Clave } from '../i18n/es'
 import { FILTER_KEYS, ORDEN, filtrarCars, filtrosDeUrl } from '../lib/filtros'
 import { entero, km, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
@@ -13,10 +15,11 @@ const POR_PAGINA_DESTACADOS = 3
 
 export function Home() {
   const { mode } = useSession()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const [cars, setCars] = useState<Car[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<Clave | null>(null)
   const [stats, setStats] = useState<{ vehiculos: number; marcas: number; modelos: number } | null>(null)
   const [pagina, setPagina] = useState(0)
 
@@ -27,7 +30,7 @@ export function Home() {
         setCars(c)
         heroStats(c).then(setStats).catch(() => setStats({ vehiculos: c.length, marcas: 0, modelos: 0 }))
       })
-      .catch(() => setError('No pudimos cargar los vehículos. Revisa tu conexión e intenta de nuevo.'))
+      .catch(() => setError('home.loadError'))
   }, [])
   useEffect(() => {
     cargar()
@@ -50,25 +53,25 @@ export function Home() {
     <>
       <section className="hero">
         <div className="wrap heroc">
-          <span className="eyebrow">Marketplace automotriz #1 en México</span>
+          <span className="eyebrow">{t('home.eyebrow')}</span>
           <h1>
-            Encuentra tu próximo
+            {t('home.title1')}
             <br />
-            vehículo ideal
+            {t('home.title2')}
           </h1>
-          <p>Miles de vehículos verificados en toda la república mexicana. Compra, vende y negocia con confianza.</p>
+          <p>{t('home.lead')}</p>
           <div className="stats">
             <div>
               <b className="num">{stats ? entero(stats.vehiculos) : '—'}</b>
-              <span>Vehículos</span>
+              <span>{t('home.statVehicles')}</span>
             </div>
             <div>
               <b className="num">{stats ? entero(stats.marcas) : '—'}</b>
-              <span>Marcas</span>
+              <span>{t('home.statBrands')}</span>
             </div>
             <div>
               <b className="num">{stats ? entero(stats.modelos) : '—'}</b>
-              <span>Modelos</span>
+              <span>{t('home.statModels')}</span>
             </div>
           </div>
         </div>
@@ -81,11 +84,11 @@ export function Home() {
               <Icon name="user" />
             </div>
             <div className="grow">
-              <b style={{ color: 'var(--ink)', fontFamily: 'var(--f-display)', fontSize: 16 }}>Estás en modo visitante</b>
-              <p className="muted">Regístrate para guardar favoritos, contactar vendedores y publicar tu vehículo.</p>
+              <b style={{ color: 'var(--ink)', fontFamily: 'var(--f-display)', fontSize: 16 }}>{t('home.visitorTitle')}</b>
+              <p className="muted">{t('home.visitorText')}</p>
             </div>
             <button className="btn btn-primary" onClick={() => navigate('/registro')}>
-              Crear cuenta gratis →
+              {t('home.visitorCta')}
             </button>
           </div>
         )}
@@ -95,15 +98,15 @@ export function Home() {
           <>
             <div className="sechead">
               <div>
-                <h2>Vehículos destacados</h2>
-                <p className="muted">Selección especial de nuestra plataforma</p>
+                <h2>{t('home.featured')}</h2>
+                <p className="muted">{t('home.featuredSub')}</p>
               </div>
               {paginas > 1 && (
                 <div className="row">
-                  <button className="iconbtn" aria-label="Anteriores" onClick={() => setPagina((p) => (p - 1 + paginas) % paginas)}>
+                  <button className="iconbtn" aria-label={t('home.prev')} onClick={() => setPagina((p) => (p - 1 + paginas) % paginas)}>
                     <Icon name="back" size={18} />
                   </button>
-                  <button className="iconbtn" aria-label="Siguientes" onClick={() => setPagina((p) => (p + 1) % paginas)}>
+                  <button className="iconbtn" aria-label={t('home.next')} onClick={() => setPagina((p) => (p + 1) % paginas)}>
                     <Icon name="chev" size={18} />
                   </button>
                 </div>
@@ -115,7 +118,7 @@ export function Home() {
                   <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} />
                   <div className="shade" />
                   <span className="badge b-star" style={{ position: 'absolute', left: 14, top: 14 }}>
-                    ★ Destacado
+                    {t('home.featuredBadge')}
                   </span>
                   <div className="info">
                     <div>
@@ -137,28 +140,28 @@ export function Home() {
 
         <div className="sechead">
           <div>
-            <h2>{hayFiltros ? 'Resultados' : 'Todos los vehículos'}</h2>
+            <h2>{hayFiltros ? t('home.results') : t('home.all')}</h2>
             <p className="muted">
-              {cars ? `${entero(lista.length)} ${lista.length === 1 ? 'vehículo disponible' : 'vehículos disponibles'}` : 'Cargando…'}
+              {cars ? t(lista.length === 1 ? 'home.countOne' : 'home.countMany', { n: entero(lista.length) }) : t('common.loading')}
             </p>
           </div>
           <div className="row" style={{ flexWrap: 'wrap' }}>
             {hayFiltros && (
               <button className="chip" onClick={() => setParams(new URLSearchParams(), { replace: true })}>
                 <Icon name="x" size={14} />
-                Limpiar filtros
+                {t('home.clearFilters')}
               </button>
             )}
             <select
               className="input"
-              aria-label="Ordenar"
+              aria-label={t('sort.label')}
               value={params.get('orden') ?? 'recientes'}
               onChange={(e) => setOrden(e.target.value)}
               style={{ height: 36, width: 'auto', borderRadius: 999 }}
             >
-              {ORDEN.map(([v, t]) => (
+              {ORDEN.map(([v, clave]) => (
                 <option key={v} value={v}>
-                  {t}
+                  {t(clave)}
                 </option>
               ))}
             </select>
@@ -167,9 +170,9 @@ export function Home() {
 
         {error ? (
           <div className="card empty">
-            <p className="muted">{error}</p>
+            <p className="muted">{t(error)}</p>
             <button className="btn btn-ghost" onClick={cargar}>
-              Reintentar
+              {t('common.retry')}
             </button>
           </div>
         ) : !cars ? (
@@ -180,10 +183,10 @@ export function Home() {
           </div>
         ) : lista.length === 0 ? (
           <div className="card empty">
-            <p className="muted">{cars.length === 0 ? 'Todavía no hay vehículos publicados.' : 'Ningún vehículo coincide con tu búsqueda.'}</p>
+            <p className="muted">{cars.length === 0 ? t('home.empty') : t('home.noMatch')}</p>
             {cars.length > 0 && (
               <button className="btn btn-ghost" onClick={() => setParams(new URLSearchParams(), { replace: true })}>
-                Limpiar filtros
+                {t('home.clearFilters')}
               </button>
             )}
           </div>

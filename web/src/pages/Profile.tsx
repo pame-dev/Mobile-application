@@ -4,6 +4,8 @@ import { AlertBox } from '../components/AuthParts'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
+import { useI18n } from '../i18n/I18nContext'
+import type { Clave } from '../i18n/es'
 import { mensajeUsuario, uploadAvatar } from '../data/auth'
 import { currentProfile, LLAMADA, myCars, ocultas, removeCover, sePuedeOcultar, updateProfile, uploadCover, WHATSAPP, type OwnCar, type Perfil } from '../data/seller'
 import * as R from '../lib/formRules'
@@ -30,6 +32,7 @@ function Campo({ id, label, error, children, hint }: { id?: string; label: strin
 /** Editar perfil (EditProfileDialog de la app): datos, teléfonos, foto y portada. */
 function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p: Perfil) => void }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   const [p, setP] = useState<Perfil>(original)
   /** Confirmación en curso; se muestra dentro de esta misma ventana para no perder lo escrito. */
   const [pregunta, setPregunta] = useState<'guardar' | 'descartar' | null>(null)
@@ -53,16 +56,16 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
   const municipios = catalogo.find((e) => e.estado === p.estado)?.municipios ?? []
 
   const errores = {
-    displayName: !p.displayName.trim() ? 'Campo obligatorio' : esLote ? R.nombreLote(p.displayName) : R.nombrePersona(p.displayName),
+    displayName: !p.displayName.trim() ? t('perfil.required') : esLote ? R.nombreLote(p.displayName) : R.nombrePersona(p.displayName),
     responsable: esLote && p.responsable.trim() ? R.nombrePersona(p.responsable) : null,
     phone: R.telefono(p.phone),
     whatsapp: R.telefono(p.whatsapp),
-    estado: !p.estado ? 'Campo obligatorio' : null,
-    municipio: !p.municipio ? 'Campo obligatorio' : null,
-    calle: esLote ? (!p.calle.trim() ? 'Campo obligatorio' : R.textoDireccion(p.calle)) : null,
-    numero: esLote ? (!p.numero.trim() ? 'Campo obligatorio' : R.numeroExterior(p.numero)) : null,
-    colonia: esLote ? (!p.colonia.trim() ? 'Campo obligatorio' : R.textoDireccion(p.colonia)) : null,
-    codigoPostal: esLote ? (!p.codigoPostal.trim() ? 'Campo obligatorio' : R.codigoPostal(p.codigoPostal)) : null,
+    estado: !p.estado ? t('perfil.required') : null,
+    municipio: !p.municipio ? t('perfil.required') : null,
+    calle: esLote ? (!p.calle.trim() ? t('perfil.required') : R.textoDireccion(p.calle)) : null,
+    numero: esLote ? (!p.numero.trim() ? t('perfil.required') : R.numeroExterior(p.numero)) : null,
+    colonia: esLote ? (!p.colonia.trim() ? t('perfil.required') : R.textoDireccion(p.colonia)) : null,
+    codigoPostal: esLote ? (!p.codigoPostal.trim() ? t('perfil.required') : R.codigoPostal(p.codigoPostal)) : null,
   }
   const e = (k: keyof typeof errores) => (intento ? errores[k] : null)
 
@@ -77,7 +80,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
         setQuitarPortada(false)
       }
     } catch {
-      setError('No se pudo leer la imagen.')
+      setError(t('perfil.imageReadError'))
     }
   }
 
@@ -116,13 +119,13 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
     const tel = R.normalizarTelefono(p.phone)
     const wa = R.normalizarTelefono(p.whatsapp)
     const msg = Object.values(errores).some(Boolean)
-      ? 'Completa nombre, ciudad y estado (y la dirección del lote).'
+      ? t('perfil.errMissing')
       : !tel && !wa
-        ? 'Escribe al menos un teléfono o un WhatsApp.'
+        ? t('perfil.errPhones')
         : p.medioPrincipal === LLAMADA && !tel
-          ? 'Para que la llamada sea el principal, escribe un teléfono.'
+          ? t('perfil.errMainPhone')
           : p.medioPrincipal === WHATSAPP && !wa
-            ? 'Para que WhatsApp sea el principal, escribe un número de WhatsApp.'
+            ? t('perfil.errMainWhatsapp')
             : null
     setError(msg)
     if (!msg) setPregunta('guardar')
@@ -138,19 +141,19 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
     return (
       <div className="modal">
         <ModalHead
-          title={guardarP ? '¿Guardar cambios?' : '¿Descartar cambios?'}
+          title={guardarP ? t('perfil.saveTitle') : t('perfil.discardTitle')}
           sub={
             guardarP
-              ? 'Se actualizará la información de tu perfil con los datos que ingresaste.'
-              : 'Has realizado cambios en tu perfil. Si sales ahora, estos cambios se perderán. ¿Seguro que deseas descartar los cambios hechos?'
+              ? t('perfil.saveSub')
+              : t('perfil.discardSub')
           }
         />
         <div className="grid2">
           <button className="btn btn-ghost" onClick={() => setPregunta(null)}>
-            {guardarP ? 'Cancelar' : 'No, continuar editando'}
+            {guardarP ? t('common.cancel') : t('perfil.keepEditing')}
           </button>
           <button className={`btn ${guardarP ? 'btn-primary' : 'btn-danger'}`} onClick={guardarP ? () => void guardar() : closeModal}>
-            {guardarP ? 'Sí, guardar' : 'Sí, descartar'}
+            {guardarP ? t('perfil.yesSave') : t('perfil.yesDiscard')}
           </button>
         </div>
       </div>
@@ -176,8 +179,8 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
   return (
     <div className="modal" style={{ maxWidth: 640 }}>
       <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h3>Editar perfil</h3>
-        <button className="iconbtn" aria-label="Cerrar" onClick={cerrar}>
+        <h3>{t('perfil.editProfile')}</h3>
+        <button className="iconbtn" aria-label={t('common.close')} onClick={cerrar}>
           <Icon name="x" size={18} />
         </button>
       </div>
@@ -189,7 +192,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
             <button
               className="btn btn-sm coverbtn"
               style={{ position: 'static' }}
-              aria-label="Quitar portada"
+              aria-label={t('perfil.removeCover')}
               onClick={() => {
                 setCover(null)
                 setQuitarPortada(true)
@@ -200,7 +203,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
           )}
           <button className="btn btn-sm coverbtn" style={{ position: 'static' }} onClick={() => coverInput.current?.click()}>
             <Icon name="camera" size={16} />
-            Editar portada
+            {t('perfil.editCover')}
           </button>
         </div>
       </div>
@@ -209,7 +212,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
           <div className="bigavatar" style={{ width: 96, height: 96, fontSize: 32, ...(esLote ? { borderRadius: 24, background: 'var(--navy)' } : {}) }}>
             {foto ? <img src={foto} alt="" /> : iniciales(p.displayName)}
           </div>
-          <button className="camb" aria-label="Cambiar foto" onClick={() => avatarInput.current?.click()}>
+          <button className="camb" aria-label={t('perfil.changePhoto')} onClick={() => avatarInput.current?.click()}>
             <Icon name="camera" size={16} />
           </button>
         </div>
@@ -217,15 +220,15 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
       <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(ev) => (void elegir(ev.target.files?.[0], 'avatar'), (ev.target.value = ''))} />
       <input ref={coverInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(ev) => (void elegir(ev.target.files?.[0], 'cover'), (ev.target.value = ''))} />
 
-      {input('displayName', esLote ? 'Nombre del lote' : 'Nombre completo', { filtro: esLote ? (v) => v.slice(0, R.LOTE_MAX) : (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
-      {esLote && input('responsable', 'Responsable', { filtro: (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
-      <Campo label="Correo electrónico" hint="El correo no se puede cambiar.">
+      {input('displayName', esLote ? t('perfil.lotName') : t('perfil.fullName'), { filtro: esLote ? (v) => v.slice(0, R.LOTE_MAX) : (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
+      {esLote && input('responsable', t('perfil.responsible'), { filtro: (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
+      <Campo label={t('perfil.email')} hint={t('perfil.emailLocked')}>
         <input className="input" value={p.email} disabled readOnly />
       </Campo>
       <div className="grid2">
-        <Campo id="ep-estado" label="Estado" error={e('estado')}>
+        <Campo id="ep-estado" label={t('perfil.state')} error={e('estado')}>
           <select className={`input ${e('estado') ? 'bad' : ''}`} id="ep-estado" value={p.estado} onChange={(ev) => setP((x) => ({ ...x, estado: ev.target.value, municipio: '' }))}>
-            <option value="">Selecciona</option>
+            <option value="">{t('perfil.select')}</option>
             {/* Si el estado guardado no está en la lista (nombre antiguo), igual se muestra. */}
             {p.estado && !catalogo.some((x) => x.estado === p.estado) && <option>{p.estado}</option>}
             {catalogo.map((x) => (
@@ -233,9 +236,9 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
             ))}
           </select>
         </Campo>
-        <Campo id="ep-municipio" label="Ciudad" error={e('municipio')}>
+        <Campo id="ep-municipio" label={t('perfil.city')} error={e('municipio')}>
           <select className={`input ${e('municipio') ? 'bad' : ''}`} id="ep-municipio" value={p.municipio} disabled={!p.estado} onChange={(ev) => set('municipio', ev.target.value)}>
-            <option value="">Selecciona</option>
+            <option value="">{t('perfil.select')}</option>
             {p.municipio && !municipios.includes(p.municipio) && <option>{p.municipio}</option>}
             {municipios.map((m) => (
               <option key={m}>{m}</option>
@@ -246,35 +249,35 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
       {esLote && (
         <>
           <div className="grid3">
-            <div style={{ gridColumn: 'span 2' }}>{input('calle', 'Calle', { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}</div>
-            {input('numero', 'Número', { filtro: (v) => v.slice(0, R.NUMERO_MAX) })}
+            <div style={{ gridColumn: 'span 2' }}>{input('calle', t('perfil.street'), { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}</div>
+            {input('numero', t('perfil.number'), { filtro: (v) => v.slice(0, R.NUMERO_MAX) })}
           </div>
           <div className="grid2">
-            {input('colonia', 'Colonia', { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
-            {input('codigoPostal', 'C.P.', { inputMode: 'numeric', filtro: (v) => R.soloDigitos(v, 5) })}
+            {input('colonia', t('perfil.colony'), { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
+            {input('codigoPostal', t('perfil.zip'), { inputMode: 'numeric', filtro: (v) => R.soloDigitos(v, 5) })}
           </div>
         </>
       )}
       <div className="grid2">
-        {input('phone', 'Teléfono', { inputMode: 'tel', placeholder: '10 dígitos', filtro: R.telefonoAlEscribir })}
-        {input('whatsapp', 'WhatsApp', { inputMode: 'tel', placeholder: '10 dígitos', filtro: R.telefonoAlEscribir })}
+        {input('phone', t('perfil.phone'), { inputMode: 'tel', placeholder: t('perfil.tenDigits'), filtro: R.telefonoAlEscribir })}
+        {input('whatsapp', t('perfil.whatsapp'), { inputMode: 'tel', placeholder: t('perfil.tenDigits'), filtro: R.telefonoAlEscribir })}
       </div>
-      <Campo label="Medio de contacto principal">
+      <Campo label={t('perfil.mainContact')}>
         <div className="row" style={{ gap: 8 }}>
           {(
             [
-              [WHATSAPP, 'WhatsApp', 'chat'],
-              [LLAMADA, 'Llamadas', 'phone'],
+              [WHATSAPP, 'perfil.whatsapp', 'chat'],
+              [LLAMADA, 'perfil.calls', 'phone'],
             ] as const
-          ).map(([v, t, i]) => (
+          ).map(([v, clave, i]) => (
             <button key={v} type="button" className={`chip ${p.medioPrincipal === v ? 'on' : ''}`} onClick={() => set('medioPrincipal', v)}>
               <Icon name={i} size={16} />
-              {t}
+              {t(clave)}
             </button>
           ))}
         </div>
       </Campo>
-      <Campo id="ep-bio" label="Descripción">
+      <Campo id="ep-bio" label={t('perfil.description')}>
         <textarea className="input" id="ep-bio" maxLength={R.DESCRIPCION_MAX} value={p.bio} onChange={(ev) => set('bio', ev.target.value)} />
         <span className="muted" style={{ fontSize: 12, alignSelf: 'flex-end' }}>
           {p.bio.length}/{R.DESCRIPCION_MAX}
@@ -283,10 +286,10 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
       <AlertBox message={error} />
       <div className="grid2">
         <button className="btn btn-ghost" disabled={guardando} onClick={cerrar}>
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button className="btn btn-primary" disabled={guardando} onClick={pedirGuardar}>
-          {guardando ? 'Guardando…' : 'Guardar cambios'}
+          {guardando ? t('common.saving') : t('perfil.saveChanges')}
         </button>
       </div>
     </div>
@@ -298,6 +301,7 @@ export function Profile() {
   const navigate = useNavigate()
   const { account, mode, loading: cargandoSesion, reload } = useSession()
   const { openModal, closeModal, toast } = useUi()
+  const { t } = useI18n()
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [cars, setCars] = useState<OwnCar[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -328,7 +332,7 @@ export function Profile() {
         onSaved={(p) => {
           setPerfil(p)
           closeModal()
-          toast('Perfil actualizado')
+          toast(t('perfil.updated'))
           void reload() // nombre y foto de la barra de arriba
         }}
       />,
@@ -340,7 +344,7 @@ export function Profile() {
         <div className="card empty" style={{ marginTop: 40 }}>
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
-            Reintentar
+            {t('common.retry')}
           </button>
         </div>
       </div>
@@ -360,10 +364,10 @@ export function Profile() {
   const lista = cars ?? []
   const visibles = lista.filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))
   const escondidas = lista.filter((c) => sePuedeOcultar(c) && ocultasIds.has(c.id))
-  const stats: [number, string][] = [
-    [visibles.length, 'Publicaciones'],
-    [lista.filter((c) => c.status === 'Vendido').length, 'Vendidos'],
-    [lista.filter((c) => c.status === 'Activo').length, 'Activas'],
+  const stats: [number, Clave][] = [
+    [visibles.length, 'perfil.listings'],
+    [lista.filter((c) => c.status === 'Vendido').length, 'perfil.statSold'],
+    [lista.filter((c) => c.status === 'Activo').length, 'perfil.statActive'],
   ]
   const datos = [perfil.municipio && `${perfil.municipio}, ${perfil.estado}`, perfil.email].filter(Boolean).join(' · ')
 
@@ -373,7 +377,7 @@ export function Profile() {
         {perfil.coverUrl && <img src={perfil.coverUrl} alt="" />}
         <button className="btn btn-sm coverbtn" onClick={editar}>
           <Icon name="camera" size={16} />
-          Editar portada
+          {t('perfil.editCover')}
         </button>
       </div>
       <div className="profilehead">
@@ -381,7 +385,7 @@ export function Profile() {
           <button
             className="bigavatar"
             style={esLote ? { borderRadius: 28, background: 'var(--navy)' } : undefined}
-            aria-label="Ver foto de perfil"
+            aria-label={t('perfil.viewProfilePhoto')}
             onClick={() => openModal(<img className="lightbox" src={perfil.avatarUrl!} alt={perfil.displayName} onClick={closeModal} />)}
           >
             <img src={perfil.avatarUrl} alt="" />
@@ -394,20 +398,20 @@ export function Profile() {
         <div className="grow" style={{ paddingBottom: 10, minWidth: 220 }}>
           <div className="row" style={{ flexWrap: 'wrap' }}>
             <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
-            <span className="badge b-info">{mode === 'admin' ? 'Administrador' : esLote ? 'Lote' : 'Particular'}</span>
+            <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
           </div>
           <p className="muted">{datos}</p>
         </div>
         <div className="row" style={{ paddingBottom: 12 }}>
-          <button className="iconbtn" aria-label="Historial" onClick={() => navigate('/historial')}>
+          <button className="iconbtn" aria-label={t('nav.history')} onClick={() => navigate('/historial')}>
             <Icon name="history" size={18} />
           </button>
-          <button className="iconbtn" aria-label="Configuración" onClick={() => navigate('/configuracion')}>
+          <button className="iconbtn" aria-label={t('nav.settings')} onClick={() => navigate('/configuracion')}>
             <Icon name="settings" size={18} />
           </button>
           <button className="btn btn-primary" onClick={editar}>
             <Icon name="edit" size={16} />
-            Editar perfil
+            {t('perfil.editProfile')}
           </button>
         </div>
       </div>
@@ -415,11 +419,11 @@ export function Profile() {
       <div className="twocol" style={{ margin: '26px 0 40px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
-            {stats.map(([n, t]) => (
-              <div key={t} className="statbox">
+            {stats.map(([n, clave]) => (
+              <div key={clave} className="statbox">
                 <b className="num">{n}</b>
                 <span className="muted" style={{ fontSize: 12 }}>
-                  {t}
+                  {t(clave)}
                 </span>
               </div>
             ))}
@@ -427,7 +431,7 @@ export function Profile() {
           {perfil.bio && (
             <div className="card" style={{ padding: 20 }}>
               <div className="label" style={{ marginBottom: 8 }}>
-                Descripción
+                {t('perfil.description')}
               </div>
               <p className="muted">{perfil.bio}</p>
             </div>
@@ -437,10 +441,10 @@ export function Profile() {
               <Icon name="chart" />
             </span>
             <span className="grow">
-              <b style={{ color: 'var(--ink)' }}>Mi panel</b>
+              <b style={{ color: 'var(--ink)' }}>{t('nav.myDashboard')}</b>
               <br />
               <span className="muted" style={{ fontSize: 12.5 }}>
-                Vistas, contactos y favoritos de tus publicaciones
+                {t('perfil.dashboardDesc')}
               </span>
             </span>
             <Icon name="chev" />
@@ -451,10 +455,10 @@ export function Profile() {
                 <Icon name="shield" />
               </span>
               <span className="grow">
-                <b style={{ color: 'var(--ink)' }}>Panel admin</b>
+                <b style={{ color: 'var(--ink)' }}>{t('perfil.adminPanel')}</b>
                 <br />
                 <span className="muted" style={{ fontSize: 12.5 }}>
-                  Revisa publicaciones, reportes y cuentas
+                  {t('perfil.adminPanelDesc')}
                 </span>
               </span>
               <Icon name="chev" />
@@ -464,10 +468,10 @@ export function Profile() {
 
         <div>
           <div className="row" style={{ justifyContent: 'space-between', marginBottom: 16 }}>
-            <h2 style={{ fontSize: 22 }}>Mis publicaciones</h2>
+            <h2 style={{ fontSize: 22 }}>{t('perfil.myListings')}</h2>
             <button className="btn btn-primary btn-sm" onClick={() => navigate('/publicar')}>
               <Icon name="plus" size={16} />
-              Publicar
+              {t('nav.publish')}
             </button>
           </div>
           {!cars ? (
@@ -478,7 +482,7 @@ export function Profile() {
             </div>
           ) : visibles.length === 0 ? (
             <div className="card empty">
-              <p className="muted">Aún no tienes publicaciones.</p>
+              <p className="muted">{t('perfil.noListings')}</p>
             </div>
           ) : (
             <div className="vgrid">
@@ -494,10 +498,10 @@ export function Profile() {
                   <Icon name="eye" />
                 </span>
                 <span className="grow">
-                  <b style={{ color: 'var(--ink)' }}>Publicaciones ocultas ({escondidas.length})</b>
+                  <b style={{ color: 'var(--ink)' }}>{t('perfil.hiddenListings', { n: escondidas.length })}</b>
                   <br />
                   <span className="muted" style={{ fontSize: 12.5 }}>
-                    No aparecen en Mis publicaciones. Puedes volver a mostrarlas desde Mi panel.
+                    {t('perfil.hiddenDescProfile')}
                   </span>
                 </span>
                 <Icon name="down" />

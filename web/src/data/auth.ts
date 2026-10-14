@@ -1,5 +1,6 @@
 import { AuthError } from '@supabase/supabase-js'
 import { BUCKET, supabase } from '../lib/supabase'
+import { traducir } from '../i18n/I18nContext'
 import { UserError } from './api'
 
 // Inicio de sesión, registro y códigos por correo: lo mismo que AuthRepository.kt.
@@ -12,45 +13,49 @@ export const EMAIL_CODE_LENGTH = 6
 /** La cuenta existe pero falta verificar el correo: hay que pedir el código. */
 export class EmailNotVerifiedError extends Error {
   constructor(public email: string) {
-    super('Verifica tu correo para continuar.')
+    super(traducir('auth.err.verifyEmail'))
   }
 }
 
-export const MSG_EMAIL_EXISTS = 'Ya existe una cuenta con ese correo.'
+/**
+ * "Ya existe una cuenta con ese correo." en el idioma actual. Es una función (no una constante)
+ * para que el registro compare contra el texto en el mismo idioma con el que se armó el error.
+ */
+export const msgEmailExiste = () => traducir('auth.err.emailExists')
 
-/** Mensaje en español para cualquier error de Supabase o de red (mensajeUsuario() de la app). */
+/** Mensaje en el idioma actual para cualquier error de Supabase o de red (mensajeUsuario() de la app). */
 export function mensajeUsuario(e: unknown): string {
   if (e instanceof UserError || e instanceof EmailNotVerifiedError) return e.message
   if (e instanceof AuthError) {
     switch (e.code) {
       case 'invalid_credentials':
       case 'invalid_grant':
-        return 'Correo o contraseña incorrectos.'
+        return traducir('auth.err.invalidCredentials')
       case 'user_already_exists':
       case 'email_exists':
-        return MSG_EMAIL_EXISTS
+        return msgEmailExiste()
       case 'weak_password':
-        return 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un signo.'
+        return traducir('auth.err.weakPassword')
       case 'email_not_confirmed':
-        return 'Confirma tu correo antes de iniciar sesión.'
+        return traducir('auth.err.emailNotConfirmed')
       case 'otp_expired':
-        return 'El código es incorrecto o ya expiró.'
+        return traducir('auth.err.otpExpired')
       case 'same_password':
-        return 'La nueva contraseña debe ser diferente a la anterior.'
+        return traducir('auth.err.samePassword')
       case 'over_email_send_rate_limit':
       case 'over_request_rate_limit':
-        return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+        return traducir('auth.err.rateLimit')
       case 'validation_failed':
       case 'email_address_invalid':
-        return 'Revisa que el correo sea válido.'
+        return traducir('auth.err.invalidEmail')
       case 'email_address_not_authorized':
-        return 'No pudimos enviar el correo a esa dirección. Inténtalo más tarde.'
+        return traducir('auth.err.emailNotAuthorized')
     }
-    if (e.status === 0 || e.name === 'AuthRetryableFetchError') return 'Sin conexión con el servidor. Revisa tu Internet.'
+    if (e.status === 0 || e.name === 'AuthRetryableFetchError') return traducir('auth.err.offline')
   }
-  if (e instanceof TypeError) return 'Sin conexión con el servidor. Revisa tu Internet.'
+  if (e instanceof TypeError) return traducir('auth.err.offline')
   console.warn('Karsy: error sin mensaje para el usuario', e)
-  return 'Ocurrió un error. Inténtalo de nuevo.'
+  return traducir('auth.err.generic')
 }
 
 /**
@@ -76,7 +81,7 @@ export async function signUp(email: string, password: string, data: Record<strin
   if (!r.session) {
     // Si el correo ya tiene cuenta verificada, Supabase responde un usuario sin
     // identidades y no manda nada (para no revelar qué correos existen).
-    if (r.user && r.user.identities?.length === 0) throw new UserError(MSG_EMAIL_EXISTS)
+    if (r.user && r.user.identities?.length === 0) throw new UserError(msgEmailExiste())
     throw new EmailNotVerifiedError(email.trim())
   }
 }
@@ -141,7 +146,7 @@ export async function uploadPendingAvatar(email: string): Promise<void> {
 export async function uploadAvatar(blob: Blob): Promise<void> {
   const { data } = await supabase.auth.getUser()
   const uid = data.user?.id
-  if (!uid) throw new UserError('Inicia sesión primero.')
+  if (!uid) throw new UserError(traducir('auth.err.signInFirst'))
   const ruta = `perfiles/${uid}/${crypto.randomUUID()}.jpg`
   const up = await supabase.storage.from(BUCKET).upload(ruta, blob, { upsert: false, contentType: 'image/jpeg' })
   if (up.error) throw up.error

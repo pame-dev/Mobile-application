@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { unreadCount } from '../data/account'
+import { useI18n } from '../i18n/I18nContext'
 import { FILTER_KEYS, SIN_FILTROS, filtrosDeUrl, type Filtros } from '../lib/filtros'
 import { iniciales } from '../lib/format'
 import { publicUrl } from '../lib/supabase'
@@ -25,6 +26,7 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [draft, setDraft] = useState<Filtros>(() => filtrosDeUrl(params))
+  const { t } = useI18n()
 
   const aplicar = (valores: Filtros) => {
     const next = new URLSearchParams(params)
@@ -41,9 +43,9 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
   if (mode === 'guest') {
     return (
       <div className="filterpop">
-        <h3>FILTROS</h3>
+        <h3>{t('filters.title')}</h3>
         <div style={{ padding: 14, borderRadius: 12, background: 'var(--teal-light)', fontSize: 13 }}>
-          Crea una cuenta para acceder a los filtros y funciones exclusivas.
+          {t('filters.guest')}
           <br />
           <a
             href="/registro"
@@ -53,7 +55,7 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
               navigate('/registro')
             }}
           >
-            <b>Regístrate gratis →</b>
+            <b>{t('filters.registerFree')}</b>
           </a>
         </div>
       </div>
@@ -63,14 +65,14 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
   return (
     <div className="filterpop">
       <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h3>FILTROS</h3>
+        <h3>{t('filters.title')}</h3>
         <button style={{ background: 'none', border: 0, color: 'var(--teal)', fontWeight: 600 }} onClick={() => aplicar(SIN_FILTROS)}>
-          Limpiar
+          {t('filters.clear')}
         </button>
       </div>
       <FilterFields draft={draft} onChange={setDraft} />
       <button className="btn btn-primary btn-block" onClick={() => aplicar(draft)}>
-        Aplicar
+        {t('filters.apply')}
       </button>
     </div>
   )
@@ -80,12 +82,13 @@ export function LogoutModal() {
   const { closeModal } = useUi()
   const { signOut } = useSession()
   const navigate = useNavigate()
+  const { t } = useI18n()
   return (
     <div className="modal">
-      <ModalHead title="¿Cerrar sesión?" sub="¿Estás seguro de que deseas salir de tu cuenta de Karsy? Tendrás que iniciar sesión de nuevo para gestionar tus vehículos." />
+      <ModalHead title={t('logout.title')} sub={t('logout.sub')} />
       <div className="grid2">
         <button className="btn btn-ghost" onClick={closeModal}>
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           className="btn btn-danger"
@@ -95,7 +98,7 @@ export function LogoutModal() {
             navigate('/')
           }}
         >
-          Sí, salir
+          {t('logout.confirm')}
         </button>
       </div>
     </div>
@@ -105,6 +108,7 @@ export function LogoutModal() {
 export function TopNav() {
   const { account, mode } = useSession()
   const { toast, openModal } = useUi()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const [params] = useSearchParams()
@@ -151,9 +155,9 @@ export function TopNav() {
   }
 
   const links: [string, string, IconName][] = [
-    ['/', 'Inicio', 'home'],
-    ['/lotes', 'Lotes', 'building'],
-    ['/favoritos', 'Favoritos', 'heart'],
+    ['/', t('nav.home'), 'home'],
+    ['/lotes', t('nav.lots'), 'building'],
+    ['/favoritos', t('nav.favorites'), 'heart'],
   ]
   const activo = (to: string) => (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to))
   const foto = publicUrl(account?.fotoPerfil)
@@ -163,18 +167,18 @@ export function TopNav() {
       <div className="wrap">
         <Brand />
         <nav className="navlinks">
-          {links.map(([to, t, i]) => (
+          {links.map(([to, texto, i]) => (
             <button
               key={to}
               className={activo(to) ? 'on' : ''}
               onClick={() =>
                 to === '/favoritos' && mode === 'guest'
-                  ? toast('Regístrate para guardar tus favoritos', { label: 'Registrarme', onClick: () => navigate('/registro') })
+                  ? toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
                   : navigate(to)
               }
             >
               <Icon name={i} size={18} />
-              <span>{t}</span>
+              <span>{texto}</span>
             </button>
           ))}
         </nav>
@@ -188,7 +192,7 @@ export function TopNav() {
             }}
           >
             <Icon name="search" size={18} />
-            <input className="input" id="navq" placeholder="Buscar marca, modelo o año..." value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar vehículos" />
+            <input className="input" id="navq" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
           </form>
           <button
             className={`btn filterbtn ${filtersOpen ? 'on' : ''}`}
@@ -199,7 +203,7 @@ export function TopNav() {
             }}
           >
             <Icon name="filter" size={18} />
-            <span>Filtros</span>
+            <span>{t('nav.filters')}</span>
           </button>
           {filtersOpen && <FilterPanel onClose={() => setFiltersOpen(false)} />}
         </div>
@@ -207,26 +211,26 @@ export function TopNav() {
           {mode === 'guest' ? (
             <>
               <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login', { state: { from: location.pathname + location.search } })}>
-                Iniciar sesión
+                {t('nav.login')}
               </button>
               <button className="btn btn-primary btn-sm" onClick={() => navigate('/registro')}>
-                Regístrate
+                {t('nav.register')}
               </button>
             </>
           ) : (
             <>
               <button className="btn btn-primary btn-sm" onClick={() => navigate('/publicar')}>
                 <Icon name="plus" size={18} />
-                Publicar
+                {t('nav.publish')}
               </button>
-              <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? `Notificaciones (${sinLeer} sin leer)` : 'Notificaciones'} onClick={() => navigate('/notificaciones')}>
+              <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
                 <Icon name="bell" size={19} />
                 {sinLeer > 0 && <span className="dot" />}
               </button>
               <div style={{ position: 'relative' }} ref={menuRef}>
                 <button
                   className="avatar"
-                  aria-label="Mi cuenta"
+                  aria-label={t('nav.myAccount')}
                   aria-expanded={menuOpen}
                   onClick={() => {
                     setMenuOpen((v) => !v)
@@ -240,30 +244,30 @@ export function TopNav() {
                     <div style={{ padding: '10px 12px 8px' }}>
                       <b style={{ color: 'var(--ink)' }}>{account!.nombre}</b>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {account!.correo} · {mode === 'admin' ? 'Administrador' : account!.tipoCuenta === 'lote' ? 'Lote' : 'Particular'}
+                        {account!.correo} · {mode === 'admin' ? t('nav.admin') : account!.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
                       </div>
                     </div>
                     <hr />
                     <button onClick={() => navigate('/perfil')}>
                       <Icon name="user" size={18} />
-                      Mi perfil
+                      {t('nav.myProfile')}
                     </button>
                     <button onClick={() => navigate('/panel')}>
                       <Icon name="chart" size={18} />
-                      Mi panel
+                      {t('nav.myDashboard')}
                     </button>
                     <button onClick={() => navigate('/historial')}>
                       <Icon name="history" size={18} />
-                      Historial
+                      {t('nav.history')}
                     </button>
                     <button onClick={() => navigate('/configuracion')}>
                       <Icon name="settings" size={18} />
-                      Configuración
+                      {t('nav.settings')}
                     </button>
                     {mode === 'admin' && (
                       <button onClick={() => navigate('/admin')}>
                         <Icon name="shield" size={18} />
-                        Panel de administración
+                        {t('nav.adminPanel')}
                       </button>
                     )}
                     <hr />
@@ -275,7 +279,7 @@ export function TopNav() {
                       }}
                     >
                       <Icon name="logout" size={18} />
-                      Cerrar sesión
+                      {t('nav.logout')}
                     </button>
                   </div>
                 )}

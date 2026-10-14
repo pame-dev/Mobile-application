@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertBox, AuthShell, BackButton, OtpInput, PasswordInput, PasswordRulesList, ResendRow, useCountdown } from '../../components/AuthParts'
 import { Icon } from '../../components/Icon'
 import { EMAIL_CODE_LENGTH, mensajeUsuario, resetPassword, sendPasswordResetCode, verifyPasswordResetCode } from '../../data/auth'
+import { useI18n } from '../../i18n/I18nContext'
+import type { Clave } from '../../i18n/es'
 import { supabase } from '../../lib/supabase'
 import { passwordError } from '../../lib/formRules'
 import { setRecoveryMode } from '../../session/SessionContext'
 
-const PASOS = ['Correo', 'Código', 'Contraseña', 'Listo']
+const PASOS: Clave[] = ['auth.recover.stepEmail', 'auth.recover.stepCode', 'auth.recover.stepPassword', 'auth.recover.stepDone']
 
 /**
  * "¿Olvidaste tu contraseña?": correo → código → contraseña nueva (PasswordRecoveryViewModel).
@@ -17,6 +19,7 @@ const PASOS = ['Correo', 'Código', 'Contraseña', 'Listo']
 export function Recover() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useI18n()
   const [step, setStep] = useState(0)
   const [email, setEmail] = useState(((location.state as { email?: string } | null)?.email ?? '').trim())
   const [code, setCode] = useState('')
@@ -61,7 +64,7 @@ export function Recover() {
 
   const sendCode = () => {
     if (!email.includes('@')) {
-      setError('Escribe el correo de tu cuenta.')
+      setError(t('auth.recover.accountEmail'))
       return
     }
     // Si regresó al paso 1 sin cambiar el correo, el código de hace unos segundos sigue sirviendo.
@@ -76,7 +79,7 @@ export function Recover() {
   const verifyCode = async (token = code) => {
     if (loading) return
     if (token.length < EMAIL_CODE_LENGTH) {
-      setError(`Escribe los ${EMAIL_CODE_LENGTH} dígitos del código.`)
+      setError(t('auth.codeDigits', { n: EMAIL_CODE_LENGTH }))
       return
     }
     setLoading(true)
@@ -96,7 +99,7 @@ export function Recover() {
   const guardar = async () => {
     if (loading) return
     if (!newPassword || !confirm) {
-      setError('Escribe tu nueva contraseña y confírmala.')
+      setError(t('auth.recover.newRequired'))
       return
     }
     const err = passwordError(newPassword, email)
@@ -126,25 +129,25 @@ export function Recover() {
   }
 
   const textos: [string, ReactNode][] = [
-    ['Recuperar contraseña', 'Ingresa tu correo electrónico asociado a tu cuenta para enviarte un código de verificación.'],
+    [t('auth.recover.title0'), t('auth.recover.sub0')],
     [
-      'Código de verificación',
+      t('auth.recover.title1'),
       <>
-        Ingresa el código de {EMAIL_CODE_LENGTH} dígitos enviado a tu correo <b style={{ color: 'var(--ink)' }}>{email.trim()}</b>. Si no lo ves,
-        revisa tu carpeta de spam.
+        {t('auth.recover.sub1a', { n: EMAIL_CODE_LENGTH })} <b style={{ color: 'var(--ink)' }}>{email.trim()}</b>
+        {t('auth.recover.sub1b')}
       </>,
     ],
-    ['Nueva contraseña', 'Crea una contraseña segura y fácil de recordar para acceder a tu cuenta.'],
-    ['¡Contraseña actualizada!', 'Tu contraseña se ha cambiado con éxito. Ya puedes iniciar sesión con tu nueva credencial.'],
+    [t('auth.recover.title2'), t('auth.recover.sub2')],
+    [t('auth.recover.title3'), t('auth.recover.sub3')],
   ]
 
   return (
-    <AuthShell title="Recupera el acceso a tu cuenta." sub="Te enviaremos un código a tu correo para que crees una contraseña nueva." photo={9}>
+    <AuthShell title={t('auth.recover.artTitle')} sub={t('auth.recover.artSub')} photo={9}>
       {step < 3 && <BackButton onClick={atras} />}
-      <div className="seg" style={{ alignSelf: 'flex-start', pointerEvents: 'none' }} aria-label={`Paso ${step + 1} de 4`}>
-        {PASOS.map((t, i) => (
-          <button key={t} className={i === step ? 'on' : ''} tabIndex={-1}>
-            {t}
+      <div className="seg" style={{ alignSelf: 'flex-start', pointerEvents: 'none' }} aria-label={t('auth.recover.stepOf', { n: step + 1 })}>
+        {PASOS.map((clave, i) => (
+          <button key={clave} className={i === step ? 'on' : ''} tabIndex={-1}>
+            {t(clave)}
           </button>
         ))}
       </div>
@@ -166,16 +169,16 @@ export function Recover() {
         >
           <div className="field">
             <label className="label" htmlFor="re">
-              Correo electrónico
+              {t('auth.email')}
             </label>
             <div className="inputicon">
               <Icon name="mail" size={18} />
-              <input className="input" id="re" type="email" autoComplete="email" placeholder="ejemplo@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+              <input className="input" id="re" type="email" autoComplete="email" placeholder={t('auth.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
             </div>
           </div>
           <AlertBox message={error} />
           <button type="submit" className="btn btn-primary btn-block" style={{ height: 50 }} disabled={sending}>
-            {sending ? 'Enviando código…' : 'Enviar código'}
+            {sending ? t('auth.sendingCode') : t('auth.recover.send')}
           </button>
         </form>
       )}
@@ -186,7 +189,7 @@ export function Recover() {
           <AlertBox message={error} />
           <ResendRow sending={sending} seconds={countdown.seconds} onResend={() => countdown.seconds === 0 && void enviar(() => undefined)} />
           <button className="btn btn-primary btn-block" style={{ height: 50 }} disabled={loading} onClick={() => void verifyCode()}>
-            {loading ? 'Verificando…' : 'Verificar'}
+            {loading ? t('auth.verifying') : t('auth.verify')}
           </button>
         </>
       )}
@@ -201,28 +204,28 @@ export function Recover() {
         >
           <div className="field">
             <label className="label" htmlFor="rn">
-              Nueva contraseña
+              {t('auth.recover.newPassword')}
             </label>
-            <PasswordInput id="rn" value={newPassword} onChange={setNewPassword} autoComplete="new-password" placeholder="Ingresa una contraseña" />
+            <PasswordInput id="rn" value={newPassword} onChange={setNewPassword} autoComplete="new-password" placeholder={t('auth.passwordPlaceholder')} />
           </div>
           <PasswordRulesList password={newPassword} />
           <div className="field">
             <label className="label" htmlFor="rc">
-              Confirmar contraseña
+              {t('auth.confirmPassword')}
             </label>
-            <PasswordInput id="rc" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repite tu contraseña" bad={mismatch} />
-            {mismatch && <span className="ferr">Las contraseñas no coinciden.</span>}
+            <PasswordInput id="rc" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder={t('auth.confirmPlaceholder')} bad={mismatch} />
+            {mismatch && <span className="ferr">{t('auth.passwordMismatch')}</span>}
           </div>
           <AlertBox message={error} />
           <button type="submit" className="btn btn-primary btn-block" style={{ height: 50 }} disabled={loading}>
-            {loading ? 'Guardando…' : 'Restablecer contraseña'}
+            {loading ? t('common.saving') : t('auth.recover.reset')}
           </button>
         </form>
       )}
 
       {step === 3 && (
         <button className="btn btn-primary btn-block" style={{ height: 50 }} onClick={() => navigate('/login', { replace: true })}>
-          Iniciar sesión
+          {t('auth.login')}
         </button>
       )}
     </AuthShell>

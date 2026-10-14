@@ -1,5 +1,6 @@
 // Acceso a datos. Usa las MISMAS tablas, vista (v_anuncios) y funciones que la app de
 // Android (data/repository/*.kt), así lo que se haga aquí se ve en la app y al revés.
+import { traducir } from '../i18n/I18nContext'
 import { publicUrl, supabase } from '../lib/supabase'
 import type { AnuncioRow, Car, CarDetail, Catalogs, Lot, LotContact, SellerContact, SellerProfile } from './types'
 
@@ -27,7 +28,7 @@ function statusOf(a: AnuncioRow): Car['status'] {
 export function toCar(a: AnuncioRow): Car {
   return {
     id: a.id_publicacion,
-    brand: a.marca ?? 'Sin marca',
+    brand: a.marca ?? traducir('vehiculo.noBrand'),
     model: a.modelo ?? '',
     year: a.anio ?? 0,
     priceValue: a.precio ?? 0,
@@ -61,8 +62,8 @@ function toDetail(a: AnuncioRow): CarDetail {
     tipoCarro: o(a.carroceria),
     color: o(a.color),
     duenos: o(a.numero_propietarios_anteriores),
-    recuperadoPorSeguro: a.recuperado_por_seguro == null ? '—' : a.recuperado_por_seguro ? 'Sí' : 'No',
-    detalles: a.tiene_problemas ? a.descripcion_problemas ?? '' : 'Sin problemas ni detalles reportados por el vendedor.',
+    recuperadoPorSeguro: a.recuperado_por_seguro == null ? '—' : a.recuperado_por_seguro ? traducir('vehiculo.yes') : traducir('vehiculo.no'),
+    detalles: a.tiene_problemas ? a.descripcion_problemas ?? '' : traducir('vehiculo.noProblems'),
     sellerAvatar: publicUrl(a.propietario_foto),
     row: a,
   }
@@ -171,7 +172,7 @@ export async function reportListing(id: number, userId: string, tipo: 'publicaci
   const motivo = `${prefijo}: ${razon}` + (detalles.trim() ? `. ${detalles.trim()}` : '')
   const { error } = await supabase.from('reportes').insert({ id_publicacion: id, id_reportante: userId, motivo_reporte: motivo })
   if (error) {
-    if (error.message.includes('uq_reportes')) throw new UserError('Ya habías reportado esta publicación.')
+    if (error.message.includes('uq_reportes')) throw new UserError(traducir('vehiculo.alreadyReported'))
     throw new Error(error.message)
   }
 }

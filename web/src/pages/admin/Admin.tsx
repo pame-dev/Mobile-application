@@ -22,11 +22,13 @@ import {
 } from '../../data/admin'
 import { toCar } from '../../data/api'
 import { mensajeUsuario } from '../../data/auth'
+import { traducir, useI18n } from '../../i18n/I18nContext'
+import type { Clave } from '../../i18n/es'
 import type { AnuncioRow, Car } from '../../data/types'
 import { entero, haceCuanto, km, precio } from '../../lib/format'
 import { publicUrl } from '../../lib/supabase'
 import { useSession } from '../../session/SessionContext'
-import { AdminHead, Badge, fecha, Ini, LineChart, PairBars, ReasonModal, SearchBox, Tabs } from './AdminParts'
+import { AdminHead, Badge, etiquetaEstado, fecha, Ini, LineChart, PairBars, ReasonModal, SearchBox, Tabs } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'lotes' | 'vehiculos' | 'reportes' | 'destacados'
 
@@ -56,6 +58,7 @@ export function Admin() {
   const navigate = useNavigate()
   const { account, mode, loading: cargandoSesion } = useSession()
   const { openModal, toast } = useUi()
+  const { t } = useI18n()
   const [datos, setDatos] = useState<Datos | null>(null)
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [rango, setRango] = useState(7)
@@ -100,13 +103,13 @@ export function Admin() {
     reportes: datos?.reportes.filter((r) => r.estado_reporte === 'pendiente').length ?? 0,
     destacados: datos?.destacados.filter((d) => d.estado_solicitud === 'pendiente').length ?? 0,
   }
-  const items: [Seccion, string, IconName, number?][] = [
-    ['inicio', 'Inicio', 'home'],
-    ['usuarios', 'Usuarios', 'users'],
-    ['lotes', 'Lotes', 'building'],
-    ['vehiculos', 'Vehículos', 'car', pendientes.vehiculos],
-    ['reportes', 'Reportes', 'flag', pendientes.reportes],
-    ['destacados', 'Destacados', 'star', pendientes.destacados],
+  const items: [Seccion, Clave, IconName, number?][] = [
+    ['inicio', 'admin.sec.home', 'home'],
+    ['usuarios', 'admin.sec.users', 'users'],
+    ['lotes', 'admin.sec.lots', 'building'],
+    ['vehiculos', 'admin.sec.vehicles', 'car', pendientes.vehiculos],
+    ['reportes', 'admin.sec.reports', 'flag', pendientes.reportes],
+    ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
   ]
   const ir = (s: Seccion) => navigate(s === 'inicio' ? '/admin' : `/admin/${s}`)
 
@@ -116,7 +119,7 @@ export function Admin() {
       <div className="card empty">
         <p className="muted">{error}</p>
         <button className="btn btn-ghost" onClick={() => void cargar()}>
-          Reintentar
+          {t('common.retry')}
         </button>
       </div>
     )
@@ -133,10 +136,10 @@ export function Admin() {
     <div className="admin">
       <aside className="side">
         <Brand />
-        {items.map(([k, t, i, n]) => (
+        {items.map(([k, clave, i, n]) => (
           <button key={k} className={`it ${seccion === k ? 'on' : ''}`} onClick={() => ir(k)}>
             <Icon name={i} />
-            {t}
+            {t(clave)}
             {!!n && <span className="cnt">{n}</span>}
           </button>
         ))}
@@ -146,18 +149,18 @@ export function Admin() {
             <div style={{ minWidth: 0 }}>
               <b style={{ color: 'var(--ink)', fontSize: 13 }}>{account.nombre}</b>
               <div className="muted" style={{ fontSize: 11.5 }}>
-                Administrador
+                {t('admin.administrator')}
               </div>
             </div>
           </div>
         </div>
         <button className="it" onClick={() => navigate('/')}>
           <Icon name="back" />
-          Volver al inicio
+          {t('admin.backHome')}
         </button>
         <button className="it" style={{ color: 'var(--error)' }} onClick={() => openModal(<LogoutModal />)}>
           <Icon name="logout" />
-          Cerrar sesión
+          {t('nav.logout')}
         </button>
       </aside>
       <main className="adminmain">{contenido}</main>
@@ -168,11 +171,12 @@ export function Admin() {
 // ── Inicio ─────────────────────────────────────────────────────────────────
 
 function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; rango: number; setRango: (n: number) => void; ir: (s: Seccion) => void }) {
+  const { t } = useI18n()
   const head = (
     <AdminHead
-      title={`¡Hola, ${nombre.split(' ')[0]}!`}
-      desc="Resumen de la actividad en la plataforma."
-      right={<Tabs value={String(rango)} onChange={(v) => setRango(Number(v))} options={[7, 30, 90].map((d) => [String(d), `${d} días`] as [string, string])} />}
+      title={t('admin.greeting', { name: nombre.split(' ')[0] })}
+      desc={t('admin.homeDesc')}
+      right={<Tabs value={String(rango)} onChange={(v) => setRango(Number(v))} options={[7, 30, 90].map((d) => [String(d), t('admin.rangeDays', { n: d })] as [string, string])} />}
     />
   )
   if (!stats)
@@ -189,20 +193,20 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
   const contactos = stats.interacciones.contactos.reduce((a, b) => a + b, 0)
   const conversion = vistas ? Math.round((contactos * 100) / vistas) : 0
   const kpis: [string, number, number, IconName, string][] = [
-    ['Usuarios registrados', stats.usuarios, stats.usuariosNuevos, 'users', '#3B82F6'],
-    ['Lotes registrados', stats.lotes, stats.lotesNuevos, 'building', '#8B5CF6'],
-    ['Vehículos publicados', stats.publicadas, stats.publicadasNuevas, 'car', '#22C55E'],
+    [t('admin.kpiUsers'), stats.usuarios, stats.usuariosNuevos, 'users', '#3B82F6'],
+    [t('admin.kpiLots'), stats.lotes, stats.lotesNuevos, 'building', '#8B5CF6'],
+    [t('admin.kpiPublished'), stats.publicadas, stats.publicadasNuevas, 'car', '#22C55E'],
   ]
-  const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
+  const plural = (n: number, uno: Clave, varios: Clave, vars: Record<string, number> = {}) => t(n === 1 ? uno : varios, { n, ...vars })
   // Solo lo que realmente tiene pendientes.
   const alertas: [number, string, Seccion, string][] = (
     [
-      [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'publicación pendiente de revisión', 'publicaciones pendientes de revisión'), 'vehiculos', '#F59E0B'],
-      [stats.reportesPendientes, plural(stats.reportesPendientes, 'reporte pendiente', 'reportes pendientes'), 'reportes', '#EF4444'],
-      [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'solicitud de destacado pendiente', 'solicitudes de destacado pendientes'), 'destacados', '#F59E0B'],
-      [stats.lotesNuevos, `${plural(stats.lotesNuevos, 'lote nuevo', 'lotes nuevos')} en ${rango} días`, 'lotes', '#3B82F6'],
-      [stats.suspendidas, plural(stats.suspendidas, 'cuenta suspendida', 'cuentas suspendidas'), 'usuarios', '#98A2B3'],
-      [stats.deshabilitadas, plural(stats.deshabilitadas, 'publicación deshabilitada', 'publicaciones deshabilitadas'), 'vehiculos', '#98A2B3'],
+      [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'admin.alertReviewOne', 'admin.alertReviewMany'), 'vehiculos', '#F59E0B'],
+      [stats.reportesPendientes, plural(stats.reportesPendientes, 'admin.alertReportsOne', 'admin.alertReportsMany'), 'reportes', '#EF4444'],
+      [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', '#F59E0B'],
+      [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'lotes', '#3B82F6'],
+      [stats.suspendidas, plural(stats.suspendidas, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3'],
+      [stats.deshabilitadas, plural(stats.deshabilitadas, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3'],
     ] as [number, string, Seccion, string][]
   ).filter(([n]) => n > 0)
 
@@ -210,8 +214,8 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
     <>
       {head}
       <div className="akpis">
-        {kpis.map(([t, n, nuevos, i, c]) => (
-          <div key={t} className="card kpi">
+        {kpis.map(([k, n, nuevos, i, c]) => (
+          <div key={k} className="card kpi">
             <div className="row" style={{ justifyContent: 'space-between' }}>
               <span className="ic" style={{ background: `${c}22`, color: c }}>
                 <Icon name={i} />
@@ -220,7 +224,7 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
             </div>
             <b className="num">{entero(n)}</b>
             <span className="muted" style={{ fontSize: 13 }}>
-              {t}
+              {k}
             </span>
           </div>
         ))}
@@ -232,35 +236,35 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
             <b style={{ fontSize: 22 }}>{pct}%</b>
           </div>
           <span className="muted" style={{ fontSize: 13 }}>
-            Publicaciones activas
+            {t('admin.kpiActive')}
           </span>
           <div style={{ height: 8, borderRadius: 9, background: 'var(--warning)', overflow: 'hidden', opacity: 0.9 }}>
             <div style={{ width: `${pct}%`, height: '100%', background: '#22C55E' }} />
           </div>
           <span className="mid" style={{ fontSize: 12 }}>
-            {entero(stats.activas)} activas · {entero(stats.deshabilitadas)} deshabilitadas
+            {t('admin.kpiStatusDetail', { a: entero(stats.activas), d: entero(stats.deshabilitadas) })}
           </span>
         </div>
       </div>
 
       <div className="twocol half" style={{ marginTop: 18 }}>
         <div className="card" style={{ padding: 22 }}>
-          <h3 style={{ fontSize: 17 }}>Crecimiento de la plataforma</h3>
+          <h3 style={{ fontSize: 17 }}>{t('admin.growthTitle')}</h3>
           <p className="muted" style={{ fontSize: 13 }}>
-            Usuarios, lotes y publicaciones acumulados
+            {t('admin.growthSub')}
           </p>
           <div className="legend" style={{ margin: '12px 0' }}>
             <span>
               <i style={{ background: '#3B82F6' }} />
-              Usuarios
+              {t('admin.legendUsers')}
             </span>
             <span>
               <i style={{ background: '#8B5CF6' }} />
-              Lotes
+              {t('admin.legendLots')}
             </span>
             <span>
               <i style={{ background: '#22C55E' }} />
-              Publicaciones
+              {t('admin.legendListings')}
             </span>
           </div>
           <LineChart
@@ -275,35 +279,35 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
         <div className="card" style={{ padding: 22 }}>
           <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <div>
-              <h3 style={{ fontSize: 17 }}>Interés en publicaciones</h3>
+              <h3 style={{ fontSize: 17 }}>{t('admin.interestTitle')}</h3>
               <p className="muted" style={{ fontSize: 13 }}>
-                Vistas de detalle vs. contactos al vendedor
+                {t('admin.interestSub')}
               </p>
             </div>
-            <span className="badge b-succ">{conversion}% de las vistas terminan en contacto</span>
+            <span className="badge b-succ">{t('admin.conversionBadge', { n: conversion })}</span>
           </div>
           <div className="legend" style={{ margin: '12px 0' }}>
             <span>
               <i style={{ background: '#3B82F6' }} />
-              Vistas
+              {t('admin.views')}
             </span>
             <span>
               <i style={{ background: 'var(--teal)' }} />
-              Contactos
+              {t('admin.contacts')}
             </span>
           </div>
           <PairBars labels={stats.interacciones.etiquetas} a={stats.interacciones.vistas} b={stats.interacciones.contactos} />
           <div className="grid3" style={{ marginTop: 12 }}>
             {(
               [
-                ['Vistas', entero(vistas)],
-                ['Contactos', entero(contactos)],
-                ['Conversión', `${conversion}%`],
+                [t('admin.views'), entero(vistas)],
+                [t('admin.contacts'), entero(contactos)],
+                [t('admin.conversion'), `${conversion}%`],
               ] as const
-            ).map(([t, n]) => (
-              <div key={t} style={{ background: 'var(--bg)', borderRadius: 12, padding: '10px 12px' }}>
+            ).map(([k, n]) => (
+              <div key={k} style={{ background: 'var(--bg)', borderRadius: 12, padding: '10px 12px' }}>
                 <span className="mid" style={{ fontSize: 12 }}>
-                  {t}
+                  {k}
                 </span>
                 <b className="num" style={{ display: 'block', color: 'var(--ink)', fontFamily: 'var(--f-display)', fontSize: 18 }}>
                   {n}
@@ -316,21 +320,21 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
 
       <div className="card" style={{ padding: 22, marginTop: 18 }}>
         <h3 style={{ fontSize: 17 }} className="row">
-          <Icon name="alert" size={18} /> Requiere atención
+          <Icon name="alert" size={18} /> {t('admin.needsAttention')}
         </h3>
         {alertas.length === 0 ? (
           <p className="muted" style={{ marginTop: 10 }}>
-            Todo al día: no hay pendientes.
+            {t('admin.allCaughtUp')}
           </p>
         ) : (
           <div className="grid3" style={{ marginTop: 14 }}>
-            {alertas.map(([, t, s, c]) => (
-              <button key={t} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s)}>
+            {alertas.map(([, txt, s, c]) => (
+              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s)}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', flex: 'none', background: c }} />
                 <span className="grow" style={{ color: 'var(--ink)', fontWeight: 500 }}>
-                  {t}
+                  {txt}
                 </span>
-                <span style={{ color: 'var(--admin-blue)', fontSize: 12.5, fontWeight: 600 }}>Ver todos →</span>
+                <span style={{ color: 'var(--admin-blue)', fontSize: 12.5, fontWeight: 600 }}>{t('admin.seeAll')}</span>
               </button>
             ))}
           </div>
@@ -343,35 +347,37 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
 // ── Usuarios y lotes ───────────────────────────────────────────────────────
 
 const estadoCuenta = (c: CuentaAdmin) => (c.estado_cuenta === 'suspendida' ? 'Suspendido' : 'Activo')
-const tipoCuenta = (c: CuentaAdmin) => (c.tipo_cuenta === 'lote' ? 'Lote' : 'Particular')
+const tipoCuenta = (c: CuentaAdmin) => traducir(c.tipo_cuenta === 'lote' ? 'admin.lot' : 'admin.individual')
 
 /** Suspende (con motivo) o reactiva una cuenta. */
 function useSuspender(listo: (m: string) => void) {
   const { openModal } = useUi()
+  const { t } = useI18n()
   return {
     suspender: (c: CuentaAdmin) =>
       openModal(
         <ReasonModal
-          title={c.tipo_cuenta === 'lote' ? '¿Por qué suspendes este lote?' : '¿Por qué suspendes esta cuenta?'}
-          desc="El motivo queda registrado en la bitácora de administración."
-          hint="Ej. Publicó anuncios fraudulentos varias veces."
-          confirm="Suspender"
-          working="Suspendiendo…"
+          title={t(c.tipo_cuenta === 'lote' ? 'admin.suspendLotTitle' : 'admin.suspendTitle')}
+          desc={t('admin.suspendDesc')}
+          hint={t('admin.suspendHint')}
+          confirm={t('admin.suspend')}
+          working={t('admin.suspending')}
           onConfirm={async (m) => {
             await setAccountSuspended(c.id_cuenta, true, m)
-            listo('Cuenta suspendida.')
+            listo(t('admin.msgSuspended'))
           }}
         />,
       ),
     reactivar: async (c: CuentaAdmin) => {
       await setAccountSuspended(c.id_cuenta, false, 'Reactivada desde el panel de administración.')
-      listo('Cuenta reactivada.')
+      listo(t('admin.msgReactivated'))
     },
   }
 }
 
 function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; listo: (m: string) => void }) {
   const { closeModal, toast } = useUi()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const { suspender, reactivar } = useSuspender(listo)
   const [busy, setBusy] = useState(false)
@@ -380,7 +386,7 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
   const puede = !c.es_admin && c.id_cuenta !== selfId
   return (
     <div className="modal">
-      <ModalHead title="Detalle del usuario" />
+      <ModalHead title={t('admin.userDetail')} />
       <div className="row">
         <Ini name={c.nombre_mostrar} />
         <div>
@@ -393,12 +399,12 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
       <div className="ficha" style={{ gridTemplateColumns: '1fr 1fr' }}>
         {(
           [
-            ['Tipo de cuenta', tipoCuenta(c) + (c.es_admin ? ' · Administrador' : '')],
-            ['Estado', estadoCuenta(c)],
-            ['Fecha de registro', fecha(c.fecha_creacion)],
-            ['Publicaciones', `${c.publicaciones} (${c.activas} activas)`],
-            ['Ubicación', [c.municipio, c.estado].filter(Boolean).join(', ') || '—'],
-            ...(c.tipo_cuenta === 'lote' ? [['Responsable', c.responsable || '—']] : []),
+            [t('admin.accountType'), c.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(c) }) : tipoCuenta(c)],
+            [t('admin.status'), etiquetaEstado(estadoCuenta(c))],
+            [t('admin.registrationDate'), fecha(c.fecha_creacion)],
+            [t('admin.listings'), t('admin.listingsCount', { n: c.publicaciones, a: c.activas })],
+            [t('admin.location'), [c.municipio, c.estado].filter(Boolean).join(', ') || '—'],
+            ...(c.tipo_cuenta === 'lote' ? [[t('admin.manager'), c.responsable || '—']] : []),
           ] as [string, string][]
         ).map(([k, v]) => (
           <div key={k}>
@@ -415,7 +421,7 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
             navigate(c.tipo_cuenta === 'lote' ? `/lotes/${c.id_cuenta}` : `/vendedor/${c.id_cuenta}`)
           }}
         >
-          Ver perfil
+          {t('admin.viewProfile')}
         </button>
         {puede &&
           (suspendida ? (
@@ -433,11 +439,11 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
                 }
               }}
             >
-              Reactivar cuenta
+              {t('admin.reactivateAccount')}
             </button>
           ) : (
             <button className="btn btn-danger" onClick={() => suspender(c)}>
-              {c.tipo_cuenta === 'lote' ? 'Suspender lote' : 'Suspender cuenta'}
+              {t(c.tipo_cuenta === 'lote' ? 'admin.suspendLot' : 'admin.suspendAccount')}
             </button>
           ))}
       </div>
@@ -447,6 +453,7 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
 
 function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; listo: (m: string) => void }) {
   const { openModal } = useUi()
+  const { t } = useI18n()
   const [q, setQ] = useState('')
   const [tab, setTab] = useState<'todos' | 'particular' | 'lote' | 'suspendido'>('todos')
   const c = datos.cuentas
@@ -455,26 +462,26 @@ function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; list
     .filter((x) => !q.trim() || `${x.nombre_mostrar} ${x.correo}`.toLowerCase().includes(q.trim().toLowerCase()))
   return (
     <>
-      <AdminHead title="Usuarios" desc="Consulta y administra las cuentas registradas en Karsy." right={<SearchBox value={q} onChange={setQ} placeholder="Buscar por nombre o correo..." />} />
+      <AdminHead title={t('admin.sec.users')} desc={t('admin.usersDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.usersSearch')} />} />
       <Tabs
         value={tab}
         onChange={setTab}
         options={[
-          ['todos', `Todos (${c.length})`],
-          ['particular', `Particular (${c.filter((x) => x.tipo_cuenta === 'particular').length})`],
-          ['lote', `Lote (${c.filter((x) => x.tipo_cuenta === 'lote').length})`],
-          ['suspendido', `Suspendido (${c.filter((x) => x.estado_cuenta === 'suspendida').length})`],
+          ['todos', t('admin.withCount', { label: t('admin.all'), n: c.length })],
+          ['particular', t('admin.withCount', { label: t('admin.individual'), n: c.filter((x) => x.tipo_cuenta === 'particular').length })],
+          ['lote', t('admin.withCount', { label: t('admin.lot'), n: c.filter((x) => x.tipo_cuenta === 'lote').length })],
+          ['suspendido', t('admin.withCount', { label: t('admin.st.suspended'), n: c.filter((x) => x.estado_cuenta === 'suspendida').length })],
         ]}
       />
       <div className="card tablewrap">
         <table className="t">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Correo</th>
-              <th>Tipo de cuenta</th>
-              <th>Estado</th>
-              <th>Fecha de registro</th>
+              <th>{t('admin.name')}</th>
+              <th>{t('admin.email')}</th>
+              <th>{t('admin.accountType')}</th>
+              <th>{t('admin.status')}</th>
+              <th>{t('admin.registrationDate')}</th>
               <th />
             </tr>
           </thead>
@@ -488,17 +495,14 @@ function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; list
                   </div>
                 </td>
                 <td>{x.correo}</td>
-                <td>
-                  {tipoCuenta(x)}
-                  {x.es_admin ? ' · Administrador' : ''}
-                </td>
+                <td>{x.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(x) }) : tipoCuenta(x)}</td>
                 <td>
                   <Badge s={estadoCuenta(x)} />
                 </td>
                 <td className="num">{fecha(x.fecha_creacion)}</td>
                 <td>
                   <button className="btn btn-ghost btn-sm" onClick={() => openModal(<UserDetail c={x} selfId={selfId} listo={listo} />)}>
-                    Ver detalle
+                    {t('admin.viewDetail')}
                   </button>
                 </td>
               </tr>
@@ -506,7 +510,7 @@ function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; list
             {lista.length === 0 && (
               <tr>
                 <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
-                  No hay cuentas que coincidan.
+                  {t('admin.usersEmpty')}
                 </td>
               </tr>
             )}
@@ -520,6 +524,7 @@ function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; list
 function Lotes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
   const navigate = useNavigate()
   const { toast } = useUi()
+  const { t } = useI18n()
   const { suspender, reactivar } = useSuspender(listo)
   const [q, setQ] = useState('')
   const [tab, setTab] = useState<'todos' | 'activo' | 'suspendido'>('todos')
@@ -529,25 +534,25 @@ function Lotes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
     .filter((x) => !q.trim() || `${x.nombre_mostrar} ${x.responsable} ${x.municipio} ${x.estado}`.toLowerCase().includes(q.trim().toLowerCase()))
   return (
     <>
-      <AdminHead title="Lotes" desc="Administra los lotes y agencias que publican vehículos en Karsy." right={<SearchBox value={q} onChange={setQ} placeholder="Buscar lote, responsable o ciudad..." />} />
+      <AdminHead title={t('admin.sec.lots')} desc={t('admin.lotsDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.lotsSearch')} />} />
       <Tabs
         value={tab}
         onChange={setTab}
         options={[
-          ['todos', `Todos (${lotes.length})`],
-          ['activo', `Activo (${lotes.filter((x) => x.estado_cuenta !== 'suspendida').length})`],
-          ['suspendido', `Suspendido (${lotes.filter((x) => x.estado_cuenta === 'suspendida').length})`],
+          ['todos', t('admin.withCount', { label: t('admin.all'), n: lotes.length })],
+          ['activo', t('admin.withCount', { label: t('admin.st.active'), n: lotes.filter((x) => x.estado_cuenta !== 'suspendida').length })],
+          ['suspendido', t('admin.withCount', { label: t('admin.st.suspended'), n: lotes.filter((x) => x.estado_cuenta === 'suspendida').length })],
         ]}
       />
       <div className="card tablewrap">
         <table className="t">
           <thead>
             <tr>
-              <th>Lote</th>
-              <th>Responsable</th>
-              <th>Ubicación</th>
-              <th>Vehículos activos</th>
-              <th>Estado</th>
+              <th>{t('admin.lot')}</th>
+              <th>{t('admin.manager')}</th>
+              <th>{t('admin.location')}</th>
+              <th>{t('admin.activeVehicles')}</th>
+              <th>{t('admin.status')}</th>
               <th />
             </tr>
           </thead>
@@ -569,16 +574,16 @@ function Lotes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
                 <td>
                   <div className="row" style={{ gap: 6 }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/lotes/${x.id_cuenta}`)}>
-                      Ver lote
+                      {t('admin.viewLot')}
                     </button>
                     {!x.es_admin &&
                       (x.estado_cuenta === 'suspendida' ? (
                         <button className="btn btn-soft btn-sm" onClick={() => reactivar(x).catch((e) => toast(mensajeUsuario(e)))}>
-                          Reactivar
+                          {t('admin.reactivate')}
                         </button>
                       ) : (
                         <button className="btn btn-ghost btn-sm" style={{ color: 'var(--error)' }} onClick={() => suspender(x)}>
-                          Suspender
+                          {t('admin.suspend')}
                         </button>
                       ))}
                   </div>
@@ -588,7 +593,7 @@ function Lotes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
             {lista.length === 0 && (
               <tr>
                 <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
-                  No hay lotes que coincidan.
+                  {t('admin.lotsEmpty')}
                 </td>
               </tr>
             )}
@@ -603,6 +608,7 @@ function Lotes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
 
 function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: (m: string) => void }) {
   const { openModal, closeModal, toast } = useUi()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const propuesta = propuestaPendiente(row)
@@ -623,7 +629,7 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
 
   return (
     <div className="modal wide">
-      <ModalHead title="Detalle del vehículo" sub={`Publicación #${car.id} · ${car.ownerName}`} />
+      <ModalHead title={t('admin.vehicleDetail')} sub={`${t('admin.listingNumber', { n: car.id })} · ${car.ownerName}`} />
       <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`} style={{ height: 220, borderRadius: 14 }} />
       <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <b style={{ fontFamily: 'var(--f-display)', fontSize: 19, color: 'var(--ink)' }}>
@@ -635,24 +641,24 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
         <Badge s={estado} />
         {row.estado_ultima_propuesta === 'rechazada' && row.motivo_rechazo_propuesta && (
           <span className="muted" style={{ fontSize: 12.5 }}>
-            Motivo: {row.motivo_rechazo_propuesta}
+            {t('admin.reason', { m: row.motivo_rechazo_propuesta })}
           </span>
         )}
         {!habilitada && row.motivo_deshabilitacion && (
           <span className="muted" style={{ fontSize: 12.5 }}>
-            Motivo: {row.motivo_deshabilitacion}
+            {t('admin.reason', { m: row.motivo_deshabilitacion })}
           </span>
         )}
       </div>
       <div className="ficha">
         {(
           [
-            ['Transmisión', row.transmision ?? '—'],
-            ['Kilometraje', km(row.kilometraje)],
-            ['Carrocería', row.carroceria ?? '—'],
-            ['Color', row.color ?? '—'],
-            ['Combustible', row.tipo_combustible ?? '—'],
-            ['Ubicación', car.city || '—'],
+            [t('admin.transmission'), row.transmision ?? '—'],
+            [t('admin.mileage'), km(row.kilometraje)],
+            [t('admin.bodyType'), row.carroceria ?? '—'],
+            [t('admin.color'), row.color ?? '—'],
+            [t('admin.fuel'), row.tipo_combustible ?? '—'],
+            [t('admin.location'), car.city || '—'],
           ] as [string, string][]
         ).map(([k, v]) => (
           <div key={k}>
@@ -675,20 +681,20 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
               onClick={() =>
                 openModal(
                   <ReasonModal
-                    title="¿Por qué rechazas esta publicación?"
-                    desc="El vendedor verá este comentario. Sé claro sobre qué debe corregir para volver a enviarla."
-                    hint="Ej. Faltan fotos del interior y del tablero."
-                    confirm="Rechazar"
-                    working="Rechazando…"
+                    title={t('admin.rejectTitle')}
+                    desc={t('admin.rejectDesc')}
+                    hint={t('admin.rejectHint')}
+                    confirm={t('admin.reject')}
+                    working={t('admin.rejecting')}
                     onConfirm={async (m) => {
                       await moderateProposal(propuesta, false, m)
-                      listo('Publicación rechazada.')
+                      listo(t('admin.msgRejected'))
                     }}
                   />,
                 )
               }
             >
-              Rechazar
+              {t('admin.reject')}
             </button>
             <button
               className="btn btn-ghost"
@@ -697,10 +703,10 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
                 navigate(`/vehiculo/${car.id}`)
               }}
             >
-              Ver publicación
+              {t('admin.viewListing')}
             </button>
-            <button className="btn btn-primary" disabled={busy} onClick={() => correr(() => moderateProposal(propuesta, true, null), 'Publicación aprobada.')}>
-              Aprobar
+            <button className="btn btn-primary" disabled={busy} onClick={() => correr(() => moderateProposal(propuesta, true, null), t('admin.msgApproved'))}>
+              {t('admin.approve')}
             </button>
           </>
         ) : (
@@ -712,7 +718,7 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
                 navigate(`/vehiculo/${car.id}`)
               }}
             >
-              Ver publicación
+              {t('admin.viewListing')}
             </button>
             <span />
             {row.aprobada &&
@@ -722,24 +728,24 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
                   onClick={() =>
                     openModal(
                       <ReasonModal
-                        title="¿Por qué deshabilitas esta publicación?"
-                        desc="El dueño verá este comentario en su publicación. Sé claro sobre qué debe corregir."
-                        hint="Ej. Las fotos no corresponden al vehículo anunciado."
-                        confirm="Deshabilitar"
-                        working="Deshabilitando…"
+                        title={t('admin.disableTitle')}
+                        desc={t('admin.disableDesc')}
+                        hint={t('admin.disableHint')}
+                        confirm={t('admin.disable')}
+                        working={t('admin.disabling')}
                         onConfirm={async (m) => {
                           await setCarEnabled(car.id, false, m)
-                          listo('Publicación deshabilitada.')
+                          listo(t('admin.msgDisabled'))
                         }}
                       />,
                     )
                   }
                 >
-                  Deshabilitar
+                  {t('admin.disable')}
                 </button>
               ) : (
-                <button className="btn btn-primary" disabled={busy} onClick={() => correr(() => setCarEnabled(car.id, true, 'Habilitada desde el panel.'), 'Publicación habilitada.')}>
-                  Habilitar
+                <button className="btn btn-primary" disabled={busy} onClick={() => correr(() => setCarEnabled(car.id, true, 'Habilitada desde el panel.'), t('admin.msgEnabled'))}>
+                  {t('admin.enable')}
                 </button>
               ))}
           </>
@@ -753,6 +759,7 @@ const FILTROS_VEHICULO = ['Todos', 'Pendiente', 'Cambios pendientes', 'Activo', 
 
 function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
   const { openModal } = useUi()
+  const { t } = useI18n()
   const [q, setQ] = useState('')
   const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>('Todos')
   const conEstado = useMemo(() => datos.autos.map((a) => ({ ...a, estado: estadoAdmin(a.row, a.car) })), [datos.autos])
@@ -762,17 +769,21 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
   const cuenta = (s: string) => conEstado.filter((a) => a.estado === s).length
   return (
     <>
-      <AdminHead title="Vehículos" desc="Revisa las publicaciones de vehículos y su estado dentro de la plataforma." right={<SearchBox value={q} onChange={setQ} placeholder="Buscar marca, modelo o vendedor..." />} />
-      <Tabs value={tab} onChange={setTab} options={FILTROS_VEHICULO.map((f) => [f, f === 'Todos' ? `Todos (${conEstado.length})` : `${f} (${cuenta(f)})`])} />
+      <AdminHead title={t('admin.sec.vehicles')} desc={t('admin.vehiclesDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.vehiclesSearch')} />} />
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        options={FILTROS_VEHICULO.map((f) => [f, f === 'Todos' ? t('admin.withCount', { label: t('admin.all'), n: conEstado.length }) : t('admin.withCount', { label: etiquetaEstado(f), n: cuenta(f) })])}
+      />
       <div className="card tablewrap">
         <table className="t">
           <thead>
             <tr>
-              <th>Vehículo</th>
-              <th>Vendedor</th>
-              <th>Año</th>
-              <th>Precio</th>
-              <th>Estado</th>
+              <th>{t('admin.vehicle')}</th>
+              <th>{t('admin.seller')}</th>
+              <th>{t('admin.year')}</th>
+              <th>{t('admin.price')}</th>
+              <th>{t('admin.status')}</th>
               <th />
             </tr>
           </thead>
@@ -789,7 +800,7 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
                           {car.brand} {car.model}
                         </b>
                         <div className="mid" style={{ fontSize: 12 }}>
-                          Publicación #{car.id}
+                          {t('admin.listingNumber', { n: car.id })}
                         </div>
                       </div>
                     </div>
@@ -802,7 +813,7 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
                   </td>
                   <td>
                     <button className={`btn btn-sm ${revisar ? 'btn-primary' : 'btn-ghost'}`} onClick={() => openModal(<VehicleReview car={car} row={row} listo={listo} />)}>
-                      Revisar
+                      {t('admin.review')}
                     </button>
                   </td>
                 </tr>
@@ -811,7 +822,7 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
             {lista.length === 0 && (
               <tr>
                 <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
-                  No hay publicaciones en esta categoría.
+                  {t('admin.vehiclesEmpty')}
                 </td>
               </tr>
             )}
@@ -826,6 +837,7 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
 
 function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; listo: (m: string) => void }) {
   const { openModal } = useUi()
+  const { t } = useI18n()
   const auto = datos.autos.find((a) => a.car.id === r.id_publicacion)
   const deCuenta = esReporteDeCuenta(r)
   const pendiente = r.estado_reporte === 'pendiente'
@@ -834,14 +846,14 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
   const descartar = () =>
     openModal(
       <ReasonModal
-        title="¿Por qué descartas este reporte?"
-        desc={deCuenta ? 'La cuenta sigue activa. El motivo queda como resolución del reporte.' : 'La publicación sigue habilitada. El motivo queda como resolución del reporte.'}
-        hint="Ej. Revisé las fotos y sí corresponden al vehículo."
-        confirm="Descartar reporte"
-        working="Descartando…"
+        title={t('admin.dismissTitle')}
+        desc={t(deCuenta ? 'admin.dismissDescAccount' : 'admin.dismissDescListing')}
+        hint={t('admin.dismissHint')}
+        confirm={t('admin.dismissReport')}
+        working={t('admin.dismissing')}
         onConfirm={async (m) => {
           await resolveReport(r.id_reporte, 'descartado', m, false)
-          listo('Reporte descartado.')
+          listo(t('admin.msgDismissed'))
         }}
       />,
     )
@@ -849,29 +861,29 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
     openModal(
       deCuenta ? (
         <ReasonModal
-          title="¿Por qué suspendes esta cuenta?"
-          desc="El motivo queda registrado en la bitácora de administración."
-          hint="Ej. Publicó anuncios fraudulentos varias veces."
-          confirm="Suspender"
-          working="Suspendiendo…"
+          title={t('admin.suspendTitle')}
+          desc={t('admin.suspendDesc')}
+          hint={t('admin.suspendHint')}
+          confirm={t('admin.suspend')}
+          working={t('admin.suspending')}
           onConfirm={async (m) => {
             // Si la cuenta ya estaba suspendida, solo se atiende el reporte.
-            if (!dueno) throw new Error('No se encontró la cuenta del vendedor.')
+            if (!dueno) throw new Error(t('admin.ownerNotFound'))
             if (dueno.estado_cuenta !== 'suspendida') await setAccountSuspended(dueno.id_cuenta, true, m)
             await resolveReport(r.id_reporte, 'atendido', m, false)
-            listo('Reporte atendido y cuenta suspendida.')
+            listo(t('admin.msgResolvedSuspended'))
           }}
         />
       ) : (
         <ReasonModal
-          title="¿Por qué deshabilitas esta publicación?"
-          desc="El dueño verá este comentario en su publicación. Sé claro sobre qué debe corregir."
-          hint="Ej. Las fotos no corresponden al vehículo anunciado."
-          confirm="Deshabilitar"
-          working="Deshabilitando…"
+          title={t('admin.disableTitle')}
+          desc={t('admin.disableDesc')}
+          hint={t('admin.disableHint')}
+          confirm={t('admin.disable')}
+          working={t('admin.disabling')}
           onConfirm={async (m) => {
             await resolveReport(r.id_reporte, 'atendido', m, true)
-            listo('Reporte atendido y publicación deshabilitada.')
+            listo(t('admin.msgResolvedDisabled'))
           }}
         />
       ),
@@ -879,14 +891,14 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
 
   return (
     <div className="modal wide">
-      <ModalHead title="Revisión del reporte" sub={`Reporte #R-${r.id_reporte} · ${haceCuanto(r.fecha_reporte)}`} />
+      <ModalHead title={t('admin.reportReview')} sub={t('admin.reportSub', { id: r.id_reporte, when: haceCuanto(r.fecha_reporte) })} />
       <div className="ficha" style={{ gridTemplateColumns: '1fr 1fr' }}>
         {(
           [
-            ['Tipo', deCuenta ? 'Usuario' : 'Publicación'],
-            ['Reportado por', r.reportante],
-            ['Estado', capital(r.estado_reporte)],
-            [deCuenta ? 'Cuenta reportada' : 'Publicación', deCuenta ? auto?.car.ownerName ?? '—' : r.publicacion],
+            [t('admin.type'), t(deCuenta ? 'admin.user' : 'admin.listing')],
+            [t('admin.reportedBy'), r.reportante],
+            [t('admin.status'), etiquetaEstado(capital(r.estado_reporte))],
+            [t(deCuenta ? 'admin.reportedAccount' : 'admin.listing'), deCuenta ? auto?.car.ownerName ?? '—' : r.publicacion],
           ] as [string, string][]
         ).map(([k, v]) => (
           <div key={k}>
@@ -900,7 +912,7 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
       </div>
       {r.motivo_resolucion && (
         <div className="note" style={{ background: 'var(--success-l)' }}>
-          <b>Resolución:</b> {r.motivo_resolucion}
+          <b>{t('admin.resolution')}</b> {r.motivo_resolucion}
         </div>
       )}
       {auto && (
@@ -919,10 +931,10 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
       {pendiente && (
         <div className="grid2">
           <button className="btn btn-ghost" onClick={descartar}>
-            Descartar
+            {t('admin.dismiss')}
           </button>
           <button className="btn btn-danger" onClick={proceder}>
-            {deCuenta ? 'Suspender cuenta' : 'Deshabilitar publicación'}
+            {t(deCuenta ? 'admin.suspendAccount' : 'admin.disableListing')}
           </button>
         </div>
       )}
@@ -932,6 +944,7 @@ function ReportReview({ r, datos, listo }: { r: ReporteAdmin; datos: Datos; list
 
 function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
   const { openModal } = useUi()
+  const { t } = useI18n()
   const [tab, setTab] = useState<'pendiente' | 'resueltos' | 'todos'>('pendiente')
   const pendientes = datos.reportes.filter((r) => r.estado_reporte === 'pendiente')
   const resueltos = datos.reportes.filter((r) => r.estado_reporte !== 'pendiente')
@@ -939,30 +952,30 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
   return (
     <>
       <AdminHead
-        title="Reportes"
-        desc="Revisa incidencias y reportes enviados por la comunidad de Karsy."
-        right={pendientes.length > 0 && <span className="badge b-dang">{pendientes.length} {pendientes.length === 1 ? 'reporte pendiente' : 'reportes pendientes'}</span>}
+        title={t('admin.sec.reports')}
+        desc={t('admin.reportsDesc')}
+        right={pendientes.length > 0 && <span className="badge b-dang">{t(pendientes.length === 1 ? 'admin.pendingReportsOne' : 'admin.pendingReportsMany', { n: pendientes.length })}</span>}
       />
       <Tabs
         value={tab}
         onChange={setTab}
         options={[
-          ['pendiente', `Pendiente (${pendientes.length})`],
-          ['resueltos', `Resueltos (${resueltos.length})`],
-          ['todos', 'Todos'],
+          ['pendiente', t('admin.withCount', { label: t('admin.tabPending'), n: pendientes.length })],
+          ['resueltos', t('admin.withCount', { label: t('admin.tabResolved'), n: resueltos.length })],
+          ['todos', t('admin.all')],
         ]}
       />
       <div className="card tablewrap">
         <table className="t">
           <thead>
             <tr>
-              <th>Reporte</th>
-              <th>Tipo</th>
-              <th>Reportado</th>
-              <th>Motivo</th>
-              <th>Reportado por</th>
-              <th>Fecha</th>
-              <th>Estado</th>
+              <th>{t('admin.report')}</th>
+              <th>{t('admin.type')}</th>
+              <th>{t('admin.reported')}</th>
+              <th>{t('admin.reasonCol')}</th>
+              <th>{t('admin.reportedBy')}</th>
+              <th>{t('admin.date')}</th>
+              <th>{t('admin.status')}</th>
               <th />
             </tr>
           </thead>
@@ -976,7 +989,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
                     <b style={{ color: 'var(--ink)' }}>#R-{r.id_reporte}</b>
                   </td>
                   <td>
-                    <span className={`badge ${deCuenta ? 'b-info' : 'b-neu'}`}>{deCuenta ? 'Usuario' : 'Publicación'}</span>
+                    <span className={`badge ${deCuenta ? 'b-info' : 'b-neu'}`}>{t(deCuenta ? 'admin.user' : 'admin.listing')}</span>
                   </td>
                   <td>{deCuenta ? dueno ?? r.publicacion : r.publicacion}</td>
                   <td style={{ whiteSpace: 'normal', minWidth: 220 }}>{r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')}</td>
@@ -987,7 +1000,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
                   </td>
                   <td>
                     <button className="btn btn-ghost btn-sm" onClick={() => openModal(<ReportReview r={r} datos={datos} listo={listo} />)}>
-                      Revisar
+                      {t('admin.review')}
                     </button>
                   </td>
                 </tr>
@@ -996,7 +1009,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
             {lista.length === 0 && (
               <tr>
                 <td colSpan={8} className="muted" style={{ textAlign: 'center', padding: 30 }}>
-                  No hay reportes en esta categoría.
+                  {t('admin.reportsEmpty')}
                 </td>
               </tr>
             )}
@@ -1009,38 +1022,40 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
 
 // ── Destacados ─────────────────────────────────────────────────────────────
 
-const MOTIVOS_DESTACADO: [string, string][] = [
-  ['Pago no verificado', 'El comprobante de pago no coincide o no ha sido acreditado.'],
-  ['Calidad de imágenes', 'Las fotos del vehículo no cumplen con la calidad o visibilidad requerida.'],
-  ['Información incompleta', 'La publicación carece de detalles obligatorios o precisos.'],
-  ['Vehículo no permitido', 'El vehículo no cumple con las políticas de publicación de Karsy.'],
-  ['Otro motivo', 'Especifica el motivo en los comentarios adicionales.'],
+/** [valor que se guarda en la BD (en español, como la app), título, descripción]. */
+const MOTIVOS_DESTACADO: [string, Clave, Clave][] = [
+  ['Pago no verificado', 'admin.featPayment', 'admin.featPaymentDesc'],
+  ['Calidad de imágenes', 'admin.featImages', 'admin.featImagesDesc'],
+  ['Información incompleta', 'admin.featIncomplete', 'admin.featIncompleteDesc'],
+  ['Vehículo no permitido', 'admin.featNotAllowed', 'admin.featNotAllowedDesc'],
+  ['Otro motivo', 'admin.featOther', 'admin.featOtherDesc'],
 ]
 
 function RejectFeatured({ d, listo }: { d: DestacadoAdmin; listo: (m: string) => void }) {
   const { closeModal, toast } = useUi()
+  const { t } = useI18n()
   const [motivo, setMotivo] = useState('')
   const [comentario, setComentario] = useState('')
   const [busy, setBusy] = useState(false)
   return (
     <div className="modal wide">
-      <ModalHead title="Rechazar solicitud para destacar" sub="Selecciona o escribe el motivo por el cual no se aprobó la solicitud para informarle al usuario." />
-      {MOTIVOS_DESTACADO.map(([t, desc]) => (
-        <button key={t} className={`opt ${motivo === t ? 'on' : ''}`} onClick={() => setMotivo(t)}>
+      <ModalHead title={t('admin.featRejectTitle')} sub={t('admin.featRejectSub')} />
+      {MOTIVOS_DESTACADO.map(([valor, titulo, desc]) => (
+        <button key={valor} className={`opt ${motivo === valor ? 'on' : ''}`} onClick={() => setMotivo(valor)}>
           <span className="radio" />
           <span>
-            <b style={{ color: 'var(--ink)' }}>{t}</b>
+            <b style={{ color: 'var(--ink)' }}>{t(titulo)}</b>
             <br />
             <span className="muted" style={{ fontSize: 12.5 }}>
-              {desc}
+              {t(desc)}
             </span>
           </span>
         </button>
       ))}
-      <textarea className="input" placeholder="Añade detalles adicionales para el usuario (opcional)..." maxLength={300} value={comentario} onChange={(e) => setComentario(e.target.value)} />
+      <textarea className="input" placeholder={t('admin.featCommentHint')} maxLength={300} value={comentario} onChange={(e) => setComentario(e.target.value)} />
       <div className="grid2">
         <button className="btn btn-ghost" disabled={busy} onClick={closeModal}>
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           className="btn btn-danger"
@@ -1050,14 +1065,14 @@ function RejectFeatured({ d, listo }: { d: DestacadoAdmin; listo: (m: string) =>
             try {
               await resolveFeatured(d.id_solicitud_destacado, false, [motivo, comentario.trim()].filter(Boolean).join('. '))
               closeModal()
-              listo('Solicitud rechazada.')
+              listo(t('admin.msgFeatRejected'))
             } catch (e) {
               toast(mensajeUsuario(e))
               setBusy(false)
             }
           }}
         >
-          Rechazar y Notificar
+          {t('admin.featRejectNotify')}
         </button>
       </div>
     </div>
@@ -1066,14 +1081,15 @@ function RejectFeatured({ d, listo }: { d: DestacadoAdmin; listo: (m: string) =>
 
 function Aprobada({ titulo }: { titulo: string }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   return (
     <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
       <span className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--warning-l)', color: 'var(--star)' }}>
         <Icon name="star" size={30} />
       </span>
-      <ModalHead title="¡Solicitud Aprobada!" sub={`La publicación de ${titulo} ahora aparece en la sección de Destacados de Karsy durante 1 mes. Se ha notificado al usuario solicitante.`} />
+      <ModalHead title={t('admin.featApprovedTitle')} sub={t('admin.featApprovedSub', { title: titulo })} />
       <button className="btn btn-primary btn-block" onClick={closeModal}>
-        Volver a solicitudes
+        {t('admin.backToRequests')}
       </button>
     </div>
   )
@@ -1081,6 +1097,7 @@ function Aprobada({ titulo }: { titulo: string }) {
 
 function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
   const { openModal, toast } = useUi()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [tab, setTab] = useState<'pendiente' | 'aprobada' | 'rechazada'>('pendiente')
   const [busy, setBusy] = useState<number | null>(null)
@@ -1091,7 +1108,7 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
     setBusy(d.id_solicitud_destacado)
     try {
       await resolveFeatured(d.id_solicitud_destacado, true, null)
-      listo('Publicación destacada por 1 mes.')
+      listo(t('admin.msgFeatApproved'))
       openModal(<Aprobada titulo={titulo} />)
     } catch (e) {
       toast(mensajeUsuario(e))
@@ -1101,30 +1118,30 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
 
   return (
     <>
-      <AdminHead title="Solicitudes para Destacar" desc="Revisa las solicitudes enviadas por usuarios para mostrar sus vehículos en la sección de Destacados." />
+      <AdminHead title={t('admin.featTitle')} desc={t('admin.featDesc')} />
       <Tabs
         value={tab}
         onChange={setTab}
         options={[
-          ['pendiente', `Pendientes (${cuenta('pendiente')})`],
-          ['aprobada', `Aprobadas (${cuenta('aprobada')})`],
-          ['rechazada', `Rechazadas (${cuenta('rechazada')})`],
+          ['pendiente', t('admin.withCount', { label: t('admin.tabPendingF'), n: cuenta('pendiente') })],
+          ['aprobada', t('admin.withCount', { label: t('admin.tabApprovedF'), n: cuenta('aprobada') })],
+          ['rechazada', t('admin.withCount', { label: t('admin.tabRejectedF'), n: cuenta('rechazada') })],
         ]}
       />
       {lista.length === 0 ? (
         <div className="card empty">
-          <p className="muted">No hay solicitudes en esta categoría.</p>
+          <p className="muted">{t('admin.featEmpty')}</p>
         </div>
       ) : (
         <div className="vgrid">
           {lista.map((d) => {
             const car = datos.autos.find((a) => a.car.id === d.id_publicacion)?.car
-            const titulo = car ? `${car.brand} ${car.model} (${car.year})` : `Publicación #${d.id_publicacion}`
+            const titulo = car ? `${car.brand} ${car.model} (${car.year})` : t('admin.listingNumber', { n: d.id_publicacion })
             return (
               <div key={d.id_solicitud_destacado} className="card" style={{ overflow: 'hidden' }}>
                 <CarPhoto src={car?.imageUrl} style={{ height: 170, cursor: 'pointer' }} onClick={() => navigate(`/vehiculo/${d.id_publicacion}`)}>
                   <span className="tag badge" style={{ background: '#FFF4CC', color: '#8A6415' }}>
-                    ★ {d.estado_solicitud === 'pendiente' ? 'Solicitado' : capital(d.estado_solicitud)}
+                    ★ {d.estado_solicitud === 'pendiente' ? t('admin.st.requested') : etiquetaEstado(capital(d.estado_solicitud))}
                   </span>
                 </CarPhoto>
                 <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1133,21 +1150,21 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
                   <div className="row" style={{ gap: 8 }}>
                     <Ini name={d.solicitante} src={publicUrl(d.solicitante_foto)} />
                     <p className="muted" style={{ fontSize: 12.5 }}>
-                      <b>{d.solicitante}</b> lo solicitó {haceCuanto(d.fecha_solicitud).toLowerCase()}.
+                      <b>{d.solicitante}</b> {t('admin.requestedWhen', { when: haceCuanto(d.fecha_solicitud).toLowerCase() })}
                     </p>
                   </div>
                   {d.motivo_rechazo && (
                     <p className="muted" style={{ fontSize: 12.5 }}>
-                      Motivo: {d.motivo_rechazo}
+                      {t('admin.reason', { m: d.motivo_rechazo })}
                     </p>
                   )}
                   {tab === 'pendiente' && (
                     <div className="grid2" style={{ gap: 8, marginTop: 4 }}>
                       <button className="btn btn-ghost btn-sm" disabled={busy === d.id_solicitud_destacado} onClick={() => openModal(<RejectFeatured d={d} listo={listo} />)}>
-                        Rechazar
+                        {t('admin.reject')}
                       </button>
                       <button className="btn btn-primary btn-sm" disabled={busy === d.id_solicitud_destacado} onClick={() => void aprobar(d, titulo)}>
-                        Aprobar
+                        {t('admin.approve')}
                       </button>
                     </div>
                   )}

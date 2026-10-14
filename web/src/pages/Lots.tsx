@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
 import { lots as cargarLotes } from '../data/api'
 import type { Lot } from '../data/types'
+import { traducir, useI18n } from '../i18n/I18nContext'
 import { iniciales } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 
@@ -20,12 +21,13 @@ export function Lots() {
   const query = params.get('q') ?? ''
   const [lista, setLista] = useState<Lot[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useI18n()
 
   const cargar = useCallback(() => {
     setError(null)
     cargarLotes(account?.id ?? null)
       .then(setLista)
-      .catch(() => setError('No pudimos cargar los lotes. Revisa tu conexión e intenta de nuevo.'))
+      .catch(() => setError(traducir('perfil.lotsError')))
   }, [account?.id])
 
   useEffect(() => {
@@ -41,17 +43,17 @@ export function Lots() {
     <div className="wrap" style={{ paddingTop: 28 }}>
       <div className="banner">
         <span className="eyebrow" style={{ color: '#8FD3D8' }}>
-          Catálogo de negocios automotrices
+          {t('perfil.lotsEyebrow')}
         </span>
-        <h1 style={{ fontSize: 36, margin: '6px 0 8px' }}>Lotes</h1>
-        <p>Vehículos de lotes y agencias. Esta sección muestra exclusivamente publicaciones de vendedores tipo lote/agencia.</p>
+        <h1 style={{ fontSize: 36, margin: '6px 0 8px' }}>{t('nav.lots')}</h1>
+        <p>{t('perfil.lotsLead')}</p>
         <div className="inputicon" style={{ marginTop: 20, maxWidth: 520 }}>
           <Icon name="search" size={18} />
           <input
             className="input"
             style={{ height: 48 }}
-            placeholder="Buscar lote o ciudad…"
-            aria-label="Buscar lote o ciudad"
+            placeholder={t('perfil.lotsSearchPlaceholder')}
+            aria-label={t('perfil.lotsSearchLabel')}
             value={query}
             onChange={(e) => setParams(e.target.value ? { q: e.target.value } : {}, { replace: true })}
           />
@@ -61,10 +63,10 @@ export function Lots() {
       <div className="sechead">
         <h2>
           {!lista
-            ? 'Lotes registrados'
+            ? t('perfil.lotsRegistered')
             : q
-              ? `${visibles.length} ${visibles.length === 1 ? 'resultado' : 'resultados'}`
-              : `${lista.length} ${lista.length === 1 ? 'lote registrado' : 'lotes registrados'}`}
+              ? t(visibles.length === 1 ? 'perfil.resultsOne' : 'perfil.resultsMany', { n: visibles.length })
+              : t(lista.length === 1 ? 'perfil.lotsRegisteredOne' : 'perfil.lotsRegisteredMany', { n: lista.length })}
         </h2>
       </div>
 
@@ -72,7 +74,7 @@ export function Lots() {
         <div className="card empty">
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
-            Reintentar
+            {t('common.retry')}
           </button>
         </div>
       ) : !lista ? (
@@ -86,7 +88,7 @@ export function Lots() {
           <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
             <Icon name="building" size={26} />
           </span>
-          <p className="muted">{lista.length === 0 ? 'Aún no hay lotes registrados.' : 'Ningún lote coincide con tu búsqueda.'}</p>
+          <p className="muted">{lista.length === 0 ? t('perfil.lotsEmpty') : t('perfil.lotsNoMatch')}</p>
         </div>
       ) : (
         <div className="lgrid">
@@ -107,7 +109,7 @@ export function Lots() {
                   </span>
                 )}
                 <span className="badge b-info" style={{ alignSelf: 'flex-start', marginTop: 6 }}>
-                  {l.vehicleCount} {l.vehicleCount === 1 ? 'vehículo' : 'vehículos'}
+                  {t(l.vehicleCount === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: l.vehicleCount })}
                 </span>
               </span>
             </button>

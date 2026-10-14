@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { App } from './App'
 import { UiProvider } from './components/Ui'
+import { I18nProvider } from './i18n/I18nContext'
 import { FavoritesProvider } from './session/FavoritesContext'
 import { SessionProvider } from './session/SessionContext'
 import './styles.css'
@@ -17,14 +18,16 @@ try {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <SessionProvider>
-        <UiProvider>
-          <FavoritesProvider>
-            <App />
-          </FavoritesProvider>
-        </UiProvider>
-      </SessionProvider>
-    </BrowserRouter>
+    <I18nProvider>
+      <BrowserRouter>
+        <SessionProvider>
+          <UiProvider>
+            <FavoritesProvider>
+              <App />
+            </FavoritesProvider>
+          </UiProvider>
+        </SessionProvider>
+      </BrowserRouter>
+    </I18nProvider>
   </StrictMode>,
 )

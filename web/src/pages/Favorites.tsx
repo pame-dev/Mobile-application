@@ -5,6 +5,7 @@ import { Icon } from '../components/Icon'
 import { VehicleCard } from '../components/VehicleCard'
 import { favoriteCars } from '../data/api'
 import type { Car } from '../data/types'
+import { traducir, useI18n } from '../i18n/I18nContext'
 import { ORDEN, SIN_FILTROS, filtrarCars, hayFiltros, type Filtros } from '../lib/filtros'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
@@ -32,13 +33,14 @@ export function Favorites() {
   const [q, setQ] = useState('')
   const [filtros, setFiltros] = useState<Filtros>(SIN_FILTROS)
   const [orden, setOrden] = useState('recientes')
+  const { t } = useI18n()
 
   const cargar = useCallback(() => {
     if (!account) return
     setError(null)
     favoriteCars(account.id)
       .then(setCars)
-      .catch(() => setError('No pudimos cargar tus favoritos. Revisa tu conexión e intenta de nuevo.'))
+      .catch(() => setError(traducir('perfil.favError')))
   }, [account])
 
   useEffect(() => {
@@ -50,19 +52,20 @@ export function Favorites() {
   // "Más recientes" = orden en que se guardaron.
   const lista = useMemo(() => filtrarCars(guardados, filtros, q, orden, true), [guardados, filtros, q, orden])
   const filtrando = !!q.trim() || hayFiltros(filtros)
+  const guardadosTexto = t(guardados.length === 1 ? 'perfil.savedOne' : 'perfil.savedMany', { n: guardados.length })
 
   if (cargandoSesion) return <div className="wrap" style={{ paddingTop: 28 }}><div className="skeleton" style={{ height: 300 }} /></div>
 
   if (mode === 'guest') {
     return (
       <div className="wrap" style={{ maxWidth: 820, paddingTop: 28 }}>
-        <Aviso titulo="Guarda los vehículos que te gustan" texto="Regístrate para guardar favoritos y encontrarlos aquí cuando quieras.">
+        <Aviso titulo={t('perfil.favGuestTitle')} texto={t('perfil.favGuestText')}>
           <div className="row" style={{ marginTop: 8 }}>
             <button className="btn btn-ghost" onClick={() => navigate('/login', { state: { from: '/favoritos' } })}>
-              Iniciar sesión
+              {t('nav.login')}
             </button>
             <button className="btn btn-primary" onClick={() => navigate('/registro')}>
-              Crear cuenta gratis
+              {t('perfil.createFreeAccount')}
             </button>
           </div>
         </Aviso>
@@ -74,22 +77,22 @@ export function Favorites() {
     <div className="wrap">
       <div className="pagehead">
         <div>
-          <h1>Favoritos</h1>
+          <h1>{t('nav.favorites')}</h1>
           <p className="muted">
-            {cars ? `${filtrando ? `${lista.length} de ` : ''}${guardados.length} ${guardados.length === 1 ? 'vehículo guardado' : 'vehículos guardados'}` : 'Cargando…'}
+            {cars ? (filtrando ? t('perfil.ofTotal', { n: lista.length, total: guardadosTexto }) : guardadosTexto) : t('common.loading')}
           </p>
         </div>
         {guardados.length > 0 && (
           <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
             <div className="inputicon" style={{ width: 280, maxWidth: '100%' }}>
               <Icon name="search" size={18} />
-              <input className="input" placeholder="Buscar en favoritos…" aria-label="Buscar en favoritos" value={q} onChange={(e) => setQ(e.target.value)} />
+              <input className="input" placeholder={t('perfil.favSearchPlaceholder')} aria-label={t('perfil.favSearchLabel')} value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
             <FiltersButton value={filtros} onApply={setFiltros} anios={aniosDe(guardados)} />
-            <select className="input" aria-label="Ordenar" value={orden} onChange={(e) => setOrden(e.target.value)} style={{ width: 'auto' }}>
-              {ORDEN.map(([v, t]) => (
+            <select className="input" aria-label={t('sort.label')} value={orden} onChange={(e) => setOrden(e.target.value)} style={{ width: 'auto' }}>
+              {ORDEN.map(([v, clave]) => (
                 <option key={v} value={v}>
-                  {t}
+                  {t(clave)}
                 </option>
               ))}
             </select>
@@ -101,7 +104,7 @@ export function Favorites() {
         <div className="card empty">
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
-            Reintentar
+            {t('common.retry')}
           </button>
         </div>
       ) : !cars ? (
@@ -111,14 +114,14 @@ export function Favorites() {
           ))}
         </div>
       ) : guardados.length === 0 ? (
-        <Aviso titulo="Aún no tienes vehículos guardados en favoritos" texto="Toca el corazón de un vehículo para guardarlo aquí.">
+        <Aviso titulo={t('perfil.favEmptyTitle')} texto={t('perfil.favEmptyText')}>
           <button className="btn btn-primary" style={{ marginTop: 8 }} onClick={() => navigate('/')}>
-            Explorar vehículos
+            {t('perfil.exploreVehicles')}
           </button>
         </Aviso>
       ) : lista.length === 0 ? (
         <div className="card empty">
-          <p className="muted">Ningún favorito coincide con tu búsqueda.</p>
+          <p className="muted">{t('perfil.favNoMatch')}</p>
           <button
             className="btn btn-ghost"
             onClick={() => {
@@ -126,7 +129,7 @@ export function Favorites() {
               setFiltros(SIN_FILTROS)
             }}
           >
-            Limpiar filtros
+            {t('home.clearFilters')}
           </button>
         </div>
       ) : (

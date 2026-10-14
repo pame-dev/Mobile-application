@@ -1,5 +1,6 @@
 // Panel de administración (AdminRepository y StatsRepository.admin de la app). Las escrituras
 // pasan por las funciones admin_* de la BD, que validan el rol y registran la bitácora.
+import { traducir } from '../i18n/I18nContext'
 import { supabase } from '../lib/supabase'
 import { UserError } from './api'
 import type { AnuncioRow } from './types'
@@ -7,7 +8,7 @@ import type { AnuncioRow } from './types'
 function check<T>(res: { data: T; error: { message: string; code?: string } | null }): T {
   if (res.error) {
     if (res.error.code === 'P0001') throw new UserError(res.error.message)
-    if (res.error.code === '42501') throw new UserError('No tienes permiso para hacer esto.')
+    if (res.error.code === '42501') throw new UserError(traducir('admin.noPermission'))
     throw new Error(res.error.message)
   }
   return res.data

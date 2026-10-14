@@ -4,6 +4,7 @@ import { AlertBox, AuthShell, BackButton, OtpInput, ResendRow, useCountdown } fr
 import { Icon } from '../../components/Icon'
 import { useUi } from '../../components/Ui'
 import { EMAIL_CODE_LENGTH, mensajeUsuario, sendVerificationCode, uploadPendingAvatar, verifyEmail } from '../../data/auth'
+import { useI18n } from '../../i18n/I18nContext'
 import { useSession } from '../../session/SessionContext'
 import { destinoDe } from './Login'
 
@@ -22,6 +23,7 @@ export function VerifyEmail() {
   const email = state.email ?? ''
   const { reload, clearNotice } = useSession()
   const { toast } = useUi()
+  const { t } = useI18n()
   const countdown = useCountdown()
   const [code, setCode] = useState('')
   const [verifying, setVerifying] = useState(false)
@@ -57,7 +59,7 @@ export function VerifyEmail() {
   const verificar = async (token = code) => {
     if (verifying) return
     if (token.length < EMAIL_CODE_LENGTH) {
-      setError(`Escribe los ${EMAIL_CODE_LENGTH} dígitos del código.`)
+      setError(t('auth.codeDigits', { n: EMAIL_CODE_LENGTH }))
       return
     }
     setVerifying(true)
@@ -69,11 +71,11 @@ export function VerifyEmail() {
       const r = await reload()
       if (!r.account) {
         clearNotice()
-        setError(r.notice ?? 'No se pudo iniciar sesión.')
+        setError(r.notice ?? t('auth.loginFailed'))
         setVerifying(false)
         return
       }
-      toast('¡Correo verificado! Bienvenido a Karsy')
+      toast(t('auth.verify.done'))
       navigate(destinoDe(state), { replace: true })
     } catch (e) {
       setError(mensajeUsuario(e))
@@ -82,21 +84,21 @@ export function VerifyEmail() {
   }
 
   return (
-    <AuthShell title="Ya casi terminas." sub="Confirma tu correo para activar tu cuenta y empezar a publicar." photo={8}>
+    <AuthShell title={t('auth.verify.artTitle')} sub={t('auth.verify.artSub')} photo={8}>
       <BackButton onClick={() => navigate(-1)} />
       <span className="nic" style={{ width: 64, height: 64, borderRadius: 18, background: 'var(--teal-light)', color: 'var(--teal)' }}>
         <Icon name="mail" size={30} />
       </span>
-      <h2>Verifica tu correo</h2>
+      <h2>{t('auth.verify.title')}</h2>
       <p className="muted">
-        Ingresa el código de {EMAIL_CODE_LENGTH} dígitos que enviamos a <b style={{ color: 'var(--ink)' }}>{email}</b>. Si no lo ves, revisa tu
-        carpeta de spam.
+        {t('auth.verify.sub1', { n: EMAIL_CODE_LENGTH })} <b style={{ color: 'var(--ink)' }}>{email}</b>
+        {t('auth.verify.sub2')}
       </p>
       <OtpInput value={code} onChange={setCode} onComplete={(c) => void verificar(c)} />
       <AlertBox message={error} />
       <ResendRow sending={sending} seconds={countdown.seconds} onResend={() => void reenviar()} />
       <button className="btn btn-primary btn-block" style={{ height: 50 }} disabled={verifying} onClick={() => void verificar()}>
-        {verifying ? 'Verificando…' : 'Verificar'}
+        {verifying ? t('auth.verifying') : t('auth.verify')}
       </button>
     </AuthShell>
   )

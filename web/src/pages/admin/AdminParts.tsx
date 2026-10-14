@@ -3,6 +3,8 @@ import { AlertBox } from '../../components/AuthParts'
 import { Icon } from '../../components/Icon'
 import { ModalHead, useUi } from '../../components/Ui'
 import { mensajeUsuario } from '../../data/auth'
+import { traducir, useI18n } from '../../i18n/I18nContext'
+import type { Clave } from '../../i18n/es'
 import { iniciales } from '../../lib/format'
 
 /** Mínimo de caracteres de un motivo del admin (MIN_ADMIN_REASON en la app). */
@@ -23,7 +25,29 @@ export const BADGE: Record<string, string> = {
   Rechazada: 'b-dang',
 }
 
-export const Badge = ({ s }: { s: string }) => <span className={`badge ${BADGE[s] ?? 'b-neu'}`}>{s}</span>
+/** Clave de traducción de cada estado que se muestra (el valor interno sigue en español). */
+const ESTADO_CLAVE: Record<string, Clave> = {
+  Activo: 'admin.st.active',
+  Suspendido: 'admin.st.suspended',
+  Pendiente: 'admin.st.pending',
+  'Cambios pendientes': 'admin.st.pendingChanges',
+  Rechazado: 'admin.st.rejected',
+  Deshabilitado: 'admin.st.disabled',
+  Pausado: 'admin.st.paused',
+  Vendido: 'admin.st.sold',
+  Atendido: 'admin.st.resolved',
+  Descartado: 'admin.st.dismissed',
+  Aprobada: 'admin.st.approvedF',
+  Rechazada: 'admin.st.rejectedF',
+}
+
+/** Estado traducido para mostrar; si no se conoce, se muestra tal cual. */
+export const etiquetaEstado = (s: string) => (ESTADO_CLAVE[s] ? traducir(ESTADO_CLAVE[s]) : s)
+
+export function Badge({ s }: { s: string }) {
+  const { t } = useI18n()
+  return <span className={`badge ${BADGE[s] ?? 'b-neu'}`}>{ESTADO_CLAVE[s] ? t(ESTADO_CLAVE[s]) : s}</span>
+}
 
 const COLORES = ['#52A3AA', '#8B5CF6', '#3B82F6', '#E65B5B', '#1A4A6E', '#F59E0B', '#0D2B45', '#22C55E']
 /** Círculo con iniciales; el color sale del nombre para que siempre sea el mismo. */
@@ -36,7 +60,7 @@ export function Ini({ name, src, square = false }: { name: string; src?: string 
   )
 }
 
-export const fecha = (iso: string) => new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
+export const fecha = (iso: string) => new Date(iso).toLocaleDateString(traducir('admin.locale'), { day: 'numeric', month: 'short', year: 'numeric' })
 
 export function AdminHead({ title, desc, right }: { title: string; desc: string; right?: ReactNode }) {
   return (
@@ -91,6 +115,7 @@ export function ReasonModal({
   onConfirm: (motivo: string) => Promise<void>
 }) {
   const { closeModal } = useUi()
+  const { t } = useI18n()
   const [motivo, setMotivo] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -100,12 +125,12 @@ export function ReasonModal({
       <ModalHead title={title} sub={desc} />
       <textarea className="input" placeholder={hint} value={motivo} maxLength={500} onChange={(e) => setMotivo(e.target.value)} autoFocus />
       <span className="mid" style={{ fontSize: 12, color: largo > 0 && largo < MIN_MOTIVO ? 'var(--error)' : undefined }}>
-        {largo < MIN_MOTIVO ? `Mínimo ${MIN_MOTIVO} caracteres (${largo}/${MIN_MOTIVO})` : `${largo} caracteres`}
+        {largo < MIN_MOTIVO ? t('admin.reasonMin', { min: MIN_MOTIVO, n: largo }) : t('admin.reasonCount', { n: largo })}
       </span>
       <AlertBox message={error} />
       <div className="grid2">
         <button className="btn btn-ghost" disabled={busy} onClick={closeModal}>
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           className="btn btn-danger"
@@ -131,6 +156,7 @@ export function ReasonModal({
 
 /** Gráfica de líneas acumuladas (crecimiento de la plataforma). */
 export function LineChart({ labels, series, w = 620, h = 230 }: { labels: string[]; series: [string, number[]][]; w?: number; h?: number }) {
+  const { t } = useI18n()
   const pl = 40
   const pb = 26
   const max = Math.max(5, ...series.flatMap(([, d]) => d))
@@ -140,13 +166,13 @@ export function LineChart({ labels, series, w = 620, h = 230 }: { labels: string
   const X = (i: number) => pl + (i * (w - pl - 10)) / n
   const Y = (v: number) => h - pb - ((h - pb - 12) * v) / tope
   return (
-    <svg className="chart" viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Crecimiento">
+    <svg className="chart" viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }} role="img" aria-label={t('admin.chartGrowth')}>
       <g className="grid">
         {[0, 1, 2, 3, 4].map((k) => (
           <g key={k}>
             <line x1={pl} x2={w - 10} y1={Y((tope * k) / 4)} y2={Y((tope * k) / 4)} />
             <text x={0} y={Y((tope * k) / 4) + 4}>
-              {Math.round((tope * k) / 4).toLocaleString('es-MX')}
+              {Math.round((tope * k) / 4).toLocaleString(t('admin.locale'))}
             </text>
           </g>
         ))}
@@ -173,6 +199,7 @@ export function LineChart({ labels, series, w = 620, h = 230 }: { labels: string
 
 /** Barras dobles (vistas vs. contactos). */
 export function PairBars({ labels, a, b, w = 620, h = 230 }: { labels: string[]; a: number[]; b: number[]; w?: number; h?: number }) {
+  const { t } = useI18n()
   const pl = 36
   const pb = 26
   const max = Math.max(5, ...a, ...b)
@@ -180,7 +207,7 @@ export function PairBars({ labels, a, b, w = 620, h = 230 }: { labels: string[];
   const Y = (v: number) => h - pb - ((h - pb - 12) * v) / tope
   const bw = (w - pl) / Math.max(1, labels.length)
   return (
-    <svg className="chart" viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Vistas y contactos">
+    <svg className="chart" viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }} role="img" aria-label={t('admin.chartViewsContacts')}>
       <g className="grid">
         {[0, 1, 2, 3, 4].map((k) => (
           <g key={k}>

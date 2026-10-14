@@ -1,4 +1,5 @@
 import type { Car } from '../data/types'
+import type { Clave } from '../i18n/es'
 
 /** Campos del panel de filtros (mismos que el menú de filtros de la app). */
 export const FILTER_KEYS = ['tipo', 'marca', 'modelo', 'anio', 'min', 'max'] as const
@@ -7,11 +8,12 @@ export type Filtros = Record<FilterKey, string>
 
 export const SIN_FILTROS: Filtros = { tipo: '', marca: '', modelo: '', anio: '', min: '', max: '' }
 
-export const ORDEN = [
-  ['recientes', 'Más recientes'],
-  ['menor', 'Menor precio'],
-  ['mayor', 'Mayor precio'],
-] as const
+/** Opciones de orden: valor en la URL y clave de su texto (t()). */
+export const ORDEN: readonly (readonly [string, Clave])[] = [
+  ['recientes', 'sort.recent'],
+  ['menor', 'sort.low'],
+  ['mayor', 'sort.high'],
+]
 
 export const hayFiltros = (f: Filtros) => FILTER_KEYS.some((k) => f[k])
 
