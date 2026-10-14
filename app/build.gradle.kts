@@ -79,6 +79,8 @@ dependencies {
     implementation(libs.firebase.messaging)
     // Revisa en el teléfono (sin internet) que las fotos de los ángulos sean de un auto.
     implementation(libs.mlkit.image.labeling)
+    // Encuentra las placas en las fotos para pixelarlas antes de subirlas.
+    implementation(libs.mlkit.text.recognition)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

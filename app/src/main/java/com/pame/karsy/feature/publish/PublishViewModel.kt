@@ -1,6 +1,9 @@
 package com.pame.karsy.feature.publish
 
 import android.content.Context
+import com.pame.karsy.core.util.TapaPlacas
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.Job
 import com.pame.karsy.core.util.DetectorAutos
 import androidx.compose.runtime.mutableStateMapOf
 import android.net.Uri
@@ -113,15 +116,72 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
      */
     val revisionAuto = mutableStateMapOf<Uri, Boolean>()
 
-    fun revisandoAuto(uri: Uri): Boolean = uri !in rutasExistentes && uri !in revisionAuto
+    /** Fotos nuevas a las que se les están tapando las placas (TapaPlacas). */
+    private val procesando = mutableStateMapOf<Uri, Boolean>()
+    private val trabajosFotos = mutableListOf<Job>()
+
+    fun procesandoFoto(uri: Uri): Boolean = uri in procesando
+    fun revisandoAuto(uri: Uri): Boolean = uri in procesando || (uri !in rutasExistentes && uri !in revisionAuto)
     fun noPareceAuto(uri: Uri): Boolean = revisionAuto[uri] == false
 
-    /** Pone la foto de un ángulo; las de los primeros 4 se revisan al momento. */
+    /**
+     * Pone la foto de un ángulo. Al momento se le tapan las placas (menos al tablero, que no
+     * tiene y donde se ve el kilometraje) y las de los primeros 4 se revisan como auto.
+     */
     fun setAnglePhoto(context: Context, slot: Int, uri: Uri) {
         photos[slot] = uri
-        if (slot < DetectorAutos.ANGULOS_CON_AUTO) {
-            val appContext = context.applicationContext
-            viewModelScope.launch { revisarAuto(appContext, uri) }
+        val esTablero = slot == photos.lastIndex
+        prepararFoto(context, uri, taparPlacas = !esTablero) { lista ->
+            if (photos[slot] == uri) photos[slot] = lista // si no la cambiaron mientras tanto
+            if (slot < DetectorAutos.ANGULOS_CON_AUTO) revisarAuto(context.applicationContext, lista)
+        }
+    }
+
+    /**
+     * Tapa las placas de una foto y llama a [listo] con la versión que se va a subir. Con
+     * [soloSiHayPlaca] (fotos ya publicadas) devuelve la misma si no tenía placa.
+     */
+    private fun prepararFoto(
+        context: Context,
+        uri: Uri,
+        taparPlacas: Boolean,
+        soloSiHayPlaca: Boolean = false,
+        listo: suspend (Uri) -> Unit,
+    ) {
+        val appContext = context.applicationContext
+        procesando[uri] = true
+        trabajosFotos += viewModelScope.launch {
+            val lista = if (taparPlacas) TapaPlacas.tapar(appContext, uri, soloSiHayPlaca) else uri
+            listo(lista)
+            procesando.remove(uri)
+        }
+    }
+
+    private var existentesRevisadas = false
+
+    /**
+     * Al editar: revisa también las fotos que ya estaban publicadas (menos el tablero). Si
+     * alguna tiene placa, se reemplaza por la versión tapada y esa es la que se sube; así,
+     * aunque el dueño no cambie las fotos, el admin las ve censuradas al revisar la edición.
+     */
+    fun taparPlacasExistentes(context: Context) {
+        if (!isEditing || loadingEdit || existentesRevisadas) return
+        existentesRevisadas = true
+        val appContext = context.applicationContext
+        photos.toList().forEachIndexed { slot, uri ->
+            if (uri == null || uri !in rutasExistentes || slot == photos.lastIndex) return@forEachIndexed
+            prepararFoto(appContext, uri, taparPlacas = true, soloSiHayPlaca = true) { lista ->
+                if (lista != uri && photos[slot] == uri) {
+                    photos[slot] = lista
+                    if (slot < DetectorAutos.ANGULOS_CON_AUTO) revisarAuto(appContext, lista)
+                }
+            }
+        }
+        extraPhotos.toList().filter { it in rutasExistentes }.forEach { uri ->
+            prepararFoto(appContext, uri, taparPlacas = true, soloSiHayPlaca = true) { lista ->
+                val i = extraPhotos.indexOf(uri)
+                if (lista != uri && i >= 0) extraPhotos[i] = lista
+            }
         }
     }
 
@@ -218,8 +278,15 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     /** Cuántas fotos adicionales caben todavía. */
     val extraPhotosLeft: Int get() = MAX_FOTOS - fotosElegidas.size
 
-    fun addExtraPhotos(uris: List<Uri>) {
-        extraPhotos += uris.filter { it !in extraPhotos }.take(extraPhotosLeft)
+    fun addExtraPhotos(context: Context, uris: List<Uri>) {
+        val nuevas = uris.filter { it !in extraPhotos }.take(extraPhotosLeft)
+        extraPhotos += nuevas
+        nuevas.forEach { uri ->
+            prepararFoto(context, uri, taparPlacas = true) { lista ->
+                val i = extraPhotos.indexOf(uri)
+                if (i >= 0) extraPhotos[i] = lista
+            }
+        }
     }
 
     fun removeExtraPhoto(uri: Uri) {
@@ -263,6 +330,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         val appContext = context.applicationContext
         checkingPhotos = true
         viewModelScope.launch {
+            // Primero terminan de taparse las placas de las fotos nuevas.
+            trabajosFotos.toList().joinAll()
+            trabajosFotos.clear()
             // Las fotos de los ángulos deben mostrar el auto (espera las que se estén revisando).
             val angulos = photos.take(DetectorAutos.ANGULOS_CON_AUTO).filterNotNull()
             angulos.forEach { revisarAuto(appContext, it) }
@@ -351,6 +421,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         val appContext = context.applicationContext
         publishing = true
         viewModelScope.launch {
+            // Por si alguna foto todavía se está procesando (placas).
+            trabajosFotos.toList().joinAll()
             safeCall {
                 val rutas = fotosElegidas.map { uri ->
                     rutasExistentes[uri] ?: CarRepository.uploadPhoto(Imagenes.jpegBytes(appContext, uri))

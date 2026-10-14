@@ -522,6 +522,7 @@
     <string name="publish_error_not_car">The front, rear and side photos must show the car. Replace the ones marked in red.</string>
     <string name="publish_photo_checking">Checking photo…</string>
     <string name="publish_photo_not_car">This photo doesn\'t look like a car. Pick one that shows the vehicle.</string>
+    <string name="publish_photos_plates_hint">For your safety, license plates that appear in the photos are blurred automatically.</string>
     <string name="publish_error_description">Enter a description of the vehicle.</string>
     <string name="publish_next_photos">Next: Photos →</string>
     <string name="publish_next_details">Next: Details →</string>
