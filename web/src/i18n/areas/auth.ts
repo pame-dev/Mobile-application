@@ -1,6 +1,7 @@
 // Textos del área "auth". Claves con prefijo "auth." para no chocar con otras áreas.
 
 export const es = {
+  'auth.slide': 'Ver foto {n}',
   // Piezas comunes (AuthParts)
   'auth.back': 'Regresar',
   'auth.hidePassword': 'Ocultar contraseña',
@@ -193,6 +194,7 @@ export const es = {
 } as const
 
 export const en: Record<keyof typeof es, string> = {
+  'auth.slide': 'Show photo {n}',
   'auth.back': 'Back',
   'auth.hidePassword': 'Hide password',
   'auth.showPassword': 'Show password',

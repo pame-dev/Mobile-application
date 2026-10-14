@@ -221,7 +221,14 @@ textarea.input{height:auto;min-height:96px;padding:12px 14px;resize:vertical}
 .authart .ph{position:absolute;inset:0;background:#0D2B45}
 .authart .ph > img{opacity:.85}
 .authart .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,43,69,.1) 0%,rgba(13,43,69,.55) 50%,#0D2B45 88%)}
-.authart > *:not(.ph):not(.grad){position:relative}
+.authart > *:not(.ph):not(.grad):not(.authslides){position:relative}
+.authslides{position:absolute;inset:0}
+.authslides img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);transition:opacity 1.2s ease,transform 1.6s ease}
+.authslides img.on{opacity:.85;transform:scale(1)}
+.authdots{display:flex;gap:6px;margin-top:6px}
+.authdots button{width:8px;height:8px;border-radius:4px;border:0;padding:0;background:rgba(255,255,255,.45);cursor:pointer;transition:width .3s,background .3s}
+.authdots button.on{width:20px;background:#fff}
+@media (prefers-reduced-motion:reduce){ .authslides img{transition:none;transform:none} }
 .authart .brand{color:#fff}
 .authart h1{color:#fff;font-size:clamp(30px,3.4vw,44px);line-height:1.1}
 .authform{display:flex;align-items:center;justify-content:center;padding:40px 24px;background:var(--surface)}
@@ -326,6 +333,8 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .nrow .nic{flex:none}
 .setrow{cursor:pointer;color:inherit;font:inherit}
 .setrow.static{cursor:default}
+.ownerbar{padding:14px 18px;margin-bottom:18px;display:flex;flex-direction:column;gap:12px}
+.ownerbar .acts{display:flex;flex-wrap:wrap;gap:8px}
 
 /* Administración */
 .admin{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh;background:var(--bg)}

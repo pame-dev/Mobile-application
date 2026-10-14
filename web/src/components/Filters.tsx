@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { catalogs } from '../data/api'
 import type { Car, Catalogs } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
+import { nombreCatalogo } from '../lib/catalogo'
 import { FILTER_KEYS, SIN_FILTROS, type Filtros } from '../lib/filtros'
 import { Icon } from './Icon'
 import { ModalHead, useUi } from './Ui'
@@ -32,7 +33,7 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
             .filter((c) => !c.esOtro)
             .map((c) => (
               <button type="button" key={c.id} className={`chip ${draft.tipo === c.nombre ? 'on' : ''}`} onClick={() => set('tipo', c.nombre)}>
-                {c.nombre}
+                {nombreCatalogo(c.nombre)}
               </button>
             ))}
         </div>

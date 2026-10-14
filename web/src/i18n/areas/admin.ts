@@ -44,6 +44,7 @@ export const es = {
   'admin.reject': 'Rechazar',
   'admin.approve': 'Aprobar',
   'admin.viewListing': 'Ver publicación',
+  'admin.listingGone': 'La publicación reportada ya no está disponible (pudo haber sido eliminada).',
 
   // Motivo (modal)
   'admin.reasonMin': 'Mínimo {min} caracteres ({n}/{min})',
@@ -255,6 +256,7 @@ export const en: Record<keyof typeof es, string> = {
   'admin.reject': 'Reject',
   'admin.approve': 'Approve',
   'admin.viewListing': 'View listing',
+  'admin.listingGone': 'The reported listing is no longer available (it may have been deleted).',
 
   'admin.reasonMin': 'At least {min} characters ({n}/{min})',
   'admin.reasonCount': '{n} characters',

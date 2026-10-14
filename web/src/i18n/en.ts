@@ -99,7 +99,6 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'footer.publish': 'Publish a vehicle',
   'footer.account': 'Your account',
   'footer.legal': 'Legal',
-  'footer.madeIn': 'Made in Torreón, Coahuila',
   'footer.language': 'Language',
 
   'lang.title': 'Language',
@@ -132,9 +131,6 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'privacy.privacy': 'Privacy',
   'privacy.policy': 'Privacy policy',
   'privacy.policyDesc': 'What data we keep and why',
-  'privacy.browserNotif': 'Browser notifications',
-  'privacy.browserNotifUnsupported': "This browser doesn't support them. Your notices are always in Notifications.",
-  'privacy.browserNotifDesc': 'For now, Karsy notices are shown in Notifications (the bell). Phone notifications arrive through the app.',
 
   'password.title': 'Change password',
   'password.sub': 'For your security, first enter your current password.',

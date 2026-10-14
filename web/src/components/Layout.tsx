@@ -46,7 +46,7 @@ export function Footer() {
           <button onClick={go('/privacidad/politicas')}>{t('legal.policy')}</button>
         </div>
       </div>
-      <div className="wrap legal">© {new Date().getFullYear()} Karsy · {t('footer.madeIn')}</div>
+      <div className="wrap legal">© {new Date().getFullYear()} Karsy</div>
     </footer>
   )
 }

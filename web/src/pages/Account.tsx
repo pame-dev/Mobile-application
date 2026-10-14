@@ -16,14 +16,16 @@ import { useSession } from '../session/SessionContext'
 
 // Notificaciones, Configuración, Privacidad y seguridad, Términos y Políticas de privacidad.
 
+/** [back]: ruta fija, o 'historial' para regresar a la pantalla anterior (al Inicio si se abrió directo). */
 function PageHead({ title, back, children }: { title: string; back?: string; children?: ReactNode }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useI18n()
   return (
     <div className="pagehead">
       <div className="row">
         {back && (
-          <button className="iconbtn" aria-label={t('settings.backLabel')} onClick={() => navigate(back)}>
+          <button className="iconbtn" aria-label={t('settings.backLabel')} onClick={() => (back !== 'historial' ? navigate(back) : location.key !== 'default' ? navigate(-1) : navigate('/', { replace: true }))}>
             <Icon name="back" size={18} />
           </button>
         )}
@@ -135,7 +137,7 @@ export function Notifications() {
 
   return (
     <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
-      <PageHead title={t('notif.title')} />
+      <PageHead title={t('notif.title')} back="historial" />
       {error ? (
         <div className="card empty">
           <p className="muted">{t('notif.loadError')}</p>
@@ -376,7 +378,6 @@ export function Privacy() {
   const { account, redirect } = useRequireAccount('/privacidad')
   const { signOut } = useSession()
   const { t } = useI18n()
-  const permiso = typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
   if (redirect) return redirect
 
   return (
@@ -418,15 +419,6 @@ export function Privacy() {
       </div>
       <div className="card" style={{ overflow: 'hidden' }}>
         <SetRow icon="shield" title={t('privacy.policy')} desc={t('privacy.policyDesc')} onClick={() => navigate('/privacidad/politicas')} />
-        <SetRow
-          icon="bell"
-          title={t('privacy.browserNotif')}
-          desc={
-            permiso === 'unsupported'
-              ? t('privacy.browserNotifUnsupported')
-              : t('privacy.browserNotifDesc')
-          }
-        />
       </div>
     </div>
   )

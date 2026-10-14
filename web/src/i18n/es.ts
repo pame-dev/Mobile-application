@@ -105,7 +105,6 @@ export const CORE_ES = {
   'footer.publish': 'Publicar vehículo',
   'footer.account': 'Tu cuenta',
   'footer.legal': 'Legal',
-  'footer.madeIn': 'Hecho en Torreón, Coahuila',
   'footer.language': 'Idioma',
 
   // Idioma
@@ -141,9 +140,6 @@ export const CORE_ES = {
   'privacy.privacy': 'Privacidad',
   'privacy.policy': 'Políticas de privacidad',
   'privacy.policyDesc': 'Qué datos guardamos y para qué',
-  'privacy.browserNotif': 'Notificaciones del navegador',
-  'privacy.browserNotifUnsupported': 'Este navegador no las admite. Tus avisos siempre están en Notificaciones.',
-  'privacy.browserNotifDesc': 'Por ahora los avisos de Karsy se ven en Notificaciones (la campanita). Los avisos al teléfono llegan por la app.',
 
   // Cambiar contraseña
   'password.title': 'Cambiar contraseña',
