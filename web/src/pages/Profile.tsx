@@ -119,8 +119,9 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
     setIntento(true)
     const tel = R.normalizarTelefono(p.phone)
     const wa = R.normalizarTelefono(p.whatsapp)
+    // Particular: nombre, estado y ciudad. Lote: además su dirección.
     const msg = Object.values(errores).some(Boolean)
-      ? t('perfil.errMissing')
+      ? t(esLote ? 'perfil.errMissingLote' : 'perfil.errMissing')
       : !tel && !wa
         ? t('perfil.errPhones')
         : p.medioPrincipal === LLAMADA && !tel

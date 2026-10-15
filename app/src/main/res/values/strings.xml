@@ -457,7 +457,8 @@
     <string name="profile_password_desc">Por seguridad, escribe primero tu contraseña actual.</string>
     <string name="profile_change_password">Cambiar contraseña</string>
     <string name="profile_edit_saving">Guardando…</string>
-    <string name="profile_edit_missing">Completa nombre, ciudad y estado (y la dirección del lote).</string>
+    <string name="profile_edit_missing">Completa tu nombre, estado y ciudad.</string>
+    <string name="profile_edit_missing_lot">Completa el nombre del lote, estado, ciudad y la dirección del lote.</string>
     <string name="profile_edit_confirm_title">¿Guardar cambios?</string>
     <string name="profile_edit_confirm_message">Se actualizará la información de tu perfil con los datos que ingresaste.</string>
     <string name="profile_edit_confirm_yes">Sí, guardar</string>

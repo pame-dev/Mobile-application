@@ -455,7 +455,8 @@
     <string name="profile_password_desc">For security, enter your current password first.</string>
     <string name="profile_change_password">Change password</string>
     <string name="profile_edit_saving">Saving…</string>
-    <string name="profile_edit_missing">Fill in name, city and state (and the lot address).</string>
+    <string name="profile_edit_missing">Fill in your name, state and city.</string>
+    <string name="profile_edit_missing_lot">Fill in the lot name, state, city and the lot address.</string>
     <string name="profile_edit_confirm_title">Save changes?</string>
     <string name="profile_edit_confirm_message">Your profile information will be updated with the details you entered.</string>
     <string name="profile_edit_confirm_yes">Yes, save</string>
