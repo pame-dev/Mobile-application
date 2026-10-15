@@ -70,6 +70,9 @@ export interface Car {
   bodyType: string
   publishedAt: string
   city: string
+  /** Estado y municipio por separado (filtro "Cerca de mí"). */
+  estado: string
+  municipio: string
 }
 
 /** Detalle completo de una publicación (equivale a data/model/CarDetail.kt). */

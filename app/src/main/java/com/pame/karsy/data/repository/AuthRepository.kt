@@ -133,8 +133,13 @@ object AuthRepository {
         Supabase.client.postgrest.rpc("telefono_en_uso", buildJsonObject { put("p_numero", numero) })
             .decodeAs<Boolean>()
 
+    /**
+     * Cierra la sesión solo en este teléfono. Si Supabase no responde (sin internet), la
+     * sesión guardada se borra igual: si no, al volver a abrir la app se entraba sola.
+     */
     suspend fun signOut() {
-        runCatching { auth.signOut() }
+        runCatching { auth.signOut(SignOutScope.LOCAL) }
+            .onFailure { runCatching { auth.clearSession() } }
     }
 
     /**

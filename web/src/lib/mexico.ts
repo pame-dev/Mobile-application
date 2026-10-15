@@ -47,3 +47,14 @@ export async function jpegDe(file: Blob, maxLado = 800, calidad = 0.85): Promise
     URL.revokeObjectURL(url)
   }
 }
+
+const normalizarLugar = (t: string) =>
+  t.normalize('NFD').replace(/\p{Mn}+/gu, '').toLowerCase().replace('estado de ', '').trim()
+
+/** Compara nombres de lugar sin mayúsculas ni acentos: "Coahuila" = "Coahuila de Zaragoza" (Lugares.mismoLugar en la app). */
+export function mismoLugar(a: string, b: string): boolean {
+  const x = normalizarLugar(a)
+  const y = normalizarLugar(b)
+  if (!x || !y) return false
+  return x === y || x.startsWith(y) || y.startsWith(x)
+}

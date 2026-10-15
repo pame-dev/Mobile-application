@@ -13,14 +13,17 @@ import { FILTER_KEYS, ORDEN, filtrarCars, filtrosDeUrl } from '../lib/filtros'
 import { entero, km, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
-import { useUi } from '../components/Ui'
+import { ModalHead, useUi } from '../components/Ui'
+import { miUbicacion } from '../data/account'
+import { estadosMunicipios, mismoLugar, type EstadoMunicipios } from '../lib/mexico'
 
 const POR_PAGINA_DESTACADOS = 3
 
 export function Home() {
   const { mode, account } = useSession()
-  const { toast } = useUi()
+  const { toast, openModal } = useUi()
   const [guardando, setGuardando] = useState(false)
+  const [buscandoLugar, setBuscandoLugar] = useState(false)
   const { t } = useI18n()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -43,9 +46,47 @@ export function Home() {
   }, [cargar])
   useRecargar(cargar, ['publicaciones', 'fotos_publicacion', 'solicitudes_destacado'])
 
-  const lista = useMemo(() => (cars ? filtrarCars(cars, filtrosDeUrl(params), params.get('q') ?? '', params.get('orden') ?? '') : []), [cars, params])
+  /** "Cerca de mí" (?estado=…&municipio=… en la URL, como los demás filtros). */
+  const estadoCerca = params.get('estado') ?? ''
+  const municipioCerca = params.get('municipio') ?? ''
+  const lista = useMemo(() => {
+    if (!cars) return []
+    const filtrada = filtrarCars(cars, filtrosDeUrl(params), params.get('q') ?? '', params.get('orden') ?? '')
+    if (!estadoCerca) return filtrada
+    // Solo los del mismo estado y, primero, los del mismo municipio (sort es estable: respeta el orden elegido).
+    return filtrada
+      .filter((c) => mismoLugar(c.estado, estadoCerca))
+      .sort((a, b) => Number(!mismoLugar(a.municipio, municipioCerca)) - Number(!mismoLugar(b.municipio, municipioCerca)))
+  }, [cars, params, estadoCerca, municipioCerca])
   const destacados = useMemo(() => (cars ?? []).filter((c) => c.featured), [cars])
-  const hayFiltros = params.has('q') || FILTER_KEYS.some((k) => params.has(k))
+  const hayFiltros = params.has('q') || params.has('estado') || FILTER_KEYS.some((k) => params.has(k))
+
+  const ponerLugar = (estado: string, municipio: string) => {
+    const next = new URLSearchParams(params)
+    next.set('estado', estado)
+    if (municipio) next.set('municipio', municipio)
+    else next.delete('municipio')
+    setParams(next, { replace: true })
+  }
+  const quitarLugar = () => {
+    const next = new URLSearchParams(params)
+    next.delete('estado')
+    next.delete('municipio')
+    setParams(next, { replace: true })
+  }
+  /**
+   * Como en la app: con sesión, el estado y municipio del perfil (sin pedir permiso de
+   * ubicación); sin sesión o sin ubicación en el perfil, se eligen en una ventana.
+   */
+  const cercaDeMi = async () => {
+    const elegir = () => openModal(<ElegirLugarModal onElegir={ponerLugar} />)
+    if (!account) return elegir()
+    setBuscandoLugar(true)
+    const lugar = await miUbicacion(account.id).catch(() => null)
+    setBuscandoLugar(false)
+    if (lugar) ponerLugar(lugar.estado, lugar.municipio)
+    else elegir()
+  }
   const paginas = Math.max(1, Math.ceil(destacados.length / POR_PAGINA_DESTACADOS))
   const verDestacados = destacados.slice(pagina * POR_PAGINA_DESTACADOS, (pagina + 1) * POR_PAGINA_DESTACADOS)
 
@@ -54,7 +95,7 @@ export function Home() {
    * guarda: la alerta usa solo los filtros). El tipo viene por nombre en la URL.
    */
   const filtrosActivos = filtrosDeUrl(params)
-  const hayFiltrosGuardables = FILTER_KEYS.some((k) => filtrosActivos[k])
+  const hayFiltrosGuardables = !!estadoCerca || FILTER_KEYS.some((k) => filtrosActivos[k])
   const avisarme = async () => {
     if (!account || guardando) return
     setGuardando(true)
@@ -69,6 +110,7 @@ export function Home() {
         id_carroceria: cat.carrocerias.find((c) => !c.esOtro && c.nombre === f.tipo)?.id ?? null,
         precio_min: num(f.min),
         precio_max: num(f.max),
+        estado_ubicacion: estadoCerca || null,
       }
       if (busquedaVacia(busqueda)) return
       await guardarBusqueda(account.id, busqueda)
@@ -184,6 +226,16 @@ export function Home() {
             </p>
           </div>
           <div className="row" style={{ flexWrap: 'wrap' }}>
+            {estadoCerca ? (
+              <button className="chip" onClick={quitarLugar} style={{ background: 'var(--teal)', borderColor: 'var(--teal)', color: '#fff' }}>
+                {t('home.nearMeActive', { lugar: [municipioCerca, estadoCerca].filter(Boolean).join(', ') })}
+                <Icon name="x" size={14} />
+              </button>
+            ) : (
+              <button className="chip" onClick={() => void cercaDeMi()} disabled={buscandoLugar}>
+                {buscandoLugar ? t('home.nearMeSearching') : t('home.nearMe')}
+              </button>
+            )}
             {account && hayFiltrosGuardables && (
               <button className="chip" onClick={() => void avisarme()} disabled={guardando} style={{ color: 'var(--teal)', borderColor: 'var(--teal)' }}>
                 <Icon name="bell" size={14} />
@@ -243,5 +295,55 @@ export function Home() {
         )}
       </div>
     </>
+  )
+}
+
+/** Ventana para elegir estado y municipio (visitantes o perfiles sin ubicación). */
+function ElegirLugarModal({ onElegir }: { onElegir: (estado: string, municipio: string) => void }) {
+  const { t } = useI18n()
+  const { closeModal } = useUi()
+  const [catalogo, setCatalogo] = useState<EstadoMunicipios[]>([])
+  const [estado, setEstado] = useState('')
+  const [municipio, setMunicipio] = useState('')
+  useEffect(() => {
+    estadosMunicipios().then(setCatalogo).catch(() => setCatalogo([]))
+  }, [])
+  const municipios = catalogo.find((e) => e.estado === estado)?.municipios ?? []
+
+  return (
+    <div className="modal">
+      <ModalHead title={t('home.nearMePickTitle')} sub={t('home.nearMePickSub')} />
+      <div className="grid2" style={{ marginBottom: 16 }}>
+        <div className="field">
+          <label htmlFor="cerca-estado">{t('perfil.state')}</label>
+          <select className="input" id="cerca-estado" value={estado} onChange={(e) => (setEstado(e.target.value), setMunicipio(''))}>
+            <option value="">{t('perfil.select')}</option>
+            {catalogo.map((x) => (
+              <option key={x.estado}>{x.estado}</option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="cerca-municipio">{t('perfil.city')}</label>
+          <select className="input" id="cerca-municipio" value={municipio} disabled={!estado} onChange={(e) => setMunicipio(e.target.value)}>
+            <option value="">{t('perfil.select')}</option>
+            {municipios.map((m) => (
+              <option key={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {/* El municipio es opcional: solo con el estado ya se filtra. */}
+      <button
+        className="btn btn-primary btn-block"
+        disabled={!estado}
+        onClick={() => {
+          onElegir(estado, municipio)
+          closeModal()
+        }}
+      >
+        {t('home.nearMeApply')}
+      </button>
+    </div>
   )
 }
