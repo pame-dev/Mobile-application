@@ -309,6 +309,9 @@ export function Profile() {
   const [error, setError] = useState<string | null>(null)
   const [verOcultas, setVerOcultas] = useState(false)
   const [ocultasIds, setOcultasIds] = useState<Set<number>>(new Set())
+  /** "Editar portada" abre directo el selector de imágenes (sin pasar por Editar perfil). */
+  const portadaInput = useRef<HTMLInputElement>(null)
+  const [subiendoPortada, setSubiendoPortada] = useState(false)
 
   const cargar = useCallback(() => {
     if (!account) return
@@ -330,6 +333,22 @@ export function Profile() {
   useRecargar(cargar, ['cuentas', 'publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'publicaciones_ocultas'])
 
   if (!cargandoSesion && !account) return <Navigate to="/login" replace state={{ from: '/perfil' }} />
+
+  /** Comprime la imagen elegida, la sube y la pone como portada al momento. */
+  const cambiarPortada = async (file: File | undefined) => {
+    if (!file || !perfil) return
+    setSubiendoPortada(true)
+    try {
+      const { blob } = await jpegDe(file, 1600, 0.78)
+      const coverUrl = await uploadCover(blob)
+      setPerfil((p) => (p ? { ...p, coverUrl } : p))
+      toast(t('perfil.coverUpdated'))
+    } catch (ex) {
+      toast(ex instanceof Error && ex.message ? mensajeUsuario(ex) : t('perfil.imageReadError'))
+    } finally {
+      setSubiendoPortada(false)
+    }
+  }
 
   const editar = () =>
     perfil &&
@@ -381,10 +400,17 @@ export function Profile() {
     <div className="wrap" style={{ paddingTop: 24 }}>
       <div className="cover">
         {perfil.coverUrl && <img src={perfil.coverUrl} alt="" />}
-        <button className="btn btn-sm coverbtn" onClick={editar}>
+        <button className="btn btn-sm coverbtn" onClick={() => portadaInput.current?.click()} disabled={subiendoPortada}>
           <Icon name="camera" size={16} />
-          {t('perfil.editCover')}
+          {subiendoPortada ? t('perfil.coverUploading') : t('perfil.editCover')}
         </button>
+        <input
+          ref={portadaInput}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          onChange={(ev) => (void cambiarPortada(ev.target.files?.[0]), (ev.target.value = ''))}
+        />
       </div>
       <div className="profilehead">
         {perfil.avatarUrl ? (

@@ -334,7 +334,8 @@ button.bigavatar{cursor:zoom-in}
 .note{padding:12px 14px;border-radius:12px;font-size:13px}
 .chart text{fill:var(--mid);font-size:11px;font-family:var(--f-body)}
 .chart .grid line{stroke:var(--border)}
-.coverbtn{position:absolute;right:16px;bottom:16px;background:rgba(255,255,255,.92);color:#0D2B45}
+/* z-index: la cabecera del perfil (.profilehead) sube sobre la portada y tapaba el botón. */
+.coverbtn{position:absolute;right:16px;bottom:16px;z-index:2;background:rgba(255,255,255,.92);color:#0D2B45}
 .avatarwrap{position:relative;flex:none}
 .avatarwrap .camb{position:absolute;right:4px;bottom:4px;width:36px;height:36px;border-radius:50%;border:3px solid var(--surface);background:var(--navy);color:#fff;display:grid;place-items:center}
 @media (max-width:1000px){ .kpis{grid-template-columns:1fr 1fr} .twocol.split{grid-template-columns:1fr} .photogrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
