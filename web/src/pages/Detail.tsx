@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
+import { PhotoViewer } from '../components/PhotoViewer'
+import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
@@ -218,6 +220,8 @@ export function Detail() {
   const fav = useFavorites()
   const [detail, setDetail] = useState<CarDetail | null | undefined>(undefined)
   const [foto, setFoto] = useState(0)
+  /** Visor ampliado abierto (con la foto principal). */
+  const [visor, setVisor] = useState(false)
   const [similares, setSimilares] = useState<Car[]>([])
   /** La publicación con los datos de Mi panel, solo si es del usuario en sesión. */
   const [propia, setPropia] = useState<OwnCar | null>(null)
@@ -327,7 +331,6 @@ export function Detail() {
   const acciones = !esDueno
   const fotos = detail.gallery.length ? detail.gallery : [null]
   const on = fav.isFavorite(c.id)
-  const seminuevo = c.year >= new Date().getFullYear() - 3
   const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
 
   const compartir = async () => {
@@ -347,18 +350,8 @@ export function Detail() {
 
   return (
     <div className="wrap">
-      <div className="crumbs">
-        <button onClick={() => navigate('/')}>{t('nav.home')}</button>
-        {c.bodyType && (
-          <>
-            <Icon name="chev" size={14} />
-            <button onClick={() => navigate(`/?tipo=${encodeURIComponent(c.bodyType)}`)}>{nombreCatalogo(c.bodyType)}</button>
-          </>
-        )}
-        <Icon name="chev" size={14} />
-        <span style={{ color: 'var(--ink)' }}>
-          {c.brand} {c.model}
-        </span>
+      <div style={{ paddingBlock: 20 }}>
+        <VolverButton fallback="/" />
       </div>
 
       {desdeReporte != null && (
@@ -412,10 +405,27 @@ export function Detail() {
         </div>
       )}
 
+      {visor && (
+        <PhotoViewer
+          fotos={detail.gallery}
+          inicio={Math.min(foto, detail.gallery.length - 1)}
+          alt={`${c.brand} ${c.model}`}
+          onClose={(i) => {
+            setFoto(i)
+            setVisor(false)
+          }}
+        />
+      )}
+
       <div className="detailgrid">
         <div className="col" style={{ gap: 22 }}>
           <div className="gallery">
-            <CarPhoto src={fotos[foto]} alt={`${c.brand} ${c.model}`} className="main">
+            <CarPhoto
+              src={fotos[foto]}
+              alt={`${c.brand} ${c.model}`}
+              className={`main ${detail.gallery.length ? 'zoomable' : ''}`}
+              onClick={detail.gallery.length ? () => setVisor(true) : undefined}
+            >
               {fotos.length > 1 && (
                 <span className="counter">
                   {t('vehiculo.detail.photoCounter', { i: foto + 1, n: fotos.length })}
@@ -427,7 +437,11 @@ export function Detail() {
                   style={{ width: 42, height: 42, top: 14, right: 14 }}
                   aria-label={on ? t('vehiculo.fav.remove') : t('vehiculo.fav.add')}
                   aria-pressed={on}
-                  onClick={() => fav.toggle(c.id)}
+                  onClick={(e) => {
+                    // Que no abra el visor de la foto de abajo.
+                    e.stopPropagation()
+                    fav.toggle(c.id)
+                  }}
                 >
                   <Icon name="heart" size={19} />
                 </button>
@@ -467,8 +481,7 @@ export function Detail() {
         </div>
 
         <aside className="card sidebox">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <span className="badge b-info">{seminuevo ? t('vehiculo.detail.nearlyNew') : t('vehiculo.detail.used')}</span>
+          <div className="row" style={{ justifyContent: 'flex-end' }}>
             <div className="row" style={{ gap: 8 }}>
               <button className="iconbtn" aria-label={t('vehiculo.detail.share')} onClick={compartir}>
                 <Icon name="share" size={18} />

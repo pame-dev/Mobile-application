@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox, AuthShell, BackButton, PasswordInput, PasswordRulesList } from '../../components/AuthParts'
 import { Icon, type IconName } from '../../components/Icon'
 import { Brand } from '../../components/TopNav'
 import { useUi } from '../../components/Ui'
 import { EmailNotVerifiedError, holdAvatarUntilVerified, mensajeUsuario, msgEmailExiste, signUp, telefonoEnUso, uploadAvatar } from '../../data/auth'
+import { docAceptado, limpiarAceptaciones, type DocLegal } from '../../data/legal'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
 import * as R from '../../lib/formRules'
@@ -82,13 +83,12 @@ interface Form {
   descripcion: string
   password: string
   confirm: string
-  terminos: boolean
 }
 
 const VACIO: Form = {
   nombre: '', apellido: '', correo: '', estado: '', ciudad: '', telefono: '', mismoWhatsapp: true, whatsapp: '',
   medio: null, nombreLote: '', calle: '', numero: '', colonia: '', codigoPostal: '', descripcion: '', password: '',
-  confirm: '', terminos: false,
+  confirm: '',
 }
 
 /**
@@ -203,13 +203,19 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
   const mismatch = f.confirm.length > 0 && f.password !== f.confirm
   const municipios = catalogo.find((e) => e.estado === f.estado)?.municipios ?? []
 
+  // Aceptaciones hechas al final de cada documento (se leen al volver de él).
+  const terminosOk = docAceptado('terminos')
+  const privacidadOk = docAceptado('privacidad')
+  const formularioValido = campos.every((c) => validar(f, c, correoRegistrado) == null) && f.password === f.confirm
+  const listoParaCrear = terminosOk && privacidadOk && formularioValido
+
   // Después de un envío fallido, la vista baja al primer campo con error.
   useEffect(() => {
     if (!scrollPedido) return
     const conError = [
       ...campos.filter((c) => validar(f, c, correoRegistrado) != null),
       ...(f.password && f.password !== f.confirm ? ['confirm'] : []),
-      ...(!f.terminos ? ['terminos'] : []),
+      ...(!terminosOk || !privacidadOk ? ['legales'] : []),
     ]
     const el = conError.length ? document.querySelector(`[data-field="${conError[0]}"]`) : null
     ;(el ?? document.querySelector('.alertbox'))?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -234,6 +240,11 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
   /** Antes de ir a los términos o las políticas: se guarda lo escrito para restaurarlo al volver. */
   const guardarBorrador = () => {
     borrador = { tipo, f, logo: logo?.blob ?? null }
+  }
+
+  const leer = (doc: DocLegal) => {
+    guardarBorrador()
+    navigate(doc === 'terminos' ? '/terminos' : '/privacidad/politicas', { state: { desdeRegistro: true } })
   }
 
   const revisarTelefono = async (valor: string) => {
@@ -272,8 +283,8 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         ? t('auth.reg.checkRed')
         : limpio.password !== limpio.confirm
           ? t('auth.passwordMismatch')
-          : !limpio.terminos
-            ? t('auth.reg.acceptTerms')
+          : !docAceptado('terminos') || !docAceptado('privacidad')
+            ? t('auth.reg.acceptDocs')
             : null
     setError(e)
     if (e) {
@@ -309,6 +320,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
     setLoading(true)
     try {
       await signUp(correo, limpio.password, datos)
+      limpiarAceptaciones()
       // Sin verificación de correo: ya hay sesión. El logo es opcional; si falla la cuenta ya quedó creada.
       if (logo) await uploadAvatar(logo.blob).catch(() => undefined)
       await reload()
@@ -317,6 +329,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
     } catch (ex) {
       setLoading(false)
       if (ex instanceof EmailNotVerifiedError) {
+        limpiarAceptaciones()
         // Cuenta creada, pero sin sesión hasta escribir el código: el logo se sube al verificarlo.
         if (logo) holdAvatarUntilVerified(ex.email, logo.blob)
         navigate('/verificar', { replace: true, state: { email: ex.email, sendCode: false } })
@@ -631,25 +644,39 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           <PasswordRulesList password={f.password} />
         </section>
 
-        <label className="row" data-field="terminos" style={{ marginTop: 18, gap: 10, cursor: 'pointer', color: submitted && !f.terminos ? 'var(--error)' : undefined }}>
-          <input
-            type="checkbox"
-            checked={f.terminos}
-            onChange={(e) => set('terminos', e.target.checked)}
-            style={{ width: 18, height: 18, accentColor: 'var(--teal)', outline: submitted && !f.terminos ? '2px solid var(--error)' : undefined }}
-          />
-          <span>
-            {t('auth.reg.termsPrefix')}{' '}
-            <Link to="/terminos" onClick={guardarBorrador}>
-              {t('auth.reg.termsLink')}
-            </Link>{' '}
-            {t('auth.reg.termsMiddle')}{' '}
-            <Link to="/privacidad/politicas" onClick={guardarBorrador}>
-              {t('auth.reg.privacyLink')}
-            </Link>{' '}
-            {t('auth.reg.termsSuffix')}
-          </span>
-        </label>
+        <section className="card" data-field="legales">
+          <h3>
+            <Icon name="doc" size={18} />
+            {t('auth.reg.legalTitle')}
+          </h3>
+          {(
+            [
+              ['terminos', 'doc', 'auth.reg.termsCard', 'auth.reg.termsCardDesc', terminosOk],
+              ['privacidad', 'shield', 'auth.reg.privacyCard', 'auth.reg.privacyCardDesc', privacidadOk],
+            ] as const
+          ).map(([doc, icono, titulo, desc, ok]) => (
+            <div key={doc} className="legaldoc">
+              <span className="nic">
+                <Icon name={icono} size={20} />
+              </span>
+              <div className="grow" style={{ minWidth: 0 }}>
+                <b style={{ color: 'var(--ink)' }}>{t(titulo)}</b>
+                {ok && (
+                  <span className="badge b-succ" style={{ marginLeft: 8 }}>
+                    <Icon name="check" size={12} />
+                    {t('auth.reg.accepted')}
+                  </span>
+                )}
+                <p className="muted" style={{ fontSize: 13 }}>
+                  {t(desc)}
+                </p>
+              </div>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => leer(doc)}>
+                {t('auth.reg.read')}
+              </button>
+            </div>
+          ))}
+        </section>
 
         <div style={{ marginTop: 18 }}>
           <AlertBox message={error}>
@@ -664,9 +691,30 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           </AlertBox>
         </div>
 
-        <button type="submit" className="btn btn-primary btn-block" style={{ height: 52, marginTop: 18 }} disabled={loading}>
+        <button type="submit" className="btn btn-primary btn-block" style={{ height: 52, marginTop: 18 }} disabled={loading || !listoParaCrear}>
           {loading ? t('auth.reg.creating') : t('auth.reg.create')}
         </button>
+        {!loading && !listoParaCrear && (
+          <p className="muted" style={{ textAlign: 'center', fontSize: 13, marginTop: 10 }}>
+            {!terminosOk || !privacidadOk ? (
+              t('auth.reg.docsPending')
+            ) : (
+              <>
+                {t('auth.reg.fieldsPending')}{' '}
+                <button
+                  type="button"
+                  className="linkbtn"
+                  onClick={() => {
+                    setSubmitted(true)
+                    setScrollPedido((n) => n + 1)
+                  }}
+                >
+                  {t('auth.reg.showPending')}
+                </button>
+              </>
+            )}
+          </p>
+        )}
       </form>
     </>
   )

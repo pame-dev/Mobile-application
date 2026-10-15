@@ -122,7 +122,7 @@ export const es = {
   // Lotes
   'perfil.lotsError': 'No pudimos cargar los lotes. Revisa tu conexión e intenta de nuevo.',
   'perfil.lotsEyebrow': 'Catálogo de negocios automotrices',
-  'perfil.lotsLead': 'Vehículos de lotes y agencias. Esta sección muestra exclusivamente publicaciones de vendedores tipo lote/agencia.',
+  'perfil.lotsLead': 'Vehículos de lotes. Esta sección muestra exclusivamente publicaciones de vendedores tipo lote.',
   'perfil.lotsSearchPlaceholder': 'Buscar lote o ciudad…',
   'perfil.lotsSearchLabel': 'Buscar lote o ciudad',
   'perfil.lotsRegistered': 'Lotes registrados',
@@ -297,7 +297,7 @@ export const en: Record<keyof typeof es, string> = {
   // Lotes
   'perfil.lotsError': "We couldn't load the dealers. Check your connection and try again.",
   'perfil.lotsEyebrow': 'Automotive business directory',
-  'perfil.lotsLead': 'Vehicles from dealers and dealerships. This section only shows listings from dealer sellers.',
+  'perfil.lotsLead': 'Vehicles from dealers. This section only shows listings from dealer sellers.',
   'perfil.lotsSearchPlaceholder': 'Search dealer or city…',
   'perfil.lotsSearchLabel': 'Search dealer or city',
   'perfil.lotsRegistered': 'Registered dealers',

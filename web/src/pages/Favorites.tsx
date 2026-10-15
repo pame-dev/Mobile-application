@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { useNavigate } from 'react-router-dom'
 import { FiltersButton, aniosDe } from '../components/Filters'
 import { Icon } from '../components/Icon'
+import { VolverButton } from '../components/VolverButton'
 import { VehicleCard } from '../components/VehicleCard'
 import { favoriteCars } from '../data/api'
 import type { Car } from '../data/types'
@@ -61,6 +62,9 @@ export function Favorites() {
   if (mode === 'guest') {
     return (
       <div className="wrap" style={{ maxWidth: 820, paddingTop: 28 }}>
+        <div style={{ marginBottom: 14 }}>
+          <VolverButton fallback="/" />
+        </div>
         <Aviso titulo={t('perfil.favGuestTitle')} texto={t('perfil.favGuestText')}>
           <div className="row" style={{ marginTop: 8 }}>
             <button className="btn btn-ghost" onClick={() => navigate('/login', { state: { from: '/favoritos' } })}>
@@ -78,11 +82,14 @@ export function Favorites() {
   return (
     <div className="wrap">
       <div className="pagehead">
-        <div>
-          <h1>{t('nav.favorites')}</h1>
-          <p className="muted">
-            {cars ? (filtrando ? t('perfil.ofTotal', { n: lista.length, total: guardadosTexto }) : guardadosTexto) : t('common.loading')}
-          </p>
+        <div className="row" style={{ alignItems: 'flex-start', gap: 12 }}>
+          <VolverButton fallback="/" />
+          <div>
+            <h1>{t('nav.favorites')}</h1>
+            <p className="muted">
+              {cars ? (filtrando ? t('perfil.ofTotal', { n: lista.length, total: guardadosTexto }) : guardadosTexto) : t('common.loading')}
+            </p>
+          </div>
         </div>
         {guardados.length > 0 && (
           <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>

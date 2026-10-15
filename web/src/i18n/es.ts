@@ -107,7 +107,7 @@ export const CORE_ES = {
   'footer.tagline': 'Marketplace automotriz para comprar y vender autos nuevos y seminuevos en todo México.',
   'footer.explore': 'Explorar',
   'footer.vehicles': 'Vehículos',
-  'footer.lots': 'Lotes y agencias',
+  'footer.lots': 'Lotes',
   'footer.publish': 'Publicar vehículo',
   'footer.account': 'Tu cuenta',
   'footer.legal': 'Legal',
@@ -234,6 +234,10 @@ export const CORE_ES = {
   // Textos legales
   'legal.terms': 'Términos y condiciones',
   'legal.policy': 'Políticas de privacidad',
+  'legal.backToRegister': 'Volver al registro',
+  'legal.acceptTerms': 'He leído y acepto los Términos y condiciones',
+  'legal.acceptPrivacy': 'He leído y acepto el Aviso de privacidad',
+  'legal.continue': 'Continuar',
 
   // 404
   'notFound.title': 'No encontramos esta página',
