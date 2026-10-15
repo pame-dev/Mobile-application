@@ -271,7 +271,9 @@ export function Detail() {
   const esDuenoId = !!account && !!detail && account.id === detail.car.ownerId
   const cargarPropia = useCallback(() => {
     if (!account || !esDuenoId) return setPropia(null)
-    setOcultaState(ocultas(account.id).has(carId))
+    ocultas(account.id)
+      .then((s) => setOcultaState(s.has(carId)))
+      .catch(() => undefined)
     ownCar(carId)
       .then(setPropia)
       .catch(() => setPropia(null))
@@ -287,7 +289,7 @@ export function Detail() {
       .catch(() => undefined)
     cargarPropia()
   }, [carId, cargarPropia])
-  useRecargar(recargarDetalle, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'solicitudes_destacado'])
+  useRecargar(recargarDetalle, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'solicitudes_destacado', 'publicaciones_ocultas'])
 
   // Tras una acción del dueño se recargan el estado del detalle y los botones.
   const accionesDueno = useOwnerActions(() => {
@@ -410,8 +412,8 @@ export function Detail() {
                 acciones={accionesDueno}
                 oculta={oculta}
                 onOcultar={(v) => {
-                  setOculta(account!.id, c.id, v)
                   setOcultaState(v)
+                  setOculta(account!.id, c.id, v).catch(() => setOcultaState(!v))
                 }}
               />
             )}

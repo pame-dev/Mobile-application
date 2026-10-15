@@ -341,23 +341,50 @@ export async function removeCover(): Promise<void> {
 const ESTADOS_OCULTABLES: Car['status'][] = ['Rechazado', 'Deshabilitado', 'Pausado']
 export const sePuedeOcultar = (c: Car) => ESTADOS_OCULTABLES.includes(c.status)
 
+/** Clave de la versión anterior, cuando las ocultas solo se guardaban en este navegador. */
 function ocultasKey(userId: string) {
   return `karsy-ocultas-${userId}`
 }
-export function ocultas(userId: string): Set<number> {
+
+/**
+ * Publicaciones propias que el dueño ocultó de su perfil (tabla publicaciones_ocultas: la
+ * app y la web ven la misma lista). La primera vez se suben las que estaban guardadas solo
+ * en este navegador.
+ */
+export async function ocultas(userId: string): Promise<Set<number>> {
+  const filas = check(await supabase.from('publicaciones_ocultas').select('id_publicacion').eq('id_cuenta', userId)) as {
+    id_publicacion: number
+  }[]
+  const ids = new Set(filas.map((f) => f.id_publicacion))
+  let locales: number[] = []
   try {
-    return new Set(JSON.parse(localStorage.getItem(ocultasKey(userId)) ?? '[]') as number[])
+    locales = JSON.parse(localStorage.getItem(ocultasKey(userId)) ?? '[]') as number[]
   } catch {
-    return new Set()
+    /* sin almacenamiento */
   }
+  const faltan = locales.filter((id) => !ids.has(id))
+  if (faltan.length) {
+    // Si alguna ya no es suya o se borró, la BD la rechaza y simplemente no se sube.
+    for (const id of faltan) {
+      const { error } = await supabase.from('publicaciones_ocultas').insert({ id_cuenta: userId, id_publicacion: id })
+      if (!error) ids.add(id)
+    }
+  }
+  if (locales.length) {
+    try {
+      localStorage.removeItem(ocultasKey(userId))
+    } catch {
+      /* sin almacenamiento */
+    }
+  }
+  return ids
 }
-export function setOculta(userId: string, id: number, oculta: boolean) {
-  const s = ocultas(userId)
-  if (oculta) s.add(id)
-  else s.delete(id)
-  try {
-    localStorage.setItem(ocultasKey(userId), JSON.stringify([...s]))
-  } catch {
-    /* sin almacenamiento: no se recuerda */
+
+export async function setOculta(userId: string, id: number, oculta: boolean): Promise<void> {
+  if (oculta) {
+    const { error } = await supabase.from('publicaciones_ocultas').upsert({ id_cuenta: userId, id_publicacion: id }, { ignoreDuplicates: true })
+    if (error) throw new Error(error.message)
+  } else {
+    check(await supabase.from('publicaciones_ocultas').delete().eq('id_cuenta', userId).eq('id_publicacion', id))
   }
 }

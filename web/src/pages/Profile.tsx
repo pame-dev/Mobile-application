@@ -307,6 +307,7 @@ export function Profile() {
   const [cars, setCars] = useState<OwnCar[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [verOcultas, setVerOcultas] = useState(false)
+  const [ocultasIds, setOcultasIds] = useState<Set<number>>(new Set())
 
   const cargar = useCallback(() => {
     if (!account) return
@@ -317,12 +318,15 @@ export function Profile() {
     myCars(account.id)
       .then(setCars)
       .catch(() => setCars([]))
+    ocultas(account.id)
+      .then(setOcultasIds)
+      .catch(() => undefined)
   }, [account])
 
   useEffect(() => {
     cargar()
   }, [cargar])
-  useRecargar(cargar, ['cuentas', 'publicaciones', 'propuestas_publicacion', 'fotos_publicacion'])
+  useRecargar(cargar, ['cuentas', 'publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'publicaciones_ocultas'])
 
   if (!cargandoSesion && !account) return <Navigate to="/login" replace state={{ from: '/perfil' }} />
 
@@ -362,7 +366,6 @@ export function Profile() {
   }
 
   const esLote = perfil.accountType === 'lote'
-  const ocultasIds = ocultas(account.id)
   const lista = cars ?? []
   const visibles = lista.filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))
   const escondidas = lista.filter((c) => sePuedeOcultar(c) && ocultasIds.has(c.id))

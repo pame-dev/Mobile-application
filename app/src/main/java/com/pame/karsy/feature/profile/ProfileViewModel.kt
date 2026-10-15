@@ -58,6 +58,8 @@ class ProfileViewModel : ViewModel() {
                 .onSuccess { user = it }
                 .onFailure { message = it.mensajeUsuario() }
             cars = safeCall { CarRepository.ownerCars(uid) }.getOrDefault(cars)
+            // Las ocultas se comparten con la web: se vuelven a leer junto con el perfil.
+            safeCall { PublicacionesOcultas.sincronizar() }
             loading = false
         }
     }
