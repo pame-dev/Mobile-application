@@ -156,3 +156,27 @@ export const POLICY_EN: LegalDoc = {
     ]
   ]
 }
+
+// ── Aceptación durante el registro ──
+
+export type DocLegal = 'terminos' | 'privacidad'
+
+/**
+ * Versión de cada documento: cámbiala cuando cambie su texto (aquí y en la app). Una aceptación
+ * de otra versión ya no cuenta y el usuario tiene que volver a leerlo y aceptarlo.
+ */
+export const VERSION_LEGAL: Record<DocLegal, string> = { terminos: '2026-10', privacidad: '2026-10' }
+
+/**
+ * Documentos aceptados en el registro en curso (al final de cada documento, uno por uno).
+ * Solo en memoria, igual que el borrador del formulario: se pierden al recargar la página.
+ */
+let aceptados: Partial<Record<DocLegal, string>> = {}
+
+export const aceptarDoc = (d: DocLegal) => {
+  aceptados[d] = VERSION_LEGAL[d]
+}
+export const docAceptado = (d: DocLegal) => aceptados[d] === VERSION_LEGAL[d]
+export const limpiarAceptaciones = () => {
+  aceptados = {}
+}

@@ -4,6 +4,7 @@ import { AlertBox, PasswordInput, PasswordRulesList } from '../components/AuthPa
 import { ConfirmModal } from '../components/Confirm'
 import { Icon, type IconName } from '../components/Icon'
 import { LogoutModal } from '../components/TopNav'
+import { VolverButton } from '../components/VolverButton'
 import { ModalHead, useUi } from '../components/Ui'
 import {
   changePassword,
@@ -18,7 +19,7 @@ import {
 } from '../data/account'
 import { mensajeUsuario } from '../data/auth'
 import { borrarBusqueda, describirBusqueda, misBusquedas, type BusquedaGuardada } from '../data/busquedas'
-import { POLICY_EN, POLITICAS, TERMINOS, TERMS_EN, type LegalDoc } from '../data/legal'
+import { aceptarDoc, POLICY_EN, POLITICAS, TERMINOS, TERMS_EN, type DocLegal, type LegalDoc } from '../data/legal'
 import { useI18n, type Lang } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { passwordError } from '../lib/formRules'
@@ -32,15 +33,18 @@ import { useSession } from '../session/SessionContext'
 /** [back]: ruta fija, o 'historial' para regresar a la pantalla anterior (al Inicio si se abrió directo). */
 function PageHead({ title, back, children }: { title: string; back?: string; children?: ReactNode }) {
   const navigate = useNavigate()
-  const location = useLocation()
   const { t } = useI18n()
   return (
     <div className="pagehead">
       <div className="row">
-        {back && (
-          <button className="iconbtn" aria-label={t('settings.backLabel')} onClick={() => (back !== 'historial' ? navigate(back) : location.key !== 'default' ? navigate(-1) : navigate('/', { replace: true }))}>
-            <Icon name="back" size={18} />
-          </button>
+        {back === 'historial' ? (
+          <VolverButton fallback="/" />
+        ) : (
+          back && (
+            <button className="iconbtn" aria-label={t('settings.backLabel')} onClick={() => navigate(back)}>
+              <Icon name="back" size={18} />
+            </button>
+          )
         )}
         <h1>{title}</h1>
       </div>
@@ -609,19 +613,22 @@ export function Privacy() {
 // ── Textos legales ─────────────────────────────────────────────────────────
 
 /** Términos o políticas en el idioma elegido, con "← Volver" a la pantalla de donde se llegó. */
-function Legal({ title, doc }: { title: Clave; doc: Record<Lang, LegalDoc> }) {
+function Legal({ title, doc, id }: { title: Clave; doc: Record<Lang, LegalDoc>; id: DocLegal }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { t, lang } = useI18n()
   const d = doc[lang]
-  // Regresa en el historial (Registro, Configuración, pie de página…); si se abrió directo, al Inicio.
-  const volver = () => (location.key !== 'default' ? navigate(-1) : navigate('/', { replace: true }))
+  /** Abierto con "Leer" desde el registro: al final se acepta el documento. */
+  const desdeRegistro = (location.state as { desdeRegistro?: boolean } | null)?.desdeRegistro === true
+  const [acepto, setAcepto] = useState(false)
+  // Regresa en el historial (Registro, Configuración, pie de página…); si se abrió directo, al Inicio (o al registro).
+  const volver = () => (location.key !== 'default' ? navigate(-1) : navigate(desdeRegistro ? '/registro' : '/', { replace: true }))
   return (
     <div className="wrap" style={{ padding: '28px 16px 40px' }}>
       <div className="card legaltext" style={{ margin: '0 auto' }}>
         <button className="backlink" onClick={volver}>
           <Icon name="back" size={16} />
-          {t('common.back')}
+          {desdeRegistro ? t('legal.backToRegister') : t('common.back')}
         </button>
         <h1 style={{ fontSize: 30 }}>{t(title)}</h1>
         <p className="mid" style={{ margin: '6px 0 16px' }}>
@@ -634,10 +641,28 @@ function Legal({ title, doc }: { title: Clave; doc: Record<Lang, LegalDoc> }) {
             <p>{b}</p>
           </div>
         ))}
+        {desdeRegistro && (
+          <div className="legalaccept">
+            <label className="row" style={{ gap: 10, cursor: 'pointer', color: 'var(--ink)', fontWeight: 600 }}>
+              <input type="checkbox" checked={acepto} onChange={(e) => setAcepto(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--teal)', flex: 'none' }} />
+              {t(id === 'terminos' ? 'legal.acceptTerms' : 'legal.acceptPrivacy')}
+            </label>
+            <button
+              className="btn btn-primary"
+              disabled={!acepto}
+              onClick={() => {
+                aceptarDoc(id)
+                volver()
+              }}
+            >
+              {t('legal.continue')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-export const Terms = () => <Legal title="legal.terms" doc={{ es: TERMINOS, en: TERMS_EN }} />
-export const PrivacyPolicy = () => <Legal title="legal.policy" doc={{ es: POLITICAS, en: POLICY_EN }} />
+export const Terms = () => <Legal id="terminos" title="legal.terms" doc={{ es: TERMINOS, en: TERMS_EN }} />
+export const PrivacyPolicy = () => <Legal id="privacidad" title="legal.policy" doc={{ es: POLITICAS, en: POLICY_EN }} />

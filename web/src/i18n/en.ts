@@ -101,7 +101,7 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'footer.tagline': 'Car marketplace to buy and sell new and used cars all across Mexico.',
   'footer.explore': 'Explore',
   'footer.vehicles': 'Vehicles',
-  'footer.lots': 'Dealers and agencies',
+  'footer.lots': 'Dealers',
   'footer.publish': 'Publish a vehicle',
   'footer.account': 'Your account',
   'footer.legal': 'Legal',
@@ -222,6 +222,10 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
 
   'legal.terms': 'Terms and conditions',
   'legal.policy': 'Privacy policy',
+  'legal.backToRegister': 'Back to sign up',
+  'legal.acceptTerms': 'I have read and accept the Terms and conditions',
+  'legal.acceptPrivacy': 'I have read and accept the Privacy notice',
+  'legal.continue': 'Continue',
 
   'notFound.title': "We couldn't find this page",
   'notFound.message': 'The link may be misspelled or the page may no longer exist.',

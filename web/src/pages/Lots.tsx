@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
+import { VolverButton } from '../components/VolverButton'
 import { lots as cargarLotes } from '../data/api'
 import type { Lot } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
@@ -43,6 +44,9 @@ export function Lots() {
 
   return (
     <div className="wrap" style={{ paddingTop: 28 }}>
+      <div style={{ marginBottom: 14 }}>
+        <VolverButton fallback="/" />
+      </div>
       <div className="banner">
         <span className="eyebrow" style={{ color: '#8FD3D8' }}>
           {t('perfil.lotsEyebrow')}
