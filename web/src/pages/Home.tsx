@@ -18,6 +18,8 @@ import { miUbicacion } from '../data/account'
 import { estadosMunicipios, mismoLugar, type EstadoMunicipios } from '../lib/mexico'
 
 const POR_PAGINA_DESTACADOS = 3
+/** Cada cuánto avanzan solos los destacados. */
+const AUTOPLAY_MS = 2000
 
 export function Home() {
   const { mode, account } = useSession()
@@ -31,6 +33,8 @@ export function Home() {
   const [error, setError] = useState<Clave | null>(null)
   const [stats, setStats] = useState<{ vehiculos: number; marcas: number; modelos: number } | null>(null)
   const [pagina, setPagina] = useState(0)
+  /** Cursor o foco sobre las tarjetas o las flechas: los destacados no avanzan solos. */
+  const [pausado, setPausado] = useState(false)
 
   const cargar = useCallback(() => {
     setError(null)
@@ -89,6 +93,20 @@ export function Home() {
   }
   const paginas = Math.max(1, Math.ceil(destacados.length / POR_PAGINA_DESTACADOS))
   const verDestacados = destacados.slice(pagina * POR_PAGINA_DESTACADOS, (pagina + 1) * POR_PAGINA_DESTACADOS)
+
+  // Avanza solo cada 2 s y al final vuelve al inicio. Cada cambio de página (también con las
+  // flechas) vuelve a empezar la cuenta, así no cambia de golpe justo después de moverlo a mano.
+  useEffect(() => {
+    if (pausado || paginas < 2 || hayFiltros) return
+    const id = window.setTimeout(() => setPagina((p) => (p + 1) % paginas), AUTOPLAY_MS)
+    return () => window.clearTimeout(id)
+  }, [pagina, pausado, paginas, hayFiltros])
+  const pausa = {
+    onMouseEnter: () => setPausado(true),
+    onMouseLeave: () => setPausado(false),
+    onFocus: () => setPausado(true),
+    onBlur: () => setPausado(false),
+  }
 
   /**
    * Guarda los filtros activos como búsqueda con alerta (el texto del buscador no se
@@ -182,7 +200,7 @@ export function Home() {
                 <p className="muted">{t('home.featuredSub')}</p>
               </div>
               {paginas > 1 && (
-                <div className="row">
+                <div className="row" {...pausa}>
                   <button className="iconbtn" aria-label={t('home.prev')} onClick={() => setPagina((p) => (p - 1 + paginas) % paginas)}>
                     <Icon name="back" size={18} />
                   </button>
@@ -192,7 +210,7 @@ export function Home() {
                 </div>
               )}
             </div>
-            <div className="featrow">
+            <div key={pagina} className="featrow fadein" {...pausa}>
               {verDestacados.map((c) => (
                 <button key={c.id} className="fcard" onClick={() => navigate(`/vehiculo/${c.id}`)}>
                   <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} />

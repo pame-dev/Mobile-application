@@ -146,6 +146,7 @@ textarea.input{height:auto;min-height:96px;padding:12px 14px;resize:vertical}
 
 /* Featured */
 .featrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.featrow.fadein{animation:fade .5s ease}
 .fcard{position:relative;border-radius:20px;overflow:hidden;height:250px;cursor:pointer;border:0;padding:0;text-align:left}
 .fcard .ph{position:absolute;inset:0}
 .fcard .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(13,43,69,.92))}
