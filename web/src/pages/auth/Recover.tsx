@@ -5,7 +5,7 @@ import { Icon } from '../../components/Icon'
 import { EMAIL_CODE_LENGTH, mensajeUsuario, resetPassword, sendPasswordResetCode, verifyPasswordResetCode } from '../../data/auth'
 import { useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
-import { supabase } from '../../lib/supabase'
+import { cerrarSesionLocal } from '../../lib/supabase'
 import { passwordError } from '../../lib/formRules'
 import { setRecoveryMode } from '../../session/SessionContext'
 
@@ -40,7 +40,7 @@ export function Recover() {
     () => () => {
       if (sesionTemporal.current) {
         sesionTemporal.current = false
-        void supabase.auth.signOut().finally(() => setRecoveryMode(false))
+        void cerrarSesionLocal().finally(() => setRecoveryMode(false))
       } else setRecoveryMode(false)
     },
     [],

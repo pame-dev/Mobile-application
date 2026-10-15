@@ -32,6 +32,8 @@ export interface FiltrosBusqueda {
   id_carroceria: number | null
   precio_min: number | null
   precio_max: number | null
+  /** Desde "Cerca de mí". */
+  estado_ubicacion: string | null
 }
 
 export const busquedaVacia = (f: FiltrosBusqueda) => Object.values(f).every((v) => v == null)

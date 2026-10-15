@@ -1,5 +1,5 @@
 import { AuthError } from '@supabase/supabase-js'
-import { BUCKET, supabase } from '../lib/supabase'
+import { BUCKET, supabase, cerrarSesionLocal } from '../lib/supabase'
 import { traducir } from '../i18n/I18nContext'
 import { UserError } from './api'
 
@@ -126,7 +126,7 @@ export async function verifyPasswordResetCode(email: string, code: string): Prom
 export async function resetPassword(newPassword: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ password: newPassword })
   if (error) throw error
-  await supabase.auth.signOut()
+  await cerrarSesionLocal()
 }
 
 /** true si el número ya está registrado en otra cuenta (función telefono_en_uso). */

@@ -84,3 +84,14 @@ export async function signOutEverywhere(): Promise<void> {
   const { error } = await supabase.auth.signOut({ scope: 'global' })
   if (error) throw error
 }
+
+/** Estado y municipio del perfil ("Cerca de mí"); null si el perfil no tiene estado. */
+export async function miUbicacion(userId: string): Promise<{ estado: string; municipio: string } | null> {
+  const { data } = await supabase
+    .from('cuentas')
+    .select('estado_perfil_ubi,municipio_perfil_ubi')
+    .eq('id_cuenta', userId)
+    .maybeSingle()
+  const estado = (data?.estado_perfil_ubi as string | null)?.trim()
+  return estado ? { estado, municipio: ((data?.municipio_perfil_ubi as string | null) ?? '').trim() } : null
+}

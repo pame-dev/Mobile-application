@@ -46,6 +46,8 @@ export function toCar(a: AnuncioRow): Car {
     bodyType: a.carroceria ?? '',
     publishedAt: a.fecha_primera_publicacion ?? a.fecha_creacion,
     city: [a.municipio_ubicacion, a.estado_ubicacion].filter(Boolean).join(', '),
+    estado: a.estado_ubicacion ?? '',
+    municipio: a.municipio_ubicacion ?? '',
   }
 }
 

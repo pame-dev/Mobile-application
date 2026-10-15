@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { traducir } from '../i18n/I18nContext'
-import { supabase } from '../lib/supabase'
+import { cerrarSesionLocal, supabase } from '../lib/supabase'
 import type { Account } from '../data/types'
 
 /** Visitante (sin sesión), usuario (particular o lote) o administrador. */
@@ -46,11 +46,11 @@ async function loadAccount(): Promise<{ account: Account | null; notice: string 
     .maybeSingle()
 
   if (!cuenta) {
-    await supabase.auth.signOut()
+    await cerrarSesionLocal()
     return { account: null, notice: traducir('vehiculo.session.noProfile') }
   }
   if (cuenta.estado_cuenta === 'suspendida') {
-    await supabase.auth.signOut()
+    await cerrarSesionLocal()
     return { account: null, notice: traducir('vehiculo.session.suspended') }
   }
   const { data: esAdmin } = await supabase.rpc('es_administrador', { p_id_cuenta: user.id })
@@ -93,7 +93,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [reload])
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
+    await cerrarSesionLocal()
     setAccount(null)
   }, [])
 
