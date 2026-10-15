@@ -1,12 +1,13 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '../i18n/I18nContext'
-import { textoAviso } from '../lib/avisos'
+import { destinoAviso, textoAviso } from '../lib/avisos'
+import { ConfirmModal } from './Confirm'
 import { escucharCambios, EVENTO_CAMBIOS, type Tabla } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
 import { useUi } from './Ui'
 
-const PERMISO_PREGUNTADO = 'karsy-avisos-navegador-preguntado'
+const PERMISO_PREGUNTADO = 'karsy-avisos-navegador-preguntado-v2'
 
 const soportaAvisos = () => typeof window !== 'undefined' && 'Notification' in window
 
@@ -18,15 +19,15 @@ const soportaAvisos = () => typeof window !== 'undefined' && 'Notification' in w
  */
 export function TiempoReal() {
   const { account, reload } = useSession()
-  const { toast } = useUi()
+  const { toast, openModal } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
   const uid = account?.id ?? null
 
   useEffect(() => {
     return escucharCambios(uid, (a) => {
-      const texto = textoAviso(t, a.tipo, a.titulo_vehiculo?.trim() || t('notif.yourVehicle'))
-      const abrir = () => navigate(a.id_publicacion ? `/vehiculo/${a.id_publicacion}` : '/notificaciones')
+      const texto = textoAviso(t, a.tipo, a.titulo_vehiculo?.trim() || t('notif.yourVehicle'), a.datos)
+      const abrir = () => navigate(destinoAviso(a.tipo, a.id_publicacion) ?? '/notificaciones')
       window.dispatchEvent(new Event('karsy:notificaciones'))
       if (document.visibilityState === 'visible') {
         toast(texto, { label: t('live.view'), onClick: abrir })
@@ -53,7 +54,9 @@ export function TiempoReal() {
     return () => window.removeEventListener(EVENTO_CAMBIOS, onCambios)
   }, [uid, reload])
 
-  // Una sola vez por navegador: ofrecer los avisos del navegador.
+  // Al entrar con sesión, como la app: una ventana para activar las notificaciones del
+  // navegador (el permiso solo se puede pedir tras un clic). Se pregunta una vez por
+  // navegador; después se cambia en Notificaciones → Elegir qué avisos recibir.
   useEffect(() => {
     if (!uid || !soportaAvisos() || Notification.permission !== 'default') return
     try {
@@ -63,7 +66,17 @@ export function TiempoReal() {
       return
     }
     const id = setTimeout(() => {
-      toast(t('live.askPermission'), { label: t('live.enable'), onClick: () => void Notification.requestPermission() })
+      openModal(
+        <ConfirmModal
+          title={t('live.askTitle')}
+          message={t('live.askPermission')}
+          confirm={t('live.enable')}
+          cancel={t('live.notNow')}
+          onConfirm={async () => {
+            await Notification.requestPermission()
+          }}
+        />,
+      )
     }, 1500)
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps

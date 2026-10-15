@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.publish
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -276,14 +278,25 @@ fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
 
 /** Botón redondeado azul marino de la barra inferior. */
 @Composable
-fun PublishPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PublishPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, loading: Boolean = false) {
     Button(
         onClick = onClick,
+        // Mientras trabaja (revisar fotos, subirlas) no se puede volver a tocar.
+        enabled = !loading,
         shape = RoundedCornerShape(50),
-        colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = KarsyNavy,
+            contentColor = KarsyWhite,
+            disabledContainerColor = KarsyNavy.copy(alpha = 0.85f),
+            disabledContentColor = KarsyWhite,
+        ),
         contentPadding = PaddingValues(vertical = 15.dp),
         modifier = modifier.fillMaxWidth()
     ) {
+        if (loading) {
+            CircularProgressIndicator(color = KarsyWhite, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(10.dp))
+        }
         Text(text, fontFamily = Outfit, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
     }
 }
@@ -303,6 +316,8 @@ fun PublishStepScaffold(
     spacing: Int = 16,
     /** Para que el paso pueda subir el contenido (p. ej. a un aviso de error). */
     scrollState: ScrollState = rememberScrollState(),
+    /** El botón muestra una rueda de carga y no responde (el paso está trabajando). */
+    loading: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -335,7 +350,7 @@ fun PublishStepScaffold(
                 .navigationBarsPadding()
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 20.dp)
         ) {
-            PublishPrimaryButton(text = buttonText, onClick = onButtonClick)
+            PublishPrimaryButton(text = buttonText, onClick = onButtonClick, loading = loading)
         }
     }
 }

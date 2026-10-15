@@ -41,6 +41,7 @@ sealed class Routes(val route: String) {
     object PrivacyNotice : Routes("privacy_notice")
     object Notifications : Routes("notifications")
     object SavedSearches : Routes("saved_searches")
+    object NotificationPreferences : Routes("notification_preferences")
 
     /** Publicar; con editId corrige y reenvía una publicación rechazada. */
     object PublishFlow : Routes("publish_flow?editId={editId}") {

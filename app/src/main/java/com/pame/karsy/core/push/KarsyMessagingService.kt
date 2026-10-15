@@ -44,6 +44,7 @@ class KarsyMessagingService : FirebaseMessagingService() {
             tipo = tipo,
             vehiculo = data["titulo_vehiculo"],
             motivo = data["motivo"],
+            datos = datosDeAviso(data["datos"]),
         )
     }
 
@@ -76,7 +77,7 @@ class KarsyMessagingService : FirebaseMessagingService() {
             manager.deleteNotificationChannel(OLD_CHANNEL_ID)
         }
 
-        fun show(context: Context, id: Int, tipo: String, vehiculo: String?, motivo: String?) {
+        fun show(context: Context, id: Int, tipo: String, vehiculo: String?, motivo: String?, datos: Map<String, String> = emptyMap()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED
@@ -85,7 +86,7 @@ class KarsyMessagingService : FirebaseMessagingService() {
 
             val local = Idioma.envolver(context)
             val nombre = vehiculo?.takeIf { it.isNotBlank() } ?: local.getString(R.string.notif_vehicle_fallback)
-            val texto = local.getString(notificationTextRes(tipo), nombre)
+            val texto = notificationText(local, tipo, nombre, datos)
             val completo = motivo?.takeIf { it.isNotBlank() }
                 ?.let { "$texto\n${local.getString(R.string.notif_reason, it)}" } ?: texto
 

@@ -101,7 +101,9 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
             step = 4,
             form = form,
             onBack = onBack,
-            buttonText = stringResource(
+            buttonText = form.uploadProgress?.let { (subidas, total) ->
+                stringResource(R.string.publish_uploading_photos, subidas, total)
+            } ?: stringResource(
                 when {
                     form.isEditing && form.publishing -> R.string.publish_resubmitting
                     form.editingApproved -> R.string.publish_send_changes
@@ -111,6 +113,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 }
             ),
             onButtonClick = { if (!form.publishing) confirmPublish = true },
+            loading = form.publishing,
             contentPadding = PaddingValues(0.dp),
             spacing = 0
         ) {

@@ -5,14 +5,24 @@ import { ConfirmModal } from '../components/Confirm'
 import { Icon, type IconName } from '../components/Icon'
 import { LogoutModal } from '../components/TopNav'
 import { ModalHead, useUi } from '../components/Ui'
-import { changePassword, markAllRead, notifications, signOutEverywhere, type Notificacion } from '../data/account'
+import {
+  changePassword,
+  markAllRead,
+  notificationPreferences,
+  notifications,
+  PREFERENCIAS_POR_DEFECTO,
+  saveNotificationPreferences,
+  signOutEverywhere,
+  type Notificacion,
+  type PreferenciasAvisos,
+} from '../data/account'
 import { mensajeUsuario } from '../data/auth'
 import { borrarBusqueda, describirBusqueda, misBusquedas, type BusquedaGuardada } from '../data/busquedas'
 import { POLICY_EN, POLITICAS, TERMINOS, TERMS_EN, type LegalDoc } from '../data/legal'
 import { useI18n, type Lang } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { passwordError } from '../lib/formRules'
-import { textoAviso } from '../lib/avisos'
+import { destinoAviso, textoAviso } from '../lib/avisos'
 import { haceCuanto } from '../lib/format'
 import { useRecargar } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
@@ -96,6 +106,19 @@ function estiloDe(tipo: string): [IconName, string, string] {
     case 'reporte_atendido':
     case 'reporte_descartado':
       return ['flag', 'var(--pill)', 'var(--ink)']
+    case 'precio_bajo':
+      return ['chart', 'var(--success-l)', 'var(--success)']
+    case 'favorito_no_disponible':
+      return ['heart', 'var(--pill)', 'var(--mid)']
+    case 'resumen_semanal':
+    case 'auto_parecido':
+      return ['car', 'var(--teal-light)', 'var(--teal)']
+    case 'resumen_vendedor':
+    case 'hito_vistas':
+      return ['eye', 'var(--teal-light)', 'var(--teal)']
+    case 'poca_actividad':
+    case 'confirmar_venta':
+      return ['sold', 'var(--warning-l)', 'var(--warning)']
     default:
       return ['bell', 'var(--teal-light)', 'var(--teal)']
   }
@@ -130,6 +153,9 @@ export function Notifications() {
   return (
     <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
       <PageHead title={t('notif.title')} back="historial" />
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+        <SetRow icon="settings" title={t('notif.prefs.title')} desc={t('notif.prefs.linkDesc')} onClick={() => navigate('/notificaciones/preferencias')} />
+      </div>
       {error ? (
         <div className="card empty">
           <p className="muted">{t('notif.loadError')}</p>
@@ -150,7 +176,8 @@ export function Notifications() {
         <div className="card" style={{ overflow: 'hidden' }}>
           {lista.map((n) => {
             const [icono, bg, fg] = estiloDe(n.tipo)
-            const texto = textoAviso(t, n.tipo, n.titulo_vehiculo?.trim() || t('notif.yourVehicle'))
+            const texto = textoAviso(t, n.tipo, n.titulo_vehiculo?.trim() || t('notif.yourVehicle'), n.datos)
+            const destino = destinoAviso(n.tipo, n.id_publicacion)
             const contenido = (
               <>
                 <span className="nic" style={{ background: bg, color: fg }}>
@@ -166,8 +193,8 @@ export function Notifications() {
                 {!n.leida && <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--teal)', marginTop: 6, flex: 'none' }} />}
               </>
             )
-            return n.id_publicacion ? (
-              <button key={n.id_notificacion} className={`nrow ${n.leida ? '' : 'unread'}`} onClick={() => navigate(`/vehiculo/${n.id_publicacion}`)}>
+            return destino ? (
+              <button key={n.id_notificacion} className={`nrow ${n.leida ? '' : 'unread'}`} onClick={() => navigate(destino)}>
                 {contenido}
               </button>
             ) : (
@@ -178,6 +205,95 @@ export function Notifications() {
           })}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Preferencias de notificaciones ─────────────────────────────────────────
+
+type PermisoNavegador = NotificationPermission | 'sin-soporte'
+const permisoNavegador = (): PermisoNavegador => ('Notification' in window ? Notification.permission : 'sin-soporte')
+
+/** Qué avisos opcionales recibe la cuenta y el permiso de notificaciones del navegador. */
+export function NotificationPreferences() {
+  const { account, redirect } = useRequireAccount('/notificaciones/preferencias')
+  const { t } = useI18n()
+  const { toast } = useUi()
+  const [prefs, setPrefs] = useState<PreferenciasAvisos | null>(null)
+  const [permiso, setPermiso] = useState<PermisoNavegador>(permisoNavegador)
+
+  useEffect(() => {
+    if (!account) return
+    notificationPreferences(account.id)
+      .then(setPrefs)
+      .catch(() => setPrefs(PREFERENCIAS_POR_DEFECTO))
+  }, [account])
+
+  if (redirect) return redirect
+
+  /** Se guarda al momento; si falla, se regresa la casilla y se avisa. */
+  const cambiar = (clave: keyof PreferenciasAvisos) => {
+    if (!account || !prefs) return
+    const antes = prefs
+    const nuevo = { ...prefs, [clave]: !prefs[clave] }
+    setPrefs(nuevo)
+    saveNotificationPreferences(account.id, nuevo).catch(() => {
+      setPrefs(antes)
+      toast(t('notif.prefs.saveError'))
+    })
+  }
+
+  const filas: [keyof PreferenciasAvisos, Clave, Clave, IconName][] = [
+    ['precios', 'notif.prefs.prices', 'notif.prefs.pricesDesc', 'chart'],
+    ['resumenes', 'notif.prefs.summaries', 'notif.prefs.summariesDesc', 'doc'],
+    ['recomendaciones', 'notif.prefs.recommendations', 'notif.prefs.recommendationsDesc', 'car'],
+    ['vendedor', 'notif.prefs.seller', 'notif.prefs.sellerDesc', 'eye'],
+  ]
+
+  return (
+    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+      <PageHead title={t('notif.prefs.title')} back="/notificaciones" />
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+        <SetRow
+          icon="bell"
+          title={t('notif.prefs.browser')}
+          desc={t(
+            permiso === 'granted'
+              ? 'notif.prefs.browserOn'
+              : permiso === 'denied'
+                ? 'notif.prefs.browserBlocked'
+                : permiso === 'sin-soporte'
+                  ? 'notif.prefs.browserUnsupported'
+                  : 'notif.prefs.browserOff',
+          )}
+          right={
+            permiso === 'default' ? (
+              <button className="btn btn-primary btn-sm" onClick={() => void Notification.requestPermission().then(setPermiso)}>
+                {t('live.enable')}
+              </button>
+            ) : undefined
+          }
+        />
+      </div>
+      {!prefs ? (
+        <div className="skeleton" style={{ height: 280 }} />
+      ) : (
+        <div className="card" style={{ overflow: 'hidden' }}>
+          {filas.map(([clave, titulo, desc, icono]) => (
+            <SetRow
+              key={clave}
+              icon={icono}
+              title={t(titulo)}
+              desc={t(desc)}
+              onClick={() => cambiar(clave)}
+              right={<input type="checkbox" checked={prefs[clave]} readOnly style={{ width: 20, height: 20, accentColor: 'var(--teal)' }} />}
+            />
+          ))}
+        </div>
+      )}
+      <p className="muted" style={{ fontSize: 13, margin: '14px 4px 0' }}>
+        {t('notif.prefs.footer')}
+      </p>
     </div>
   )
 }

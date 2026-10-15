@@ -1,6 +1,7 @@
 package com.pame.karsy.core.navigation
 
 import androidx.compose.runtime.mutableStateListOf
+import com.pame.karsy.feature.profile.NotificationPreferencesScreen
 import com.pame.karsy.feature.profile.SavedSearchesScreen
 import androidx.activity.compose.BackHandler
 import com.pame.karsy.feature.lots.LotProfileScreen
@@ -429,7 +430,16 @@ fun KarsyNavGraph(
                     TermsScreen(onBack = ::back)
                 }
                 composable(Routes.Notifications.route) {
-                    NotificationsScreen(onBack = ::back, onCarClick = ::openCar)
+                    NotificationsScreen(
+                        onBack = ::back,
+                        onCarClick = ::openCar,
+                        onPreferences = { navController.navigate(Routes.NotificationPreferences.route) },
+                        onHome = { goTab(Routes.Home.route) },
+                        onDashboard = { navController.navigate(Routes.Dashboard.route) }
+                    )
+                }
+                composable(Routes.NotificationPreferences.route) {
+                    NotificationPreferencesScreen(onBack = ::back)
                 }
                 composable(Routes.SavedSearches.route) {
                     SavedSearchesScreen(onBack = ::back)

@@ -1,6 +1,7 @@
 package com.pame.karsy.data.remote
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.Serializable
 
 // Filas tal como las devuelve Supabase (nombres de columna en snake_case).
@@ -280,6 +281,8 @@ data class NotificacionDto(
     val motivo: String? = null,
     val leida: Boolean = false,
     @SerialName("fecha_creacion") val fecha: String,
+    /** Números del aviso (precio, vistas, autos nuevos…); null en los avisos que no los usan. */
+    val datos: JsonObject? = null,
 )
 
 /** Fila de busquedas_guardadas, con los nombres del catálogo para mostrarla. */
@@ -307,3 +310,12 @@ data class NombreModeloDto(@SerialName("nombre_modelo") val nombre: String)
 
 @Serializable
 data class NombreCarroceriaDto(@SerialName("nombre_carroceria") val nombre: String)
+
+/** Fila de preferencias_notificacion (sin fila = todo activo). */
+@Serializable
+data class PreferenciasAvisosDto(
+    val precios: Boolean = true,
+    val resumenes: Boolean = true,
+    val recomendaciones: Boolean = true,
+    val vendedor: Boolean = true,
+)

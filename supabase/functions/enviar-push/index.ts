@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     .update({ push_enviado: true })
     .eq("id_notificacion", id)
     .eq("push_enviado", false)
-    .select("id_notificacion, id_cuenta, tipo, titulo_vehiculo, motivo, id_publicacion")
+    .select("id_notificacion, id_cuenta, tipo, titulo_vehiculo, motivo, id_publicacion, datos")
     .maybeSingle();
   if (error) return json({ error: error.message }, 500);
   if (!aviso) return json({ omitido: "No existe o ya se envió" });
@@ -120,6 +120,8 @@ Deno.serve(async (req) => {
             titulo_vehiculo: aviso.titulo_vehiculo ?? "",
             motivo: aviso.motivo ?? "",
             id_publicacion: aviso.id_publicacion != null ? String(aviso.id_publicacion) : "",
+            // Números del aviso (precio, vistas…) para armar el texto; JSON en texto.
+            datos: aviso.datos ? JSON.stringify(aviso.datos) : "",
           },
           android: { priority: "HIGH" },
         },

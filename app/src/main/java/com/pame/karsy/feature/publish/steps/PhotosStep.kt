@@ -105,9 +105,11 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         step = 2,
         form = form,
         onBack = onBack,
-        // El botón siempre está activo; la validación corre al presionarlo.
-        buttonText = stringResource(R.string.publish_next_details),
+        // La validación corre al presionarlo; mientras revisa las fotos (placas, que sean de
+        // auto, repetidas) el botón muestra la carga para que se note que sí respondió.
+        buttonText = stringResource(if (form.checkingPhotos) R.string.publish_checking_photos else R.string.publish_next_details),
         onButtonClick = onNext,
+        loading = form.checkingPhotos,
         spacing = 12,
         scrollState = scrollState
     ) {

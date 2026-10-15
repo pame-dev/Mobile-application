@@ -1,6 +1,19 @@
 package com.pame.karsy.feature.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.core.app.NotificationManagerCompat
+import android.provider.Settings
+import android.content.Intent
+import com.pame.karsy.core.push.datosDeAviso
+import com.pame.karsy.core.push.notificationText
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.rounded.Sell
+import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material.icons.rounded.HeartBroken
+import androidx.compose.material.icons.rounded.TrendingDown
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -53,7 +66,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import com.pame.karsy.core.components.KarsyPullToRefresh
-import com.pame.karsy.core.push.notificationTextRes
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.theme.DmSans
@@ -86,6 +98,11 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
     "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, Color(0xFF2563EB), Color(0xFFEFF6FF))
     "reporte_descartado" -> NotifStyle(Icons.Rounded.Flag, KarsyTeal, KarsyBg)
     "busqueda_coincidencia" -> NotifStyle(Icons.Rounded.NotificationsActive, KarsyTeal, Color(0xFFE6F6F6))
+    "precio_bajo" -> NotifStyle(Icons.Rounded.TrendingDown, Color(0xFF16A34A), Color(0xFFF0FDF4))
+    "favorito_no_disponible" -> NotifStyle(Icons.Rounded.HeartBroken, Color(0xFF64748B), Color(0xFFF1F5F9))
+    "resumen_semanal", "auto_parecido" -> NotifStyle(Icons.Rounded.DirectionsCar, KarsyTeal, Color(0xFFE6F6F6))
+    "resumen_vendedor", "hito_vistas" -> NotifStyle(Icons.Rounded.Insights, Color(0xFF8B5CF6), Color(0xFFF5F3FF))
+    "poca_actividad", "confirmar_venta" -> NotifStyle(Icons.Rounded.Sell, Color(0xFFD97706), Color(0xFFFFFBEB))
     else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg)
 }
 
@@ -94,7 +111,15 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
  * Al abrirla, los avisos nuevos se marcan como leídos (se ven resaltados esta vez).
  */
 @Composable
-fun NotificationsScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
+fun NotificationsScreen(
+    onBack: () -> Unit,
+    onCarClick: (Long) -> Unit,
+    onPreferences: () -> Unit = {},
+    /** Resumen semanal de autos nuevos → inicio. */
+    onHome: () -> Unit = {},
+    /** Resumen semanal del vendedor → su panel. */
+    onDashboard: () -> Unit = {},
+) {
     var notifications by remember { mutableStateOf<List<NotificacionDto>?>(null) }
     val scope = rememberCoroutineScope()
     suspend fun load() {
@@ -121,6 +146,8 @@ fun NotificationsScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                     .navigationBarsPadding()
                     .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
             ) {
+                PreferencesRow(onPreferences)
+                Spacer(Modifier.height(14.dp))
                 val items = notifications
                 if (items == null) {
                     // Esqueleto de la lista mientras carga.
@@ -146,7 +173,17 @@ fun NotificationsScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
                     ) {
-                        items.forEach { n -> NotificationRow(n, onCarClick) }
+                        items.forEach { n ->
+                            NotificationRow(
+                                n,
+                                onOpen = when {
+                                    n.tipo == "resumen_semanal" -> onHome
+                                    n.tipo == "resumen_vendedor" -> onDashboard
+                                    n.idPublicacion != null -> ({ onCarClick(n.idPublicacion) })
+                                    else -> null
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -155,7 +192,7 @@ fun NotificationsScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
 }
 
 @Composable
-private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
+private fun NotificationRow(n: NotificacionDto, onOpen: (() -> Unit)?) {
     val style = styleFor(n.tipo)
     val vehiculo = n.tituloVehiculo?.takeIf { it.isNotBlank() } ?: stringResource(R.string.notif_vehicle_fallback)
     Row(
@@ -165,7 +202,7 @@ private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
             .clip(RoundedCornerShape(10.dp))
             .background(karsyTint(style.color, style.bg))
             .then(if (n.leida) Modifier else Modifier.border(1.dp, style.color.copy(alpha = 0.35f), RoundedCornerShape(10.dp)))
-            .clickable(enabled = n.idPublicacion != null) { n.idPublicacion?.let(onCarClick) }
+            .clickable(enabled = onOpen != null) { onOpen?.invoke() }
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Box(
@@ -180,7 +217,7 @@ private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                stringResource(notificationTextRes(n.tipo), vehiculo),
+                notificationText(LocalContext.current, n.tipo, vehiculo, datosDeAviso(n.datos)),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 fontWeight = if (n.leida) FontWeight.Medium else FontWeight.SemiBold,
@@ -214,6 +251,64 @@ private fun NotificationRow(n: NotificacionDto, onCarClick: (Long) -> Unit) {
                     .clip(CircleShape)
                     .background(style.color)
             )
+        }
+    }
+}
+
+/**
+ * "Elegir qué avisos recibir" y, si el teléfono tiene apagadas las notificaciones de
+ * Karsy, un aviso con el botón para activarlas en los ajustes de Android.
+ */
+@Composable
+private fun PreferencesRow(onPreferences: () -> Unit) {
+    val context = LocalContext.current
+    val permitidas = NotificationManagerCompat.from(context).areNotificationsEnabled()
+    ProfileCard {
+        Column {
+            if (!permitidas) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            runCatching { context.startActivity(intent) }
+                        }
+                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    Icon(Icons.Rounded.NotificationsOff, contentDescription = null, tint = Color(0xFFD97706), modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        stringResource(R.string.notif_prefs_system_off),
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        color = KarsyCharcoal,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                RowDivider()
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onPreferences)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Icon(Icons.Rounded.Tune, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    stringResource(R.string.notif_prefs_title),
+                    fontFamily = DmSans,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KarsyCharcoal,
+                    modifier = Modifier.weight(1f)
+                )
+                RowChevron()
+            }
         }
     }
 }
