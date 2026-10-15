@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.cardetail
 
 import androidx.activity.compose.BackHandler
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.rounded.Translate
 import com.pame.karsy.data.repository.CarRepository
@@ -253,9 +254,11 @@ fun CarDetailScreen(
                 onShare = { shareCar(context, detail) },
             )
 
+            // Jalar hacia abajo vuelve a leer el auto (precio, estado, fotos…).
+            KarsyPullToRefresh(onRefresh = { done -> vm.refresh(done) }, modifier = Modifier.weight(1f)) {
             Column(
                 Modifier
-                    .weight(1f)
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 20.dp)
             ) {
@@ -286,6 +289,7 @@ fun CarDetailScreen(
                     onOpenFullscreen = { showViewer = true },
                 )
                 DetailBody(detail = detail, onOpenSeller = ::openSeller)
+            }
             }
 
             // Barra inferior: contacto para compradores; editar / deshabilitar para el dueño.

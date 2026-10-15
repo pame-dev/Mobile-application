@@ -109,6 +109,28 @@ class CarDetailViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Jalar para recargar: vuelve a leer el auto (precio, estado, fotos), el favorito y,
+     * si ya se habían cargado, el contacto y los autos del vendedor. Sin esqueleto y sin
+     * contar otra vista.
+     */
+    fun refresh(onDone: () -> Unit) {
+        val id = loadedId ?: return onDone()
+        viewModelScope.launch {
+            safeCall { CarRepository.detail(id) }
+                .onSuccess { if (it != null) detail = it; error = null }
+            if (SessionManager.userId != null) {
+                favorite = id in safeCall { CarRepository.favoriteIds() }.getOrDefault(emptySet())
+            }
+            if (contact != null) contact = safeCall { CarRepository.contact(id) }.getOrDefault(contact)
+            val sellerId = detail?.sellerId
+            if (sellerId != null && sellerCars.isNotEmpty()) {
+                sellerCars = safeCall { CarRepository.ownerCars(sellerId, onlyVisible = true) }.getOrDefault(sellerCars)
+            }
+            onDone()
+        }
+    }
+
     fun retry() {
         loadedId?.let { loadedId = null; load(it) }
     }

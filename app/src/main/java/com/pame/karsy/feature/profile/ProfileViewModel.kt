@@ -51,8 +51,9 @@ class ProfileViewModel : ViewModel() {
             cars.count { it.status == "Activo" }.toString() to texto(R.string.profile_stat_active),
         )
 
-    fun load() {
-        val uid = SessionManager.userId ?: run { loading = false; return }
+    /** [onDone]: al terminar (jalar para recargar quita la ruedita). */
+    fun load(onDone: () -> Unit = {}) {
+        val uid = SessionManager.userId ?: run { loading = false; onDone(); return }
         viewModelScope.launch {
             safeCall { UserRepository.currentUser() }
                 .onSuccess { user = it }
@@ -61,6 +62,7 @@ class ProfileViewModel : ViewModel() {
             // Las ocultas se comparten con la web: se vuelven a leer junto con el perfil.
             safeCall { PublicacionesOcultas.sincronizar() }
             loading = false
+            onDone()
         }
     }
 
