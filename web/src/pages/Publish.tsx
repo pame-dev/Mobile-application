@@ -115,6 +115,8 @@ export function Publish() {
   const [repetidas, setRepetidas] = useState<Set<string>>(new Set())
   const [revisando, setRevisando] = useState(false)
   const [publicando, setPublicando] = useState(false)
+  /** Al publicar: [fotos subidas, total] mientras se suben a Storage. */
+  const [subida, setSubida] = useState<[number, number] | null>(null)
   const [listo, setListo] = useState(false)
   const [tocado, setTocado] = useState(false)
   const [arrastrando, setArrastrando] = useState(false)
@@ -383,8 +385,25 @@ export function Publish() {
     await Promise.all(trabajosPlacas.current)
     try {
       const rutas: string[] = []
-      // Las de fotosActuales ya tienen las placas tapadas.
-      for (const f of fotosActuales.current) rutas.push(f.ruta ?? (await uploadPhoto((await jpegDe(f.file!, 1600, 0.82)).blob)))
+      // Las de fotosActuales ya tienen las placas tapadas. editar_publicacion solo acepta fotos
+      // de la carpeta del dueño: las ya publicadas que están en otra (datos de prueba, links
+      // externos) se suben de nuevo a la suya.
+      const propia = `publicaciones/${account!.id}/`
+      const fotos = fotosActuales.current
+      const porSubir = fotos.filter((f) => !f.ruta?.startsWith(propia)).length
+      let subidas = 0
+      if (porSubir) setSubida([0, porSubir])
+      for (const f of fotos) {
+        if (f.ruta?.startsWith(propia)) {
+          rutas.push(f.ruta)
+          continue
+        }
+        const origen = f.file ?? (await (await fetch(f.url)).blob())
+        rutas.push(await uploadPhoto((await jpegDe(origen, 1600, 0.82)).blob))
+        setSubida([++subidas, porSubir])
+      }
+      // Fotos listas: lo que sigue es guardar la publicación ("Publicando…").
+      setSubida(null)
       // "Caballos de fuerza" no tiene columna en la BD: se agrega a la descripción.
       const descripcionFinal = d.descripcion.trim() + (d.caballos ? `\n\nPotencia: ${d.caballos} hp` : '')
       const datos = {
@@ -413,6 +432,7 @@ export function Publish() {
       setListo(true)
       openModal(<Exito titulo={titulo} editando={editId != null} aprobada={editandoAprobada} editId={editId} />)
     } catch (ex) {
+      setSubida(null)
       setError(mensajeUsuario(ex))
     }
     setPublicando(false)
@@ -769,11 +789,15 @@ export function Publish() {
             </button>
             {step < 3 ? (
               <button className="btn btn-primary" disabled={revisando} onClick={siguiente}>
+                {revisando && <span className="spinner" aria-hidden />}
                 {revisando ? t('publicar.checkingPhotos') : t('publicar.nextTo', { paso: t(step === 2 ? 'publicar.stepConfirmation' : PASOS[step + 1]) })}
               </button>
             ) : (
               <button className="btn btn-teal" disabled={publicando} onClick={confirmarPublicar}>
-                {publicando
+                {publicando && <span className="spinner" aria-hidden />}
+                {subida
+                  ? t('publicar.uploadingPhotos', { n: subida[0], total: subida[1] })
+                  : publicando
                   ? editId
                     ? t('publicar.resubmitting')
                     : t('publicar.publishing')

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { Layout } from './components/Layout'
-import { Notifications, Privacy, PrivacyPolicy, SavedSearches, Settings, Terms } from './pages/Account'
+import { NotificationPreferences, Notifications, Privacy, PrivacyPolicy, SavedSearches, Settings, Terms } from './pages/Account'
 import { Admin } from './pages/admin/Admin'
 import { Dashboard } from './pages/Dashboard'
 import { Detail } from './pages/Detail'
@@ -48,6 +48,7 @@ export function App() {
         <Route path="historial" element={<History />} />
 
         <Route path="notificaciones" element={<Notifications />} />
+        <Route path="notificaciones/preferencias" element={<NotificationPreferences />} />
         <Route path="busquedas" element={<SavedSearches />} />
         <Route path="configuracion" element={<Settings />} />
         <Route path="privacidad" element={<Privacy />} />

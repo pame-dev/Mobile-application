@@ -34,6 +34,7 @@ export interface AvisoNuevo {
   id_publicacion: number | null
   titulo_vehiculo: string | null
   motivo: string | null
+  datos: Record<string, string | number> | null
 }
 
 /**

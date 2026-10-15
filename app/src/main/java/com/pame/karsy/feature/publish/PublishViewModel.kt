@@ -192,6 +192,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         revisionAuto[uri] = DetectorAutos.pareceAuto(context, uri) ?: true
     }
 
+    /** Al publicar: (fotos subidas, total) mientras se suben a Storage; null el resto del tiempo. */
+    var uploadProgress by mutableStateOf<Pair<Int, Int>?>(null)
+        private set
+
     /** Mientras se comparan las fotos para buscar repetidas. */
     var checkingPhotos by mutableStateOf(false)
         private set
@@ -428,10 +432,19 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 // editar_publicacion solo acepta fotos de la carpeta del dueño. Las ya publicadas
                 // que están en otra (datos de prueba, links externos) se suben de nuevo a la suya.
                 val propia = "publicaciones/${SessionManager.userId}/"
-                val rutas = fotosElegidas.map { uri ->
+                val fotos = fotosElegidas
+                val porSubir = fotos.count { rutasExistentes[it]?.startsWith(propia) != true }
+                var subidas = 0
+                if (porSubir > 0) uploadProgress = 0 to porSubir
+                val rutas = fotos.map { uri ->
                     rutasExistentes[uri]?.takeIf { it.startsWith(propia) }
-                        ?: CarRepository.uploadPhoto(Imagenes.jpegBytes(appContext, uri))
+                        ?: CarRepository.uploadPhoto(Imagenes.jpegBytes(appContext, uri)).also {
+                            subidas++
+                            uploadProgress = subidas to porSubir
+                        }
                 }
+                // Fotos listas: lo que sigue es guardar la publicación ("Publicando…").
+                uploadProgress = null
                 // "Caballos de fuerza" no tiene columna en la BD: se agrega a la descripción.
                 val potencia = caballos.filter(Char::isDigit)
                 val descripcionFinal = descripcion.trim() +
@@ -464,6 +477,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             }
                 .onSuccess { published = true }
                 .onFailure { error = it.mensajeUsuario() }
+            uploadProgress = null
             publishing = false
         }
     }

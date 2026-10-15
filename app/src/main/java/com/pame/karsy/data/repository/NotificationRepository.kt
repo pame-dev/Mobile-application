@@ -1,6 +1,9 @@
 package com.pame.karsy.data.repository
 
 import com.pame.karsy.core.session.SessionManager
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.buildJsonObject
+import com.pame.karsy.data.remote.PreferenciasAvisosDto
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.data.remote.NotificacionDto
 import io.github.jan.supabase.postgrest.from
@@ -33,5 +36,24 @@ object NotificationRepository {
                 eq("leida", false)
             }
         }
+    }
+
+    /** Qué avisos opcionales recibe la cuenta (sin fila guardada = todos). */
+    suspend fun preferences(): PreferenciasAvisosDto {
+        val uid = SessionManager.userId ?: return PreferenciasAvisosDto()
+        return db.from("preferencias_notificacion").select { filter { eq("id_cuenta", uid) } }
+            .decodeSingleOrNull<PreferenciasAvisosDto>() ?: PreferenciasAvisosDto()
+    }
+
+    suspend fun savePreferences(p: PreferenciasAvisosDto) {
+        val uid = SessionManager.userId ?: return
+        db.from("preferencias_notificacion").upsert(buildJsonObject {
+            put("id_cuenta", uid)
+            put("precios", p.precios)
+            put("resumenes", p.resumenes)
+            put("recomendaciones", p.recomendaciones)
+            put("vendedor", p.vendedor)
+            put("fecha_actualizacion", java.time.Instant.now().toString())
+        })
     }
 }
