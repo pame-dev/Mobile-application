@@ -3,6 +3,7 @@
 import { traducir } from '../i18n/I18nContext'
 import { publicUrl, supabase } from '../lib/supabase'
 import type { AnuncioRow, Car, CarDetail, Catalogs, Lot, LotContact, SellerContact, SellerProfile } from './types'
+import { traducirAlIngles } from '../lib/traductor'
 
 const VISTA = 'v_anuncios'
 
@@ -304,4 +305,16 @@ export async function ownerVisibleCars(ownerId: string): Promise<Car[]> {
     await supabase.from(VISTA).select('*').eq('id_propietario', ownerId).eq('visible', true).order('fecha_creacion', { ascending: false }),
   ) as AnuncioRow[]
   return rows.map(toCar)
+}
+
+/**
+ * Descripción e imperfecciones en inglés (traducción automática gratuita, lib/traductor.ts).
+ * null si no hay nada que traducir o no se pudo; cada parte es null si falló o venía vacía.
+ */
+export async function traduccionPublicacion(
+  descripcion: string,
+  problemas: string,
+): Promise<{ descripcion: string | null; problemas: string | null } | null> {
+  const [d, p] = await Promise.all([traducirAlIngles(descripcion), traducirAlIngles(problemas)])
+  return d || p ? { descripcion: d, problemas: p } : null
 }

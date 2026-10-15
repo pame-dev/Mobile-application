@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.admin
 
 import androidx.compose.foundation.background
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -90,9 +91,11 @@ fun UserReportReviewScreen(
             )
         }
 
+        // Jalar hacia abajo vuelve a leer la cuenta y sus publicaciones (datos del panel de admin).
+        KarsyPullToRefresh(onRefresh = { done -> vm.loadAll(done) }, modifier = Modifier.weight(1f)) {
         Column(
             Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 20.dp)
         ) {
@@ -150,6 +153,7 @@ fun UserReportReviewScreen(
                     }
                 }
             }
+        }
         }
 
         if (report.status == "Pendiente") {

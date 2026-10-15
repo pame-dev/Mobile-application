@@ -1,6 +1,13 @@
 package com.pame.karsy.feature.cardetail
 
 import androidx.activity.compose.BackHandler
+import com.pame.karsy.core.components.KarsyPullToRefresh
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.rounded.Translate
+import com.pame.karsy.data.repository.CarRepository
+import com.pame.karsy.data.remote.TraduccionDto
+import com.pame.karsy.core.locale.Idioma
+import com.pame.karsy.core.util.Catalogo
 import com.pame.karsy.BuildConfig
 import androidx.compose.material.icons.rounded.Share
 import android.content.Intent
@@ -247,9 +254,11 @@ fun CarDetailScreen(
                 onShare = { shareCar(context, detail) },
             )
 
+            // Jalar hacia abajo vuelve a leer el auto (precio, estado, fotos…).
+            KarsyPullToRefresh(onRefresh = { done -> vm.refresh(done) }, modifier = Modifier.weight(1f)) {
             Column(
                 Modifier
-                    .weight(1f)
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 20.dp)
             ) {
@@ -280,6 +289,7 @@ fun CarDetailScreen(
                     onOpenFullscreen = { showViewer = true },
                 )
                 DetailBody(detail = detail, onOpenSeller = ::openSeller)
+            }
             }
 
             // Barra inferior: contacto para compradores; editar / deshabilitar para el dueño.
@@ -932,15 +942,15 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
         stringResource(R.string.detail_spec_model) to car.model,
         stringResource(R.string.detail_spec_year) to car.year.toString(),
         stringResource(R.string.detail_spec_brand) to car.brand,
-        stringResource(R.string.detail_spec_transmission) to detail.transmision,
+        stringResource(R.string.detail_spec_transmission) to Catalogo.nombre(detail.transmision),
         stringResource(R.string.detail_spec_mileage) to detail.kilometraje,
         stringResource(R.string.detail_spec_insurance_recovered) to detail.recuperadoPorSeguro,
         stringResource(R.string.detail_spec_cylinders) to detail.cilindros,
         stringResource(R.string.detail_spec_engine) to detail.motor,
-        stringResource(R.string.detail_spec_body_type) to detail.tipoCarro,
-        stringResource(R.string.detail_spec_color) to detail.color,
+        stringResource(R.string.detail_spec_body_type) to Catalogo.nombre(detail.tipoCarro),
+        stringResource(R.string.detail_spec_color) to Catalogo.nombre(detail.color),
         stringResource(R.string.detail_spec_previous_owners) to detail.cantDuenos,
-        stringResource(R.string.detail_spec_fuel) to detail.combustible,
+        stringResource(R.string.detail_spec_fuel) to Catalogo.nombre(detail.combustible),
         stringResource(R.string.detail_spec_location) to detail.ubicacion.ifEmpty { "—" },
     )
 
@@ -983,12 +993,27 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
             }
         }
 
+        // En inglés: la descripción y las imperfecciones traducidas automáticamente (Traductor).
+        val enIngles = Idioma.actual(LocalContext.current) == Idioma.EN
+        var traduccion by remember(car.id) { mutableStateOf<TraduccionDto?>(null) }
+        var verTraduccion by remember(car.id) { mutableStateOf(true) }
+        LaunchedEffect(car.id, detail.descripcionLarga, detail.detalles, enIngles) {
+            traduccion = null
+            if (enIngles && (detail.descripcionLarga.isNotBlank() || detail.tieneProblemas)) {
+                traduccion = CarRepository.traduccion(detail.descripcionLarga, if (detail.tieneProblemas) detail.detalles else "")
+            }
+        }
+        val mostrar = traduccion?.takeIf { verTraduccion }
+
         SectionLabel(stringResource(R.string.detail_section_description))
         val noDescription = stringResource(R.string.detail_no_description)
-        TextCard(detail.descripcionLarga.ifBlank { noDescription })
+        TextCard(mostrar?.descripcion ?: detail.descripcionLarga.ifBlank { noDescription })
+        if (traduccion?.descripcion != null) {
+            TranslationNote(verTraduccion) { verTraduccion = !verTraduccion }
+        }
 
         SectionLabel(stringResource(R.string.detail_section_car_details))
-        TextCard(detail.detalles)
+        TextCard(mostrar?.problemas ?: detail.detalles)
 
         SectionLabel(stringResource(R.string.detail_section_seller_contact))
         val shape = RoundedCornerShape(14.dp)
@@ -1052,6 +1077,35 @@ private fun FichaCell(label: String, value: String, modifier: Modifier = Modifie
             fontWeight = FontWeight.SemiBold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(top = 2.dp)
+        )
+    }
+}
+
+/** "Traducido automáticamente del español · Ver original" (o "Ver traducción"). */
+@Composable
+private fun TranslationNote(viendoTraduccion: Boolean, onToggle: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .offset(y = (-12).dp)
+            .padding(start = 4.dp, bottom = 8.dp)
+    ) {
+        Icon(Icons.Rounded.Translate, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(14.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(
+            stringResource(if (viendoTraduccion) R.string.detail_translated else R.string.detail_original_text),
+            fontFamily = DmSans,
+            fontSize = 11.sp,
+            color = KarsyMid
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            stringResource(if (viendoTraduccion) R.string.detail_see_original else R.string.detail_see_translation),
+            fontFamily = DmSans,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = KarsyTeal,
+            modifier = Modifier.clickable(onClick = onToggle)
         )
     }
 }

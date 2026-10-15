@@ -319,3 +319,10 @@ data class PreferenciasAvisosDto(
     val recomendaciones: Boolean = true,
     val vendedor: Boolean = true,
 )
+
+/** Respuesta de la Edge Function traducir-publicacion (texto en inglés; null si no había). */
+@Serializable
+data class TraduccionDto(
+    val descripcion: String? = null,
+    val problemas: String? = null,
+)

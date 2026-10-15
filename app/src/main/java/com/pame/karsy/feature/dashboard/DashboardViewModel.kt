@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.dashboard
 
 import androidx.compose.runtime.getValue
+import com.pame.karsy.core.session.PublicacionesOcultas
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -65,6 +66,8 @@ class DashboardViewModel : ViewModel() {
                 .onSuccess { stats = it; error = null }
                 .onFailure { error = it.mensajeUsuario() }
             myListings = safeCall { CarRepository.ownerCars(uid) }.getOrDefault(myListings)
+            // Las ocultas se comparten con la web: se vuelven a leer junto con el panel.
+            safeCall { PublicacionesOcultas.sincronizar() }
             favoriteCounts = safeCall { CarRepository.favoriteCounts() }.getOrDefault(favoriteCounts)
             if (avatarUrl == null) avatarUrl = safeCall { UserRepository.currentUser()?.avatarUrl }.getOrNull()
             loading = false

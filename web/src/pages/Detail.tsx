@@ -7,7 +7,7 @@ import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
-import { carDetail, registerView, reportListing, sellerContact, UserError, visibleCars } from '../data/api'
+import { carDetail, registerView, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
 import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
 import type { Car, CarDetail, SellerContact } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
@@ -226,6 +226,24 @@ export function Detail() {
   /** La publicación con los datos de Mi panel, solo si es del usuario en sesión. */
   const [propia, setPropia] = useState<OwnCar | null>(null)
   const [oculta, setOcultaState] = useState(false)
+  /** En inglés: descripción e imperfecciones traducidas automáticamente (lib/traductor.ts). */
+  const [traduccion, setTraduccion] = useState<{ descripcion: string | null; problemas: string | null } | null>(null)
+  const [verTraduccion, setVerTraduccion] = useState(true)
+  const { lang } = useI18n()
+  const textoOriginal = detail ? `${detail.car.description}\n${detail.row.descripcion_problemas ?? ''}` : ''
+  useEffect(() => {
+    setTraduccion(null)
+    if (lang !== 'en' || !detail || !textoOriginal.trim()) return
+    let vivo = true
+    void traduccionPublicacion(detail.car.description, detail.row.tiene_problemas ? detail.row.descripcion_problemas ?? '' : '').then(
+      (tr) => vivo && setTraduccion(tr),
+    )
+    return () => {
+      vivo = false
+    }
+    // Se vuelve a pedir si cambia el texto (edición aprobada) o el idioma.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, carId, textoOriginal])
 
   useEffect(() => {
     let vivo = true
@@ -253,7 +271,9 @@ export function Detail() {
   const esDuenoId = !!account && !!detail && account.id === detail.car.ownerId
   const cargarPropia = useCallback(() => {
     if (!account || !esDuenoId) return setPropia(null)
-    setOcultaState(ocultas(account.id).has(carId))
+    ocultas(account.id)
+      .then((s) => setOcultaState(s.has(carId)))
+      .catch(() => undefined)
     ownCar(carId)
       .then(setPropia)
       .catch(() => setPropia(null))
@@ -269,7 +289,7 @@ export function Detail() {
       .catch(() => undefined)
     cargarPropia()
   }, [carId, cargarPropia])
-  useRecargar(recargarDetalle, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'solicitudes_destacado'])
+  useRecargar(recargarDetalle, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'solicitudes_destacado', 'publicaciones_ocultas'])
 
   // Tras una acción del dueño se recargan el estado del detalle y los botones.
   const accionesDueno = useOwnerActions(() => {
@@ -392,8 +412,8 @@ export function Detail() {
                 acciones={accionesDueno}
                 oculta={oculta}
                 onOcultar={(v) => {
-                  setOculta(account!.id, c.id, v)
                   setOcultaState(v)
+                  setOculta(account!.id, c.id, v).catch(() => setOcultaState(!v))
                 }}
               />
             )}
@@ -469,13 +489,14 @@ export function Detail() {
           <div className="card" style={{ padding: 22 }}>
             <h3 style={{ fontSize: 17, marginBottom: 8 }}>{t('vehiculo.detail.description')}</h3>
             <p className="muted" style={{ lineHeight: 1.7, whiteSpace: 'pre-line' }}>
-              {c.description || t('vehiculo.detail.noDescription')}
+              {(verTraduccion && traduccion?.descripcion) || c.description || t('vehiculo.detail.noDescription')}
             </p>
+            {traduccion?.descripcion && <AvisoTraduccion viendoTraduccion={verTraduccion} onCambiar={() => setVerTraduccion((v) => !v)} />}
           </div>
           <div className="card" style={{ padding: 22 }}>
             <h3 style={{ fontSize: 17, marginBottom: 8 }}>{t('vehiculo.detail.carDetails')}</h3>
             <p className="muted" style={{ whiteSpace: 'pre-line' }}>
-              {detail.row.tiene_problemas ? detail.detalles : t('vehiculo.noProblems')}
+              {detail.row.tiene_problemas ? (verTraduccion && traduccion?.problemas) || detail.detalles : t('vehiculo.noProblems')}
             </p>
           </div>
         </div>
@@ -554,5 +575,19 @@ export function Detail() {
         </>
       )}
     </div>
+  )
+}
+
+/** "Traducido automáticamente · Ver original" (o "Ver traducción"). */
+function AvisoTraduccion({ viendoTraduccion, onCambiar }: { viendoTraduccion: boolean; onCambiar: () => void }) {
+  const { t } = useI18n()
+  return (
+    <p className="mid" style={{ fontSize: 12.5, marginTop: 10, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+      <Icon name="globe" size={14} />
+      {viendoTraduccion ? t('vehiculo.detail.translated') : t('vehiculo.detail.original')}
+      <button className="linkbtn" onClick={onCambiar} style={{ fontSize: 12.5 }}>
+        {viendoTraduccion ? t('vehiculo.detail.seeOriginal') : t('vehiculo.detail.seeTranslation')}
+      </button>
+    </p>
   )
 }

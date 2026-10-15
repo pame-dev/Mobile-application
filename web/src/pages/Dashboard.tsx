@@ -133,7 +133,9 @@ export function Dashboard() {
   const cargar = useCallback(() => {
     if (!account) return
     setError(null)
-    setOcultasIds(ocultas(account.id))
+    ocultas(account.id)
+      .then(setOcultasIds)
+      .catch(() => undefined)
     sellerStats()
       .then(setStats)
       .catch(() => setError(traducir('perfil.statsError')))
@@ -148,7 +150,7 @@ export function Dashboard() {
   useEffect(() => {
     cargar()
   }, [cargar])
-  useRecargar(cargar, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'favoritos', 'solicitudes_destacado'])
+  useRecargar(cargar, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'favoritos', 'solicitudes_destacado', 'publicaciones_ocultas'])
 
   const acciones = useOwnerActions(cargar)
 
@@ -169,10 +171,17 @@ export function Dashboard() {
   ]
   const visibles = (cars ?? []).filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))
   const escondidas = (cars ?? []).filter((c) => sePuedeOcultar(c) && ocultasIds.has(c.id))
+  /** Cambio inmediato en pantalla; si la BD falla se revierte. */
   const ocultar = (id: number, v: boolean) => {
     if (!account) return
-    setOculta(account.id, id, v)
-    setOcultasIds(ocultas(account.id))
+    const cambiar = (s: Set<number>, poner: boolean) => {
+      const n = new Set(s)
+      if (poner) n.add(id)
+      else n.delete(id)
+      return n
+    }
+    setOcultasIds((s) => cambiar(s, v))
+    setOculta(account.id, id, v).catch(() => setOcultasIds((s) => cambiar(s, !v)))
   }
 
   return (

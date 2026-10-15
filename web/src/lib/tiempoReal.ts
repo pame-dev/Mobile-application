@@ -20,10 +20,11 @@ export type Tabla =
   | 'reportes'
   | 'solicitudes_destacado'
   | 'cuentas'
+  | 'publicaciones_ocultas'
 
 const TABLAS: Tabla[] = [
   'publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'notificaciones',
-  'favoritos', 'reportes', 'solicitudes_destacado', 'cuentas',
+  'favoritos', 'reportes', 'solicitudes_destacado', 'cuentas', 'publicaciones_ocultas',
 ]
 
 export const EVENTO_CAMBIOS = 'karsy:cambios'
@@ -66,11 +67,12 @@ export function escucharCambios(uid: string | null, onAviso: (a: AvisoNuevo) => 
     if (cerrado) return
     let c = supabase.channel(`karsy-cambios-${uid ?? 'visitante'}`)
     for (const tabla of TABLAS) {
-      // Las notificaciones solo interesan las propias.
-      if (tabla === 'notificaciones' && !uid) continue
+      // Las notificaciones y las ocultas solo interesan (y solo se pueden leer) las propias.
+      const propia = tabla === 'notificaciones' || tabla === 'publicaciones_ocultas'
+      if (propia && !uid) continue
       c = c.on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: tabla, ...(tabla === 'notificaciones' ? { filter: `id_cuenta=eq.${uid}` } : {}) },
+        { event: '*', schema: 'public', table: tabla, ...(propia ? { filter: `id_cuenta=eq.${uid}` } : {}) },
         (payload) => {
           avisar(tabla)
           if (tabla === 'notificaciones' && payload.eventType === 'INSERT') onAviso(payload.new as AvisoNuevo)

@@ -282,6 +282,10 @@
     <string name="detail_section_specs">Specifications</string>
     <string name="detail_section_description">Description</string>
     <string name="detail_no_description">The seller didn\'t add a description.</string>
+    <string name="detail_translated">Automatically translated from Spanish.</string>
+    <string name="detail_original_text">Original text in Spanish.</string>
+    <string name="detail_see_original">See original</string>
+    <string name="detail_see_translation">See translation</string>
     <string name="detail_section_car_details">Car details</string>
     <string name="detail_section_seller_contact">Seller contact</string>
     <string name="detail_dealer_view_profile">Dealer · View profile</string>
@@ -451,7 +455,8 @@
     <string name="profile_password_desc">For security, enter your current password first.</string>
     <string name="profile_change_password">Change password</string>
     <string name="profile_edit_saving">Saving…</string>
-    <string name="profile_edit_missing">Fill in name, city and state (and the lot address).</string>
+    <string name="profile_edit_missing">Fill in your name, state and city.</string>
+    <string name="profile_edit_missing_lot">Fill in the lot name, state, city and the lot address.</string>
     <string name="profile_edit_confirm_title">Save changes?</string>
     <string name="profile_edit_confirm_message">Your profile information will be updated with the details you entered.</string>
     <string name="profile_edit_confirm_yes">Yes, save</string>

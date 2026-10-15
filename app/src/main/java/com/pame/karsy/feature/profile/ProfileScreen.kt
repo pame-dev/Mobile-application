@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.profile
 
 import android.net.Uri
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -149,6 +150,8 @@ fun ProfileScreen(
             }
         }
 
+        // Jalar hacia abajo vuelve a leer tus datos y tus publicaciones (también las ocultas).
+        KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -205,6 +208,7 @@ fun ProfileScreen(
                 Spacer(Modifier.height(16.dp))
                 HiddenPostsCard(cars = hiddenCars, onCarClick = onCarClick)
             }
+        }
         }
     }
 

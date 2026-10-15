@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.profile
 
 import android.widget.Toast
+import com.pame.karsy.core.components.KarsyPullToRefresh
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -56,9 +57,10 @@ fun NotificationPreferencesScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var prefs by remember { mutableStateOf<PreferenciasAvisosDto?>(null) }
-    LaunchedEffect(Unit) {
-        prefs = safeCall { NotificationRepository.preferences() }.getOrDefault(PreferenciasAvisosDto())
+    suspend fun load() {
+        prefs = safeCall { NotificationRepository.preferences() }.getOrDefault(prefs ?: PreferenciasAvisosDto())
     }
+    LaunchedEffect(Unit) { load() }
 
     /** Se guarda al momento; si falla, se regresa el interruptor y se avisa. */
     fun cambiar(nuevo: PreferenciasAvisosDto) {
@@ -82,6 +84,8 @@ fun NotificationPreferencesScreen(onBack: () -> Unit) {
             onBack = onBack,
             modifier = Modifier.shadow(3.dp, ambientColor = CardShadow, spotColor = CardShadow)
         )
+        // Jalar hacia abajo vuelve a leer las preferencias (por si se cambiaron en la web).
+        KarsyPullToRefresh(onRefresh = { done -> scope.launch { load(); done() } }, modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -114,6 +118,7 @@ fun NotificationPreferencesScreen(onBack: () -> Unit) {
                 color = KarsyMid,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
+        }
         }
     }
 }

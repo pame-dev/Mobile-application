@@ -389,7 +389,8 @@ fun EditProfileDialog(
                     Text(stringResource(R.string.profile_change_password), fontFamily = DmSans, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 }
 
-                (if (missing) stringResource(R.string.profile_edit_missing) else error)?.let {
+                // Particular: nombre, estado y ciudad. Lote: además su dirección.
+                (if (missing) stringResource(if (isLote) R.string.profile_edit_missing_lot else R.string.profile_edit_missing) else error)?.let {
                     Spacer(Modifier.height(12.dp))
                     Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
                 }

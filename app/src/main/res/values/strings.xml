@@ -284,6 +284,10 @@
     <string name="detail_section_specs">Ficha técnica</string>
     <string name="detail_section_description">Descripción</string>
     <string name="detail_no_description">El vendedor no agregó descripción.</string>
+    <string name="detail_translated">Traducido automáticamente del español.</string>
+    <string name="detail_original_text">Texto original en español.</string>
+    <string name="detail_see_original">Ver original</string>
+    <string name="detail_see_translation">Ver traducción</string>
     <string name="detail_section_car_details">Detalles del auto</string>
     <string name="detail_section_seller_contact">Contacto del vendedor</string>
     <string name="detail_dealer_view_profile">Lote · Ver perfil</string>
@@ -453,7 +457,8 @@
     <string name="profile_password_desc">Por seguridad, escribe primero tu contraseña actual.</string>
     <string name="profile_change_password">Cambiar contraseña</string>
     <string name="profile_edit_saving">Guardando…</string>
-    <string name="profile_edit_missing">Completa nombre, ciudad y estado (y la dirección del lote).</string>
+    <string name="profile_edit_missing">Completa tu nombre, estado y ciudad.</string>
+    <string name="profile_edit_missing_lot">Completa el nombre del lote, estado, ciudad y la dirección del lote.</string>
     <string name="profile_edit_confirm_title">¿Guardar cambios?</string>
     <string name="profile_edit_confirm_message">Se actualizará la información de tu perfil con los datos que ingresaste.</string>
     <string name="profile_edit_confirm_yes">Sí, guardar</string>
