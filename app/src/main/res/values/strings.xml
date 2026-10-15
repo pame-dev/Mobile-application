@@ -284,6 +284,10 @@
     <string name="detail_section_specs">Ficha técnica</string>
     <string name="detail_section_description">Descripción</string>
     <string name="detail_no_description">El vendedor no agregó descripción.</string>
+    <string name="detail_translated">Traducido automáticamente del español.</string>
+    <string name="detail_original_text">Texto original en español.</string>
+    <string name="detail_see_original">Ver original</string>
+    <string name="detail_see_translation">Ver traducción</string>
     <string name="detail_section_car_details">Detalles del auto</string>
     <string name="detail_section_seller_contact">Contacto del vendedor</string>
     <string name="detail_dealer_view_profile">Lote · Ver perfil</string>

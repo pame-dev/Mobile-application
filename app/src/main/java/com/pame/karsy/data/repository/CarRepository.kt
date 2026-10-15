@@ -1,6 +1,11 @@
 package com.pame.karsy.data.repository
 
 import com.pame.karsy.R
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.async
+import com.pame.karsy.core.util.Traductor
+import kotlinx.serialization.json.Json
+import com.pame.karsy.data.remote.TraduccionDto
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
@@ -329,9 +334,20 @@ object CarRepository {
             sellerType = a.propietarioTipo,
             sellerAvatar = Supabase.publicUrl(a.propietarioFoto),
             contactoNombre = a.propietarioNombre,
+            tieneProblemas = a.tieneProblemas == true && !a.descripcionProblemas.isNullOrBlank(),
             detalles = if (a.tieneProblemas == true) a.descripcionProblemas.orEmpty()
             else texto(R.string.core_car_no_issues),
             descripcionLarga = a.descripcion.orEmpty(),
         )
+    }
+
+    /**
+     * Descripción e imperfecciones en inglés (traducción automática gratuita, Traductor).
+     * null si no hay nada que traducir o no se pudo; cada parte es null si falló o venía vacía.
+     */
+    suspend fun traduccion(descripcion: String, problemas: String): TraduccionDto? = coroutineScope {
+        val d = async { Traductor.alIngles(descripcion) }
+        val p = async { Traductor.alIngles(problemas) }
+        TraduccionDto(d.await(), p.await()).takeIf { it.descripcion != null || it.problemas != null }
     }
 }

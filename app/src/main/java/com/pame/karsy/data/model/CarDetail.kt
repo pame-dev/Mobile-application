@@ -24,6 +24,8 @@ data class CarDetail(
     val sellerAvatar: String?,
     val contactoNombre: String,
     val detalles: String,
+    /** El vendedor escribió imperfecciones (detalles no es el texto de "sin problemas"). */
+    val tieneProblemas: Boolean = false,
     val descripcionLarga: String,
 )
 

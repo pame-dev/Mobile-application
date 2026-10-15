@@ -36,6 +36,11 @@ const EN: Record<string, string> = {
   Diésel: 'Diesel',
   Híbrido: 'Hybrid',
   Eléctrico: 'Electric',
+  // Tracción
+  Delantera: 'Front-wheel drive',
+  Trasera: 'Rear-wheel drive',
+  '4x4': '4x4',
+  'Integral (AWD)': 'All-wheel drive (AWD)',
   // Opción "otro" de cada catálogo
   Otros: 'Other',
 }

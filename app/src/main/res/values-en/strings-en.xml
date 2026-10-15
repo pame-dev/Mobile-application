@@ -282,6 +282,10 @@
     <string name="detail_section_specs">Specifications</string>
     <string name="detail_section_description">Description</string>
     <string name="detail_no_description">The seller didn\'t add a description.</string>
+    <string name="detail_translated">Automatically translated from Spanish.</string>
+    <string name="detail_original_text">Original text in Spanish.</string>
+    <string name="detail_see_original">See original</string>
+    <string name="detail_see_translation">See translation</string>
     <string name="detail_section_car_details">Car details</string>
     <string name="detail_section_seller_contact">Seller contact</string>
     <string name="detail_dealer_view_profile">Dealer · View profile</string>
