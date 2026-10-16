@@ -556,12 +556,12 @@ function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; list
                     <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
                   </div>
                 </td>
-                <td>{x.correo}</td>
-                <td>{x.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(x) }) : tipoCuenta(x)}</td>
-                <td>
+                <td data-label={t('admin.email')}>{x.correo}</td>
+                <td data-label={t('admin.accountType')}>{x.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(x) }) : tipoCuenta(x)}</td>
+                <td data-label={t('admin.status')}>
                   <Badge s={estadoCuenta(x)} />
                 </td>
-                <td className="num">{fecha(x.fecha_creacion)}</td>
+                <td className="num" data-label={t('admin.registrationDate')}>{fecha(x.fecha_creacion)}</td>
                 <td>
                   <button className="btn btn-ghost btn-sm" onClick={() => openModal(<UserDetail c={x} selfId={selfId} listo={listo} />)}>
                     {t('admin.viewDetail')}
@@ -627,10 +627,10 @@ function Lotes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
                     <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
                   </div>
                 </td>
-                <td>{x.responsable || '—'}</td>
-                <td>{[x.municipio, x.estado].filter(Boolean).join(', ') || '—'}</td>
-                <td className="num">{x.activas}</td>
-                <td>
+                <td data-label={t('admin.manager')}>{x.responsable || '—'}</td>
+                <td data-label={t('admin.location')}>{[x.municipio, x.estado].filter(Boolean).join(', ') || '—'}</td>
+                <td className="num" data-label={t('admin.activeVehicles')}>{x.activas}</td>
+                <td data-label={t('admin.status')}>
                   <Badge s={estadoCuenta(x)} />
                 </td>
                 <td>
@@ -854,10 +854,10 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
                       </div>
                     </div>
                   </td>
-                  <td>{car.ownerName}</td>
-                  <td>{car.year || '—'}</td>
-                  <td className="num">{precio(car.priceValue)}</td>
-                  <td>
+                  <td data-label={t('admin.seller')}>{car.ownerName}</td>
+                  <td data-label={t('admin.year')}>{car.year || '—'}</td>
+                  <td className="num" data-label={t('admin.price')}>{precio(car.priceValue)}</td>
+                  <td data-label={t('admin.status')}>
                     <Badge s={estado} />
                   </td>
                   <td>
@@ -1027,14 +1027,14 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
                   <td className="num">
                     <b style={{ color: 'var(--ink)' }}>#R-{r.id_reporte}</b>
                   </td>
-                  <td>
+                  <td data-label={t('admin.type')}>
                     <span className={`badge ${deCuenta ? 'b-info' : 'b-neu'}`}>{t(deCuenta ? 'admin.user' : 'admin.listing')}</span>
                   </td>
-                  <td>{deCuenta ? dueno ?? r.publicacion : r.publicacion}</td>
-                  <td style={{ whiteSpace: 'normal', minWidth: 220 }}>{r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')}</td>
-                  <td>{r.reportante}</td>
-                  <td>{haceCuanto(r.fecha_reporte)}</td>
-                  <td>
+                  <td data-label={t('admin.reported')}>{deCuenta ? dueno ?? r.publicacion : r.publicacion}</td>
+                  <td data-label={t('admin.reasonCol')} style={{ whiteSpace: 'normal', minWidth: 220 }}>{r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')}</td>
+                  <td data-label={t('admin.reportedBy')}>{r.reportante}</td>
+                  <td data-label={t('admin.date')}>{haceCuanto(r.fecha_reporte)}</td>
+                  <td data-label={t('admin.status')}>
                     <Badge s={capital(r.estado_reporte)} />
                   </td>
                   <td>
