@@ -428,9 +428,9 @@ table.t tr:hover td{background:var(--bg)}
 .twocol.half{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 @media (max-width:1000px){
   .admin{grid-template-columns:minmax(0,1fr);align-content:start}
-  /* Barra superior con ☰; la barra lateral se vuelve un panel que entra desde la izquierda. */
+  /* Barra superior con ☰; la barra lateral se vuelve un panel que entra desde la derecha (donde está el ☰). */
   .admintop{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:60;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px}
-  .side{position:fixed;top:0;left:0;bottom:0;z-index:71;width:min(300px,86vw);height:auto;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow-lg);transform:translateX(-100%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
+  .side{position:fixed;top:0;right:0;bottom:0;border-right:0;border-left:1px solid var(--border);z-index:71;width:min(300px,86vw);height:auto;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow-lg);transform:translateX(100%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
   .menuabierto .side{transform:none;visibility:visible;transition:transform .22s ease}
   .sideclose{display:inline-grid;position:absolute;top:16px;right:12px}
   .menuabierto .adminfondo{display:block;position:fixed;inset:0;z-index:70;background:rgba(8,20,32,.55);animation:fade .18s}
