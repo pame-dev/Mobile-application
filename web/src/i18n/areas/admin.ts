@@ -8,7 +8,6 @@ export const es = {
   // Menú lateral
   'admin.sec.home': 'Inicio',
   'admin.sec.users': 'Usuarios',
-  'admin.sec.lots': 'Lotes',
   'admin.sec.vehicles': 'Vehículos',
   'admin.sec.reports': 'Reportes',
   'admin.sec.featured': 'Destacados',
@@ -124,14 +123,6 @@ export const es = {
   'admin.viewDetail': 'Ver detalle',
   'admin.usersEmpty': 'No hay cuentas que coincidan.',
 
-  // Lotes
-  'admin.lotsDesc': 'Administra los lotes y agencias que publican vehículos en Karsy.',
-  'admin.lotsSearch': 'Buscar lote, responsable o ciudad...',
-  'admin.activeVehicles': 'Vehículos activos',
-  'admin.viewLot': 'Ver lote',
-  'admin.reactivate': 'Reactivar',
-  'admin.lotsEmpty': 'No hay lotes que coincidan.',
-
   // Vehículos
   'admin.vehicleDetail': 'Detalle del vehículo',
   'admin.transmission': 'Transmisión',
@@ -228,7 +219,6 @@ export const en: Record<keyof typeof es, string> = {
 
   'admin.sec.home': 'Home',
   'admin.sec.users': 'Users',
-  'admin.sec.lots': 'Dealers',
   'admin.sec.vehicles': 'Vehicles',
   'admin.sec.reports': 'Reports',
   'admin.sec.featured': 'Featured',
@@ -336,13 +326,6 @@ export const en: Record<keyof typeof es, string> = {
   'admin.email': 'Email',
   'admin.viewDetail': 'View details',
   'admin.usersEmpty': 'No matching accounts.',
-
-  'admin.lotsDesc': 'Manage the dealers and dealerships that list vehicles on Karsy.',
-  'admin.lotsSearch': 'Search dealer, manager or city...',
-  'admin.activeVehicles': 'Active vehicles',
-  'admin.viewLot': 'View dealer',
-  'admin.reactivate': 'Reactivate',
-  'admin.lotsEmpty': 'No matching dealers.',
 
   'admin.vehicleDetail': 'Vehicle details',
   'admin.transmission': 'Transmission',
