@@ -95,6 +95,8 @@ data class AdminAlert(
     val bg: Color,
     val color: Color,
     val target: AdminSection,
+    /** Filtro con el que se abre la sección (p. ej. "Pausado" en Vehículos). */
+    val filter: String? = null,
 )
 
 object AdminOptions {

@@ -5,61 +5,78 @@ import { Icon, type IconName } from '../components/Icon'
 import { OwnerButtons, STATUS_BADGE, fechaCorta, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { favoriteCounts, myCars, ocultas, sePuedeOcultar, sellerStats, setOculta, type OwnCar, type SellerStats } from '../data/seller'
 import { traducir, useI18n } from '../i18n/I18nContext'
-import type { Clave } from '../i18n/es'
 import { entero, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
 
-/** Iniciales de los días que manda la BD (domingo a sábado). */
-const DIA: Record<string, Clave> = {
-  D: 'perfil.dayD',
-  L: 'perfil.dayL',
-  M: 'perfil.dayM',
-  X: 'perfil.dayX',
-  J: 'perfil.dayJ',
-  V: 'perfil.dayV',
-  S: 'perfil.dayS',
-}
+/** % de b sobre a, sin decimales y hasta 100 (se puede guardar en favoritos sin abrir el detalle). */
+const pct = (b: number, a: number) => (a > 0 ? Math.min(100, Math.round((b * 100) / a)) : 0)
 
-/** Gráfica de barras del diseño (la última barra resaltada). */
-export function BarChart({ vals, labels, w = 460, h = 190 }: { vals: number[]; labels: string[]; w?: number; h?: number }) {
+/**
+ * "Cómo van tus publicaciones" (totales): arriba el embudo vistas → favoritos →
+ * contactos de todo el perfil; abajo una barra por publicación, la más vista primero.
+ */
+function Rendimiento({ stats, cars }: { stats: SellerStats; cars: OwnCar[] }) {
+  const navigate = useNavigate()
   const { t } = useI18n()
-  const max = Math.max(5, Math.ceil(Math.max(0, ...vals) / 5) * 5)
-  const pl = 30
-  const pb = 24
-  const bw = (w - pl) / Math.max(1, vals.length)
+  const [todas, setTodas] = useState(false)
+  // Una fila por cada publicación ya publicada (aunque aún no tenga vistas); los números
+  // vienen de la BD por id y, si no hay, van en 0.
+  const datos = new Map(stats.rendimiento.map((r) => [r.id, r]))
+  const porId = new Map(cars.map((c) => [c.id, c]))
+  const filas = cars
+    .filter((c) => c.approved)
+    .map((c) => datos.get(c.id) ?? { id: c.id, vistas: 0, favoritos: 0, contactos: 0 })
+    .sort((a, b) => b.vistas - a.vistas || b.contactos - a.contactos)
+  const visibles = todas ? filas : filas.slice(0, 6)
+  const max = Math.max(1, ...filas.map((r) => r.vistas))
+  const e = stats.embudo
+  const pasos: [string, number, string, string][] = [
+    [t('perfil.funnelViews'), e.vistas, '', 'var(--teal)'],
+    [t('perfil.funnelFavorites'), e.favoritos, t('perfil.funnelOfViews', { n: pct(e.favoritos, e.vistas) }), 'var(--error)'],
+    [t('perfil.funnelContacts'), e.contactos, t('perfil.funnelOfViews', { n: pct(e.contactos, e.vistas) }), 'var(--success)'],
+  ]
   return (
-    <svg className="chart" viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }} role="img" aria-label={t('perfil.chart')}>
-      <g className="grid">
-        {[0, 0.5, 1].map((f) => {
-          const y = h - pb - (h - pb - 10) * f
-          return (
-            <g key={f}>
-              <line x1={pl} x2={w} y1={y} y2={y} />
-              <text x={0} y={y + 4}>
-                {Math.round(max * f)}
-              </text>
-            </g>
-          )
-        })}
-      </g>
-      {vals.map((v, i) => {
-        const bh = ((h - pb - 10) * v) / max
-        const x = pl + i * bw + bw * 0.22
-        const ultima = i === vals.length - 1
-        return (
-          <g key={i}>
-            <rect x={x} y={h - pb - bh} width={bw * 0.56} height={bh} rx={6} fill={ultima ? 'var(--teal)' : 'var(--navy)'} opacity={ultima ? 1 : 0.85} />
-            <text x={x + bw * 0.28} y={h - 6} textAnchor="middle">
-              {labels[i]}
-            </text>
-            <text x={x + bw * 0.28} y={h - pb - bh - 6} textAnchor="middle" style={{ fill: 'var(--ink)', fontWeight: 600 }}>
-              {v}
-            </text>
-          </g>
-        )
-      })}
-    </svg>
+    <>
+      <div className="funnel">
+        {pasos.map(([k, n, sub, color], i) => (
+          <div key={k} className="funnelstep" style={{ width: `${100 - i * 12}%` }}>
+            <span className="funnelbar" style={{ background: color }} />
+            <span className="grow">{k}</span>
+            <b className="num">{entero(n)}</b>
+            {sub && <span className="muted funnelsub">{sub}</span>}
+          </div>
+        ))}
+      </div>
+
+      {filas.length === 0 ? (
+        <p className="muted" style={{ marginTop: 16 }}>
+          {t('perfil.performanceEmpty')}
+        </p>
+      ) : (
+        <div className="perflist">
+          {visibles.map((r) => {
+            const c = porId.get(r.id)!
+            return (
+              <button key={r.id} className="perfrow" onClick={() => navigate(`/vehiculo/${r.id}`)}>
+                <span className="perftitle">
+                  {c.brand} {c.model} {c.year || ''}
+                </span>
+                <span className="perftrack" aria-hidden>
+                  <span style={{ width: `${Math.max(2, (r.vistas * 100) / max)}%` }} />
+                </span>
+                <span className="muted perfnums">{t('perfil.performanceRow', { v: entero(r.vistas), f: entero(r.favoritos), c: entero(r.contactos) })}</span>
+              </button>
+            )
+          })}
+          {filas.length > 6 && (
+            <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => setTodas((v) => !v)}>
+              {todas ? t('perfil.performanceLess') : t('perfil.performanceAll', { n: filas.length })}
+            </button>
+          )}
+        </div>
+      )}
+    </>
   )
 }
 
@@ -118,7 +135,7 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
   )
 }
 
-/** Mi panel: métricas, interés de la semana y publicaciones propias (DashboardScreen de la app). */
+/** Mi panel: métricas, cómo van las publicaciones y publicaciones propias (DashboardScreen de la app). */
 export function Dashboard() {
   const navigate = useNavigate()
   const { account, loading: cargandoSesion } = useSession()
@@ -156,18 +173,14 @@ export function Dashboard() {
 
   if (!cargandoSesion && !account) return <Navigate to="/login" replace state={{ from: '/panel' }} />
 
-  const tendencia = (() => {
-    if (!stats) return ''
-    if (stats.vistasMesAnterior === 0) return t('perfil.trendMonth', { n: entero(stats.vistasMes) })
-    const pct = Math.round(((stats.vistasMes - stats.vistasMesAnterior) * 100) / stats.vistasMesAnterior)
-    return pct >= 0 ? t('perfil.trendUp', { n: pct }) : t('perfil.trendDown', { n: pct })
-  })()
-  const favSemana = stats?.favoritosSemana.reduce((a, b) => a + b, 0) ?? 0
+  // Arriba, el estado de las publicaciones; vistas, favoritos y contactos van en el embudo.
+  // Solo las que se ven en portada: un destacado vigente de un auto vendido o pausado no cuenta.
+  const destacadas = (cars ?? []).filter((c) => c.featured && c.status === 'Activo').length
   const kpis: [string, string, string, IconName, string, string][] = [
-    [t('perfil.kpiViews'), stats ? entero(stats.vistas) : '—', tendencia, 'eye', 'var(--teal-light)', 'var(--teal)'],
-    [t('perfil.kpiListed'), stats ? entero(stats.publicadas) : '—', stats ? t('perfil.kpiListedSub', { activas: stats.activas, vendidas: stats.vendidas }) : '', 'car', 'var(--pill)', 'var(--ink)'],
-    [t('perfil.kpiInquiries'), stats ? entero(stats.contactos) : '—', t('perfil.kpiContacts'), 'chat', 'var(--success-l)', 'var(--success)'],
-    [t('nav.favorites'), stats ? entero(favSemana) : '—', t('perfil.kpiThisWeek'), 'heart', 'var(--error-l)', 'var(--error)'],
+    [t('perfil.kpiActive'), stats ? entero(stats.activas) : '—', t('perfil.kpiActiveSub'), 'car', 'var(--teal-light)', 'var(--teal)'],
+    [t('perfil.kpiSold'), stats ? entero(stats.vendidas) : '—', t('perfil.kpiSoldSub'), 'sold', 'var(--success-l)', 'var(--success)'],
+    [t('perfil.kpiInReview'), stats ? entero(stats.pendientes) : '—', t('perfil.kpiInReviewSub'), 'shield', 'var(--pill)', 'var(--ink)'],
+    [t('perfil.kpiFeatured'), cars ? entero(destacadas) : '—', t('perfil.kpiFeaturedSub'), 'star', 'var(--b-warn-bg)', 'var(--b-warn)'],
   ]
   const visibles = (cars ?? []).filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))
   const escondidas = (cars ?? []).filter((c) => sePuedeOcultar(c) && ocultasIds.has(c.id))
@@ -227,11 +240,11 @@ export function Dashboard() {
 
       <div className="twocol split" style={{ margin: '20px 0 40px' }}>
         <div className="card" style={{ padding: 22 }}>
-          <h3 style={{ fontSize: 17 }}>{t('perfil.weekInterest')}</h3>
-          <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-            {t(favSemana === 1 ? 'perfil.weekSubOne' : 'perfil.weekSubMany', { n: favSemana })}
+          <h3 style={{ fontSize: 17 }}>{t('perfil.performanceTitle')}</h3>
+          <p className="muted" style={{ fontSize: 13, marginBottom: 14 }}>
+            {t('perfil.performanceSub')}
           </p>
-          {stats ? <BarChart vals={stats.favoritosSemana} labels={stats.diasSemana.map((d) => (DIA[d] ? t(DIA[d]) : d))} /> : <div className="skeleton" style={{ height: 190 }} />}
+          {stats && cars ? <Rendimiento stats={stats} cars={cars} /> : <div className="skeleton" style={{ height: 190 }} />}
         </div>
 
         <div className="card" style={{ padding: 22 }}>

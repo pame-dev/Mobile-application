@@ -388,17 +388,24 @@
     <!-- Panel del vendedor -->
     <string name="profile_dashboard_back_cd">Volver al perfil</string>
     <string name="profile_dashboard_title">Mi Panel</string>
-    <string name="profile_dashboard_total_views">VISTAS TOTALES</string>
-    <string name="profile_dashboard_published">PUBLICADOS</string>
-    <string name="profile_dashboard_vehicles">Vehículos</string>
-    <string name="profile_dashboard_inquiries">CONSULTAS</string>
-    <string name="profile_dashboard_contacts">Contactos</string>
-    <string name="profile_dashboard_weekly_interest">Interés en la semana</string>
-    <string name="profile_dashboard_favorites_per_day">Favoritos agregados por día</string>
-    <plurals name="profile_dashboard_favorites_total">
-        <item quantity="one">%1$d favorito esta semana</item>
-        <item quantity="other">%1$d favoritos esta semana</item>
-    </plurals>
+    <string name="profile_dashboard_kpi_active">ACTIVAS</string>
+    <string name="profile_dashboard_kpi_active_sub">visibles en Karsy</string>
+    <string name="profile_dashboard_kpi_sold">VENDIDAS</string>
+    <string name="profile_dashboard_kpi_sold_sub">en total</string>
+    <string name="profile_dashboard_kpi_in_review">EN REVISIÓN</string>
+    <string name="profile_dashboard_kpi_in_review_sub">esperando aprobación</string>
+    <string name="profile_dashboard_kpi_featured">DESTACADAS</string>
+    <string name="profile_dashboard_kpi_featured_sub">en portada ahora</string>
+    <string name="profile_dashboard_performance_title">Cómo van tus publicaciones</string>
+    <string name="profile_dashboard_performance_sub">Totales desde que publicaste</string>
+    <string name="profile_dashboard_funnel_views">Vistas</string>
+    <string name="profile_dashboard_funnel_favorites">Guardadas en favoritos</string>
+    <string name="profile_dashboard_funnel_contacts">Te contactaron</string>
+    <string name="profile_dashboard_funnel_of_views">%1$d%% de las vistas</string>
+    <string name="profile_dashboard_performance_row">%1$d vistas · %2$d favoritos · %3$d contactos</string>
+    <string name="profile_dashboard_performance_all">Ver todas (%1$d)</string>
+    <string name="profile_dashboard_performance_less">Ver menos</string>
+    <string name="profile_dashboard_performance_empty">Cuando publiques un vehículo, aquí verás cuántas personas lo ven, lo guardan y te contactan.</string>
     <string name="profile_dashboard_my_listings">Mis Vehículos Publicados</string>
     <string name="profile_dashboard_publish">+ Publicar</string>
     <string name="profile_dashboard_no_listings">Todavía no publicas ningún vehículo. Toca \"+ Publicar\" para crear el primero.</string>
@@ -414,9 +421,6 @@
         <item quantity="one">%1$d favorito</item>
         <item quantity="other">%1$d favoritos</item>
     </plurals>
-    <string name="profile_dashboard_trend_this_month">%1$d este mes</string>
-    <string name="profile_dashboard_trend_up">▲ +%1$d%% este mes</string>
-    <string name="profile_dashboard_trend_down">▼ %1$d%% este mes</string>
     <string name="profile_dashboard_request_already_pending">Ya hay una solicitud pendiente para este vehículo.</string>
     <!-- Diálogo destacar -->
     <string name="profile_feature_dialog_title">¿Quieres destacar tu vehículo?</string>
@@ -848,6 +852,10 @@
     <plurals name="admin2_alert_disabled">
         <item quantity="one">%1$d publicación deshabilitada</item>
         <item quantity="other">%1$d publicaciones deshabilitadas</item>
+    </plurals>
+    <plurals name="admin2_alert_paused">
+        <item quantity="one">%1$d publicación pausada por su dueño</item>
+        <item quantity="other">%1$d publicaciones pausadas por sus dueños</item>
     </plurals>
     <plurals name="admin2_alert_suspended">
         <item quantity="one">%1$d cuenta suspendida</item>

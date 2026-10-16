@@ -57,6 +57,16 @@ object AdminRepository {
         }
     }
 
+    /** El admin abrió el filtro "Deshabilitado" o "Pausado": dejan de salir en "Requiere atención". */
+    suspend fun marcarVistas(estado: String) {
+        db.postgrest.rpc("admin_marcar_vistas", buildJsonObject { put("p_estado", estado) })
+    }
+
+    /** El admin abrió el filtro "Suspendido" en Usuarios: dejan de salir en "Requiere atención". */
+    suspend fun marcarSuspendidasVistas() {
+        db.postgrest.rpc("admin_marcar_suspendidas_vistas")
+    }
+
     suspend fun setCarEnabled(idPublicacion: Long, enabled: Boolean, reason: String? = null) {
         db.postgrest.rpc("admin_cambiar_estado_publicacion", buildJsonObject {
             put("p_id_publicacion", idPublicacion)

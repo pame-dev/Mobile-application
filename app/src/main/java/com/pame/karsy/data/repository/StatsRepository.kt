@@ -9,6 +9,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import kotlinx.serialization.json.put
 
 /** Métricas del panel del vendedor (función vendedor_estadisticas). */
@@ -24,7 +25,15 @@ data class SellerStats(
     val vistasPorMes: List<Float>,
     val favoritosSemana: List<Float>,
     val diasSemana: List<String>,
+    /** Totales de las publicaciones ya publicadas: vistas → favoritos → contactos. */
+    val embudoVistas: Int,
+    val embudoFavoritos: Int,
+    val embudoContactos: Int,
+    /** Totales por publicación (la más vista primero). */
+    val rendimiento: List<RendimientoPublicacion>,
 )
+
+data class RendimientoPublicacion(val id: Long, val vistas: Int, val favoritos: Int, val contactos: Int)
 
 /** Indicadores del dashboard de administración (función admin_estadisticas). */
 data class AdminStats(
@@ -36,6 +45,10 @@ data class AdminStats(
     val publicadasNuevas: Int,
     val activas: Int,
     val deshabilitadas: Int,
+    /** Para "Requiere atención": las que este admin aún no ha visto en Vehículos. */
+    val deshabilitadasSinVer: Int,
+    val pausadasSinVer: Int,
+    val suspendidasSinVer: Int,
     val suspendidas: Int,
     val propuestasPendientes: Int,
     val reportesPendientes: Int,
@@ -53,6 +66,7 @@ object StatsRepository {
 
     suspend fun seller(): SellerStats {
         val j = Supabase.client.postgrest.rpc("vendedor_estadisticas").decodeAs<JsonObject>()
+        val embudo = j["embudo"]?.jsonObject ?: JsonObject(emptyMap())
         return SellerStats(
             publicadas = j.int("publicadas"),
             activas = j.int("activas"),
@@ -65,6 +79,13 @@ object StatsRepository {
             vistasPorMes = j.floats("vistas_por_mes"),
             favoritosSemana = j.floats("favoritos_semana"),
             diasSemana = j.strings("dias_semana"),
+            embudoVistas = embudo.int("vistas"),
+            embudoFavoritos = embudo.int("favoritos"),
+            embudoContactos = embudo.int("contactos"),
+            rendimiento = j.list("rendimiento").map {
+                val r = it.jsonObject
+                RendimientoPublicacion(r.getValue("id").jsonPrimitive.long, r.int("vistas"), r.int("favoritos"), r.int("contactos"))
+            },
         )
     }
 
@@ -83,6 +104,9 @@ object StatsRepository {
             publicadasNuevas = j.int("publicadas_nuevas"),
             activas = j.int("activas"),
             deshabilitadas = j.int("deshabilitadas"),
+            deshabilitadasSinVer = j.int("deshabilitadas_sin_ver"),
+            pausadasSinVer = j.int("pausadas_sin_ver"),
+            suspendidasSinVer = j.int("suspendidas_sin_ver"),
             suspendidas = j.int("suspendidas"),
             propuestasPendientes = j.int("propuestas_pendientes"),
             reportesPendientes = j.int("reportes_pendientes"),

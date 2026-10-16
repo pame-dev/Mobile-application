@@ -65,7 +65,7 @@ private val LotsColor = Color(0xFF8B5CF6)
 private val PostsColor = Color(0xFF22C55E)
 
 @Composable
-fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection) -> Unit) {
+fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection, String?) -> Unit) {
     val range = vm.range
     val stats = vm.stats
 
@@ -96,7 +96,7 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection) -> Unit) {
 
         // Pendientes primero: es lo que el admin tiene que atender
         if (stats != null) {
-            AlertsCard(alerts = vm.alerts, onOpen = onNavigate, onSeeAll = { onNavigate(AdminSection.Reportes) })
+            AlertsCard(alerts = vm.alerts, onOpen = { onNavigate(it.target, it.filter) }, onSeeAll = { onNavigate(AdminSection.Reportes, null) })
             Spacer(Modifier.height(20.dp))
         }
 
@@ -389,7 +389,7 @@ private fun SummaryTile(label: String, value: String, bg: Color, valueColor: Col
 }
 
 @Composable
-private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit, onSeeAll: () -> Unit) {
+private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, onSeeAll: () -> Unit) {
     AdminCard(shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
@@ -446,7 +446,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminSection) -> Unit,
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .background(karsyTint(alert.color, alert.bg))
-                            .clickable { onOpen(alert.target) }
+                            .clickable { onOpen(alert) }
                             .padding(horizontal = 14.dp, vertical = 12.dp)
                     ) {
                         Box(

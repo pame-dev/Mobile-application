@@ -142,12 +142,17 @@ export interface SellerStats {
   vistasPorMes: number[]
   favoritosSemana: number[]
   diasSemana: string[]
+  /** Totales de las publicaciones ya publicadas. */
+  embudo: { vistas: number; favoritos: number; contactos: number }
+  /** Totales por publicación (la más vista primero). */
+  rendimiento: { id: number; vistas: number; favoritos: number; contactos: number }[]
 }
 
 export async function sellerStats(): Promise<SellerStats> {
   const j = (check(await supabase.rpc('vendedor_estadisticas')) ?? {}) as Record<string, unknown>
   const n = (k: string) => Number(j[k] ?? 0)
   const arr = (k: string) => ((j[k] as unknown[]) ?? []).map(Number)
+  const embudo = (j.embudo ?? {}) as Record<string, unknown>
   return {
     publicadas: n('publicadas'),
     activas: n('activas'),
@@ -160,6 +165,13 @@ export async function sellerStats(): Promise<SellerStats> {
     vistasPorMes: arr('vistas_por_mes'),
     favoritosSemana: arr('favoritos_semana'),
     diasSemana: ((j.dias_semana as unknown[]) ?? []).map(String),
+    embudo: { vistas: Number(embudo.vistas ?? 0), favoritos: Number(embudo.favoritos ?? 0), contactos: Number(embudo.contactos ?? 0) },
+    rendimiento: ((j.rendimiento as Record<string, unknown>[]) ?? []).map((r) => ({
+      id: Number(r.id),
+      vistas: Number(r.vistas ?? 0),
+      favoritos: Number(r.favoritos ?? 0),
+      contactos: Number(r.contactos ?? 0),
+    })),
   }
 }
 

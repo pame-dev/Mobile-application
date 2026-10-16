@@ -8,7 +8,6 @@ export const es = {
   // Menú lateral
   'admin.sec.home': 'Inicio',
   'admin.sec.users': 'Usuarios',
-  'admin.sec.lots': 'Lotes',
   'admin.sec.vehicles': 'Vehículos',
   'admin.sec.reports': 'Reportes',
   'admin.sec.featured': 'Destacados',
@@ -82,6 +81,8 @@ export const es = {
   'admin.alertSuspendedMany': '{n} cuentas suspendidas',
   'admin.alertDisabledOne': '{n} publicación deshabilitada',
   'admin.alertDisabledMany': '{n} publicaciones deshabilitadas',
+  'admin.alertPausedOne': '{n} publicación pausada por su dueño',
+  'admin.alertPausedMany': '{n} publicaciones pausadas por sus dueños',
   'admin.growthTitle': 'Crecimiento de la plataforma',
   'admin.growthSub': 'Usuarios, lotes y publicaciones acumulados',
   'admin.legendUsers': 'Usuarios',
@@ -123,14 +124,6 @@ export const es = {
   'admin.email': 'Correo',
   'admin.viewDetail': 'Ver detalle',
   'admin.usersEmpty': 'No hay cuentas que coincidan.',
-
-  // Lotes
-  'admin.lotsDesc': 'Administra los lotes y agencias que publican vehículos en Karsy.',
-  'admin.lotsSearch': 'Buscar lote, responsable o ciudad...',
-  'admin.activeVehicles': 'Vehículos activos',
-  'admin.viewLot': 'Ver lote',
-  'admin.reactivate': 'Reactivar',
-  'admin.lotsEmpty': 'No hay lotes que coincidan.',
 
   // Vehículos
   'admin.vehicleDetail': 'Detalle del vehículo',
@@ -228,7 +221,6 @@ export const en: Record<keyof typeof es, string> = {
 
   'admin.sec.home': 'Home',
   'admin.sec.users': 'Users',
-  'admin.sec.lots': 'Dealers',
   'admin.sec.vehicles': 'Vehicles',
   'admin.sec.reports': 'Reports',
   'admin.sec.featured': 'Featured',
@@ -297,6 +289,8 @@ export const en: Record<keyof typeof es, string> = {
   'admin.alertSuspendedMany': '{n} suspended accounts',
   'admin.alertDisabledOne': '{n} disabled listing',
   'admin.alertDisabledMany': '{n} disabled listings',
+  'admin.alertPausedOne': '{n} listing paused by its owner',
+  'admin.alertPausedMany': '{n} listings paused by their owners',
   'admin.growthTitle': 'Platform growth',
   'admin.growthSub': 'Cumulative users, dealers and listings',
   'admin.legendUsers': 'Users',
@@ -336,13 +330,6 @@ export const en: Record<keyof typeof es, string> = {
   'admin.email': 'Email',
   'admin.viewDetail': 'View details',
   'admin.usersEmpty': 'No matching accounts.',
-
-  'admin.lotsDesc': 'Manage the dealers and dealerships that list vehicles on Karsy.',
-  'admin.lotsSearch': 'Search dealer, manager or city...',
-  'admin.activeVehicles': 'Active vehicles',
-  'admin.viewLot': 'View dealer',
-  'admin.reactivate': 'Reactivate',
-  'admin.lotsEmpty': 'No matching dealers.',
 
   'admin.vehicleDetail': 'Vehicle details',
   'admin.transmission': 'Transmission',

@@ -386,17 +386,24 @@
     <!-- Seller dashboard -->
     <string name="profile_dashboard_back_cd">Back to profile</string>
     <string name="profile_dashboard_title">My Dashboard</string>
-    <string name="profile_dashboard_total_views">TOTAL VIEWS</string>
-    <string name="profile_dashboard_published">LISTED</string>
-    <string name="profile_dashboard_vehicles">Vehicles</string>
-    <string name="profile_dashboard_inquiries">INQUIRIES</string>
-    <string name="profile_dashboard_contacts">Contacts</string>
-    <string name="profile_dashboard_weekly_interest">Interest this week</string>
-    <string name="profile_dashboard_favorites_per_day">Favorites added per day</string>
-    <plurals name="profile_dashboard_favorites_total">
-        <item quantity="one">%1$d favorite this week</item>
-        <item quantity="other">%1$d favorites this week</item>
-    </plurals>
+    <string name="profile_dashboard_kpi_active">ACTIVE</string>
+    <string name="profile_dashboard_kpi_active_sub">visible on Karsy</string>
+    <string name="profile_dashboard_kpi_sold">SOLD</string>
+    <string name="profile_dashboard_kpi_sold_sub">all time</string>
+    <string name="profile_dashboard_kpi_in_review">IN REVIEW</string>
+    <string name="profile_dashboard_kpi_in_review_sub">awaiting approval</string>
+    <string name="profile_dashboard_kpi_featured">FEATURED</string>
+    <string name="profile_dashboard_kpi_featured_sub">on the home page now</string>
+    <string name="profile_dashboard_performance_title">How your listings are doing</string>
+    <string name="profile_dashboard_performance_sub">All-time totals</string>
+    <string name="profile_dashboard_funnel_views">Views</string>
+    <string name="profile_dashboard_funnel_favorites">Saved to favorites</string>
+    <string name="profile_dashboard_funnel_contacts">Contacted you</string>
+    <string name="profile_dashboard_funnel_of_views">%1$d%% of views</string>
+    <string name="profile_dashboard_performance_row">%1$d views · %2$d favorites · %3$d contacts</string>
+    <string name="profile_dashboard_performance_all">See all (%1$d)</string>
+    <string name="profile_dashboard_performance_less">See less</string>
+    <string name="profile_dashboard_performance_empty">Once you list a vehicle, you will see here how many people view it, save it and contact you.</string>
     <string name="profile_dashboard_my_listings">My Listed Vehicles</string>
     <string name="profile_dashboard_publish">+ Post</string>
     <string name="profile_dashboard_no_listings">You haven\'t listed any vehicles yet. Tap \"+ Post\" to create your first one.</string>
@@ -412,9 +419,6 @@
         <item quantity="one">%1$d favorite</item>
         <item quantity="other">%1$d favorites</item>
     </plurals>
-    <string name="profile_dashboard_trend_this_month">%1$d this month</string>
-    <string name="profile_dashboard_trend_up">▲ +%1$d%% this month</string>
-    <string name="profile_dashboard_trend_down">▼ %1$d%% this month</string>
     <string name="profile_dashboard_request_already_pending">There\'s already a pending request for this vehicle.</string>
     <!-- Feature dialog -->
     <string name="profile_feature_dialog_title">Want to feature your vehicle?</string>
@@ -846,6 +850,10 @@
     <plurals name="admin2_alert_disabled">
         <item quantity="one">%1$d disabled listing</item>
         <item quantity="other">%1$d disabled listings</item>
+    </plurals>
+    <plurals name="admin2_alert_paused">
+        <item quantity="one">%1$d listing paused by its owner</item>
+        <item quantity="other">%1$d listings paused by their owners</item>
     </plurals>
     <plurals name="admin2_alert_suspended">
         <item quantity="one">%1$d suspended account</item>

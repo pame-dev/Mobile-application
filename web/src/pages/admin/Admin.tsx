@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { CarPhoto } from '../../components/CarPhoto'
 import { Icon, type IconName } from '../../components/Icon'
 import { Brand, LogoutModal } from '../../components/TopNav'
@@ -10,6 +10,8 @@ import {
   adminFeatured,
   adminReports,
   adminStats,
+  marcarSuspendidasVistas,
+  marcarVistas,
   moderateProposal,
   resolveFeatured,
   setAccountSuspended,
@@ -31,7 +33,7 @@ import { useSession } from '../../session/SessionContext'
 import { useRecargar } from '../../lib/tiempoReal'
 import { AdminHead, Badge, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
-type Seccion = 'inicio' | 'usuarios' | 'lotes' | 'vehiculos' | 'reportes' | 'destacados'
+type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados'
 
 /** Todo lo que necesita el panel; se recarga después de cada acción. */
 interface Datos {
@@ -139,6 +141,8 @@ export function Admin() {
   if (cargandoSesion) return <div className="skeleton" style={{ height: '100vh', borderRadius: 0 }} />
   if (!account) return <Navigate to="/login" replace state={{ from: '/admin' }} />
   if (mode !== 'admin') return <Navigate to="/" replace />
+  // La sección Lotes se quitó: los lotes se ven en Usuarios con el filtro "Lote".
+  if (sec === 'lotes') return <Navigate to="/admin/usuarios?tipo=lote" replace />
 
   const pendientes = {
     vehiculos: datos?.autos.filter((a) => propuestaPendiente(a.row) != null).length ?? 0,
@@ -148,12 +152,11 @@ export function Admin() {
   const items: [Seccion, Clave, IconName, number?][] = [
     ['inicio', 'admin.sec.home', 'home'],
     ['usuarios', 'admin.sec.users', 'users'],
-    ['lotes', 'admin.sec.lots', 'building'],
     ['vehiculos', 'admin.sec.vehicles', 'car', pendientes.vehiculos],
     ['reportes', 'admin.sec.reports', 'flag', pendientes.reportes],
     ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
   ]
-  const ir = (s: Seccion) => navigate(s === 'inicio' ? '/admin' : `/admin/${s}`)
+  const ir = (s: Seccion, filtro?: string) => navigate((s === 'inicio' ? '/admin' : `/admin/${s}`) + (filtro ? `?${filtro}` : ''))
   /** Navega y, si el panel móvil estaba abierto, lo cierra. */
   const elegir = (accion: () => void) => {
     setMenu(false)
@@ -173,9 +176,8 @@ export function Admin() {
     )
   } else if (!datos) {
     contenido = <div className="skeleton" style={{ height: 420 }} />
-  } else if (seccion === 'usuarios') contenido = <Usuarios datos={datos} selfId={account.id} listo={listo} />
-  else if (seccion === 'lotes') contenido = <Lotes datos={datos} listo={listo} />
-  else if (seccion === 'vehiculos') contenido = <Vehiculos datos={datos} listo={listo} />
+  } else if (seccion === 'usuarios') contenido = <Usuarios datos={datos} selfId={account.id} listo={listo} onVisto={cargarStats} />
+  else if (seccion === 'vehiculos') contenido = <Vehiculos datos={datos} listo={listo} onVisto={cargarStats} />
   else if (seccion === 'reportes') contenido = <Reportes datos={datos} listo={listo} />
   else if (seccion === 'destacados') contenido = <Destacados datos={datos} listo={listo} />
   else contenido = <Inicio nombre={account.nombre} stats={stats} rango={rango} setRango={setRango} ir={ir} />
@@ -239,7 +241,7 @@ export function Admin() {
 
 // ── Inicio ─────────────────────────────────────────────────────────────────
 
-function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; rango: number; setRango: (n: number) => void; ir: (s: Seccion) => void }) {
+function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; rango: number; setRango: (n: number) => void; ir: (s: Seccion, filtro?: string) => void }) {
   const { t } = useI18n()
   const head = (
     <AdminHead
@@ -268,15 +270,17 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
   ]
   const plural = (n: number, uno: Clave, varios: Clave, vars: Record<string, number> = {}) => t(n === 1 ? uno : varios, { n, ...vars })
   // Solo lo que realmente tiene pendientes.
-  const alertas: [number, string, Seccion, string][] = (
+  const alertas: [number, string, Seccion, string, string?][] = (
     [
       [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'admin.alertReviewOne', 'admin.alertReviewMany'), 'vehiculos', '#F59E0B'],
       [stats.reportesPendientes, plural(stats.reportesPendientes, 'admin.alertReportsOne', 'admin.alertReportsMany'), 'reportes', '#EF4444'],
       [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', '#F59E0B'],
-      [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'lotes', '#3B82F6'],
-      [stats.suspendidas, plural(stats.suspendidas, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3'],
-      [stats.deshabilitadas, plural(stats.deshabilitadas, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3'],
-    ] as [number, string, Seccion, string][]
+      [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'tipo=lote'],
+      [stats.suspendidasSinVer, plural(stats.suspendidasSinVer, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3', 'tipo=suspendido'],
+      // Se quitan cuando el admin abre ese filtro en Vehículos (admin_marcar_vistas).
+      [stats.deshabilitadasSinVer, plural(stats.deshabilitadasSinVer, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3', 'estado=Deshabilitado'],
+      [stats.pausadasSinVer, plural(stats.pausadasSinVer, 'admin.alertPausedOne', 'admin.alertPausedMany'), 'vehiculos', '#98A2B3', 'estado=Pausado'],
+    ] as [number, string, Seccion, string, string?][]
   ).filter(([n]) => n > 0)
 
   return (
@@ -293,8 +297,8 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
           </p>
         ) : (
           <div className="grid3" style={{ marginTop: 14 }}>
-            {alertas.map(([, txt, s, c]) => (
-              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s)}>
+            {alertas.map(([, txt, s, c, filtro]) => (
+              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s, filtro)}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', flex: 'none', background: c }} />
                 <span className="grow" style={{ color: 'var(--ink)', fontWeight: 500 }}>
                   {txt}
@@ -513,11 +517,20 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
   )
 }
 
-function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; listo: (m: string) => void }) {
-  const { openModal } = useUi()
+function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: string; listo: (m: string) => void; onVisto: () => void }) {
+  const { openModal, toast } = useUi()
   const { t } = useI18n()
   const [q, setQ] = useState('')
-  const [tab, setTab] = useState<'todos' | 'particular' | 'lote' | 'suspendido'>('todos')
+  // Desde "Requiere atención" (o el enlace viejo /admin/lotes) llega con ?tipo=lote o ?tipo=suspendido.
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState<'todos' | 'particular' | 'lote' | 'suspendido'>(() => {
+    const tipo = params.get('tipo')
+    return tipo === 'lote' || tipo === 'suspendido' ? tipo : 'todos'
+  })
+  // Al ver "Suspendido", esas cuentas dejan de salir en "Requiere atención".
+  useEffect(() => {
+    if (tab === 'suspendido') marcarSuspendidasVistas().then(onVisto).catch((e) => toast(mensajeUsuario(e)))
+  }, [tab, onVisto, toast])
   const c = datos.cuentas
   const lista = c
     .filter((x) => (tab === 'todos' ? true : tab === 'suspendido' ? x.estado_cuenta === 'suspendida' : x.tipo_cuenta === tab))
@@ -556,12 +569,12 @@ function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; list
                     <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
                   </div>
                 </td>
-                <td>{x.correo}</td>
-                <td>{x.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(x) }) : tipoCuenta(x)}</td>
-                <td>
+                <td data-label={t('admin.email')}>{x.correo}</td>
+                <td data-label={t('admin.accountType')}>{x.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(x) }) : tipoCuenta(x)}</td>
+                <td data-label={t('admin.status')}>
                   <Badge s={estadoCuenta(x)} />
                 </td>
-                <td className="num">{fecha(x.fecha_creacion)}</td>
+                <td className="num" data-label={t('admin.registrationDate')}>{fecha(x.fecha_creacion)}</td>
                 <td>
                   <button className="btn btn-ghost btn-sm" onClick={() => openModal(<UserDetail c={x} selfId={selfId} listo={listo} />)}>
                     {t('admin.viewDetail')}
@@ -573,89 +586,6 @@ function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; list
               <tr>
                 <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
                   {t('admin.usersEmpty')}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </>
-  )
-}
-
-function Lotes({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
-  const navigate = useNavigate()
-  const { toast } = useUi()
-  const { t } = useI18n()
-  const { suspender, reactivar } = useSuspender(listo)
-  const [q, setQ] = useState('')
-  const [tab, setTab] = useState<'todos' | 'activo' | 'suspendido'>('todos')
-  const lotes = datos.cuentas.filter((c) => c.tipo_cuenta === 'lote')
-  const lista = lotes
-    .filter((x) => (tab === 'todos' ? true : tab === 'suspendido' ? x.estado_cuenta === 'suspendida' : x.estado_cuenta !== 'suspendida'))
-    .filter((x) => !q.trim() || `${x.nombre_mostrar} ${x.responsable} ${x.municipio} ${x.estado}`.toLowerCase().includes(q.trim().toLowerCase()))
-  return (
-    <>
-      <AdminHead title={t('admin.sec.lots')} desc={t('admin.lotsDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.lotsSearch')} />} />
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        options={[
-          ['todos', t('admin.withCount', { label: t('admin.all'), n: lotes.length })],
-          ['activo', t('admin.withCount', { label: t('admin.st.active'), n: lotes.filter((x) => x.estado_cuenta !== 'suspendida').length })],
-          ['suspendido', t('admin.withCount', { label: t('admin.st.suspended'), n: lotes.filter((x) => x.estado_cuenta === 'suspendida').length })],
-        ]}
-      />
-      <div className="card tablewrap">
-        <table className="t">
-          <thead>
-            <tr>
-              <th>{t('admin.lot')}</th>
-              <th>{t('admin.manager')}</th>
-              <th>{t('admin.location')}</th>
-              <th>{t('admin.activeVehicles')}</th>
-              <th>{t('admin.status')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {lista.map((x) => (
-              <tr key={x.id_cuenta}>
-                <td>
-                  <div className="mini">
-                    <Ini name={x.nombre_mostrar} square />
-                    <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
-                  </div>
-                </td>
-                <td>{x.responsable || '—'}</td>
-                <td>{[x.municipio, x.estado].filter(Boolean).join(', ') || '—'}</td>
-                <td className="num">{x.activas}</td>
-                <td>
-                  <Badge s={estadoCuenta(x)} />
-                </td>
-                <td>
-                  <div className="row" style={{ gap: 6 }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/lotes/${x.id_cuenta}`)}>
-                      {t('admin.viewLot')}
-                    </button>
-                    {!x.es_admin &&
-                      (x.estado_cuenta === 'suspendida' ? (
-                        <button className="btn btn-soft btn-sm" onClick={() => reactivar(x).catch((e) => toast(mensajeUsuario(e)))}>
-                          {t('admin.reactivate')}
-                        </button>
-                      ) : (
-                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--error)' }} onClick={() => suspender(x)}>
-                          {t('admin.suspend')}
-                        </button>
-                      ))}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {lista.length === 0 && (
-              <tr>
-                <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
-                  {t('admin.lotsEmpty')}
                 </td>
               </tr>
             )}
@@ -806,11 +736,18 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
 
 const FILTROS_VEHICULO = ['Todos', 'Pendiente', 'Cambios pendientes', 'Activo', 'Rechazado', 'Deshabilitado', 'Pausado', 'Vendido'] as const
 
-function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
-  const { openModal } = useUi()
+function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string) => void; onVisto: () => void }) {
+  const { openModal, toast } = useUi()
   const { t } = useI18n()
   const [q, setQ] = useState('')
-  const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>('Todos')
+  // Desde "Requiere atención" llega con ?estado=Deshabilitado o ?estado=Pausado.
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>(() => FILTROS_VEHICULO.find((f) => f === params.get('estado')) ?? 'Todos')
+  // Al ver ese filtro, sus publicaciones dejan de salir en "Requiere atención".
+  useEffect(() => {
+    const estado = tab === 'Deshabilitado' ? 'deshabilitada' : tab === 'Pausado' ? 'pausada' : null
+    if (estado) marcarVistas(estado).then(onVisto).catch((e) => toast(mensajeUsuario(e)))
+  }, [tab, onVisto, toast])
   const conEstado = useMemo(() => datos.autos.map((a) => ({ ...a, estado: estadoAdmin(a.row, a.car) })), [datos.autos])
   const lista = conEstado
     .filter((a) => tab === 'Todos' || a.estado === tab)
@@ -854,10 +791,10 @@ function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void 
                       </div>
                     </div>
                   </td>
-                  <td>{car.ownerName}</td>
-                  <td>{car.year || '—'}</td>
-                  <td className="num">{precio(car.priceValue)}</td>
-                  <td>
+                  <td data-label={t('admin.seller')}>{car.ownerName}</td>
+                  <td data-label={t('admin.year')}>{car.year || '—'}</td>
+                  <td className="num" data-label={t('admin.price')}>{precio(car.priceValue)}</td>
+                  <td data-label={t('admin.status')}>
                     <Badge s={estado} />
                   </td>
                   <td>
@@ -1027,14 +964,14 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
                   <td className="num">
                     <b style={{ color: 'var(--ink)' }}>#R-{r.id_reporte}</b>
                   </td>
-                  <td>
+                  <td data-label={t('admin.type')}>
                     <span className={`badge ${deCuenta ? 'b-info' : 'b-neu'}`}>{t(deCuenta ? 'admin.user' : 'admin.listing')}</span>
                   </td>
-                  <td>{deCuenta ? dueno ?? r.publicacion : r.publicacion}</td>
-                  <td style={{ whiteSpace: 'normal', minWidth: 220 }}>{r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')}</td>
-                  <td>{r.reportante}</td>
-                  <td>{haceCuanto(r.fecha_reporte)}</td>
-                  <td>
+                  <td data-label={t('admin.reported')}>{deCuenta ? dueno ?? r.publicacion : r.publicacion}</td>
+                  <td data-label={t('admin.reasonCol')} style={{ whiteSpace: 'normal', minWidth: 220 }}>{r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')}</td>
+                  <td data-label={t('admin.reportedBy')}>{r.reportante}</td>
+                  <td data-label={t('admin.date')}>{haceCuanto(r.fecha_reporte)}</td>
+                  <td data-label={t('admin.status')}>
                     <Badge s={capital(r.estado_reporte)} />
                   </td>
                   <td>

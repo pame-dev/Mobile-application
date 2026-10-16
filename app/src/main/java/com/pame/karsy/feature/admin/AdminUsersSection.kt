@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,9 +36,11 @@ import com.pame.karsy.feature.profile.ProfileAvatar
 
 /** Cuentas particulares y lotes en una sola lista (los lotes ya no tienen sección propia). */
 @Composable
-fun AdminUsersSection(vm: AdminViewModel) {
+fun AdminUsersSection(vm: AdminViewModel, initialFilter: String = "Todos") {
     var search by rememberSaveable { mutableStateOf("") }
-    var filter by rememberSaveable { mutableStateOf("Todos") }
+    var filter by rememberSaveable(initialFilter) { mutableStateOf(initialFilter) }
+    // Al ver "Suspendido", esas cuentas dejan de salir en "Requiere atención".
+    LaunchedEffect(filter) { if (filter == "Suspendido") vm.marcarSuspendidasVistas() }
     var selected by remember { mutableStateOf<AdminUser?>(null) }
     // Cuenta que se va a suspender (abre el diálogo de motivo).
     var suspending by remember { mutableStateOf<AdminUser?>(null) }

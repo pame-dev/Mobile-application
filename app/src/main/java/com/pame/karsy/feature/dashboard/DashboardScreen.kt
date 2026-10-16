@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,28 +40,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -84,13 +74,14 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.repository.RendimientoPublicacion
 import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.feature.profile.carStatusLabel
 import com.pame.karsy.feature.profile.soldViaLabel
 
-/** Panel del vendedor ("Mi Panel"): métricas, interés semanal y vehículos publicados. */
+/** Panel del vendedor ("Mi Panel"): métricas, cómo van sus publicaciones y vehículos publicados. */
 @Composable
 fun DashboardScreen(
     onBack: () -> Unit,
@@ -127,7 +118,7 @@ fun DashboardScreen(
                     }
                     val stats = vm.stats
                     if (stats == null && vm.loading) {
-                        // Esqueleto: tarjetas de estadísticas + gráfica semanal + una publicación.
+                        // Esqueleto: tarjetas de estadísticas + rendimiento + una publicación.
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
                             SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
@@ -136,8 +127,9 @@ fun DashboardScreen(
                         SkeletonCarCard(imageHeight = 110.dp)
                     }
                     if (stats != null) {
-                        StatsRow(stats, vm.viewsTrend)
-                        WeeklyInterestCard(stats.favoritosSemana, stats.diasSemana)
+                        // Solo las que se ven en portada: un destacado vigente de un auto vendido o pausado no cuenta.
+                        StatsRow(stats, vm.myListings.count { it.featured && it.status == "Activo" })
+                        PerformanceCard(stats, vm.myListings, vm.loading, onCarClick)
                     }
                     // Las que el dueño ocultó de su perfil van en su propia sección, al final.
                     val (hidden, visible) = vm.myListings.partition(PublicacionesOcultas::estaOculta)
@@ -221,67 +213,43 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
     }
 }
 
+/**
+ * Estado de las publicaciones en 2×2: activas, vendidas, en revisión y destacadas.
+ * Vistas, favoritos y contactos van en el embudo de "Cómo van tus publicaciones".
+ */
 @Composable
-private fun StatsRow(stats: SellerStats, trend: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(16.dp))
-                .background(KarsySurface)
-                .padding(16.dp)
-        ) {
-            // No hay tabla de ventas: la métrica principal son las vistas de detalle.
-            CardLabel(stringResource(R.string.profile_dashboard_total_views))
-            Text(
-                stats.vistas.toString(),
-                fontFamily = Outfit,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-            Text(
-                trend,
-                fontFamily = DmSans,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = KarsyTeal,
-                modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
-            )
-            Spacer(Modifier.weight(1f))
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-            ) {
-                drawSparkline(stats.vistasPorMes, size.width, size.height, strokeWidth = 2.dp, fillAlpha = 0.2f)
-            }
-        }
-
-        Column(
-            modifier = Modifier.width(110.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+private fun StatsRow(stats: SellerStats, destacadas: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
             SmallStatCard(
-                stringResource(R.string.profile_dashboard_published),
-                stats.publicadas.toString(),
-                KarsyInk,
-                stringResource(R.string.profile_dashboard_vehicles),
-                Modifier.weight(1f)
-            )
-            SmallStatCard(
-                stringResource(R.string.profile_dashboard_inquiries),
-                stats.contactos.toString(),
+                stringResource(R.string.profile_dashboard_kpi_active),
+                stats.activas.toString(),
                 KarsyTeal,
-                stringResource(R.string.profile_dashboard_contacts),
-                Modifier.weight(1f)
+                stringResource(R.string.profile_dashboard_kpi_active_sub),
+                Modifier.weight(1f).fillMaxHeight()
+            )
+            SmallStatCard(
+                stringResource(R.string.profile_dashboard_kpi_sold),
+                stats.vendidas.toString(),
+                KarsyInk,
+                stringResource(R.string.profile_dashboard_kpi_sold_sub),
+                Modifier.weight(1f).fillMaxHeight()
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
+            SmallStatCard(
+                stringResource(R.string.profile_dashboard_kpi_in_review),
+                stats.pendientes.toString(),
+                KarsyInk,
+                stringResource(R.string.profile_dashboard_kpi_in_review_sub),
+                Modifier.weight(1f).fillMaxHeight()
+            )
+            SmallStatCard(
+                stringResource(R.string.profile_dashboard_kpi_featured),
+                destacadas.toString(),
+                KarsyTeal,
+                stringResource(R.string.profile_dashboard_kpi_featured_sub),
+                Modifier.weight(1f).fillMaxHeight()
             )
         }
     }
@@ -322,8 +290,26 @@ private fun CardLabel(text: String) {
     Text(text, fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
 }
 
+/** % de [b] sobre [a], sin decimales y hasta 100 (se puede guardar en favoritos sin abrir el detalle). */
+private fun porcentaje(b: Int, a: Int): Int = if (a > 0) (b * 100 / a).coerceAtMost(100) else 0
+
+/**
+ * "Cómo van tus publicaciones" (totales): arriba el embudo vistas → favoritos →
+ * contactos de todo el perfil; abajo una barra por publicación, la más vista primero.
+ */
 @Composable
-private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
+private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Boolean, onCarClick: (Long) -> Unit) {
+    var todas by remember { mutableStateOf(false) }
+    // Una fila por cada publicación ya publicada (aunque aún no tenga vistas); la BD manda
+    // los números por id y, si no hay, van en 0. Nombre y año vienen de la lista cargada.
+    val porId = listings.associateBy { it.id }
+    val datos = stats.rendimiento.associateBy { it.id }
+    val filas = listings
+        .filter { it.approved }
+        .map { datos[it.id] ?: RendimientoPublicacion(it.id, 0, 0, 0) }
+        .sortedWith(compareByDescending<RendimientoPublicacion> { it.vistas }.thenByDescending { it.contactos })
+    val visibles = if (todas) filas else filas.take(6)
+    val max = (filas.maxOfOrNull { it.vistas } ?: 0).coerceAtLeast(1)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -332,78 +318,116 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
             .padding(16.dp)
     ) {
         Text(
-            stringResource(R.string.profile_dashboard_weekly_interest),
+            stringResource(R.string.profile_dashboard_performance_title),
             fontFamily = DmSans,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             color = KarsyCharcoal,
-            modifier = Modifier.padding(bottom = 4.dp)
+            modifier = Modifier.padding(bottom = 2.dp)
         )
         Text(
-            stringResource(R.string.profile_dashboard_favorites_per_day),
+            stringResource(R.string.profile_dashboard_performance_sub),
             fontFamily = DmSans,
             fontSize = 11.sp,
             color = KarsyMid,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            pluralStringResource(
-                R.plurals.profile_dashboard_favorites_total,
-                favWeekly.sum().toInt(),
-                favWeekly.sum().toInt()
-            ),
-            fontFamily = DmSans,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = KarsyTeal,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-        val textMeasurer = rememberTextMeasurer()
-        val valueStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
-        val dayStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp)
-        ) {
-            // Barras desde 0 para que la altura sea proporcional a la cantidad real de favoritos
-            val count = maxOf(favWeekly.size, weekDays.size)
-            if (count == 0) return@Canvas
-            val valueSpace = 16.dp.toPx()
-            val bottom = size.height - 20.dp.toPx()
-            val plotH = bottom - valueSpace
-            val maxV = (favWeekly.maxOrNull() ?: 0f).coerceAtLeast(1f)
-            val slot = size.width / count
-            val barW = minOf(28.dp.toPx(), slot * 0.55f)
-            drawLine(KarsyBg, Offset(0f, bottom), Offset(size.width, bottom), strokeWidth = 1.dp.toPx())
-            for (i in 0 until count) {
-                val v = favWeekly.getOrElse(i) { 0f }
-                val center = slot * i + slot / 2f
-                val barH = v / maxV * plotH
-                val isMax = v > 0f && v == favWeekly.maxOrNull()
-                if (barH > 0f) {
-                    drawRoundRect(
-                        color = if (isMax) KarsyTeal else KarsyTeal.copy(alpha = 0.45f),
-                        topLeft = Offset(center - barW / 2f, bottom - barH),
-                        size = Size(barW, barH),
-                        cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx())
+        // Embudo: cada paso un poco más angosto que el anterior.
+        val pasos = listOf(
+            Triple(stringResource(R.string.profile_dashboard_funnel_views), stats.embudoVistas, KarsyTeal) to null,
+            Triple(stringResource(R.string.profile_dashboard_funnel_favorites), stats.embudoFavoritos, KarsyError) to
+                stringResource(R.string.profile_dashboard_funnel_of_views, porcentaje(stats.embudoFavoritos, stats.embudoVistas)),
+            Triple(stringResource(R.string.profile_dashboard_funnel_contacts), stats.embudoContactos, Color(0xFF22C55E)) to
+                stringResource(R.string.profile_dashboard_funnel_of_views, porcentaje(stats.embudoContactos, stats.embudoVistas)),
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            pasos.forEachIndexed { i, (paso, sub) ->
+                val (texto, n, color) = paso
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth(1f - i * 0.08f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(KarsyBg)
+                        .height(IntrinsicSize.Min)
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Box(Modifier.width(4.dp).fillMaxHeight().clip(RoundedCornerShape(4.dp)).background(color))
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(texto, fontFamily = DmSans, fontSize = 12.sp, color = KarsyInk)
+                        if (sub != null) Text(sub, fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+                    }
+                    Text(n.toString(), fontFamily = Outfit, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                }
+            }
+        }
+        Spacer(Modifier.height(14.dp))
+        // Mientras carga la lista de publicaciones no se dice "sin publicaciones".
+        if (filas.isEmpty() && !loading) {
+            Text(
+                stringResource(R.string.profile_dashboard_performance_empty),
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                color = KarsyMid
+            )
+        } else if (filas.isNotEmpty()) {
+            visibles.forEach { r ->
+                val car = porId.getValue(r.id)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onCarClick(r.id) }
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "${car.brand} ${car.model} ${if (car.year > 0) car.year else ""}".trim(),
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = KarsyInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(99.dp))
+                            .background(KarsyBg)
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth((r.vistas.toFloat() / max).coerceAtLeast(0.02f))
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(99.dp))
+                                .background(KarsyTeal)
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.profile_dashboard_performance_row, r.vistas, r.favoritos, r.contactos),
+                        fontFamily = DmSans,
+                        fontSize = 11.sp,
+                        color = KarsyMid
                     )
                 }
-                val valueLayout = textMeasurer.measure(v.toInt().toString(), valueStyle)
-                drawText(
-                    valueLayout,
-                    topLeft = Offset(
-                        center - valueLayout.size.width / 2f,
-                        bottom - barH - 3.dp.toPx() - valueLayout.size.height
-                    )
+            }
+            if (filas.size > 6) {
+                Text(
+                    if (todas) stringResource(R.string.profile_dashboard_performance_less)
+                    else stringResource(R.string.profile_dashboard_performance_all, filas.size),
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KarsyTeal,
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { todas = !todas }
+                        .padding(horizontal = 4.dp, vertical = 6.dp)
                 )
-                weekDays.getOrNull(i)?.let { d ->
-                    val dayLayout = textMeasurer.measure(d, dayStyle)
-                    drawText(
-                        dayLayout,
-                        topLeft = Offset(center - dayLayout.size.width / 2f, bottom + 4.dp.toPx())
-                    )
-                }
             }
         }
     }
@@ -676,46 +700,4 @@ private fun ListingCard(
             }
         }
     }
-}
-
-/** Puntos de la gráfica (misma fórmula que sparklinePath del mockup). */
-private fun sparklinePoints(data: List<Float>, w: Float, h: Float, pad: Float): List<Offset> {
-    if (data.isEmpty()) return emptyList()
-    val minV = data.min()
-    val maxV = data.max()
-    val range = (maxV - minV).takeIf { it != 0f } ?: 1f
-    val pasos = (data.size - 1).coerceAtLeast(1)
-    return data.mapIndexed { i, v ->
-        Offset(
-            x = i.toFloat() / pasos * w,
-            y = h - pad - (v - minV) / range * (h - pad * 2)
-        )
-    }
-}
-
-private fun DrawScope.drawSparkline(data: List<Float>, w: Float, h: Float, strokeWidth: Dp, fillAlpha: Float) {
-    val points = sparklinePoints(data, w, h, 6.dp.toPx())
-    if (points.isEmpty()) return
-    val line = Path().apply {
-        points.forEachIndexed { i, p -> if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y) }
-    }
-    val fill = Path().apply {
-        addPath(line)
-        lineTo(w, h)
-        lineTo(0f, h)
-        close()
-    }
-    drawPath(
-        fill,
-        Brush.verticalGradient(
-            listOf(KarsyTeal.copy(alpha = fillAlpha), KarsyTeal.copy(alpha = 0f)),
-            startY = 0f,
-            endY = h
-        )
-    )
-    drawPath(
-        line,
-        KarsyTeal,
-        style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-    )
 }
