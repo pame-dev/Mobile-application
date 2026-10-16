@@ -17,7 +17,6 @@ import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.data.repository.StatsRepository
 import com.pame.karsy.data.repository.UserRepository
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 /**
  * Panel del vendedor en sesión: métricas (vendedor_estadisticas), sus publicaciones
@@ -40,15 +39,6 @@ class DashboardViewModel : ViewModel() {
         private set
 
     val displayName: String get() = SessionManager.account?.nombre.orEmpty()
-
-    /** "▲ +20% este mes" comparando las vistas del mes contra el anterior. */
-    val viewsTrend: String
-        get() {
-            val s = stats ?: return ""
-            if (s.vistasMesAnterior == 0) return texto(R.string.profile_dashboard_trend_this_month, s.vistasMes)
-            val pct = ((s.vistasMes - s.vistasMesAnterior) * 100f / s.vistasMesAnterior).roundToInt()
-            return if (pct >= 0) texto(R.string.profile_dashboard_trend_up, pct) else texto(R.string.profile_dashboard_trend_down, pct)
-        }
 
     /** Auto para el que se muestra el diálogo "¿Quieres destacar tu vehículo?". */
     var destacarCar by mutableStateOf<Car?>(null)

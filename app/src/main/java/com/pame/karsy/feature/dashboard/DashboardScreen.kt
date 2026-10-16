@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -48,20 +47,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -83,13 +74,14 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.repository.RendimientoPublicacion
 import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.feature.profile.carStatusLabel
 import com.pame.karsy.feature.profile.soldViaLabel
 
-/** Panel del vendedor ("Mi Panel"): métricas, interés semanal y vehículos publicados. */
+/** Panel del vendedor ("Mi Panel"): métricas, cómo van sus publicaciones y vehículos publicados. */
 @Composable
 fun DashboardScreen(
     onBack: () -> Unit,
@@ -135,8 +127,8 @@ fun DashboardScreen(
                         SkeletonCarCard(imageHeight = 110.dp)
                     }
                     if (stats != null) {
-                        StatsRow(stats, vm.viewsTrend)
-                        PerformanceCard(stats, vm.myListings, onCarClick)
+                        StatsRow(stats)
+                        PerformanceCard(stats, vm.myListings, vm.loading, onCarClick)
                     }
                     // Las que el dueño ocultó de su perfil van en su propia sección, al final.
                     val (hidden, visible) = vm.myListings.partition(PublicacionesOcultas::estaOculta)
@@ -221,7 +213,7 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
 }
 
 @Composable
-private fun StatsRow(stats: SellerStats, trend: String) {
+private fun StatsRow(stats: SellerStats) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,7 +226,8 @@ private fun StatsRow(stats: SellerStats, trend: String) {
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(16.dp))
                 .background(KarsySurface)
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center
         ) {
             // No hay tabla de ventas: la métrica principal son las vistas de detalle.
             CardLabel(stringResource(R.string.profile_dashboard_total_views))
@@ -246,22 +239,15 @@ private fun StatsRow(stats: SellerStats, trend: String) {
                 color = KarsyInk,
                 modifier = Modifier.padding(top = 2.dp)
             )
+            // Todo en totales (sin comparar contra el mes pasado).
             Text(
-                trend,
+                stringResource(R.string.profile_dashboard_all_time),
                 fontFamily = DmSans,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
                 color = KarsyTeal,
-                modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+                modifier = Modifier.padding(top = 2.dp)
             )
-            Spacer(Modifier.weight(1f))
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-            ) {
-                drawSparkline(stats.vistasPorMes, size.width, size.height, strokeWidth = 2.dp, fillAlpha = 0.2f)
-            }
         }
 
         Column(
@@ -325,15 +311,20 @@ private fun CardLabel(text: String) {
 private fun porcentaje(b: Int, a: Int): Int = if (a > 0) (b * 100 / a).coerceAtMost(100) else 0
 
 /**
- * "Cómo van tus publicaciones" (últimos 30 días): arriba el embudo vistas → favoritos →
+ * "Cómo van tus publicaciones" (totales): arriba el embudo vistas → favoritos →
  * contactos de todo el perfil; abajo una barra por publicación, la más vista primero.
  */
 @Composable
-private fun PerformanceCard(stats: SellerStats, listings: List<Car>, onCarClick: (Long) -> Unit) {
+private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Boolean, onCarClick: (Long) -> Unit) {
     var todas by remember { mutableStateOf(false) }
-    // La BD manda solo el id; nombre y año vienen de la lista que ya se cargó.
+    // Una fila por cada publicación ya publicada (aunque aún no tenga vistas); la BD manda
+    // los números por id y, si no hay, van en 0. Nombre y año vienen de la lista cargada.
     val porId = listings.associateBy { it.id }
-    val filas = stats.rendimiento.filter { it.id in porId }
+    val datos = stats.rendimiento.associateBy { it.id }
+    val filas = listings
+        .filter { it.approved }
+        .map { datos[it.id] ?: RendimientoPublicacion(it.id, 0, 0, 0) }
+        .sortedWith(compareByDescending<RendimientoPublicacion> { it.vistas }.thenByDescending { it.contactos })
     val visibles = if (todas) filas else filas.take(6)
     val max = (filas.maxOfOrNull { it.vistas } ?: 0).coerceAtLeast(1)
     Column(
@@ -389,8 +380,8 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, onCarClick:
             }
         }
         Spacer(Modifier.height(14.dp))
-        // Si la BD trae datos pero la lista de publicaciones aún carga, no se dice "sin publicaciones".
-        if (stats.rendimiento.isEmpty()) {
+        // Mientras carga la lista de publicaciones no se dice "sin publicaciones".
+        if (filas.isEmpty() && !loading) {
             Text(
                 stringResource(R.string.profile_dashboard_performance_empty),
                 fontFamily = DmSans,
@@ -726,46 +717,4 @@ private fun ListingCard(
             }
         }
     }
-}
-
-/** Puntos de la gráfica (misma fórmula que sparklinePath del mockup). */
-private fun sparklinePoints(data: List<Float>, w: Float, h: Float, pad: Float): List<Offset> {
-    if (data.isEmpty()) return emptyList()
-    val minV = data.min()
-    val maxV = data.max()
-    val range = (maxV - minV).takeIf { it != 0f } ?: 1f
-    val pasos = (data.size - 1).coerceAtLeast(1)
-    return data.mapIndexed { i, v ->
-        Offset(
-            x = i.toFloat() / pasos * w,
-            y = h - pad - (v - minV) / range * (h - pad * 2)
-        )
-    }
-}
-
-private fun DrawScope.drawSparkline(data: List<Float>, w: Float, h: Float, strokeWidth: Dp, fillAlpha: Float) {
-    val points = sparklinePoints(data, w, h, 6.dp.toPx())
-    if (points.isEmpty()) return
-    val line = Path().apply {
-        points.forEachIndexed { i, p -> if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y) }
-    }
-    val fill = Path().apply {
-        addPath(line)
-        lineTo(w, h)
-        lineTo(0f, h)
-        close()
-    }
-    drawPath(
-        fill,
-        Brush.verticalGradient(
-            listOf(KarsyTeal.copy(alpha = fillAlpha), KarsyTeal.copy(alpha = 0f)),
-            startY = 0f,
-            endY = h
-        )
-    )
-    drawPath(
-        line,
-        KarsyTeal,
-        style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-    )
 }

@@ -392,7 +392,8 @@
     <string name="profile_dashboard_inquiries">INQUIRIES</string>
     <string name="profile_dashboard_contacts">Contacts</string>
     <string name="profile_dashboard_performance_title">How your listings are doing</string>
-    <string name="profile_dashboard_performance_sub">Last 30 days</string>
+    <string name="profile_dashboard_performance_sub">All-time totals</string>
+    <string name="profile_dashboard_all_time">all time</string>
     <string name="profile_dashboard_funnel_views">Views</string>
     <string name="profile_dashboard_funnel_favorites">Saved to favorites</string>
     <string name="profile_dashboard_funnel_contacts">Contacted you</string>
@@ -416,9 +417,6 @@
         <item quantity="one">%1$d favorite</item>
         <item quantity="other">%1$d favorites</item>
     </plurals>
-    <string name="profile_dashboard_trend_this_month">%1$d this month</string>
-    <string name="profile_dashboard_trend_up">▲ +%1$d%% this month</string>
-    <string name="profile_dashboard_trend_down">▼ %1$d%% this month</string>
     <string name="profile_dashboard_request_already_pending">There\'s already a pending request for this vehicle.</string>
     <!-- Feature dialog -->
     <string name="profile_feature_dialog_title">Want to feature your vehicle?</string>

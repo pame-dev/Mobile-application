@@ -13,16 +13,21 @@ import { useRecargar } from '../lib/tiempoReal'
 const pct = (b: number, a: number) => (a > 0 ? Math.min(100, Math.round((b * 100) / a)) : 0)
 
 /**
- * "Cómo van tus publicaciones" (últimos 30 días): arriba el embudo vistas → favoritos →
+ * "Cómo van tus publicaciones" (totales): arriba el embudo vistas → favoritos →
  * contactos de todo el perfil; abajo una barra por publicación, la más vista primero.
  */
 function Rendimiento({ stats, cars }: { stats: SellerStats; cars: OwnCar[] }) {
   const navigate = useNavigate()
   const { t } = useI18n()
   const [todas, setTodas] = useState(false)
+  // Una fila por cada publicación ya publicada (aunque aún no tenga vistas); los números
+  // vienen de la BD por id y, si no hay, van en 0.
+  const datos = new Map(stats.rendimiento.map((r) => [r.id, r]))
   const porId = new Map(cars.map((c) => [c.id, c]))
-  // Solo las que siguen en la lista del vendedor (la BD manda el id; nombre y foto vienen de aquí).
-  const filas = stats.rendimiento.filter((r) => porId.has(r.id))
+  const filas = cars
+    .filter((c) => c.approved)
+    .map((c) => datos.get(c.id) ?? { id: c.id, vistas: 0, favoritos: 0, contactos: 0 })
+    .sort((a, b) => b.vistas - a.vistas || b.contactos - a.contactos)
   const visibles = todas ? filas : filas.slice(0, 6)
   const max = Math.max(1, ...filas.map((r) => r.vistas))
   const e = stats.embudo
@@ -130,7 +135,7 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
   )
 }
 
-/** Mi panel: métricas, interés de la semana y publicaciones propias (DashboardScreen de la app). */
+/** Mi panel: métricas, cómo van las publicaciones y publicaciones propias (DashboardScreen de la app). */
 export function Dashboard() {
   const navigate = useNavigate()
   const { account, loading: cargandoSesion } = useSession()
@@ -168,18 +173,13 @@ export function Dashboard() {
 
   if (!cargandoSesion && !account) return <Navigate to="/login" replace state={{ from: '/panel' }} />
 
-  const tendencia = (() => {
-    if (!stats) return ''
-    if (stats.vistasMesAnterior === 0) return t('perfil.trendMonth', { n: entero(stats.vistasMes) })
-    const pct = Math.round(((stats.vistasMes - stats.vistasMesAnterior) * 100) / stats.vistasMesAnterior)
-    return pct >= 0 ? t('perfil.trendUp', { n: pct }) : t('perfil.trendDown', { n: pct })
-  })()
-  const favSemana = stats?.favoritosSemana.reduce((a, b) => a + b, 0) ?? 0
+  // Todo en totales (sin "esta semana" ni "este mes").
+  const favTotal = [...favs.values()].reduce((a, b) => a + b, 0)
   const kpis: [string, string, string, IconName, string, string][] = [
-    [t('perfil.kpiViews'), stats ? entero(stats.vistas) : '—', tendencia, 'eye', 'var(--teal-light)', 'var(--teal)'],
+    [t('perfil.kpiViews'), stats ? entero(stats.vistas) : '—', t('perfil.kpiAllTime'), 'eye', 'var(--teal-light)', 'var(--teal)'],
     [t('perfil.kpiListed'), stats ? entero(stats.publicadas) : '—', stats ? t('perfil.kpiListedSub', { activas: stats.activas, vendidas: stats.vendidas }) : '', 'car', 'var(--pill)', 'var(--ink)'],
     [t('perfil.kpiInquiries'), stats ? entero(stats.contactos) : '—', t('perfil.kpiContacts'), 'chat', 'var(--success-l)', 'var(--success)'],
-    [t('nav.favorites'), stats ? entero(favSemana) : '—', t('perfil.kpiThisWeek'), 'heart', 'var(--error-l)', 'var(--error)'],
+    [t('nav.favorites'), stats ? entero(favTotal) : '—', t('perfil.kpiAllTime'), 'heart', 'var(--error-l)', 'var(--error)'],
   ]
   const visibles = (cars ?? []).filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))
   const escondidas = (cars ?? []).filter((c) => sePuedeOcultar(c) && ocultasIds.has(c.id))

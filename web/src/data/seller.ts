@@ -142,9 +142,9 @@ export interface SellerStats {
   vistasPorMes: number[]
   favoritosSemana: number[]
   diasSemana: string[]
-  /** Últimos 30 días, de todas las publicaciones. */
+  /** Totales de las publicaciones ya publicadas. */
   embudo: { vistas: number; favoritos: number; contactos: number }
-  /** Últimos 30 días, por publicación (la más vista primero). */
+  /** Totales por publicación (la más vista primero). */
   rendimiento: { id: number; vistas: number; favoritos: number; contactos: number }[]
 }
 

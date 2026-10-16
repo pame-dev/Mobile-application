@@ -25,11 +25,11 @@ data class SellerStats(
     val vistasPorMes: List<Float>,
     val favoritosSemana: List<Float>,
     val diasSemana: List<String>,
-    /** Últimos 30 días, de todas las publicaciones: vistas → favoritos → contactos. */
+    /** Totales de las publicaciones ya publicadas: vistas → favoritos → contactos. */
     val embudoVistas: Int,
     val embudoFavoritos: Int,
     val embudoContactos: Int,
-    /** Últimos 30 días, por publicación (la más vista primero). */
+    /** Totales por publicación (la más vista primero). */
     val rendimiento: List<RendimientoPublicacion>,
 )
 

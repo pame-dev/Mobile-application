@@ -394,7 +394,8 @@
     <string name="profile_dashboard_inquiries">CONSULTAS</string>
     <string name="profile_dashboard_contacts">Contactos</string>
     <string name="profile_dashboard_performance_title">Cómo van tus publicaciones</string>
-    <string name="profile_dashboard_performance_sub">Últimos 30 días</string>
+    <string name="profile_dashboard_performance_sub">Totales desde que publicaste</string>
+    <string name="profile_dashboard_all_time">en total</string>
     <string name="profile_dashboard_funnel_views">Vistas</string>
     <string name="profile_dashboard_funnel_favorites">Guardadas en favoritos</string>
     <string name="profile_dashboard_funnel_contacts">Te contactaron</string>
@@ -418,9 +419,6 @@
         <item quantity="one">%1$d favorito</item>
         <item quantity="other">%1$d favoritos</item>
     </plurals>
-    <string name="profile_dashboard_trend_this_month">%1$d este mes</string>
-    <string name="profile_dashboard_trend_up">▲ +%1$d%% este mes</string>
-    <string name="profile_dashboard_trend_down">▼ %1$d%% este mes</string>
     <string name="profile_dashboard_request_already_pending">Ya hay una solicitud pendiente para este vehículo.</string>
     <!-- Diálogo destacar -->
     <string name="profile_feature_dialog_title">¿Quieres destacar tu vehículo?</string>
