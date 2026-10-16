@@ -32,19 +32,13 @@ import { useSession } from '../session/SessionContext'
 
 /** [back]: ruta fija, o 'historial' para regresar a la pantalla anterior (al Inicio si se abrió directo). */
 function PageHead({ title, back, children }: { title: string; back?: string; children?: ReactNode }) {
-  const navigate = useNavigate()
-  const { t } = useI18n()
   return (
     <div className="pagehead">
       <div className="row">
         {back === 'historial' ? (
           <VolverButton fallback="/" />
         ) : (
-          back && (
-            <button className="iconbtn" aria-label={t('settings.backLabel')} onClick={() => navigate(back)}>
-              <Icon name="back" size={18} />
-            </button>
-          )
+          back && <VolverButton to={back} />
         )}
         <h1>{title}</h1>
       </div>
@@ -626,10 +620,9 @@ function Legal({ title, doc, id }: { title: Clave; doc: Record<Lang, LegalDoc>; 
   return (
     <div className="wrap" style={{ padding: '28px 16px 40px' }}>
       <div className="card legaltext" style={{ margin: '0 auto' }}>
-        <button className="backlink" onClick={volver}>
-          <Icon name="back" size={16} />
-          {desdeRegistro ? t('legal.backToRegister') : t('common.back')}
-        </button>
+        <div style={{ marginBottom: 18 }}>
+          <VolverButton onClick={volver} label={desdeRegistro ? t('legal.backToRegister') : t('common.back')} />
+        </div>
         <h1 style={{ fontSize: 30 }}>{t(title)}</h1>
         <p className="mid" style={{ margin: '6px 0 16px' }}>
           {d.update}

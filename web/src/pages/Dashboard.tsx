@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { VolverButton } from '../components/VolverButton'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon, type IconName } from '../components/Icon'
@@ -201,9 +202,7 @@ export function Dashboard() {
     <div className="wrap">
       <div className="pagehead">
         <div className="row">
-          <button className="iconbtn" aria-label={t('perfil.backToProfile')} onClick={() => navigate('/perfil')}>
-            <Icon name="back" size={18} />
-          </button>
+          <VolverButton to="/perfil" label={t('perfil.backToProfile')} />
           <h1>{t('perfil.dashboardTitle')}</h1>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/publicar')}>

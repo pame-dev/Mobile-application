@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.UserRepository
 import com.pame.karsy.feature.profile.AvatarViewer
@@ -31,10 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -105,17 +103,11 @@ internal fun SellerProfileView(
                     .statusBarsPadding()
                     .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(onClick = onBack)
-                        .padding(vertical = 4.dp, horizontal = 2.dp)
-                ) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyInk, modifier = Modifier.size(24.dp))
-                    Text(stringResource(R.string.detail_home), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = KarsyInk)
-                }
+                KarsyBackButton(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    contentDescription = stringResource(R.string.detail_back)
+                )
                 Text(
                     stringResource(R.string.detail_profile_title),
                     fontFamily = Outfit,

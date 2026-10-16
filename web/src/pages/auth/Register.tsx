@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { VolverButton } from '../../components/VolverButton'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox, AuthShell, BackButton, PasswordInput, PasswordRulesList } from '../../components/AuthParts'
 import { Icon, type IconName } from '../../components/Icon'
@@ -499,10 +500,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           void crear()
         }}
       >
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate('/registro')}>
-          <Icon name="back" size={16} />
-          {t('auth.back')}
-        </button>
+        <VolverButton to="/registro" label={t('auth.back')} />
         <h1 style={{ fontSize: 32, marginTop: 18 }}>{esLote ? t('auth.reg.lotTitle') : t('auth.reg.title')}</h1>
         <p className="muted">{esLote ? t('auth.reg.lotSub') : t('auth.reg.sub')}</p>
 

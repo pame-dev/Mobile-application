@@ -308,7 +308,6 @@
     <string name="detail_whatsapp_message">Hola, me interesa tu %1$s %2$d que vi en Karsy.</string>
     <string name="detail_seller_dealer">Lote</string>
     <string name="detail_seller_private">Particular</string>
-    <string name="detail_home">Inicio</string>
     <string name="detail_profile_title">Perfil</string>
     <string name="detail_listings_title">Publicaciones</string>
     <string name="detail_no_active_listings">Sin publicaciones activas.</string>
@@ -636,7 +635,6 @@
     <string name="admin1_badge_requested">★ Solicitado</string>
     <string name="admin1_user_requested_prefix">"El usuario "</string>
     <string name="admin1_user_requested_suffix">" ha solicitado destacar esta publicación."</string>
-    <string name="admin1_back_to_requests_arrow">‹ Volver a solicitudes</string>
     <string name="admin1_back_to_requests">Volver a solicitudes</string>
     <string name="admin1_review_title">Revisión de publicación</string>
     <string name="admin1_review_desc">Revisa la publicación y decide si cumple con los criterios para aparecer en Destacados.</string>

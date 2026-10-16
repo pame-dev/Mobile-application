@@ -306,7 +306,6 @@
     <string name="detail_whatsapp_message">Hi, I\'m interested in your %1$s %2$d that I saw on Karsy.</string>
     <string name="detail_seller_dealer">Dealer</string>
     <string name="detail_seller_private">Private seller</string>
-    <string name="detail_home">Home</string>
     <string name="detail_profile_title">Profile</string>
     <string name="detail_listings_title">Listings</string>
     <string name="detail_no_active_listings">No active listings.</string>
@@ -634,7 +633,6 @@
     <string name="admin1_badge_requested">★ Requested</string>
     <string name="admin1_user_requested_prefix">"User "</string>
     <string name="admin1_user_requested_suffix">" has requested to feature this listing."</string>
-    <string name="admin1_back_to_requests_arrow">‹ Back to requests</string>
     <string name="admin1_back_to_requests">Back to requests</string>
     <string name="admin1_review_title">Listing review</string>
     <string name="admin1_review_desc">Review the listing and decide whether it meets the criteria to appear in Featured.</string>

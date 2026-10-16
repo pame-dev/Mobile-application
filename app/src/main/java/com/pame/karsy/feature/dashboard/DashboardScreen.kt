@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.compose.animation.AnimatedVisibility
@@ -30,7 +31,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -179,20 +179,7 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
             .padding(start = 12.dp, end = 20.dp, top = 24.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .clickable(onClick = onBack),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.Rounded.ChevronLeft,
-                contentDescription = stringResource(R.string.profile_dashboard_back_cd),
-                tint = KarsyInk,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+        KarsyBackButton(onClick = onBack, contentDescription = stringResource(R.string.profile_dashboard_back_cd))
         Text(
             stringResource(R.string.profile_dashboard_title),
             fontFamily = Outfit,

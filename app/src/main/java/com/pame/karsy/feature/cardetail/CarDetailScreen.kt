@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.cardetail
 
 import androidx.activity.compose.BackHandler
+import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.rounded.Translate
@@ -40,7 +41,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Block
-import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.Sell
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
@@ -50,7 +50,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -802,16 +801,9 @@ private fun DetailHeader(
             .fillMaxWidth()
             .background(KarsyBg)
             .statusBarsPadding()
-            .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)
+            .padding(start = 12.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)
     ) {
-        IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
-            Icon(
-                Icons.Rounded.ChevronLeft,
-                contentDescription = stringResource(R.string.detail_back),
-                tint = KarsyInk,
-                modifier = Modifier.size(28.dp)
-            )
-        }
+        KarsyBackButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart), contentDescription = stringResource(R.string.detail_back))
         Text(
             stringResource(R.string.detail_title),
             fontFamily = Outfit,
@@ -1139,9 +1131,7 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        IconButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp, top = 8.dp)) {
-            Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), tint = KarsyInk, modifier = Modifier.size(28.dp))
-        }
+        KarsyBackButton(onClick = onBack, modifier = Modifier.padding(start = 12.dp, top = 8.dp), contentDescription = stringResource(R.string.detail_back))
         Box(
             Modifier
                 .weight(1f)

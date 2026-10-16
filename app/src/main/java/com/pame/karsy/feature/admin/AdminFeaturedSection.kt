@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
+import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.components.SectionLabel
@@ -241,15 +242,10 @@ private fun FeaturedRequestDetail(
                 .padding(horizontal = 16.dp, vertical = 20.dp)
                 .then(if (request.status != FeaturedStatus.Pendiente) Modifier.navigationBarsPadding() else Modifier)
         ) {
-            Text(
-                stringResource(R.string.admin1_back_to_requests_arrow),
-                fontFamily = DmSans,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = KarsyTeal,
-                modifier = Modifier
-                    .clickable(onClick = onBackToList)
-                    .padding(bottom = 14.dp)
+            KarsyBackButton(
+                onClick = onBackToList,
+                contentDescription = stringResource(R.string.admin1_back_to_requests),
+                modifier = Modifier.padding(bottom = 14.dp)
             )
             AdminSectionHeader(
                 title = stringResource(R.string.admin1_review_title),

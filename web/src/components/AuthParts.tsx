@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { VolverButton } from './VolverButton'
 import { EMAIL_CODE_LENGTH } from '../data/auth'
 import { useI18n } from '../i18n/I18nContext'
 import { PASSWORD_RULES } from '../lib/formRules'
@@ -59,10 +60,9 @@ export function AuthShell({ title, sub, photo = 0, children }: { title: string; 
 export function BackButton({ onClick }: { onClick: () => void }) {
   const { t } = useI18n()
   return (
-    <button className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }} onClick={onClick}>
-      <Icon name="back" size={16} />
-      {t('auth.back')}
-    </button>
+    <div style={{ alignSelf: 'flex-start' }}>
+      <VolverButton onClick={onClick} label={t('auth.back')} />
+    </div>
   )
 }
 
