@@ -391,12 +391,16 @@
     <string name="profile_dashboard_vehicles">Vehicles</string>
     <string name="profile_dashboard_inquiries">INQUIRIES</string>
     <string name="profile_dashboard_contacts">Contacts</string>
-    <string name="profile_dashboard_weekly_interest">Interest this week</string>
-    <string name="profile_dashboard_favorites_per_day">Favorites added per day</string>
-    <plurals name="profile_dashboard_favorites_total">
-        <item quantity="one">%1$d favorite this week</item>
-        <item quantity="other">%1$d favorites this week</item>
-    </plurals>
+    <string name="profile_dashboard_performance_title">How your listings are doing</string>
+    <string name="profile_dashboard_performance_sub">Last 30 days</string>
+    <string name="profile_dashboard_funnel_views">Views</string>
+    <string name="profile_dashboard_funnel_favorites">Saved to favorites</string>
+    <string name="profile_dashboard_funnel_contacts">Contacted you</string>
+    <string name="profile_dashboard_funnel_of_views">%1$d%% of views</string>
+    <string name="profile_dashboard_performance_row">%1$d views · %2$d favorites · %3$d contacts</string>
+    <string name="profile_dashboard_performance_all">See all (%1$d)</string>
+    <string name="profile_dashboard_performance_less">See less</string>
+    <string name="profile_dashboard_performance_empty">Once you list a vehicle, you will see here how many people view it, save it and contact you.</string>
     <string name="profile_dashboard_my_listings">My Listed Vehicles</string>
     <string name="profile_dashboard_publish">+ Post</string>
     <string name="profile_dashboard_no_listings">You haven\'t listed any vehicles yet. Tap \"+ Post\" to create your first one.</string>

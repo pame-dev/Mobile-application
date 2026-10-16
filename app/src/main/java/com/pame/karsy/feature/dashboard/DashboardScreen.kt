@@ -41,12 +41,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -57,9 +59,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -127,7 +126,7 @@ fun DashboardScreen(
                     }
                     val stats = vm.stats
                     if (stats == null && vm.loading) {
-                        // Esqueleto: tarjetas de estadísticas + gráfica semanal + una publicación.
+                        // Esqueleto: tarjetas de estadísticas + rendimiento + una publicación.
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
                             SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
@@ -137,7 +136,7 @@ fun DashboardScreen(
                     }
                     if (stats != null) {
                         StatsRow(stats, vm.viewsTrend)
-                        WeeklyInterestCard(stats.favoritosSemana, stats.diasSemana)
+                        PerformanceCard(stats, vm.myListings, onCarClick)
                     }
                     // Las que el dueño ocultó de su perfil van en su propia sección, al final.
                     val (hidden, visible) = vm.myListings.partition(PublicacionesOcultas::estaOculta)
@@ -322,8 +321,21 @@ private fun CardLabel(text: String) {
     Text(text, fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
 }
 
+/** % de [b] sobre [a], sin decimales y hasta 100 (se puede guardar en favoritos sin abrir el detalle). */
+private fun porcentaje(b: Int, a: Int): Int = if (a > 0) (b * 100 / a).coerceAtMost(100) else 0
+
+/**
+ * "Cómo van tus publicaciones" (últimos 30 días): arriba el embudo vistas → favoritos →
+ * contactos de todo el perfil; abajo una barra por publicación, la más vista primero.
+ */
 @Composable
-private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
+private fun PerformanceCard(stats: SellerStats, listings: List<Car>, onCarClick: (Long) -> Unit) {
+    var todas by remember { mutableStateOf(false) }
+    // La BD manda solo el id; nombre y año vienen de la lista que ya se cargó.
+    val porId = listings.associateBy { it.id }
+    val filas = stats.rendimiento.filter { it.id in porId }
+    val visibles = if (todas) filas else filas.take(6)
+    val max = (filas.maxOfOrNull { it.vistas } ?: 0).coerceAtLeast(1)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -332,78 +344,116 @@ private fun WeeklyInterestCard(favWeekly: List<Float>, weekDays: List<String>) {
             .padding(16.dp)
     ) {
         Text(
-            stringResource(R.string.profile_dashboard_weekly_interest),
+            stringResource(R.string.profile_dashboard_performance_title),
             fontFamily = DmSans,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             color = KarsyCharcoal,
-            modifier = Modifier.padding(bottom = 4.dp)
+            modifier = Modifier.padding(bottom = 2.dp)
         )
         Text(
-            stringResource(R.string.profile_dashboard_favorites_per_day),
+            stringResource(R.string.profile_dashboard_performance_sub),
             fontFamily = DmSans,
             fontSize = 11.sp,
             color = KarsyMid,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            pluralStringResource(
-                R.plurals.profile_dashboard_favorites_total,
-                favWeekly.sum().toInt(),
-                favWeekly.sum().toInt()
-            ),
-            fontFamily = DmSans,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = KarsyTeal,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-        val textMeasurer = rememberTextMeasurer()
-        val valueStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
-        val dayStyle = TextStyle(fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp)
-        ) {
-            // Barras desde 0 para que la altura sea proporcional a la cantidad real de favoritos
-            val count = maxOf(favWeekly.size, weekDays.size)
-            if (count == 0) return@Canvas
-            val valueSpace = 16.dp.toPx()
-            val bottom = size.height - 20.dp.toPx()
-            val plotH = bottom - valueSpace
-            val maxV = (favWeekly.maxOrNull() ?: 0f).coerceAtLeast(1f)
-            val slot = size.width / count
-            val barW = minOf(28.dp.toPx(), slot * 0.55f)
-            drawLine(KarsyBg, Offset(0f, bottom), Offset(size.width, bottom), strokeWidth = 1.dp.toPx())
-            for (i in 0 until count) {
-                val v = favWeekly.getOrElse(i) { 0f }
-                val center = slot * i + slot / 2f
-                val barH = v / maxV * plotH
-                val isMax = v > 0f && v == favWeekly.maxOrNull()
-                if (barH > 0f) {
-                    drawRoundRect(
-                        color = if (isMax) KarsyTeal else KarsyTeal.copy(alpha = 0.45f),
-                        topLeft = Offset(center - barW / 2f, bottom - barH),
-                        size = Size(barW, barH),
-                        cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx())
+        // Embudo: cada paso un poco más angosto que el anterior.
+        val pasos = listOf(
+            Triple(stringResource(R.string.profile_dashboard_funnel_views), stats.embudoVistas, KarsyTeal) to null,
+            Triple(stringResource(R.string.profile_dashboard_funnel_favorites), stats.embudoFavoritos, KarsyError) to
+                stringResource(R.string.profile_dashboard_funnel_of_views, porcentaje(stats.embudoFavoritos, stats.embudoVistas)),
+            Triple(stringResource(R.string.profile_dashboard_funnel_contacts), stats.embudoContactos, Color(0xFF22C55E)) to
+                stringResource(R.string.profile_dashboard_funnel_of_views, porcentaje(stats.embudoContactos, stats.embudoVistas)),
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            pasos.forEachIndexed { i, (paso, sub) ->
+                val (texto, n, color) = paso
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth(1f - i * 0.08f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(KarsyBg)
+                        .height(IntrinsicSize.Min)
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Box(Modifier.width(4.dp).fillMaxHeight().clip(RoundedCornerShape(4.dp)).background(color))
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(texto, fontFamily = DmSans, fontSize = 12.sp, color = KarsyInk)
+                        if (sub != null) Text(sub, fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+                    }
+                    Text(n.toString(), fontFamily = Outfit, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                }
+            }
+        }
+        Spacer(Modifier.height(14.dp))
+        // Si la BD trae datos pero la lista de publicaciones aún carga, no se dice "sin publicaciones".
+        if (stats.rendimiento.isEmpty()) {
+            Text(
+                stringResource(R.string.profile_dashboard_performance_empty),
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                color = KarsyMid
+            )
+        } else if (filas.isNotEmpty()) {
+            visibles.forEach { r ->
+                val car = porId.getValue(r.id)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onCarClick(r.id) }
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "${car.brand} ${car.model} ${if (car.year > 0) car.year else ""}".trim(),
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = KarsyInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(99.dp))
+                            .background(KarsyBg)
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth((r.vistas.toFloat() / max).coerceAtLeast(0.02f))
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(99.dp))
+                                .background(KarsyTeal)
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.profile_dashboard_performance_row, r.vistas, r.favoritos, r.contactos),
+                        fontFamily = DmSans,
+                        fontSize = 11.sp,
+                        color = KarsyMid
                     )
                 }
-                val valueLayout = textMeasurer.measure(v.toInt().toString(), valueStyle)
-                drawText(
-                    valueLayout,
-                    topLeft = Offset(
-                        center - valueLayout.size.width / 2f,
-                        bottom - barH - 3.dp.toPx() - valueLayout.size.height
-                    )
+            }
+            if (filas.size > 6) {
+                Text(
+                    if (todas) stringResource(R.string.profile_dashboard_performance_less)
+                    else stringResource(R.string.profile_dashboard_performance_all, filas.size),
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KarsyTeal,
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { todas = !todas }
+                        .padding(horizontal = 4.dp, vertical = 6.dp)
                 )
-                weekDays.getOrNull(i)?.let { d ->
-                    val dayLayout = textMeasurer.measure(d, dayStyle)
-                    drawText(
-                        dayLayout,
-                        topLeft = Offset(center - dayLayout.size.width / 2f, bottom + 4.dp.toPx())
-                    )
-                }
             }
         }
     }

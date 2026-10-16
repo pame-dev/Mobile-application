@@ -393,12 +393,16 @@
     <string name="profile_dashboard_vehicles">Vehículos</string>
     <string name="profile_dashboard_inquiries">CONSULTAS</string>
     <string name="profile_dashboard_contacts">Contactos</string>
-    <string name="profile_dashboard_weekly_interest">Interés en la semana</string>
-    <string name="profile_dashboard_favorites_per_day">Favoritos agregados por día</string>
-    <plurals name="profile_dashboard_favorites_total">
-        <item quantity="one">%1$d favorito esta semana</item>
-        <item quantity="other">%1$d favoritos esta semana</item>
-    </plurals>
+    <string name="profile_dashboard_performance_title">Cómo van tus publicaciones</string>
+    <string name="profile_dashboard_performance_sub">Últimos 30 días</string>
+    <string name="profile_dashboard_funnel_views">Vistas</string>
+    <string name="profile_dashboard_funnel_favorites">Guardadas en favoritos</string>
+    <string name="profile_dashboard_funnel_contacts">Te contactaron</string>
+    <string name="profile_dashboard_funnel_of_views">%1$d%% de las vistas</string>
+    <string name="profile_dashboard_performance_row">%1$d vistas · %2$d favoritos · %3$d contactos</string>
+    <string name="profile_dashboard_performance_all">Ver todas (%1$d)</string>
+    <string name="profile_dashboard_performance_less">Ver menos</string>
+    <string name="profile_dashboard_performance_empty">Cuando publiques un vehículo, aquí verás cuántas personas lo ven, lo guardan y te contactan.</string>
     <string name="profile_dashboard_my_listings">Mis Vehículos Publicados</string>
     <string name="profile_dashboard_publish">+ Publicar</string>
     <string name="profile_dashboard_no_listings">Todavía no publicas ningún vehículo. Toca \"+ Publicar\" para crear el primero.</string>
