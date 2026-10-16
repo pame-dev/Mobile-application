@@ -279,10 +279,11 @@ object ExportarPanel {
             )
             // Lo más destacado
             cajas(
-                listOf(
+                listOfNotNull(
                     Triple(texto(R.string.profile_dashboard_report_top_viewed), res.masVista?.let(::titulo) ?: "—", ""),
                     Triple(texto(R.string.profile_dashboard_report_top_contacted), res.masContactada?.let(::titulo) ?: "—", ""),
-                    Triple(texto(R.string.profile_dashboard_report_no_views), res.sinVistas.toString(), ""),
+                    // Solo si algún auto no tiene vistas: es un aviso para revisarlo.
+                    Triple(texto(R.string.profile_dashboard_report_no_views), res.sinVistas.toString(), "").takeIf { res.sinVistas > 0 },
                 ),
                 fondo = suave,
                 valor = 12f

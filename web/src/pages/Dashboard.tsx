@@ -115,7 +115,8 @@ function ReportePanel({ nombre, kpis, stats, cars }: { nombre: string; kpis: [st
   const destacados: [string, string][] = [
     [t('perfil.reportTopViewed'), res.masVista ? titulo(res.masVista) : '—'],
     [t('perfil.reportTopContacted'), res.masContactada ? titulo(res.masContactada) : '—'],
-    [t('perfil.reportNoViews'), entero(res.sinVistas)],
+    // Solo si algún auto no tiene vistas: es un aviso para revisarlo.
+    ...(res.sinVistas > 0 ? [[t('perfil.reportNoViews'), entero(res.sinVistas)] as [string, string]] : []),
   ]
   return createPortal(
     <div className="reportepanel">
@@ -156,7 +157,7 @@ function ReportePanel({ nombre, kpis, stats, cars }: { nombre: string; kpis: [st
           <small>{t('perfil.funnelOfViews', { n: pct(e.contactos, e.vistas) })}</small>
         </div>
       </div>
-      <div className="rdestacados">
+      <div className="rdestacados" style={{ gridTemplateColumns: `repeat(${destacados.length}, 1fr)` }}>
         {destacados.map(([k, v]) => (
           <div key={k}>
             <span>{k}</span>
