@@ -10,6 +10,7 @@ import {
   adminFeatured,
   adminReports,
   adminStats,
+  marcarVistas,
   moderateProposal,
   resolveFeatured,
   setAccountSuspended,
@@ -154,7 +155,7 @@ export function Admin() {
     ['reportes', 'admin.sec.reports', 'flag', pendientes.reportes],
     ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
   ]
-  const ir = (s: Seccion, tipo?: 'lote') => navigate((s === 'inicio' ? '/admin' : `/admin/${s}`) + (tipo ? `?tipo=${tipo}` : ''))
+  const ir = (s: Seccion, filtro?: string) => navigate((s === 'inicio' ? '/admin' : `/admin/${s}`) + (filtro ? `?${filtro}` : ''))
   /** Navega y, si el panel móvil estaba abierto, lo cierra. */
   const elegir = (accion: () => void) => {
     setMenu(false)
@@ -175,7 +176,7 @@ export function Admin() {
   } else if (!datos) {
     contenido = <div className="skeleton" style={{ height: 420 }} />
   } else if (seccion === 'usuarios') contenido = <Usuarios datos={datos} selfId={account.id} listo={listo} />
-  else if (seccion === 'vehiculos') contenido = <Vehiculos datos={datos} listo={listo} />
+  else if (seccion === 'vehiculos') contenido = <Vehiculos datos={datos} listo={listo} onVisto={cargarStats} />
   else if (seccion === 'reportes') contenido = <Reportes datos={datos} listo={listo} />
   else if (seccion === 'destacados') contenido = <Destacados datos={datos} listo={listo} />
   else contenido = <Inicio nombre={account.nombre} stats={stats} rango={rango} setRango={setRango} ir={ir} />
@@ -239,7 +240,7 @@ export function Admin() {
 
 // ── Inicio ─────────────────────────────────────────────────────────────────
 
-function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; rango: number; setRango: (n: number) => void; ir: (s: Seccion, tipo?: 'lote') => void }) {
+function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; rango: number; setRango: (n: number) => void; ir: (s: Seccion, filtro?: string) => void }) {
   const { t } = useI18n()
   const head = (
     <AdminHead
@@ -268,15 +269,17 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
   ]
   const plural = (n: number, uno: Clave, varios: Clave, vars: Record<string, number> = {}) => t(n === 1 ? uno : varios, { n, ...vars })
   // Solo lo que realmente tiene pendientes.
-  const alertas: [number, string, Seccion, string, 'lote'?][] = (
+  const alertas: [number, string, Seccion, string, string?][] = (
     [
       [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'admin.alertReviewOne', 'admin.alertReviewMany'), 'vehiculos', '#F59E0B'],
       [stats.reportesPendientes, plural(stats.reportesPendientes, 'admin.alertReportsOne', 'admin.alertReportsMany'), 'reportes', '#EF4444'],
       [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', '#F59E0B'],
-      [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'lote'],
+      [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'tipo=lote'],
       [stats.suspendidas, plural(stats.suspendidas, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3'],
-      [stats.deshabilitadas, plural(stats.deshabilitadas, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3'],
-    ] as [number, string, Seccion, string, 'lote'?][]
+      // Se quitan cuando el admin abre ese filtro en Vehículos (admin_marcar_vistas).
+      [stats.deshabilitadasSinVer, plural(stats.deshabilitadasSinVer, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3', 'estado=Deshabilitado'],
+      [stats.pausadasSinVer, plural(stats.pausadasSinVer, 'admin.alertPausedOne', 'admin.alertPausedMany'), 'vehiculos', '#98A2B3', 'estado=Pausado'],
+    ] as [number, string, Seccion, string, string?][]
   ).filter(([n]) => n > 0)
 
   return (
@@ -293,8 +296,8 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
           </p>
         ) : (
           <div className="grid3" style={{ marginTop: 14 }}>
-            {alertas.map(([, txt, s, c, tipo]) => (
-              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s, tipo)}>
+            {alertas.map(([, txt, s, c, filtro]) => (
+              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s, filtro)}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', flex: 'none', background: c }} />
                 <span className="grow" style={{ color: 'var(--ink)', fontWeight: 500 }}>
                   {txt}
@@ -725,11 +728,18 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
 
 const FILTROS_VEHICULO = ['Todos', 'Pendiente', 'Cambios pendientes', 'Activo', 'Rechazado', 'Deshabilitado', 'Pausado', 'Vendido'] as const
 
-function Vehiculos({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
-  const { openModal } = useUi()
+function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string) => void; onVisto: () => void }) {
+  const { openModal, toast } = useUi()
   const { t } = useI18n()
   const [q, setQ] = useState('')
-  const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>('Todos')
+  // Desde "Requiere atención" llega con ?estado=Deshabilitado o ?estado=Pausado.
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>(() => FILTROS_VEHICULO.find((f) => f === params.get('estado')) ?? 'Todos')
+  // Al ver ese filtro, sus publicaciones dejan de salir en "Requiere atención".
+  useEffect(() => {
+    const estado = tab === 'Deshabilitado' ? 'deshabilitada' : tab === 'Pausado' ? 'pausada' : null
+    if (estado) marcarVistas(estado).then(onVisto).catch((e) => toast(mensajeUsuario(e)))
+  }, [tab, onVisto, toast])
   const conEstado = useMemo(() => datos.autos.map((a) => ({ ...a, estado: estadoAdmin(a.row, a.car) })), [datos.autos])
   const lista = conEstado
     .filter((a) => tab === 'Todos' || a.estado === tab)

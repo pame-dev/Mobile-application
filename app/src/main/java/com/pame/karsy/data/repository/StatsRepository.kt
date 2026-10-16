@@ -36,6 +36,9 @@ data class AdminStats(
     val publicadasNuevas: Int,
     val activas: Int,
     val deshabilitadas: Int,
+    /** Para "Requiere atención": las que este admin aún no ha visto en Vehículos. */
+    val deshabilitadasSinVer: Int,
+    val pausadasSinVer: Int,
     val suspendidas: Int,
     val propuestasPendientes: Int,
     val reportesPendientes: Int,
@@ -83,6 +86,8 @@ object StatsRepository {
             publicadasNuevas = j.int("publicadas_nuevas"),
             activas = j.int("activas"),
             deshabilitadas = j.int("deshabilitadas"),
+            deshabilitadasSinVer = j.int("deshabilitadas_sin_ver"),
+            pausadasSinVer = j.int("pausadas_sin_ver"),
             suspendidas = j.int("suspendidas"),
             propuestasPendientes = j.int("propuestas_pendientes"),
             reportesPendientes = j.int("reportes_pendientes"),

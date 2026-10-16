@@ -847,6 +847,10 @@
         <item quantity="one">%1$d disabled listing</item>
         <item quantity="other">%1$d disabled listings</item>
     </plurals>
+    <plurals name="admin2_alert_paused">
+        <item quantity="one">%1$d listing paused by its owner</item>
+        <item quantity="other">%1$d listings paused by their owners</item>
+    </plurals>
     <plurals name="admin2_alert_suspended">
         <item quantity="one">%1$d suspended account</item>
         <item quantity="other">%1$d suspended accounts</item>

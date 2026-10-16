@@ -849,6 +849,10 @@
         <item quantity="one">%1$d publicación deshabilitada</item>
         <item quantity="other">%1$d publicaciones deshabilitadas</item>
     </plurals>
+    <plurals name="admin2_alert_paused">
+        <item quantity="one">%1$d publicación pausada por su dueño</item>
+        <item quantity="other">%1$d publicaciones pausadas por sus dueños</item>
+    </plurals>
     <plurals name="admin2_alert_suspended">
         <item quantity="one">%1$d cuenta suspendida</item>
         <item quantity="other">%1$d cuentas suspendidas</item>

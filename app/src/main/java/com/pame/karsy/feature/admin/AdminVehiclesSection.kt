@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,9 +35,11 @@ import com.pame.karsy.core.theme.KarsyNavy
  * "Revisar" abre la publicación con las acciones de admin abajo ([onReview]),
  * igual que la revisión de reportes.
  */
-fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit) {
+fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialStatus: String = "Todos") {
     var search by rememberSaveable { mutableStateOf("") }
-    var status by rememberSaveable { mutableStateOf("Todos") }
+    var status by rememberSaveable(initialStatus) { mutableStateOf(initialStatus) }
+    // Al ver "Deshabilitado" o "Pausado", sus publicaciones dejan de salir en "Requiere atención".
+    LaunchedEffect(status) { vm.marcarVistas(status) }
 
     val vehicles = vm.vehicles
     val filtered = vehicles.filter { vehicle ->
