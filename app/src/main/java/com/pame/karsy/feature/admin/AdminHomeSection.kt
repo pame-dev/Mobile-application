@@ -92,6 +92,9 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection, String?) -> 
         Spacer(Modifier.height(14.dp))
         // Único selector de rango: afecta KPIs, alertas y gráficas
         RangeChips(range = range, onSelect = vm::changeRange)
+        Spacer(Modifier.height(10.dp))
+        // Reporte de toda la app (Excel o PDF) con el rango elegido
+        ExportarAdminBoton(vm)
         Spacer(Modifier.height(20.dp))
 
         // Pendientes primero: es lo que el admin tiene que atender

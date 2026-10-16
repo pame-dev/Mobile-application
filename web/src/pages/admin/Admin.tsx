@@ -31,6 +31,7 @@ import { entero, haceCuanto, km, precio } from '../../lib/format'
 import { publicUrl } from '../../lib/supabase'
 import { useSession } from '../../session/SessionContext'
 import { useRecargar } from '../../lib/tiempoReal'
+import { ExportarAdmin } from './ReporteAdmin'
 import { AdminHead, Badge, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados'
@@ -247,7 +248,12 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
     <AdminHead
       title={t('admin.greeting', { name: nombre.split(' ')[0] })}
       desc={t('admin.homeDesc')}
-      right={<Tabs value={String(rango)} onChange={(v) => setRango(Number(v))} options={[7, 30, 90].map((d) => [String(d), t('admin.rangeDays', { n: d })] as [string, string])} />}
+      right={
+        <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+          <ExportarAdmin stats={stats} dias={rango} />
+          <Tabs value={String(rango)} onChange={(v) => setRango(Number(v))} options={[7, 30, 90].map((d) => [String(d), t('admin.rangeDays', { n: d })] as [string, string])} />
+        </div>
+      }
     />
   )
   if (!stats)

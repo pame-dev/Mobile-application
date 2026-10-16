@@ -9,6 +9,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.long
 import kotlinx.serialization.json.put
@@ -33,6 +34,30 @@ data class SellerStats(
     /** Totales por publicación (la más vista primero). */
     val rendimiento: List<RendimientoPublicacion>,
 )
+
+/** Datos del reporte del panel de administración (admin_reporte); solo se piden al exportar. */
+data class ReporteApp(
+    val usuarios: Map<String, Int>,
+    val publicaciones: Map<String, Int>,
+    val interes: Map<String, Int>,
+    val favoritos: Int,
+    val destacados: Map<String, Int>,
+    val reportes: Map<String, Int>,
+    val revision: Map<String, Int>,
+    /** Horas promedio entre que se envía una publicación y se revisa; null si no hubo revisiones. */
+    val horasRevision: Double?,
+    val marcas: List<Pair<String, Int>>,
+    val estados: List<Pair<String, Int>>,
+    val masVistas: List<MasVista>,
+    val porDia: List<Int>,
+    val porHora: List<Int>,
+    val motivos: List<Pair<String, Int>>,
+) {
+    data class MasVista(val id: Long, val titulo: String, val vendedor: String, val vistas: Int, val contactos: Int)
+
+    /** Número de una sección (0 si no viene). */
+    fun n(seccion: Map<String, Int>, clave: String): Int = seccion[clave] ?: 0
+}
 
 /** Datos extra del reporte de Mi panel (vendedor_reporte); solo se piden al exportar. */
 data class ReporteExtra(
@@ -112,6 +137,43 @@ object StatsRepository {
                 val r = it.jsonObject
                 RendimientoPublicacion(r.getValue("id").jsonPrimitive.long, r.int("vistas"), r.int("favoritos"), r.int("contactos"))
             },
+        )
+    }
+
+    suspend fun adminReport(days: Int): ReporteApp {
+        val j = Supabase.client.postgrest
+            .rpc("admin_reporte", buildJsonObject { put("p_dias", days) })
+            .decodeAs<JsonObject>()
+        fun numeros(k: String): Map<String, Int> =
+            j[k]?.jsonObject?.mapValues { (_, v) -> v.jsonPrimitive.doubleOrNull?.toInt() ?: 0 }.orEmpty()
+        fun pares(k: String, nombre: String, valor: String) = j.list(k).map {
+            val o = it.jsonObject
+            (o[nombre]?.jsonPrimitive?.contentOrNull ?: "—") to o.int(valor)
+        }
+        return ReporteApp(
+            usuarios = numeros("usuarios"),
+            publicaciones = numeros("publicaciones"),
+            interes = numeros("interes"),
+            favoritos = j.int("favoritos"),
+            destacados = numeros("destacados"),
+            reportes = numeros("reportes"),
+            revision = numeros("revision"),
+            horasRevision = j["revision"]?.jsonObject?.get("horas_promedio")?.jsonPrimitive?.doubleOrNull,
+            marcas = pares("marcas", "nombre", "publicaciones"),
+            estados = pares("estados", "nombre", "publicaciones"),
+            masVistas = j.list("mas_vistas").map {
+                val o = it.jsonObject
+                ReporteApp.MasVista(
+                    o.getValue("id").jsonPrimitive.long,
+                    o["titulo"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    o["vendedor"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    o.int("vistas"),
+                    o.int("contactos"),
+                )
+            },
+            porDia = j.floats("por_dia").map { it.toInt() },
+            porHora = j.floats("por_hora").map { it.toInt() },
+            motivos = pares("motivos", "motivo", "reportes"),
         )
     }
 

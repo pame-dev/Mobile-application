@@ -151,7 +151,8 @@ object ExportarPanel {
         )
     }
 
-    private val DIAS = listOf(
+    /** Nombres de los días (domingo = 0); también los usa el reporte del administrador. */
+    internal val DIAS = listOf(
         R.string.profile_dashboard_day_sun, R.string.profile_dashboard_day_mon, R.string.profile_dashboard_day_tue,
         R.string.profile_dashboard_day_wed, R.string.profile_dashboard_day_thu, R.string.profile_dashboard_day_fri,
         R.string.profile_dashboard_day_sat,
@@ -633,7 +634,7 @@ object ExportarPanel {
     }
 
     /** Abre el menú de compartir de Android con [archivo] (Excel o PDF según la extensión). */
-    fun compartir(context: Context, archivo: File) {
+    fun compartir(context: Context, archivo: File, titulo: Int = R.string.profile_dashboard_export_title) {
         val tipo = if (archivo.extension == "pdf") "application/pdf" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.archivos", archivo)
         val enviar = Intent(Intent.ACTION_SEND).apply {
@@ -642,7 +643,7 @@ object ExportarPanel {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(
-            Intent.createChooser(enviar, texto(R.string.profile_dashboard_export_title))
+            Intent.createChooser(enviar, texto(titulo))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }

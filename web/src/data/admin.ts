@@ -64,6 +64,49 @@ export async function adminStats(dias: number): Promise<AdminStats> {
   }
 }
 
+/** Datos del reporte del panel de administración (admin_reporte); solo se piden al exportar. */
+export interface ReporteApp {
+  usuarios: { total: number; nuevos: number; particulares: number; lotes: number; suspendidos: number }
+  publicaciones: { publicadas: number; nuevas: number; activas: number; pausadas: number; deshabilitadas: number; vendidas: number; vendidasDentro: number; vendidasFuera: number }
+  interes: { vistas: number; contactos: number }
+  favoritos: number
+  destacados: { pendientes: number; vigentes: number; aprobados: number; rechazados: number }
+  reportes: { pendientes: number; recibidos: number; resueltos: number }
+  revision: { pendientes: number; aprobadas: number; rechazadas: number; horasPromedio: number | null }
+  marcas: { nombre: string; publicaciones: number }[]
+  estados: { nombre: string; publicaciones: number }[]
+  masVistas: { id: number; titulo: string; vendedor: string; vistas: number; contactos: number }[]
+  porDia: number[]
+  porHora: number[]
+  motivos: { motivo: string; reportes: number }[]
+}
+
+export async function adminReport(dias: number): Promise<ReporteApp> {
+  const j = (check(await supabase.rpc('admin_reporte', { p_dias: dias })) ?? {}) as Record<string, unknown>
+  const o = (k: string) => (j[k] ?? {}) as Record<string, unknown>
+  const n = (v: unknown) => Number(v ?? 0)
+  const lista = (k: string) => ((j[k] as Record<string, unknown>[]) ?? [])
+  const u = o('usuarios'), p = o('publicaciones'), i = o('interes'), d = o('destacados'), r = o('reportes'), rv = o('revision')
+  return {
+    usuarios: { total: n(u.total), nuevos: n(u.nuevos), particulares: n(u.particulares), lotes: n(u.lotes), suspendidos: n(u.suspendidos) },
+    publicaciones: {
+      publicadas: n(p.publicadas), nuevas: n(p.nuevas), activas: n(p.activas), pausadas: n(p.pausadas), deshabilitadas: n(p.deshabilitadas),
+      vendidas: n(p.vendidas), vendidasDentro: n(p.vendidas_dentro), vendidasFuera: n(p.vendidas_fuera),
+    },
+    interes: { vistas: n(i.vistas), contactos: n(i.contactos) },
+    favoritos: n(j.favoritos),
+    destacados: { pendientes: n(d.pendientes), vigentes: n(d.vigentes), aprobados: n(d.aprobados), rechazados: n(d.rechazados) },
+    reportes: { pendientes: n(r.pendientes), recibidos: n(r.recibidos), resueltos: n(r.resueltos) },
+    revision: { pendientes: n(rv.pendientes), aprobadas: n(rv.aprobadas), rechazadas: n(rv.rechazadas), horasPromedio: rv.horas_promedio == null ? null : Number(rv.horas_promedio) },
+    marcas: lista('marcas').map((m) => ({ nombre: String(m.nombre ?? '—'), publicaciones: n(m.publicaciones) })),
+    estados: lista('estados').map((m) => ({ nombre: String(m.nombre ?? '—'), publicaciones: n(m.publicaciones) })),
+    masVistas: lista('mas_vistas').map((m) => ({ id: n(m.id), titulo: String(m.titulo ?? ''), vendedor: String(m.vendedor ?? ''), vistas: n(m.vistas), contactos: n(m.contactos) })),
+    porDia: ((j.por_dia as unknown[]) ?? []).map(Number),
+    porHora: ((j.por_hora as unknown[]) ?? []).map(Number),
+    motivos: lista('motivos').map((m) => ({ motivo: String(m.motivo ?? ''), reportes: n(m.reportes) })),
+  }
+}
+
 export interface CuentaAdmin {
   id_cuenta: string
   nombre_mostrar: string

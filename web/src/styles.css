@@ -479,6 +479,12 @@ table.t tr:hover td{background:var(--bg)}
   .reportepanel .rmeses>div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .reportepanel .rmeses i{display:block;width:70%;background:#2C9AA0;border-radius:3px 3px 0 0}
   .reportepanel .rmeses small{font-size:8.5px}
+  .reportepanel .radmin{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .reportepanel .radmin.rdos{grid-template-columns:1fr 1fr}
+  .reportepanel .radmin>div{border:1px solid #D7DEE5;border-radius:8px;padding:8px 10px;break-inside:avoid}
+  .reportepanel .radmin h3{font-size:12px;margin:0 0 4px;color:#2C9AA0}
+  .reportepanel .radmin p{display:flex;justify-content:space-between;gap:8px;margin:2px 0}
+  .reportepanel .radmin p b{font-size:11.5px}
   .reportepanel .rconsejos{break-inside:avoid}
   .reportepanel .rconsejos ul{margin:6px 0 0;padding-left:18px}
   .reportepanel .rconsejos li{margin:3px 0}
