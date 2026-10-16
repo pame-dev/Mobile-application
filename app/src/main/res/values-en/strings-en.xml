@@ -386,14 +386,16 @@
     <!-- Seller dashboard -->
     <string name="profile_dashboard_back_cd">Back to profile</string>
     <string name="profile_dashboard_title">My Dashboard</string>
-    <string name="profile_dashboard_total_views">TOTAL VIEWS</string>
-    <string name="profile_dashboard_published">LISTED</string>
-    <string name="profile_dashboard_vehicles">Vehicles</string>
-    <string name="profile_dashboard_inquiries">INQUIRIES</string>
-    <string name="profile_dashboard_contacts">Contacts</string>
+    <string name="profile_dashboard_kpi_active">ACTIVE</string>
+    <string name="profile_dashboard_kpi_active_sub">visible on Karsy</string>
+    <string name="profile_dashboard_kpi_sold">SOLD</string>
+    <string name="profile_dashboard_kpi_sold_sub">all time</string>
+    <string name="profile_dashboard_kpi_in_review">IN REVIEW</string>
+    <string name="profile_dashboard_kpi_in_review_sub">awaiting approval</string>
+    <string name="profile_dashboard_kpi_featured">FEATURED</string>
+    <string name="profile_dashboard_kpi_featured_sub">on the home page now</string>
     <string name="profile_dashboard_performance_title">How your listings are doing</string>
     <string name="profile_dashboard_performance_sub">All-time totals</string>
-    <string name="profile_dashboard_all_time">all time</string>
     <string name="profile_dashboard_funnel_views">Views</string>
     <string name="profile_dashboard_funnel_favorites">Saved to favorites</string>
     <string name="profile_dashboard_funnel_contacts">Contacted you</string>

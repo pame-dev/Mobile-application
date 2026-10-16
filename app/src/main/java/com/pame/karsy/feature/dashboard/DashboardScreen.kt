@@ -127,7 +127,8 @@ fun DashboardScreen(
                         SkeletonCarCard(imageHeight = 110.dp)
                     }
                     if (stats != null) {
-                        StatsRow(stats)
+                        // Solo las que se ven en portada: un destacado vigente de un auto vendido o pausado no cuenta.
+                        StatsRow(stats, vm.myListings.count { it.featured && it.status == "Activo" })
                         PerformanceCard(stats, vm.myListings, vm.loading, onCarClick)
                     }
                     // Las que el dueño ocultó de su perfil van en su propia sección, al final.
@@ -212,61 +213,43 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
     }
 }
 
+/**
+ * Estado de las publicaciones en 2×2: activas, vendidas, en revisión y destacadas.
+ * Vistas, favoritos y contactos van en el embudo de "Cómo van tus publicaciones".
+ */
 @Composable
-private fun StatsRow(stats: SellerStats) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(16.dp))
-                .background(KarsySurface)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
-            // No hay tabla de ventas: la métrica principal son las vistas de detalle.
-            CardLabel(stringResource(R.string.profile_dashboard_total_views))
-            Text(
-                stats.vistas.toString(),
-                fontFamily = Outfit,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk,
-                modifier = Modifier.padding(top = 2.dp)
+private fun StatsRow(stats: SellerStats, destacadas: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
+            SmallStatCard(
+                stringResource(R.string.profile_dashboard_kpi_active),
+                stats.activas.toString(),
+                KarsyTeal,
+                stringResource(R.string.profile_dashboard_kpi_active_sub),
+                Modifier.weight(1f).fillMaxHeight()
             )
-            // Todo en totales (sin comparar contra el mes pasado).
-            Text(
-                stringResource(R.string.profile_dashboard_all_time),
-                fontFamily = DmSans,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = KarsyTeal,
-                modifier = Modifier.padding(top = 2.dp)
+            SmallStatCard(
+                stringResource(R.string.profile_dashboard_kpi_sold),
+                stats.vendidas.toString(),
+                KarsyInk,
+                stringResource(R.string.profile_dashboard_kpi_sold_sub),
+                Modifier.weight(1f).fillMaxHeight()
             )
         }
-
-        Column(
-            modifier = Modifier.width(110.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
             SmallStatCard(
-                stringResource(R.string.profile_dashboard_published),
-                stats.publicadas.toString(),
+                stringResource(R.string.profile_dashboard_kpi_in_review),
+                stats.pendientes.toString(),
                 KarsyInk,
-                stringResource(R.string.profile_dashboard_vehicles),
-                Modifier.weight(1f)
+                stringResource(R.string.profile_dashboard_kpi_in_review_sub),
+                Modifier.weight(1f).fillMaxHeight()
             )
             SmallStatCard(
-                stringResource(R.string.profile_dashboard_inquiries),
-                stats.contactos.toString(),
+                stringResource(R.string.profile_dashboard_kpi_featured),
+                destacadas.toString(),
                 KarsyTeal,
-                stringResource(R.string.profile_dashboard_contacts),
-                Modifier.weight(1f)
+                stringResource(R.string.profile_dashboard_kpi_featured_sub),
+                Modifier.weight(1f).fillMaxHeight()
             )
         }
     }

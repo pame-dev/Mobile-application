@@ -173,13 +173,14 @@ export function Dashboard() {
 
   if (!cargandoSesion && !account) return <Navigate to="/login" replace state={{ from: '/panel' }} />
 
-  // Todo en totales (sin "esta semana" ni "este mes").
-  const favTotal = [...favs.values()].reduce((a, b) => a + b, 0)
+  // Arriba, el estado de las publicaciones; vistas, favoritos y contactos van en el embudo.
+  // Solo las que se ven en portada: un destacado vigente de un auto vendido o pausado no cuenta.
+  const destacadas = (cars ?? []).filter((c) => c.featured && c.status === 'Activo').length
   const kpis: [string, string, string, IconName, string, string][] = [
-    [t('perfil.kpiViews'), stats ? entero(stats.vistas) : '—', t('perfil.kpiAllTime'), 'eye', 'var(--teal-light)', 'var(--teal)'],
-    [t('perfil.kpiListed'), stats ? entero(stats.publicadas) : '—', stats ? t('perfil.kpiListedSub', { activas: stats.activas, vendidas: stats.vendidas }) : '', 'car', 'var(--pill)', 'var(--ink)'],
-    [t('perfil.kpiInquiries'), stats ? entero(stats.contactos) : '—', t('perfil.kpiContacts'), 'chat', 'var(--success-l)', 'var(--success)'],
-    [t('nav.favorites'), stats ? entero(favTotal) : '—', t('perfil.kpiAllTime'), 'heart', 'var(--error-l)', 'var(--error)'],
+    [t('perfil.kpiActive'), stats ? entero(stats.activas) : '—', t('perfil.kpiActiveSub'), 'car', 'var(--teal-light)', 'var(--teal)'],
+    [t('perfil.kpiSold'), stats ? entero(stats.vendidas) : '—', t('perfil.kpiSoldSub'), 'sold', 'var(--success-l)', 'var(--success)'],
+    [t('perfil.kpiInReview'), stats ? entero(stats.pendientes) : '—', t('perfil.kpiInReviewSub'), 'shield', 'var(--pill)', 'var(--ink)'],
+    [t('perfil.kpiFeatured'), cars ? entero(destacadas) : '—', t('perfil.kpiFeaturedSub'), 'star', 'var(--b-warn-bg)', 'var(--b-warn)'],
   ]
   const visibles = (cars ?? []).filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))
   const escondidas = (cars ?? []).filter((c) => sePuedeOcultar(c) && ocultasIds.has(c.id))

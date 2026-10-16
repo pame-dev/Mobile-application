@@ -388,14 +388,16 @@
     <!-- Panel del vendedor -->
     <string name="profile_dashboard_back_cd">Volver al perfil</string>
     <string name="profile_dashboard_title">Mi Panel</string>
-    <string name="profile_dashboard_total_views">VISTAS TOTALES</string>
-    <string name="profile_dashboard_published">PUBLICADOS</string>
-    <string name="profile_dashboard_vehicles">Vehículos</string>
-    <string name="profile_dashboard_inquiries">CONSULTAS</string>
-    <string name="profile_dashboard_contacts">Contactos</string>
+    <string name="profile_dashboard_kpi_active">ACTIVAS</string>
+    <string name="profile_dashboard_kpi_active_sub">visibles en Karsy</string>
+    <string name="profile_dashboard_kpi_sold">VENDIDAS</string>
+    <string name="profile_dashboard_kpi_sold_sub">en total</string>
+    <string name="profile_dashboard_kpi_in_review">EN REVISIÓN</string>
+    <string name="profile_dashboard_kpi_in_review_sub">esperando aprobación</string>
+    <string name="profile_dashboard_kpi_featured">DESTACADAS</string>
+    <string name="profile_dashboard_kpi_featured_sub">en portada ahora</string>
     <string name="profile_dashboard_performance_title">Cómo van tus publicaciones</string>
     <string name="profile_dashboard_performance_sub">Totales desde que publicaste</string>
-    <string name="profile_dashboard_all_time">en total</string>
     <string name="profile_dashboard_funnel_views">Vistas</string>
     <string name="profile_dashboard_funnel_favorites">Guardadas en favoritos</string>
     <string name="profile_dashboard_funnel_contacts">Te contactaron</string>
