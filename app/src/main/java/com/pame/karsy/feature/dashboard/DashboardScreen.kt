@@ -1,5 +1,17 @@
 package com.pame.karsy.feature.dashboard
 
+import kotlin.coroutines.cancellation.CancellationException
+import com.pame.karsy.core.locale.texto
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.FileDownload
+import android.widget.Toast
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
@@ -74,7 +86,6 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
-import com.pame.karsy.data.repository.RendimientoPublicacion
 import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
@@ -92,6 +103,40 @@ fun DashboardScreen(
 ) {
     // Se recarga al volver (p. ej. después de publicar).
     LaunchedEffect(Unit) { vm.load() }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var exportar by remember { mutableStateOf(false) }
+    // Mientras se genera el archivo: el botón se deshabilita y se ve un indicador.
+    var exportando by remember { mutableStateOf(false) }
+    if (exportar) {
+        val stats = vm.stats
+        ExportarDialog(
+            onDismiss = { exportar = false },
+            onElegir = { pdf ->
+                exportar = false
+                if (stats != null) {
+                    val destacadas = vm.myListings.count { it.featured && it.status == "Activo" }
+                    val nombre = vm.displayName
+                    val listings = vm.myListings
+                    // El archivo se arma fuera del hilo principal; el menú de compartir se abre de vuelta en él.
+                    exportando = true
+                    scope.launch {
+                        runCatching {
+                            withContext(Dispatchers.IO) {
+                                if (pdf) ExportarPanel.generarPdf(context, nombre, stats, listings, destacadas)
+                                else ExportarPanel.generarCsv(context, nombre, stats, listings, destacadas)
+                            }
+                        }.onSuccess { ExportarPanel.compartir(context, it) }
+                            .onFailure {
+                                if (it is CancellationException) throw it // se salió de Mi panel: sin aviso de error
+                                Toast.makeText(context, texto(R.string.profile_dashboard_export_error), Toast.LENGTH_LONG).show()
+                            }
+                        exportando = false
+                    }
+                }
+            }
+        )
+    }
     // Los avisos de "Destacar" cubren la pantalla: sin barra inferior mientras están abiertos.
     HideBottomBarWhile(vm.destacarCar != null || vm.solicitudCar != null)
 
@@ -101,7 +146,14 @@ fun DashboardScreen(
             .background(KarsyBg)
     ) {
         Column(Modifier.fillMaxSize()) {
-            DashboardHeader(name = vm.displayName, avatarUrl = vm.avatarUrl, onBack = onBack)
+            DashboardHeader(
+                name = vm.displayName,
+                avatarUrl = vm.avatarUrl,
+                onBack = onBack,
+                // Exportar solo cuando ya hay datos que exportar.
+                onExport = if (vm.stats != null && !vm.loading && !exportando) ({ exportar = true }) else null,
+                exportando = exportando
+            )
 
             KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.weight(1f)) {
                 Column(
@@ -171,7 +223,7 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit) {
+private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit, onExport: (() -> Unit)?, exportando: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,6 +242,17 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
                 .padding(start = 8.dp)
                 .weight(1f)
         )
+        if (exportando) {
+            CircularProgressIndicator(color = KarsyTeal, strokeWidth = 2.dp, modifier = Modifier.padding(12.dp).size(24.dp))
+        } else if (onExport != null) {
+            IconButton(onClick = onExport) {
+                Icon(
+                    Icons.Outlined.FileDownload,
+                    contentDescription = stringResource(R.string.profile_dashboard_export),
+                    tint = KarsyInk
+                )
+            }
+        }
         ProfileAvatar(
             name = name,
             avatarUrl = avatarUrl,
@@ -277,8 +340,44 @@ private fun CardLabel(text: String) {
     Text(text, fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
 }
 
-/** % de [b] sobre [a], sin decimales y hasta 100 (se puede guardar en favoritos sin abrir el detalle). */
-private fun porcentaje(b: Int, a: Int): Int = if (a > 0) (b * 100 / a).coerceAtMost(100) else 0
+/** Elegir formato: Excel (CSV) para trabajar los números o PDF para presentarlos. */
+@Composable
+private fun ExportarDialog(onDismiss: () -> Unit, onElegir: (pdf: Boolean) -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = KarsySurface,
+        title = {
+            Text(
+                stringResource(R.string.profile_dashboard_export_title),
+                fontFamily = Outfit,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyInk
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.profile_dashboard_export_sub), fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid)
+                OutlinedButton(onClick = { onElegir(false) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.profile_dashboard_export_csv), fontFamily = DmSans, color = KarsyInk)
+                }
+                Button(
+                    onClick = { onElegir(true) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy)
+                ) {
+                    Text(stringResource(R.string.profile_dashboard_export_pdf), fontFamily = DmSans, color = KarsyWhite)
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.profile_dashboard_export_cancel), fontFamily = DmSans, color = KarsyMid)
+            }
+        }
+    )
+}
 
 /**
  * "Cómo van tus publicaciones" (totales): arriba el embudo vistas → favoritos →
@@ -287,14 +386,9 @@ private fun porcentaje(b: Int, a: Int): Int = if (a > 0) (b * 100 / a).coerceAtM
 @Composable
 private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Boolean, onCarClick: (Long) -> Unit) {
     var todas by remember { mutableStateOf(false) }
-    // Una fila por cada publicación ya publicada (aunque aún no tenga vistas); la BD manda
-    // los números por id y, si no hay, van en 0. Nombre y año vienen de la lista cargada.
+    // Nombre y año vienen de la lista cargada; los números, de la BD (0 si no hay).
     val porId = listings.associateBy { it.id }
-    val datos = stats.rendimiento.associateBy { it.id }
-    val filas = listings
-        .filter { it.approved }
-        .map { datos[it.id] ?: RendimientoPublicacion(it.id, 0, 0, 0) }
-        .sortedWith(compareByDescending<RendimientoPublicacion> { it.vistas }.thenByDescending { it.contactos })
+    val filas = ExportarPanel.filas(stats, listings).map { it.second }
     val visibles = if (todas) filas else filas.take(6)
     val max = (filas.maxOfOrNull { it.vistas } ?: 0).coerceAtLeast(1)
     Column(
@@ -323,9 +417,9 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
         val pasos = listOf(
             Triple(stringResource(R.string.profile_dashboard_funnel_views), stats.embudoVistas, KarsyTeal) to null,
             Triple(stringResource(R.string.profile_dashboard_funnel_favorites), stats.embudoFavoritos, KarsyError) to
-                stringResource(R.string.profile_dashboard_funnel_of_views, porcentaje(stats.embudoFavoritos, stats.embudoVistas)),
+                stringResource(R.string.profile_dashboard_funnel_of_views, ExportarPanel.porcentaje(stats.embudoFavoritos, stats.embudoVistas)),
             Triple(stringResource(R.string.profile_dashboard_funnel_contacts), stats.embudoContactos, Color(0xFF22C55E)) to
-                stringResource(R.string.profile_dashboard_funnel_of_views, porcentaje(stats.embudoContactos, stats.embudoVistas)),
+                stringResource(R.string.profile_dashboard_funnel_of_views, ExportarPanel.porcentaje(stats.embudoContactos, stats.embudoVistas)),
         )
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             pasos.forEachIndexed { i, (paso, sub) ->

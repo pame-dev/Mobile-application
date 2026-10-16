@@ -432,6 +432,45 @@ table.t tr:hover td{background:var(--bg)}
 .perftrack span{display:block;height:100%;border-radius:99px;background:var(--teal)}
 .perfnums{font-size:12px}
 @media (max-width:640px){ .funnelstep{width:100%!important} }
+/* Mi panel: reporte para imprimir / "Guardar como PDF" (solo existe mientras se imprime) */
+.reportepanel{display:none}
+@media print{
+  /* Sin márgenes de hoja: así el navegador no agrega fecha y título arriba; el margen va adentro. */
+  @page{margin:0}
+  html:has(body.imprimiendo),body.imprimiendo{background:#fff!important}
+  body.imprimiendo #root{display:none}
+  body.imprimiendo .reportepanel{display:block;padding:14mm 14mm 12mm;color:#0D2B45;font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .reportepanel header{display:flex;align-items:center;gap:12px;border-bottom:2px solid #0D2B45;padding-bottom:10px;margin-bottom:14px}
+  .reportepanel header img{width:44px;height:44px;border-radius:10px}
+  .reportepanel .rmarca{font-size:20px;letter-spacing:.02em}
+  .reportepanel h1{font-size:19px;margin:0}
+  .reportepanel header p{margin:2px 0 0;color:#5B6B7A}
+  .reportepanel h2{font-size:14px;margin:16px 0 2px}
+  .reportepanel .rsub{margin:0 0 8px;color:#5B6B7A}
+  .reportepanel .rkpis,.reportepanel .rembudo,.reportepanel .rdestacados{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .reportepanel .rembudo,.reportepanel .rdestacados{grid-template-columns:repeat(3,1fr)}
+  .reportepanel .rdestacados{margin-top:8px}
+  .reportepanel .rkpis div,.reportepanel .rembudo div,.reportepanel .rdestacados div{border:1px solid #D7DEE5;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+  .reportepanel .rdestacados div{background:#F3F7FA}
+  .reportepanel .rdestacados b{font-size:13px}
+  .reportepanel span,.reportepanel small{color:#5B6B7A;font-size:10.5px}
+  .reportepanel b{font-size:17px}
+  .reportepanel table{width:100%;border-collapse:collapse;margin-top:14px}
+  .reportepanel th{text-align:left;font-size:9.5px;text-transform:uppercase;color:#5B6B7A;border-bottom:1px solid #D7DEE5;padding:6px}
+  .reportepanel td{border-bottom:1px solid #EEF2F5;padding:6px;vertical-align:middle}
+  .reportepanel td small{display:block}
+  .reportepanel .rauto{font-size:12px}
+  .reportepanel .rfoto{width:64px}
+  .reportepanel .rfoto img,.reportepanel .rfoto span{display:block;width:60px;height:42px;border-radius:6px;object-fit:cover;background:#EEF2F5}
+  .reportepanel tr{break-inside:avoid}
+  .reportepanel .rbar{display:block;height:5px;margin-top:4px;border-radius:9px;background:#EEF2F5}
+  .reportepanel .rbar span{display:block;height:100%;border-radius:9px;background:#2C9AA0}
+  .reportepanel .rconsejos{break-inside:avoid}
+  .reportepanel .rconsejos ul{margin:6px 0 0;padding-left:18px}
+  .reportepanel .rconsejos li{margin:3px 0}
+  .reportepanel .rconsejos li b{font-size:11.5px}
+  .reportepanel footer{margin-top:16px;color:#5B6B7A;font-size:9.5px;text-align:right}
+}
 /* Tablas del admin: en tableta se deslizan dentro de su tarjeta; en celular cada fila es una tarjeta. */
 .tablewrap{overflow-x:auto}
 @media (max-width:640px){

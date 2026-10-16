@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal, flushSync } from 'react-dom'
 import { VolverButton } from '../components/VolverButton'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
@@ -9,9 +10,8 @@ import { traducir, useI18n } from '../i18n/I18nContext'
 import { entero, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
-
-/** % de b sobre a, sin decimales y hasta 100 (se puede guardar en favoritos sin abrir el detalle). */
-const pct = (b: number, a: number) => (a > 0 ? Math.min(100, Math.round((b * 100) / a)) : 0)
+import { ModalHead, useUi } from '../components/Ui'
+import { csvPanel, descargar, diasDesde, filasRendimiento, pct, resumenReporte } from '../lib/exportarPanel'
 
 /**
  * "Cómo van tus publicaciones" (totales): arriba el embudo vistas → favoritos →
@@ -21,14 +21,8 @@ function Rendimiento({ stats, cars }: { stats: SellerStats; cars: OwnCar[] }) {
   const navigate = useNavigate()
   const { t } = useI18n()
   const [todas, setTodas] = useState(false)
-  // Una fila por cada publicación ya publicada (aunque aún no tenga vistas); los números
-  // vienen de la BD por id y, si no hay, van en 0.
-  const datos = new Map(stats.rendimiento.map((r) => [r.id, r]))
   const porId = new Map(cars.map((c) => [c.id, c]))
-  const filas = cars
-    .filter((c) => c.approved)
-    .map((c) => datos.get(c.id) ?? { id: c.id, vistas: 0, favoritos: 0, contactos: 0 })
-    .sort((a, b) => b.vistas - a.vistas || b.contactos - a.contactos)
+  const filas = filasRendimiento(stats, cars)
   const visibles = todas ? filas : filas.slice(0, 6)
   const max = Math.max(1, ...filas.map((r) => r.vistas))
   const e = stats.embudo
@@ -78,6 +72,149 @@ function Rendimiento({ stats, cars }: { stats: SellerStats; cars: OwnCar[] }) {
         </div>
       )}
     </>
+  )
+}
+
+/** Elegir formato: Excel (CSV) para trabajar los números o PDF para presentarlos. */
+function ExportarModal({ onCsv, onPdf }: { onCsv: () => void; onPdf: () => void }) {
+  const { closeModal } = useUi()
+  const { t } = useI18n()
+  const elegir = (f: () => void) => {
+    closeModal()
+    f()
+  }
+  return (
+    <div className="modal">
+      <ModalHead title={t('perfil.exportTitle')} sub={t('perfil.exportSub')} />
+      <div className="col" style={{ gap: 10, marginTop: 16 }}>
+        <button className="btn btn-ghost btn-block" onClick={() => elegir(onCsv)}>
+          <Icon name="doc" size={18} />
+          {t('perfil.exportCsv')}
+        </button>
+        <button className="btn btn-primary btn-block" onClick={() => elegir(onPdf)}>
+          <Icon name="upload" size={18} />
+          {t('perfil.exportPdf')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Reporte para imprimir o "Guardar como PDF". Solo se dibuja mientras se imprime y, en
+ * ese momento, lo demás de la página se oculta (ver .reportepanel en styles.css).
+ */
+function ReportePanel({ nombre, kpis, stats, cars }: { nombre: string; kpis: [string, string, string][]; stats: SellerStats; cars: OwnCar[] }) {
+  const { t } = useI18n()
+  const porId = new Map(cars.map((c) => [c.id, c]))
+  const filas = filasRendimiento(stats, cars)
+  const max = Math.max(1, ...filas.map((r) => r.vistas))
+  const e = stats.embudo
+  const res = resumenReporte(stats, cars)
+  const titulo = (c: OwnCar) => `${c.brand} ${c.model} ${c.year || ''}`.trim()
+  const destacados: [string, string][] = [
+    [t('perfil.reportTopViewed'), res.masVista ? titulo(res.masVista) : '—'],
+    [t('perfil.reportTopContacted'), res.masContactada ? titulo(res.masContactada) : '—'],
+    [t('perfil.reportNoViews'), entero(res.sinVistas)],
+  ]
+  return createPortal(
+    <div className="reportepanel">
+      <header>
+        <img src="/logo.png" alt="Karsy" />
+        <div className="grow">
+          <h1>{t('perfil.reportTitle')}</h1>
+          <p>
+            {nombre} · {new Date().toLocaleDateString(traducir('vehiculo.locale'), { day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+        <b className="rmarca">Karsy</b>
+      </header>
+      <div className="rkpis">
+        {kpis.map(([k, n, sub]) => (
+          <div key={k}>
+            <span>{k}</span>
+            <b>{n}</b>
+            <small>{sub}</small>
+          </div>
+        ))}
+      </div>
+      <h2>{t('perfil.performanceTitle')}</h2>
+      <p className="rsub">{t('perfil.performanceSub')}</p>
+      <div className="rembudo">
+        <div>
+          <span>{t('perfil.funnelViews')}</span>
+          <b>{entero(e.vistas)}</b>
+        </div>
+        <div>
+          <span>{t('perfil.funnelFavorites')}</span>
+          <b>{entero(e.favoritos)}</b>
+          <small>{t('perfil.funnelOfViews', { n: pct(e.favoritos, e.vistas) })}</small>
+        </div>
+        <div>
+          <span>{t('perfil.funnelContacts')}</span>
+          <b>{entero(e.contactos)}</b>
+          <small>{t('perfil.funnelOfViews', { n: pct(e.contactos, e.vistas) })}</small>
+        </div>
+      </div>
+      <div className="rdestacados">
+        {destacados.map(([k, v]) => (
+          <div key={k}>
+            <span>{k}</span>
+            <b>{v}</b>
+          </div>
+        ))}
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th colSpan={2}>{t('perfil.exportColListing')}</th>
+            <th>{t('perfil.exportColStatus')}</th>
+            <th>{t('perfil.exportColViews')}</th>
+            <th>{t('perfil.exportColFavorites')}</th>
+            <th>{t('perfil.exportColContacts')}</th>
+            <th>{t('perfil.exportColRate')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filas.map((r) => {
+            const c = porId.get(r.id)!
+            return (
+              <tr key={r.id}>
+                <td className="rfoto">{c.imageUrl ? <img src={c.imageUrl} alt="" /> : <span />}</td>
+                <td>
+                  <b className="rauto">{titulo(c)}</b>
+                  <small>
+                    {precio(c.priceValue)} {c.currency} · {t(diasDesde(c.publishedAt) === 1 ? 'perfil.reportDaysOne' : 'perfil.reportDays', { n: diasDesde(c.publishedAt) })}
+                  </small>
+                  <span className="rbar">
+                    <span style={{ width: `${Math.max(2, (r.vistas * 100) / max)}%` }} />
+                  </span>
+                </td>
+                <td>{t(statusLabel(c.status))}</td>
+                <td>{entero(r.vistas)}</td>
+                <td>{entero(r.favoritos)}</td>
+                <td>{entero(r.contactos)}</td>
+                <td>{pct(r.contactos, r.vistas)}%</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      {res.consejos.length > 0 && (
+        <section className="rconsejos">
+          <h2>{t('perfil.reportTips')}</h2>
+          <ul>
+            {res.consejos.map((k) => (
+              <li key={k.car.id}>
+                <b>{titulo(k.car)}:</b> {t(k.tipo === 'sinContacto' ? 'perfil.reportTipNoContact' : 'perfil.reportTipFewViews')}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <footer>{t('perfil.reportFooter')}</footer>
+    </div>,
+    document.body,
   )
 }
 
@@ -140,6 +277,8 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
 export function Dashboard() {
   const navigate = useNavigate()
   const { account, loading: cargandoSesion } = useSession()
+  const { openModal } = useUi()
+  const [imprimir, setImprimir] = useState(false)
   const [stats, setStats] = useState<SellerStats | null>(null)
   const [cars, setCars] = useState<OwnCar[] | null>(null)
   const [favs, setFavs] = useState<Map<number, number>>(new Map())
@@ -183,6 +322,60 @@ export function Dashboard() {
     [t('perfil.kpiInReview'), stats ? entero(stats.pendientes) : '—', t('perfil.kpiInReviewSub'), 'shield', 'var(--pill)', 'var(--ink)'],
     [t('perfil.kpiFeatured'), cars ? entero(destacadas) : '—', t('perfil.kpiFeaturedSub'), 'star', 'var(--b-warn-bg)', 'var(--b-warn)'],
   ]
+  // Exportar: Excel (CSV) se descarga directo; PDF abre "Imprimir / Guardar como PDF" con el reporte.
+  const listo = stats && cars && account
+  const exportarCsv = () => {
+    if (!stats || !cars || !account) return
+    const hoy = new Date()
+    const locale = traducir('vehiculo.locale')
+    const csv = csvPanel(stats, cars, {
+      titulo: t('perfil.reportTitle'),
+      vendedor: account.nombre,
+      fecha: hoy.toLocaleDateString(locale),
+      resumen: [
+        [t('perfil.kpiActive'), stats.activas],
+        [t('perfil.kpiSold'), stats.vendidas],
+        [t('perfil.kpiInReview'), stats.pendientes],
+        [t('perfil.kpiFeatured'), destacadas],
+        [t('perfil.funnelViews'), stats.embudo.vistas],
+        [t('perfil.funnelFavorites'), stats.embudo.favoritos],
+        [t('perfil.funnelContacts'), stats.embudo.contactos],
+      ],
+      columnas: [
+        t('perfil.exportColListing'),
+        t('perfil.exportColYear'),
+        t('perfil.exportColPrice'),
+        t('perfil.exportColCurrency'),
+        t('perfil.exportColStatus'),
+        t('perfil.exportColViews'),
+        t('perfil.exportColFavorites'),
+        t('perfil.exportColContacts'),
+        t('perfil.exportColRate'),
+        t('perfil.exportColPublished'),
+      ],
+      estado: (c) => t(statusLabel(c.status)),
+      // AAAA-MM-DD: Excel la reconoce como fecha (igual que en la app).
+      fechaPublicacion: (c) => c.publishedAt.slice(0, 10),
+    })
+    descargar(`karsy-mi-panel-${hoy.toISOString().slice(0, 10)}.csv`, csv, 'text/csv;charset=utf-8')
+  }
+  const exportarPdf = async () => {
+    flushSync(() => setImprimir(true))
+    // Se espera a que carguen el logo y las fotos (máx. 4 s); si no, salen cuadros vacíos.
+    const imagenes = [...document.querySelectorAll<HTMLImageElement>('.reportepanel img')]
+    await Promise.race([
+      Promise.all(imagenes.map((img) => (img.complete ? null : new Promise((ok) => ((img.onload = ok), (img.onerror = ok)))))),
+      new Promise((ok) => setTimeout(ok, 4000)),
+    ])
+    document.body.classList.add('imprimiendo')
+    const fin = () => {
+      document.body.classList.remove('imprimiendo')
+      setImprimir(false)
+    }
+    window.addEventListener('afterprint', fin, { once: true })
+    window.print()
+  }
+
   const visibles = (cars ?? []).filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))
   const escondidas = (cars ?? []).filter((c) => sePuedeOcultar(c) && ocultasIds.has(c.id))
   /** Cambio inmediato en pantalla; si la BD falla se revierte. */
@@ -205,11 +398,18 @@ export function Dashboard() {
           <VolverButton to="/perfil" label={t('perfil.backToProfile')} />
           <h1>{t('perfil.dashboardTitle')}</h1>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/publicar')}>
-          <Icon name="plus" size={18} />
-          {t('nav.publish')}
-        </button>
+        <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn btn-ghost" disabled={!listo} onClick={() => openModal(<ExportarModal onCsv={exportarCsv} onPdf={() => void exportarPdf()} />)}>
+            <Icon name="doc" size={18} />
+            {t('perfil.export')}
+          </button>
+          <button className="btn btn-primary" onClick={() => navigate('/publicar')}>
+            <Icon name="plus" size={18} />
+            {t('nav.publish')}
+          </button>
+        </div>
       </div>
+      {imprimir && stats && cars && account && <ReportePanel nombre={account.nombre} kpis={kpis.map(([k, n, sub]) => [k, n, sub])} stats={stats} cars={cars} />}
 
       {error && (
         <div className="card empty" style={{ marginBottom: 18 }}>
