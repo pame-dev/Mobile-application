@@ -400,6 +400,8 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .side button.it:hover{background:var(--bg)}
 .side button.it.on{background:var(--admin-blue);color:#fff;font-weight:600}
 .side .cnt{margin-left:auto;background:var(--error);color:#fff;font-size:11px;border-radius:99px;padding:1px 8px;font-weight:600}
+.admintop,.adminfondo,.sideclose{display:none}
+.adminburger .cnt{position:absolute;top:-6px;right:-6px;background:var(--error);color:#fff;font-size:10.5px;border-radius:99px;padding:1px 6px;font-weight:600}
 .side button.it.on .cnt{background:#fff;color:var(--admin-blue)}
 .adminmenu{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:14px;border-top:1px solid var(--border)}
 .adminmenu .amhead{display:flex;align-items:center;gap:12px;padding:2px 14px 4px}
@@ -425,11 +427,13 @@ table.t tr:hover td{background:var(--bg)}
 .modal.wide{max-width:560px}
 .twocol.half{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 @media (max-width:1000px){
-  .admin{grid-template-columns:1fr}
-  .side{position:static;height:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border);padding:10px}
-  .side .brand,.side .sp,.adminmenu .amhead,.adminmenu hr{display:none}
-  .adminmenu{display:contents}
-  .side button.it{width:auto;white-space:nowrap}
+  .admin{grid-template-columns:minmax(0,1fr);align-content:start}
+  /* Barra superior con ☰; la barra lateral se vuelve un panel que entra desde la izquierda. */
+  .admintop{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:60;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px}
+  .side{position:fixed;top:0;left:0;bottom:0;z-index:71;width:min(300px,86vw);height:auto;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow-lg);transform:translateX(-100%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
+  .menuabierto .side{transform:none;visibility:visible;transition:transform .22s ease}
+  .sideclose{display:inline-grid;position:absolute;top:16px;right:12px}
+  .menuabierto .adminfondo{display:block;position:fixed;inset:0;z-index:70;background:rgba(8,20,32,.55);animation:fade .18s}
   .akpis{grid-template-columns:1fr 1fr}
   .twocol.half{grid-template-columns:1fr}
   .adminmain{padding:20px 16px 40px}
