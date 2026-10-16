@@ -376,7 +376,18 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
                 {t('admin.interestSub')}
               </p>
             </div>
-            <span className="badge b-succ">{t('admin.conversionBadge', { n: conversion })}</span>
+            {/* Totales del rango elegido, junto al título (antes eran tres cajas bajo la gráfica). */}
+            <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+              <span className="badge b-info">
+                {t('admin.views')} <b className="num">{entero(vistas)}</b>
+              </span>
+              <span className="badge b-neu">
+                {t('admin.contacts')} <b className="num">{entero(contactos)}</b>
+              </span>
+              <span className="badge b-succ">
+                {t('admin.conversion')} <b className="num">{conversion}%</b>
+              </span>
+            </div>
           </div>
           <div className="legend" style={{ margin: '12px 0' }}>
             <span>
@@ -389,24 +400,6 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
             </span>
           </div>
           <PairBars labels={stats.interacciones.etiquetas} a={stats.interacciones.vistas} b={stats.interacciones.contactos} />
-          <div className="grid3" style={{ marginTop: 12 }}>
-            {(
-              [
-                [t('admin.views'), entero(vistas)],
-                [t('admin.contacts'), entero(contactos)],
-                [t('admin.conversion'), `${conversion}%`],
-              ] as const
-            ).map(([k, n]) => (
-              <div key={k} style={{ background: 'var(--bg)', borderRadius: 12, padding: '10px 12px' }}>
-                <span className="mid" style={{ fontSize: 12 }}>
-                  {k}
-                </span>
-                <b className="num" style={{ display: 'block', color: 'var(--ink)', fontFamily: 'var(--f-display)', fontSize: 18 }}>
-                  {n}
-                </b>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </>
