@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.util.Xlsx
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.repository.RendimientoPublicacion
 import com.pame.karsy.data.repository.SellerStats
@@ -33,14 +34,16 @@ class ExportarPanelTest {
         rendimiento = r.toList(),
     )
 
-    private val tx = ExportarPanel.TextosCsv(
-        titulo = "Mi panel",
-        vendedor = "Autos Pame",
-        fecha = "16 de octubre de 2026",
-        resumen = listOf("Activas" to 3, "Vendidas" to 1),
-        columnas = listOf("Publicación", "Año", "Precio", "Moneda", "Estado", "Vistas", "Favoritos", "Contactos", "Tasa", "Publicada"),
-        estado = { "E-" + it.status },
-    )
+    /** Traductor de prueba: "#<id>" (con sus argumentos), para no depender de Android. */
+    private val t: (Int, Array<out Any>) -> String = { id, a -> "#$id" + if (a.isEmpty()) "" else a.joinToString(",", ":") }
+
+    private val info = ExportarPanel.Info("Autos Pame", "16 de octubre de 2026", 1, (1..12).map { "m$it" })
+
+    /** Hoja "Publicaciones" del libro (la segunda). */
+    private fun publicaciones(s: SellerStats, cars: List<Car>) = ExportarPanel.libro(s, cars, null, info, t)[1]
+
+    /** Valor de la celda [col] de cada fila de datos (sin el encabezado). */
+    private fun columna(h: Xlsx.Hoja, col: Int) = h.filas.drop(1).map { it.getOrNull(col)?.v }
 
     // ---------- filas ----------
 
@@ -92,9 +95,9 @@ class ExportarPanelTest {
         assertEquals(67, ExportarPanel.porcentaje(2, 3))
     }
 
-    // ---------- csv ----------
+    // ---------- libro de Excel (antes CSV) ----------
 
-    private fun csvEjemplo(): String {
+    private fun libroEjemplo(): List<Xlsx.Hoja> {
         val s = stats(
             RendimientoPublicacion(1, 4, 2, 1),
             RendimientoPublicacion(2, 10, 3, 5),
@@ -105,57 +108,62 @@ class ExportarPanelTest {
                 publishedAt = "2026-03-15"),
             car(3, approved = false),
         )
-        return ExportarPanel.csv(s, cars, tx)
+        return ExportarPanel.libro(s, cars, null, info, t)
     }
 
     @Test
-    fun csv_empiezaConBom() {
-        assertTrue(csvEjemplo().startsWith("\uFEFF"))
+    fun libro_cincoHojas() {
+        assertEquals(5, libroEjemplo().size)
     }
 
     @Test
-    fun csv_usaCrlfSinSaltosSueltos() {
-        val c = csvEjemplo()
-        assertTrue(c.contains("\r\n"))
-        assertFalse(c.replace("\r\n", "").contains("\n"))
+    fun libro_xlsxEsZipConSusArchivos() {
+        val bytes = java.io.ByteArrayOutputStream().also { Xlsx.escribir(libroEjemplo(), it) }.toByteArray()
+        val nombres = mutableListOf<String>()
+        java.util.zip.ZipInputStream(bytes.inputStream()).use { z -> generateSequence { z.nextEntry }.forEach { nombres += it.name } }
+        assertTrue(nombres.containsAll(listOf("[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/styles.xml", "xl/worksheets/sheet1.xml", "xl/worksheets/sheet5.xml")))
     }
 
     @Test
-    fun csv_estructuraCompleta() {
-        val lineas = csvEjemplo().removePrefix("\uFEFF").split("\r\n")
-        val esperado = listOf(
-            "Mi panel",
-            "Autos Pame",
-            "16 de octubre de 2026",
-            "",
-            "Activas,3",
-            "Vendidas,1",
-            "",
-            "Publicación,Año,Precio,Moneda,Estado,Vistas,Favoritos,Contactos,Tasa,Publicada",
-            // Más vista primero; año 0 va vacío; comillas escapadas.
-            "\"Ford Lobo \"\"XL\"\"\",,300000,USD,E-Vendido,10,3,5,50%,2026-03-15",
-            // Precio como número (sin formato) para Excel; fecha recortada a 10 caracteres.
-            "Nissan Versa,2019,250000,MXN,E-Activo,4,2,1,25%,2026-05-01",
-        )
-        assertEquals(esperado, lineas)
+    fun libro_estructuraPublicaciones() {
+        val h = libroEjemplo()[1]
+        // Encabezado + 2 aprobadas (la no aprobada que no está pendiente no entra).
+        assertEquals(3, h.filas.size)
+        assertEquals(Xlsx.Estilo.ENCABEZADO, h.filas[0][0]?.s)
+        // Más vista primero; año 0 va vacío; las comillas se guardan tal cual.
+        assertEquals(listOf("Ford Lobo \"XL\"", "Nissan Versa 2019"), columna(h, 0))
+        assertEquals(listOf(null, 2019), columna(h, 1))
+        // Precio como número (con formato de moneda) para que Excel lo sume y ordene.
+        assertEquals(listOf(300000.0, 250000.0), columna(h, 3))
+        assertEquals(Xlsx.Estilo.DINERO, h.filas[1][3]?.s)
+        // Fecha de publicación como número de fecha de Excel.
+        assertEquals(listOf(Xlsx.fechaExcel("2026-03-15"), Xlsx.fechaExcel("2026-05-01")), columna(h, 13))
+        assertEquals("A1:Q3", h.filtro)
+        assertEquals(1, h.fijas)
     }
 
     @Test
-    fun csv_celdaConComaEnTitulo() {
-        val c = ExportarPanel.csv(stats(), listOf(car(1, brand = "Kia", model = "Rio, Sedán")), tx)
-        assertTrue(c.contains("\r\n\"Kia Rio, Sedán\",2020,"))
+    fun libro_comillasSeEscapanEnElXml() {
+        val xml = Xlsx.archivos(libroEjemplo())["xl/worksheets/sheet2.xml"]!!
+        assertTrue(xml.contains("Ford Lobo &quot;XL&quot;"))
     }
 
     @Test
-    fun csv_fechaCortaOVaciaNoFalla() {
-        val c = ExportarPanel.csv(stats(), listOf(car(1, publishedAt = "")), tx)
-        assertTrue(c.endsWith(",0%,"))
+    fun libro_tituloConComaQuedaIgual() {
+        val h = publicaciones(stats(), listOf(car(1, brand = "Kia", model = "Rio, Sedán")))
+        assertEquals("Kia Rio, Sedán 2020", columna(h, 0).single())
     }
 
     @Test
-    fun csv_sinPublicacionesTerminaEnColumnas() {
-        val c = ExportarPanel.csv(stats(), emptyList(), tx)
-        assertTrue(c.endsWith("Tasa,Publicada"))
+    fun libro_fechaVaciaNoFalla() {
+        val h = publicaciones(stats(), listOf(car(1, publishedAt = "")))
+        assertEquals(null, columna(h, 13).single())
+    }
+
+    @Test
+    fun libro_sinPublicacionesSoloEncabezado() {
+        val h = publicaciones(stats(), emptyList())
+        assertEquals(1, h.filas.size)
     }
 
     // ---------- diasDesde ----------
@@ -303,8 +311,10 @@ class ExportarPanelTest {
     }
 
     @Test
-    fun csv_precioDecimalYRetornoDeCarro() {
-        val c = ExportarPanel.csv(stats(), listOf(car(1, brand = "Mazda", model = "3\rHB", priceValue = 199999.5)), tx)
-        assertTrue(c.contains("\r\n\"Mazda 3\rHB\",2020,199999.5,MXN,"))
+    fun libro_precioDecimalYRetornoDeCarro() {
+        val h = publicaciones(stats(), listOf(car(1, brand = "Mazda", model = "3\rHB", priceValue = 199999.5)))
+        assertEquals("Mazda 3\rHB 2020", columna(h, 0).single())
+        assertEquals(199999.5, columna(h, 3).single())
+        assertTrue(Xlsx.archivos(listOf(h))["xl/worksheets/sheet1.xml"]!!.contains("<v>199999.5</v>"))
     }
 }

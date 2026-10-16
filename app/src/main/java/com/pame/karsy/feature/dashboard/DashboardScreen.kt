@@ -124,7 +124,7 @@ fun DashboardScreen(
                         runCatching {
                             withContext(Dispatchers.IO) {
                                 if (pdf) ExportarPanel.generarPdf(context, nombre, stats, listings, destacadas)
-                                else ExportarPanel.generarCsv(context, nombre, stats, listings, destacadas)
+                                else ExportarPanel.generarExcel(context, nombre, stats, listings, destacadas)
                             }
                         }.onSuccess { ExportarPanel.compartir(context, it) }
                             .onFailure {
@@ -340,7 +340,7 @@ private fun CardLabel(text: String) {
     Text(text, fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
 }
 
-/** Elegir formato: Excel (CSV) para trabajar los números o PDF para presentarlos. */
+/** Elegir formato: Excel (.xlsx) para trabajar los números o PDF para presentarlos. */
 @Composable
 private fun ExportarDialog(onDismiss: () -> Unit, onElegir: (pdf: Boolean) -> Unit) {
     AlertDialog(

@@ -9,6 +9,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.long
 import kotlinx.serialization.json.put
 
@@ -31,6 +32,31 @@ data class SellerStats(
     val embudoContactos: Int,
     /** Totales por publicación (la más vista primero). */
     val rendimiento: List<RendimientoPublicacion>,
+)
+
+/** Datos extra del reporte de Mi panel (vendedor_reporte); solo se piden al exportar. */
+data class ReporteExtra(
+    /** Precio promedio de autos similares de otros vendedores (misma marca/modelo, año ±2, misma moneda). */
+    val mercado: List<MercadoPublicacion> = emptyList(),
+    /** Vistas por día de la semana (domingo = 0) y por hora (0–23), hora de México. */
+    val porDia: List<Int> = emptyList(),
+    val porHora: List<Int> = emptyList(),
+    /** Último destacado de cada auto: vistas en los días antes vs. los días que lleva destacado. */
+    val destacados: List<DestacadoPublicacion> = emptyList(),
+)
+
+data class MercadoPublicacion(val id: Long, val promedio: Double, val similares: Int)
+
+data class DestacadoPublicacion(
+    val id: Long,
+    val inicio: String,
+    val fin: String,
+    val dias: Int,
+    /** Días exactos de cada ventana (la de "antes" puede ser más corta si el auto se publicó hace poco). */
+    val diasAntes: Double,
+    val diasDurante: Double,
+    val vistasAntes: Int,
+    val vistasDurante: Int,
 )
 
 data class RendimientoPublicacion(val id: Long, val vistas: Int, val favoritos: Int, val contactos: Int)
@@ -85,6 +111,31 @@ object StatsRepository {
             rendimiento = j.list("rendimiento").map {
                 val r = it.jsonObject
                 RendimientoPublicacion(r.getValue("id").jsonPrimitive.long, r.int("vistas"), r.int("favoritos"), r.int("contactos"))
+            },
+        )
+    }
+
+    suspend fun sellerReport(): ReporteExtra {
+        val j = Supabase.client.postgrest.rpc("vendedor_reporte").decodeAs<JsonObject>()
+        return ReporteExtra(
+            mercado = j.list("mercado").map {
+                val m = it.jsonObject
+                MercadoPublicacion(m.getValue("id").jsonPrimitive.long, m["promedio"]?.jsonPrimitive?.doubleOrNull ?: 0.0, m.int("similares"))
+            },
+            porDia = j.floats("por_dia").map { it.toInt() },
+            porHora = j.floats("por_hora").map { it.toInt() },
+            destacados = j.list("destacados").map {
+                val d = it.jsonObject
+                DestacadoPublicacion(
+                    id = d.getValue("id").jsonPrimitive.long,
+                    inicio = d["inicio"]?.jsonPrimitive?.content.orEmpty(),
+                    fin = d["fin"]?.jsonPrimitive?.content.orEmpty(),
+                    dias = d.int("dias").coerceAtLeast(1),
+                    diasAntes = d["dias_antes"]?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                    diasDurante = d["dias_durante"]?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                    vistasAntes = d.int("vistas_antes"),
+                    vistasDurante = d.int("vistas_durante"),
+                )
             },
         )
     }

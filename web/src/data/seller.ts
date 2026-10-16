@@ -175,6 +175,38 @@ export async function sellerStats(): Promise<SellerStats> {
   }
 }
 
+/** Datos extra del reporte de Mi panel (vendedor_reporte); solo se piden al exportar. */
+export interface ReporteExtra {
+  /** Precio promedio de autos similares de otros vendedores (misma marca/modelo, año ±2, misma moneda). */
+  mercado: { id: number; promedio: number; similares: number }[]
+  /** Vistas por día de la semana (domingo = 0) y por hora (0–23), hora de México. */
+  porDia: number[]
+  porHora: number[]
+  /** Último destacado de cada auto: vistas en los días antes vs. los días que lleva destacado. */
+  destacados: { id: number; inicio: string; fin: string; dias: number; diasAntes: number; diasDurante: number; vistasAntes: number; vistasDurante: number }[]
+}
+
+export async function sellerReport(): Promise<ReporteExtra> {
+  const j = (check(await supabase.rpc('vendedor_reporte')) ?? {}) as Record<string, unknown>
+  const lista = (k: string) => ((j[k] as Record<string, unknown>[]) ?? [])
+  const nums = (k: string) => ((j[k] as unknown[]) ?? []).map(Number)
+  return {
+    mercado: lista('mercado').map((m) => ({ id: Number(m.id), promedio: Number(m.promedio ?? 0), similares: Number(m.similares ?? 0) })),
+    porDia: nums('por_dia'),
+    porHora: nums('por_hora'),
+    destacados: lista('destacados').map((d) => ({
+      id: Number(d.id),
+      inicio: String(d.inicio ?? ''),
+      fin: String(d.fin ?? ''),
+      dias: Number(d.dias ?? 1),
+      diasAntes: Number(d.dias_antes ?? 0),
+      diasDurante: Number(d.dias_durante ?? 0),
+      vistasAntes: Number(d.vistas_antes ?? 0),
+      vistasDurante: Number(d.vistas_durante ?? 0),
+    })),
+  }
+}
+
 // ── Historial ───────────────────────────────────────────────────────────────
 
 /** Anuncios vistos por la cuenta en sesión (los últimos 200), con la fecha de la última vista. */
