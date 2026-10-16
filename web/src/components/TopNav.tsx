@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { unreadCount } from '../data/account'
 import { useI18n } from '../i18n/I18nContext'
@@ -116,6 +116,9 @@ export function TopNav() {
   const [params] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  /** Menú de hamburguesa (pantallas de 1000 px o menos). */
+  const [menuMovil, setMenuMovil] = useState(false)
+  const cerrarMenuMovil = useCallback(() => setMenuMovil(false), [])
   const [q, setQ] = useState(params.get('q') ?? '')
   const searchRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -145,6 +148,7 @@ export function TopNav() {
   useEffect(() => {
     setFiltersOpen(false)
     setMenuOpen(false)
+    setMenuMovil(false)
   }, [location.pathname])
 
   // Clic fuera cierra el panel de filtros y el menú de la cuenta.
@@ -170,6 +174,18 @@ export function TopNav() {
     ['/favoritos', t('nav.favorites'), 'heart'],
   ]
   const activo = (to: string) => (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to))
+  const irA = (to: string) =>
+    to === '/favoritos' && mode === 'guest'
+      ? toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
+      : navigate(to)
+  /** Opciones de la cuenta: las usa el menú del avatar y el de hamburguesa. */
+  const cuentaItems: [string, string, IconName][] = [
+    ['/perfil', t('nav.myProfile'), 'user'],
+    ['/panel', t('nav.myDashboard'), 'chart'],
+    ['/historial', t('nav.history'), 'history'],
+    ['/configuracion', t('nav.settings'), 'settings'],
+    ...(mode === 'admin' ? [['/admin', t('nav.adminPanel'), 'shield'] as [string, string, IconName]] : []),
+  ]
   const foto = publicUrl(account?.fotoPerfil)
 
   return (
@@ -181,11 +197,7 @@ export function TopNav() {
             <button
               key={to}
               className={activo(to) ? 'on' : ''}
-              onClick={() =>
-                to === '/favoritos' && mode === 'guest'
-                  ? toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
-                  : navigate(to)
-              }
+              onClick={() => irA(to)}
             >
               <Icon name={i} size={18} />
               <span>{texto}</span>
@@ -220,16 +232,16 @@ export function TopNav() {
         <div className="row" style={{ marginLeft: 'auto', gap: 10 }}>
           {mode === 'guest' ? (
             <>
-              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login', { state: { from: location.pathname + location.search } })}>
+              <button className="btn btn-ghost btn-sm navdesk" onClick={() => navigate('/login', { state: { from: location.pathname + location.search } })}>
                 {t('nav.login')}
               </button>
-              <button className="btn btn-primary btn-sm" onClick={() => navigate('/registro')}>
+              <button className="btn btn-primary btn-sm navdesk" onClick={() => navigate('/registro')}>
                 {t('nav.register')}
               </button>
             </>
           ) : (
             <>
-              <button className="btn btn-primary btn-sm" onClick={() => navigate('/publicar')}>
+              <button className="btn btn-primary btn-sm navdesk" onClick={() => navigate('/publicar')}>
                 <Icon name="plus" size={18} />
                 {t('nav.publish')}
               </button>
@@ -237,7 +249,7 @@ export function TopNav() {
                 <Icon name="bell" size={19} />
                 {sinLeer > 0 && <span className="dot" />}
               </button>
-              <div style={{ position: 'relative' }} ref={menuRef}>
+              <div className="navdesk" style={{ position: 'relative' }} ref={menuRef}>
                 <button
                   className="avatar"
                   aria-label={t('nav.myAccount')}
@@ -258,28 +270,12 @@ export function TopNav() {
                       </div>
                     </div>
                     <hr />
-                    <button onClick={() => navigate('/perfil')}>
-                      <Icon name="user" size={18} />
-                      {t('nav.myProfile')}
-                    </button>
-                    <button onClick={() => navigate('/panel')}>
-                      <Icon name="chart" size={18} />
-                      {t('nav.myDashboard')}
-                    </button>
-                    <button onClick={() => navigate('/historial')}>
-                      <Icon name="history" size={18} />
-                      {t('nav.history')}
-                    </button>
-                    <button onClick={() => navigate('/configuracion')}>
-                      <Icon name="settings" size={18} />
-                      {t('nav.settings')}
-                    </button>
-                    {mode === 'admin' && (
-                      <button onClick={() => navigate('/admin')}>
-                        <Icon name="shield" size={18} />
-                        {t('nav.adminPanel')}
+                    {cuentaItems.map(([to, texto, i]) => (
+                      <button key={to} onClick={() => navigate(to)}>
+                        <Icon name={i} size={18} />
+                        {texto}
                       </button>
-                    )}
+                    ))}
                     <hr />
                     <button
                       style={{ color: 'var(--error)' }}
@@ -296,10 +292,210 @@ export function TopNav() {
               </div>
             </>
           )}
+          {/* Pantallas chicas: todo lo demás del encabezado va en el menú (la campana se queda afuera). */}
+          <button className="iconbtn navburger" aria-label={t('nav.openMenu')} aria-expanded={menuMovil} onClick={() => setMenuMovil(true)}>
+            <Icon name="menu" size={20} />
+          </button>
         </div>
       </div>
       {/* Fuera del contenido centrado: queda en el extremo derecho del encabezado. */}
       <LangSwitch />
+      {menuMovil && (
+        <MenuMovil
+          links={links}
+          cuentaItems={cuentaItems}
+          activo={activo}
+          irA={irA}
+          onCerrar={cerrarMenuMovil}
+        />
+      )}
     </header>
+  )
+}
+
+/**
+ * Menú de hamburguesa (1000 px o menos): panel que se desliza desde la derecha con todo
+ * lo del encabezado: buscador y filtros, Inicio / Lotes / Favoritos, entrar o registrarse
+ * (visitante) o Publicar y las opciones de la cuenta, cerrar sesión e idioma. Se cierra
+ * con la X, tocando afuera, con Esc, al cambiar de pantalla o si la ventana se agranda.
+ */
+function MenuMovil({
+  links,
+  cuentaItems,
+  activo,
+  irA,
+  onCerrar,
+}: {
+  links: [string, string, IconName][]
+  cuentaItems: [string, string, IconName][]
+  activo: (to: string) => boolean
+  irA: (to: string) => void
+  onCerrar: () => void
+}) {
+  const { account, mode } = useSession()
+  const { openModal } = useUi()
+  const { t } = useI18n()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [params] = useSearchParams()
+  const [q, setQ] = useState(params.get('q') ?? '')
+  const [filtros, setFiltros] = useState(false)
+  const cerrarRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
+  /** Solo cierra si el clic empezó y terminó en el fondo (no al soltar ahí tras seleccionar texto). */
+  const presionEnFondo = useRef(false)
+  const foto = publicUrl(account?.fotoPerfil)
+
+  useEffect(() => {
+    cerrarRef.current?.focus()
+    // Mientras está abierto, la página de atrás no se desplaza.
+    const antes = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return onCerrar()
+      // Tab no sale del menú mientras está abierto (vuelve del último al primero y al revés).
+      if (e.key !== 'Tab' || !panelRef.current) return
+      const enfocables = [...panelRef.current.querySelectorAll<HTMLElement>('button, input, select, a[href]')].filter((el) => !el.hasAttribute('disabled'))
+      const primero = enfocables[0]
+      const ultimo = enfocables[enfocables.length - 1]
+      if (e.shiftKey && document.activeElement === primero) {
+        e.preventDefault()
+        ultimo?.focus()
+      } else if (!e.shiftKey && document.activeElement === ultimo) {
+        e.preventDefault()
+        primero?.focus()
+      }
+    }
+    // Si la ventana se agranda, el menú ya no hace falta (el encabezado completo vuelve).
+    const ancho = window.matchMedia('(min-width: 1001px)')
+    const onAncho = () => ancho.matches && onCerrar()
+    window.addEventListener('keydown', onKey)
+    ancho.addEventListener('change', onAncho)
+    return () => {
+      document.body.style.overflow = antes
+      window.removeEventListener('keydown', onKey)
+      ancho.removeEventListener('change', onAncho)
+      // Al cerrar, el foco regresa al botón ☰ (si sigue visible).
+      document.querySelector<HTMLButtonElement>('.navburger')?.focus()
+    }
+  }, [onCerrar])
+
+  const buscar = () => {
+    const next = new URLSearchParams(location.pathname === '/' ? params : undefined)
+    if (q.trim()) next.set('q', q.trim())
+    else next.delete('q')
+    navigate({ pathname: '/', search: next.toString() })
+    onCerrar()
+  }
+  const ir = (to: string) => {
+    irA(to)
+    onCerrar()
+  }
+
+  return (
+    <div
+      className="drawerwrap"
+      onMouseDown={(e) => (presionEnFondo.current = e.target === e.currentTarget)}
+      onClick={(e) => e.target === e.currentTarget && presionEnFondo.current && onCerrar()}
+    >
+      <aside ref={panelRef} className="drawer" role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          {account ? (
+            <div className="row" style={{ gap: 10, minWidth: 0 }}>
+              <span className="avatar" aria-hidden>
+                {foto ? <img src={foto} alt="" /> : iniciales(account.nombre)}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <b style={{ color: 'var(--ink)', display: 'block' }} className="ellipsis">
+                  {account.nombre}
+                </b>
+                <span className="muted ellipsis" style={{ fontSize: 12, display: 'block' }}>
+                  {mode === 'admin' ? t('nav.admin') : account.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <b style={{ color: 'var(--ink)' }}>{t('nav.menu')}</b>
+          )}
+          <button ref={cerrarRef} className="iconbtn" aria-label={t('nav.closeMenu')} onClick={onCerrar}>
+            <Icon name="x" size={18} />
+          </button>
+        </div>
+
+        <div className="drawersearch">
+          <form
+            className="inputicon grow"
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault()
+              buscar()
+            }}
+          >
+            <Icon name="search" size={18} />
+            <input className="input" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
+          </form>
+          <button className={`btn filterbtn ${filtros ? 'on' : ''}`} aria-expanded={filtros} onClick={() => setFiltros((v) => !v)}>
+            <Icon name="filter" size={18} />
+            <span>{t('nav.filters')}</span>
+          </button>
+        </div>
+        {filtros && <FilterPanel onClose={onCerrar} />}
+
+        <nav className="drawerlinks">
+          {links.map(([to, texto, i]) => (
+            <button key={to} className={activo(to) ? 'on' : ''} onClick={() => ir(to)}>
+              <Icon name={i} size={18} />
+              {texto}
+            </button>
+          ))}
+        </nav>
+
+        {mode === 'guest' ? (
+          <div className="col" style={{ gap: 10 }}>
+            <button
+              className="btn btn-ghost btn-block"
+              onClick={() => {
+                navigate('/login', { state: { from: location.pathname + location.search } })
+                onCerrar()
+              }}
+            >
+              {t('nav.login')}
+            </button>
+            <button className="btn btn-primary btn-block" onClick={() => ir('/registro')}>
+              {t('nav.register')}
+            </button>
+          </div>
+        ) : (
+          <>
+            <button className="btn btn-primary btn-block" onClick={() => ir('/publicar')}>
+              <Icon name="plus" size={18} />
+              {t('nav.publish')}
+            </button>
+            <nav className="drawerlinks">
+              {cuentaItems.map(([to, texto, i]) => (
+                <button key={to} className={activo(to) ? 'on' : ''} onClick={() => ir(to)}>
+                  <Icon name={i} size={18} />
+                  {texto}
+                </button>
+              ))}
+              <button
+                style={{ color: 'var(--error)' }}
+                onClick={() => {
+                  onCerrar()
+                  openModal(<LogoutModal />)
+                }}
+              >
+                <Icon name="logout" size={18} />
+                {t('nav.logout')}
+              </button>
+            </nav>
+          </>
+        )}
+
+        <div style={{ marginTop: 'auto' }}>
+          <LangSwitch />
+        </div>
+      </aside>
+    </div>
   )
 }
