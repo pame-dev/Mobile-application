@@ -244,6 +244,11 @@ textarea.input{height:auto;min-height:96px;padding:12px 14px;resize:vertical}
 }
 @media (max-width:640px){
   .wrap{padding-inline:16px}
+  .visitor{flex-wrap:wrap;padding:16px}
+  .visitor .grow{flex:1 1 200px;min-width:0}
+  .visitor > .btn{width:100%}
+  .sechead{flex-wrap:wrap;align-items:flex-start;margin-top:32px}
+  .sechead h2{font-size:21px}
   .navsearch,.navlinks{display:none}
   .grid2,.grid3{grid-template-columns:1fr}
   .ficha{grid-template-columns:1fr 1fr}
