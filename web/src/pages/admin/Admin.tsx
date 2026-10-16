@@ -226,6 +226,29 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
   return (
     <>
       {head}
+      {/* Pendientes primero: es lo que el admin tiene que atender (igual que la app). */}
+      <div className="card" style={{ padding: 22, marginBottom: 18 }}>
+        <h3 style={{ fontSize: 17 }} className="row">
+          <Icon name="alert" size={18} /> {t('admin.needsAttention')}
+        </h3>
+        {alertas.length === 0 ? (
+          <p className="muted" style={{ marginTop: 10 }}>
+            {t('admin.allCaughtUp')}
+          </p>
+        ) : (
+          <div className="grid3" style={{ marginTop: 14 }}>
+            {alertas.map(([, txt, s, c]) => (
+              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s)}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', flex: 'none', background: c }} />
+                <span className="grow" style={{ color: 'var(--ink)', fontWeight: 500 }}>
+                  {txt}
+                </span>
+                <span style={{ color: 'var(--admin-blue)', fontSize: 12.5, fontWeight: 600 }}>{t('admin.seeAll')}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="akpis">
         {kpis.map(([k, n, nuevos, i, c]) => (
           <div key={k} className="card kpi">
@@ -329,29 +352,6 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="card" style={{ padding: 22, marginTop: 18 }}>
-        <h3 style={{ fontSize: 17 }} className="row">
-          <Icon name="alert" size={18} /> {t('admin.needsAttention')}
-        </h3>
-        {alertas.length === 0 ? (
-          <p className="muted" style={{ marginTop: 10 }}>
-            {t('admin.allCaughtUp')}
-          </p>
-        ) : (
-          <div className="grid3" style={{ marginTop: 14 }}>
-            {alertas.map(([, txt, s, c]) => (
-              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s)}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', flex: 'none', background: c }} />
-                <span className="grow" style={{ color: 'var(--ink)', fontWeight: 500 }}>
-                  {txt}
-                </span>
-                <span style={{ color: 'var(--admin-blue)', fontSize: 12.5, fontWeight: 600 }}>{t('admin.seeAll')}</span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </>
   )
