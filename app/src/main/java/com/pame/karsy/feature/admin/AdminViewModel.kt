@@ -110,6 +110,17 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /** Al ver el filtro "Suspendido" en Usuarios, esas cuentas dejan de salir en "Requiere atención". */
+    fun marcarSuspendidasVistas() {
+        viewModelScope.launch {
+            safeCall {
+                AdminRepository.marcarSuspendidasVistas()
+                StatsRepository.admin(range.toInt())
+            }.onSuccess { stats = it }
+                .onFailure { message = it.mensajeUsuario() }
+        }
+    }
+
     // ── Listas para las secciones ────────────────────────────────────────────
 
     val users: List<AdminUser>
@@ -220,7 +231,7 @@ class AdminViewModel : ViewModel() {
                 // Se quitan cuando el admin abre ese filtro en Vehículos (marcarVistas).
                 AdminAlert(s.deshabilitadasSinVer, textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadasSinVer, s.deshabilitadasSinVer), Icons.Outlined.Description, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos, "Deshabilitado"),
                 AdminAlert(s.pausadasSinVer, textoPlural(R.plurals.admin2_alert_paused, s.pausadasSinVer, s.pausadasSinVer), Icons.Outlined.PauseCircle, Color(0xFFF2F4F7), Color(0xFF667085), AdminSection.Vehiculos, "Pausado"),
-                AdminAlert(s.suspendidas, textoPlural(R.plurals.admin2_alert_suspended, s.suspendidas, s.suspendidas), Icons.Outlined.PersonOff, Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios),
+                AdminAlert(s.suspendidasSinVer, textoPlural(R.plurals.admin2_alert_suspended, s.suspendidasSinVer, s.suspendidasSinVer), Icons.Outlined.PersonOff, Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios, "Suspendido"),
                 AdminAlert(s.lotesNuevos, textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Icons.Outlined.Storefront, Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Usuarios),
                 AdminAlert(s.propuestasPendientes, textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Icons.Outlined.Shield, Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
                 AdminAlert(s.reportesPendientes, textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Icons.Outlined.Flag, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
