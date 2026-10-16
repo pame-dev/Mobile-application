@@ -17,9 +17,12 @@ import { ModalHead, useUi } from '../components/Ui'
 import { miUbicacion } from '../data/account'
 import { estadosMunicipios, mismoLugar, type EstadoMunicipios } from '../lib/mexico'
 
-const POR_PAGINA_DESTACADOS = 3
-/** Cada cuánto avanzan solos los destacados. */
-const AUTOPLAY_MS = 2000
+/** Cada cuánto avanzan solos los destacados (una tarjeta a la vez, como la app). */
+const AUTOPLAY_MS = 3000
+/** Duración del deslizamiento entre una tarjeta y la siguiente. */
+const DESLIZ_MS = 700
+/** Separación entre tarjetas del carrusel (px). */
+const GAP_CARRUSEL = 20
 
 export function Home() {
   const { mode, account } = useSession()
@@ -32,9 +35,6 @@ export function Home() {
   const [cars, setCars] = useState<Car[] | null>(null)
   const [error, setError] = useState<Clave | null>(null)
   const [stats, setStats] = useState<{ vehiculos: number; marcas: number; modelos: number } | null>(null)
-  const [pagina, setPagina] = useState(0)
-  /** Cursor o foco sobre las tarjetas o las flechas: los destacados no avanzan solos. */
-  const [pausado, setPausado] = useState(false)
 
   const cargar = useCallback(() => {
     setError(null)
@@ -90,22 +90,6 @@ export function Home() {
     setBuscandoLugar(false)
     if (lugar) ponerLugar(lugar.estado, lugar.municipio)
     else elegir()
-  }
-  const paginas = Math.max(1, Math.ceil(destacados.length / POR_PAGINA_DESTACADOS))
-  const verDestacados = destacados.slice(pagina * POR_PAGINA_DESTACADOS, (pagina + 1) * POR_PAGINA_DESTACADOS)
-
-  // Avanza solo cada 2 s y al final vuelve al inicio. Cada cambio de página (también con las
-  // flechas) vuelve a empezar la cuenta, así no cambia de golpe justo después de moverlo a mano.
-  useEffect(() => {
-    if (pausado || paginas < 2 || hayFiltros) return
-    const id = window.setTimeout(() => setPagina((p) => (p + 1) % paginas), AUTOPLAY_MS)
-    return () => window.clearTimeout(id)
-  }, [pagina, pausado, paginas, hayFiltros])
-  const pausa = {
-    onMouseEnter: () => setPausado(true),
-    onMouseLeave: () => setPausado(false),
-    onFocus: () => setPausado(true),
-    onBlur: () => setPausado(false),
   }
 
   /**
@@ -194,45 +178,7 @@ export function Home() {
         {/* Mientras se busca o filtra, los destacados se ocultan para que los resultados queden arriba (igual que la app). */}
         {!hayFiltros && destacados.length > 0 && (
           <>
-            <div className="sechead">
-              <div>
-                <h2>{t('home.featured')}</h2>
-                <p className="muted">{t('home.featuredSub')}</p>
-              </div>
-              {paginas > 1 && (
-                <div className="row" {...pausa}>
-                  <button className="iconbtn" aria-label={t('home.prev')} onClick={() => setPagina((p) => (p - 1 + paginas) % paginas)}>
-                    <Icon name="back" size={18} />
-                  </button>
-                  <button className="iconbtn" aria-label={t('home.next')} onClick={() => setPagina((p) => (p + 1) % paginas)}>
-                    <Icon name="chev" size={18} />
-                  </button>
-                </div>
-              )}
-            </div>
-            <div key={pagina} className="featrow fadein" {...pausa}>
-              {verDestacados.map((c) => (
-                <button key={c.id} className="fcard" onClick={() => navigate(`/vehiculo/${c.id}`)}>
-                  <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} />
-                  <div className="shade" />
-                  <span className="badge b-star" style={{ position: 'absolute', left: 14, top: 14 }}>
-                    {t('home.featuredBadge')}
-                  </span>
-                  <div className="info">
-                    <div>
-                      <b>
-                        {c.brand} {c.model}
-                      </b>
-                      <span>
-                        {c.year} · {km(c.km)}
-                        {c.city ? ` · ${c.city}` : ''}
-                      </span>
-                    </div>
-                    <div className="pr num">{precio(c.priceValue)}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <CarruselDestacados cars={destacados} onOpen={(id) => navigate(`/vehiculo/${id}`)} />
           </>
         )}
 
@@ -363,5 +309,147 @@ function ElegirLugarModal({ onElegir }: { onElegir: (estado: string, municipio: 
         {t('home.nearMeApply')}
       </button>
     </div>
+  )
+}
+
+/** Tarjetas visibles a la vez según el ancho: 3 en computadora, 2 en tableta, 1 en celular. */
+function useTarjetasVisibles(): number {
+  const calcular = () => (window.matchMedia('(max-width: 640px)').matches ? 1 : window.matchMedia('(max-width: 1000px)').matches ? 2 : 3)
+  const [visibles, setVisibles] = useState(calcular)
+  useEffect(() => {
+    const onResize = () => setVisibles(calcular())
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return visibles
+}
+
+/**
+ * Destacados en una sola fila que se desliza una tarjeta a la vez y da la vuelta sin fin
+ * (como el carrusel de la app). Para el bucle, al principio y al final van copias de las
+ * últimas y primeras tarjetas: al llegar a una copia se salta, sin animación, a la tarjeta
+ * real equivalente, así que nunca se nota el regreso. Se pausa con el cursor o el foco.
+ */
+function CarruselDestacados({ cars, onOpen }: { cars: Car[]; onOpen: (id: number) => void }) {
+  const { t } = useI18n()
+  const visibles = useTarjetasVisibles()
+  const n = cars.length
+  /** Con pocas tarjetas (caben todas) no hay nada que deslizar. */
+  const mueve = n > visibles
+  const copias = mueve ? visibles : 0
+  const pista = mueve ? [...cars.slice(n - copias), ...cars, ...cars.slice(0, copias)] : cars
+  /** Posición en la pista; las reales van de [copias] a [copias + n - 1]. */
+  const [pos, setPos] = useState(copias)
+  const [animar, setAnimar] = useState(true)
+  const [pausado, setPausado] = useState(false)
+
+  // Si cambia el ancho o la cantidad de destacados, se vuelve a la primera sin animación.
+  useEffect(() => {
+    setAnimar(false)
+    setPos(copias)
+  }, [copias, n])
+
+  // Tras un salto sin animación, se vuelve a animar en el siguiente cuadro.
+  useEffect(() => {
+    if (animar) return
+    let id = requestAnimationFrame(() => {
+      id = requestAnimationFrame(() => setAnimar(true))
+    })
+    return () => cancelAnimationFrame(id)
+  }, [animar])
+
+  // Al terminar de deslizarse hacia una copia, salta a la tarjeta real que se ve igual.
+  useEffect(() => {
+    if (!mueve || (pos >= copias && pos < copias + n)) return
+    const id = window.setTimeout(
+      () => {
+        setAnimar(false)
+        setPos((p) => (p >= copias + n ? p - n : p + n))
+      },
+      animar ? DESLIZ_MS : 0,
+    )
+    return () => window.clearTimeout(id)
+  }, [pos, mueve, copias, n, animar])
+
+  // Avanza sola; cada movimiento (también con las flechas) reinicia la cuenta.
+  useEffect(() => {
+    if (!mueve || pausado) return
+    const id = window.setTimeout(() => setPos((p) => Math.min(p + 1, copias + n)), AUTOPLAY_MS)
+    return () => window.clearTimeout(id)
+  }, [pos, mueve, pausado, copias, n])
+
+  const pausa = {
+    onMouseEnter: () => setPausado(true),
+    onMouseLeave: () => setPausado(false),
+    onFocus: () => setPausado(true),
+    onBlur: () => setPausado(false),
+  }
+  // Las flechas no pasan de las copias (si se pica muy rápido, esperan al salto).
+  const anterior = () => setPos((p) => Math.max(p - 1, copias - 1))
+  const siguiente = () => setPos((p) => Math.min(p + 1, copias + n))
+
+  return (
+    <>
+      <div className="sechead">
+        <div>
+          <h2>{t('home.featured')}</h2>
+          <p className="muted">{t('home.featuredSub')}</p>
+        </div>
+        {mueve && (
+          <div className="row" {...pausa}>
+            <button className="iconbtn" aria-label={t('home.prev')} onClick={anterior}>
+              <Icon name="back" size={18} />
+            </button>
+            <button className="iconbtn" aria-label={t('home.next')} onClick={siguiente}>
+              <Icon name="chev" size={18} />
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="featviewport" {...pausa}>
+        <div
+          className={`feattrack ${animar ? 'anim' : ''}`}
+          style={{
+            gap: GAP_CARRUSEL,
+            ['--visibles' as string]: visibles,
+            ['--gap' as string]: `${GAP_CARRUSEL}px`,
+            // Cada paso mueve una tarjeta: (ancho de la fila + separación) / tarjetas visibles.
+            transform: `translateX(calc(${-pos} * (100% + ${GAP_CARRUSEL}px) / ${visibles}))`,
+          }}
+        >
+          {pista.map((c, i) => {
+            const copia = mueve && (i < copias || i >= copias + n)
+            return (
+              <button
+                key={`${i}-${c.id}`}
+                className="fcard"
+                onClick={() => onOpen(c.id)}
+                // Las copias solo son para el bucle: no las lee el lector de pantalla ni se enfocan.
+                aria-hidden={copia || undefined}
+                tabIndex={copia ? -1 : undefined}
+              >
+                <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} />
+                <div className="shade" />
+                <span className="badge b-star" style={{ position: 'absolute', left: 14, top: 14 }}>
+                  {t('home.featuredBadge')}
+                </span>
+                <div className="info">
+                  <div>
+                    <b>
+                      {c.brand} {c.model}
+                    </b>
+                    <span>
+                      {c.year} · {km(c.km)}
+                      {c.city ? ` · ${c.city}` : ''}
+                    </span>
+                  </div>
+                  <div className="pr num">{precio(c.priceValue)}</div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </>
   )
 }
