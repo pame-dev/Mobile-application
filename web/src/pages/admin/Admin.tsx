@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../../components/CarPhoto'
 import { Icon, type IconName } from '../../components/Icon'
@@ -58,6 +58,10 @@ export function Admin() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [rango, setRango] = useState(7)
   const [error, setError] = useState<string | null>(null)
+  // En pantallas chicas la barra lateral se abre como panel desde el botón ☰.
+  const [menu, setMenu] = useState(false)
+  const cerrarMenu = useCallback(() => setMenu(false), [])
+  const sideRef = useRef<HTMLElement>(null)
 
   const cargar = useCallback(async () => {
     setError(null)
@@ -98,6 +102,40 @@ export function Admin() {
     cargarStats()
   }
 
+  useEffect(() => {
+    if (!menu) return
+    sideRef.current?.querySelector<HTMLButtonElement>('.sideclose')?.focus()
+    // Mientras está abierto, la página de atrás no se desplaza.
+    const antes = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return cerrarMenu()
+      // Tab no sale del panel mientras está abierto.
+      if (e.key !== 'Tab' || !sideRef.current) return
+      const enfocables = [...sideRef.current.querySelectorAll<HTMLElement>('button, input, select, a[href]')].filter((el) => !el.hasAttribute('disabled'))
+      const primero = enfocables[0]
+      const ultimo = enfocables[enfocables.length - 1]
+      if (e.shiftKey && document.activeElement === primero) {
+        e.preventDefault()
+        ultimo?.focus()
+      } else if (!e.shiftKey && document.activeElement === ultimo) {
+        e.preventDefault()
+        primero?.focus()
+      }
+    }
+    // Si la ventana se agranda, la barra lateral vuelve a verse fija.
+    const ancho = window.matchMedia('(min-width: 1001px)')
+    const onAncho = () => ancho.matches && cerrarMenu()
+    window.addEventListener('keydown', onKey)
+    ancho.addEventListener('change', onAncho)
+    return () => {
+      document.body.style.overflow = antes
+      window.removeEventListener('keydown', onKey)
+      ancho.removeEventListener('change', onAncho)
+      document.querySelector<HTMLButtonElement>('.adminburger')?.focus()
+    }
+  }, [menu, cerrarMenu])
+
   if (cargandoSesion) return <div className="skeleton" style={{ height: '100vh', borderRadius: 0 }} />
   if (!account) return <Navigate to="/login" replace state={{ from: '/admin' }} />
   if (mode !== 'admin') return <Navigate to="/" replace />
@@ -116,6 +154,12 @@ export function Admin() {
     ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
   ]
   const ir = (s: Seccion) => navigate(s === 'inicio' ? '/admin' : `/admin/${s}`)
+  /** Navega y, si el panel móvil estaba abierto, lo cierra. */
+  const elegir = (accion: () => void) => {
+    setMenu(false)
+    accion()
+  }
+  const totalPendientes = pendientes.vehiculos + pendientes.reportes + pendientes.destacados
 
   let contenido
   if (error && !datos) {
@@ -137,11 +181,23 @@ export function Admin() {
   else contenido = <Inicio nombre={account.nombre} stats={stats} rango={rango} setRango={setRango} ir={ir} />
 
   return (
-    <div className="admin">
-      <aside className="side">
+    <div className={`admin ${menu ? 'menuabierto' : ''}`}>
+      {/* Solo en pantallas chicas: logo y botón ☰ en lugar de la barra lateral. */}
+      <header className="admintop">
         <Brand />
+        <button className="iconbtn adminburger" aria-label={t('nav.openMenu')} aria-expanded={menu} onClick={() => setMenu(true)}>
+          <Icon name="menu" size={20} />
+          {totalPendientes > 0 && <span className="cnt">{totalPendientes}</span>}
+        </button>
+      </header>
+      <div className="adminfondo" onClick={cerrarMenu} />
+      <aside ref={sideRef} className="side" aria-label={t('nav.menu')} {...(menu ? { role: 'dialog', 'aria-modal': true } : {})}>
+        <Brand />
+        <button className="iconbtn sideclose" aria-label={t('nav.closeMenu')} onClick={cerrarMenu}>
+          <Icon name="x" size={18} />
+        </button>
         {items.map(([k, clave, i, n]) => (
-          <button key={k} className={`it ${seccion === k ? 'on' : ''}`} onClick={() => ir(k)}>
+          <button key={k} className={`it ${seccion === k ? 'on' : ''}`} onClick={() => elegir(() => ir(k))}>
             <Icon name={i} />
             {t(clave)}
             {!!n && <span className="cnt">{n}</span>}
@@ -157,20 +213,20 @@ export function Admin() {
             </div>
           </div>
           <hr />
-          <button className="it" onClick={() => navigate('/')}>
+          <button className="it" onClick={() => elegir(() => navigate('/'))}>
             <Icon name="home" />
             {t('admin.backHome')}
           </button>
-          <button className="it" onClick={() => navigate('/perfil')}>
+          <button className="it" onClick={() => elegir(() => navigate('/perfil'))}>
             <Icon name="user" />
             {t('nav.myProfile')}
           </button>
-          <button className="it" onClick={() => navigate('/configuracion')}>
+          <button className="it" onClick={() => elegir(() => navigate('/configuracion'))}>
             <Icon name="settings" />
             {t('nav.settings')}
           </button>
           <hr />
-          <button className="it danger" onClick={() => openModal(<LogoutModal />)}>
+          <button className="it danger" onClick={() => elegir(() => openModal(<LogoutModal />))}>
             <Icon name="logout" />
             {t('nav.logout')}
           </button>
