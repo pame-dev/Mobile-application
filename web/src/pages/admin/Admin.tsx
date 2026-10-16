@@ -10,6 +10,7 @@ import {
   adminFeatured,
   adminReports,
   adminStats,
+  marcarSuspendidasVistas,
   marcarVistas,
   moderateProposal,
   resolveFeatured,
@@ -175,7 +176,7 @@ export function Admin() {
     )
   } else if (!datos) {
     contenido = <div className="skeleton" style={{ height: 420 }} />
-  } else if (seccion === 'usuarios') contenido = <Usuarios datos={datos} selfId={account.id} listo={listo} />
+  } else if (seccion === 'usuarios') contenido = <Usuarios datos={datos} selfId={account.id} listo={listo} onVisto={cargarStats} />
   else if (seccion === 'vehiculos') contenido = <Vehiculos datos={datos} listo={listo} onVisto={cargarStats} />
   else if (seccion === 'reportes') contenido = <Reportes datos={datos} listo={listo} />
   else if (seccion === 'destacados') contenido = <Destacados datos={datos} listo={listo} />
@@ -275,7 +276,7 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
       [stats.reportesPendientes, plural(stats.reportesPendientes, 'admin.alertReportsOne', 'admin.alertReportsMany'), 'reportes', '#EF4444'],
       [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', '#F59E0B'],
       [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'tipo=lote'],
-      [stats.suspendidas, plural(stats.suspendidas, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3'],
+      [stats.suspendidasSinVer, plural(stats.suspendidasSinVer, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3', 'tipo=suspendido'],
       // Se quitan cuando el admin abre ese filtro en Vehículos (admin_marcar_vistas).
       [stats.deshabilitadasSinVer, plural(stats.deshabilitadasSinVer, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3', 'estado=Deshabilitado'],
       [stats.pausadasSinVer, plural(stats.pausadasSinVer, 'admin.alertPausedOne', 'admin.alertPausedMany'), 'vehiculos', '#98A2B3', 'estado=Pausado'],
@@ -516,13 +517,20 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
   )
 }
 
-function Usuarios({ datos, selfId, listo }: { datos: Datos; selfId: string; listo: (m: string) => void }) {
-  const { openModal } = useUi()
+function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: string; listo: (m: string) => void; onVisto: () => void }) {
+  const { openModal, toast } = useUi()
   const { t } = useI18n()
   const [q, setQ] = useState('')
-  // Desde la alerta de lotes nuevos (o el enlace viejo /admin/lotes) llega con ?tipo=lote.
+  // Desde "Requiere atención" (o el enlace viejo /admin/lotes) llega con ?tipo=lote o ?tipo=suspendido.
   const [params] = useSearchParams()
-  const [tab, setTab] = useState<'todos' | 'particular' | 'lote' | 'suspendido'>(params.get('tipo') === 'lote' ? 'lote' : 'todos')
+  const [tab, setTab] = useState<'todos' | 'particular' | 'lote' | 'suspendido'>(() => {
+    const tipo = params.get('tipo')
+    return tipo === 'lote' || tipo === 'suspendido' ? tipo : 'todos'
+  })
+  // Al ver "Suspendido", esas cuentas dejan de salir en "Requiere atención".
+  useEffect(() => {
+    if (tab === 'suspendido') marcarSuspendidasVistas().then(onVisto).catch((e) => toast(mensajeUsuario(e)))
+  }, [tab, onVisto, toast])
   const c = datos.cuentas
   const lista = c
     .filter((x) => (tab === 'todos' ? true : tab === 'suspendido' ? x.estado_cuenta === 'suspendida' : x.tipo_cuenta === tab))

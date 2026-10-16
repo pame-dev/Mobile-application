@@ -82,8 +82,8 @@ fun AdminDashboardScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var section by rememberSaveable { mutableStateOf(AdminSection.Inicio) }
-    // Filtro con el que se abre Vehículos desde "Requiere atención"; desde el menú, "Todos".
-    var filtroVehiculos by rememberSaveable { mutableStateOf("Todos") }
+    // Filtro con el que se abre Vehículos o Usuarios desde "Requiere atención"; desde el menú, "Todos".
+    var filtro by rememberSaveable { mutableStateOf("Todos") }
     // El menú lateral cubre la pantalla: sin barra inferior mientras se abre o está abierto.
     HideBottomBarWhile(drawerState.isOpen || drawerState.targetValue == DrawerValue.Open)
 
@@ -109,7 +109,7 @@ fun AdminDashboardScreen(
                 drawerState = drawerState,
                 current = section,
                 onSelect = {
-                    filtroVehiculos = "Todos"
+                    filtro = "Todos"
                     section = it
                     scope.launch { drawerState.close() }
                 },
@@ -175,9 +175,9 @@ fun AdminDashboardScreen(
                     .padding(bottom = LocalBottomBarSpace.current)
             ) {
                 when (section) {
-                    AdminSection.Inicio -> AdminHomeSection(vm = vm, onNavigate = { s, filtro -> filtroVehiculos = filtro ?: "Todos"; section = s })
-                    AdminSection.Usuarios -> AdminUsersSection(vm)
-                    AdminSection.Vehiculos -> AdminVehiclesSection(vm, onCarClick, filtroVehiculos)
+                    AdminSection.Inicio -> AdminHomeSection(vm = vm, onNavigate = { s, f -> filtro = f ?: "Todos"; section = s })
+                    AdminSection.Usuarios -> AdminUsersSection(vm, filtro)
+                    AdminSection.Vehiculos -> AdminVehiclesSection(vm, onCarClick, filtro)
                     AdminSection.Reportes -> AdminReportsSection(vm, onCarClick, onReviewReport)
                     AdminSection.Destacados -> AdminFeaturedSection(vm)
                 }

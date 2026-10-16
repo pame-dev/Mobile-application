@@ -26,6 +26,7 @@ export interface AdminStats {
   /** Para "Requiere atención": las que este admin aún no ha visto en Vehículos. */
   deshabilitadasSinVer: number
   pausadasSinVer: number
+  suspendidasSinVer: number
   suspendidas: number
   propuestasPendientes: number
   reportesPendientes: number
@@ -53,6 +54,7 @@ export async function adminStats(dias: number): Promise<AdminStats> {
     deshabilitadas: n('deshabilitadas'),
     deshabilitadasSinVer: n('deshabilitadas_sin_ver'),
     pausadasSinVer: n('pausadas_sin_ver'),
+    suspendidasSinVer: n('suspendidas_sin_ver'),
     suspendidas: n('suspendidas'),
     propuestasPendientes: n('propuestas_pendientes'),
     reportesPendientes: n('reportes_pendientes'),
@@ -105,6 +107,11 @@ export const adminFeatured = async () => (check(await supabase.rpc('admin_listar
 /** El admin abrió el filtro "Deshabilitado" o "Pausado": dejan de salir en "Requiere atención". */
 export async function marcarVistas(estado: 'deshabilitada' | 'pausada') {
   check(await supabase.rpc('admin_marcar_vistas', { p_estado: estado }))
+}
+
+/** El admin abrió el filtro "Suspendido" en Usuarios: dejan de salir en "Requiere atención". */
+export async function marcarSuspendidasVistas() {
+  check(await supabase.rpc('admin_marcar_suspendidas_vistas'))
 }
 
 /** Todos los anuncios (el admin ve también pendientes y deshabilitados). */
