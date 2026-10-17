@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SkeletonListRow
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
@@ -109,7 +110,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
-                                    report.reason,
+                                    rememberTraduccion(report.reason),
                                     fontFamily = DmSans,
                                     fontSize = 12.sp,
                                     color = AdminColors.TableText,
@@ -145,7 +146,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
             DetailRow(stringResource(R.string.admin2_type), adminValueLabel(report.type))
             DetailRow(stringResource(R.string.admin2_reported_by), report.reporter)
             DetailRow(stringResource(R.string.admin2_value_publication), report.target)
-            DetailRow(stringResource(R.string.admin2_reason), report.reason)
+            DetailRow(stringResource(R.string.admin2_reason), rememberTraduccion(report.reason))
             DetailRow(stringResource(R.string.admin2_status), adminValueLabel(report.status))
             report.resolution?.let { DetailRow(stringResource(R.string.admin2_resolution), it) }
             // Solo un reporte pendiente se puede resolver (admin_resolver_reporte).

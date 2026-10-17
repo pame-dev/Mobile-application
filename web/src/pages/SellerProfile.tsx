@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Inventory, ProfileHeader } from '../components/ProfileParts'
+import { Traducido } from '../components/Traducido'
 import { ownerVisibleCars, sellerProfile } from '../data/api'
 import type { Car, SellerProfile as Perfil } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
@@ -77,7 +78,7 @@ export function SellerProfile() {
       </ProfileHeader>
       {perfil.description && (
         <p className="muted" style={{ marginTop: 18, maxWidth: 720 }}>
-          {perfil.description}
+          <Traducido texto={perfil.description} />
         </p>
       )}
       <div style={{ marginTop: 28 }}>

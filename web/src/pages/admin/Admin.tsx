@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { CarPhoto } from '../../components/CarPhoto'
 import { Icon, type IconName } from '../../components/Icon'
+import { Traducido } from '../../components/Traducido'
 import { Brand, LogoutModal } from '../../components/TopNav'
 import { ModalHead, useUi } from '../../components/Ui'
 import {
@@ -861,7 +862,7 @@ function ReportReview({ r, datos, listo, tab }: { r: ReporteAdmin; datos: Datos;
         ))}
       </div>
       <div className="note muted" style={{ background: 'var(--bg)' }}>
-        {r.motivo_reporte}
+        <Traducido texto={r.motivo_reporte} />
       </div>
       {r.motivo_resolucion && (
         <div className="note" style={{ background: 'var(--success-l)' }}>
@@ -975,7 +976,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
                     <span className={`badge ${deCuenta ? 'b-info' : 'b-neu'}`}>{t(deCuenta ? 'admin.user' : 'admin.listing')}</span>
                   </td>
                   <td data-label={t('admin.reported')}>{deCuenta ? dueno ?? r.publicacion : r.publicacion}</td>
-                  <td data-label={t('admin.reasonCol')} style={{ whiteSpace: 'normal', minWidth: 220 }}>{r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')}</td>
+                  <td data-label={t('admin.reasonCol')} style={{ whiteSpace: 'normal', minWidth: 220 }}><Traducido texto={r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')} /></td>
                   <td data-label={t('admin.reportedBy')}>{r.reportante}</td>
                   <td data-label={t('admin.date')}>{haceCuanto(r.fecha_reporte)}</td>
                   <td data-label={t('admin.status')}>

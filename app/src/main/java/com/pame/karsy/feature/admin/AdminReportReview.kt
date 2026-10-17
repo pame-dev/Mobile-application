@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -86,7 +87,7 @@ fun ReportReviewNotice(report: AdminReport) {
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            "${stringResource(R.string.admin2_reason)}: ${report.reason}",
+            "${stringResource(R.string.admin2_reason)}: ${rememberTraduccion(report.reason)}",
             fontFamily = DmSans,
             fontSize = 12.sp,
             lineHeight = 17.sp,

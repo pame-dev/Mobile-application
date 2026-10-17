@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.pame.karsy.core.components.KarsyBackButton
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.UserRepository
 import com.pame.karsy.feature.profile.AvatarViewer
@@ -85,7 +86,7 @@ internal fun SellerProfileView(
     var avatarOpen by rememberSaveable { mutableStateOf(false) }
     val tipo = if (detail.sellerType == "lote") stringResource(R.string.detail_seller_dealer) else stringResource(R.string.detail_seller_private)
     val bio = listOf(
-        contact?.descripcion.orEmpty(),
+        rememberTraduccion(contact?.descripcion.orEmpty()),
         contact?.ubicacion.orEmpty(),
     ).filter { it.isNotBlank() }.joinToString(" · ")
 
