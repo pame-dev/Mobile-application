@@ -2,6 +2,7 @@ package com.pame.karsy.feature.profile
 
 import android.net.Uri
 import com.pame.karsy.core.components.KarsyPullToRefresh
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -360,7 +361,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = listOf(user.bio, user.location).filter { it.isNotBlank() }.joinToString(" · "),
+                    text = listOf(rememberTraduccion(user.bio), user.location).filter { it.isNotBlank() }.joinToString(" · "),
                     fontFamily = DmSans,
                     fontSize = 14.sp,
                     lineHeight = 21.sp,
