@@ -125,7 +125,8 @@ function ReportePdf({ stats, r, dias }: { stats: AdminStats; r: ReporteApp; dias
         />
       </section>
 
-      <section className="rbloque">
+      {/* Separada de Crecimiento para que las dos gráficas no se vean pegadas. */}
+      <section className="rbloque" style={{ marginTop: 28 }}>
         <h2>{t('admin.interestTitle')}</h2>
         <p className="rsub">{t('admin.interestSub')}</p>
         <div className="legend">

@@ -402,7 +402,8 @@ object ExportarAdmin {
                     c.drawCircle(xsC[i], yC(v), 2.5f, relleno(color))
                 }
             }
-            y += 110f + 22
+            // Espacio extra para que no se vea pegada a la gráfica de Interés.
+            y += 110f + 22 + 20
 
             // Interés: vistas vs contactos por periodo (barras pareadas)
             asegurar(190f)
