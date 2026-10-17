@@ -15,25 +15,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartToggle
-import com.pame.karsy.core.locale.Idioma
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -45,7 +41,7 @@ import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
-import com.pame.karsy.data.repository.CarRepository
+import com.pame.karsy.data.model.EstadoAuto
 
 /** Borde casi imperceptible de la tarjeta (entre el blanco y KarsyBorder). */
 
@@ -81,7 +77,9 @@ fun VehicleCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            HeartToggle(
+            if (car.status == EstadoAuto.VENDIDO) EtiquetaVendido(Modifier.align(Alignment.TopStart).padding(10.dp))
+            // Un auto vendido ya no se puede guardar (no saldría en Favoritos).
+            if (car.status != EstadoAuto.VENDIDO) HeartToggle(
                 filled = isFavorite,
                 onToggle = onToggleFavorite,
                 size = 32.dp,
@@ -123,7 +121,7 @@ fun VehicleCard(
                 }
             }
             Text(
-                rememberDescripcionTarjeta(car.description),
+                rememberTraduccion(car.description, corto = true),
                 fontFamily = DmSans,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
@@ -138,19 +136,18 @@ fun VehicleCard(
     }
 }
 
-/**
- * Descripción de una tarjeta: en inglés, su inicio traducido automáticamente (como el detalle);
- * mientras llega o si falla, el original.
- */
+/** Etiqueta "Vendido" sobre la foto de un auto vendido (perfil del vendedor y del lote). */
 @Composable
-internal fun rememberDescripcionTarjeta(description: String): String {
-    val enIngles = Idioma.actual(LocalContext.current) == Idioma.EN
-    // Si ya estaba guardada se muestra desde el inicio (sin parpadeo).
-    var traducida by remember(description, enIngles) {
-        mutableStateOf(if (enIngles) CarRepository.resumenGuardado(description) else null)
-    }
-    LaunchedEffect(description, enIngles) {
-        if (enIngles && traducida == null && description.isNotBlank()) traducida = CarRepository.resumenEnIngles(description)
-    }
-    return traducida ?: description
+internal fun EtiquetaVendido(modifier: Modifier = Modifier) {
+    Text(
+        stringResource(R.string.profile_status_sold),
+        fontFamily = DmSans,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        color = KarsyWhite,
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(KarsyNavy.copy(alpha = 0.85f))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    )
 }

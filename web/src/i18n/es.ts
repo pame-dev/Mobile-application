@@ -174,6 +174,7 @@ export const CORE_ES = {
   'notif.precio_bajo': 'Bajó de precio un auto que guardaste: "{v}" ahora cuesta {precio} (antes {antes}).',
   'notif.precio_bajo_simple': 'Bajó de precio un auto que guardaste: "{v}".',
   'notif.favorito_no_disponible': '"{v}", que guardaste, ya no está disponible. Mira otros parecidos en Karsy.',
+  'notif.favorito_vendido': '"{v}", que guardaste, se vendió. Mira otros parecidos en Karsy.',
   'notif.resumen_semanal': 'Autos nuevos esta semana en {estado}: {n}.',
   'notif.resumen_semanal_coincidencias': 'Autos nuevos esta semana en {estado}: {n} ({m} coinciden con tus búsquedas).',
   'notif.resumen_semanal_simple': 'Mira los autos nuevos de esta semana en Karsy.',

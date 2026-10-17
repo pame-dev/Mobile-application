@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.core.components.HeartToggle
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyImagePlaceholder
@@ -130,7 +131,7 @@ fun FeaturedCarCard(
                 )
             }
             Text(
-                rememberDescripcionTarjeta(car.description),
+                rememberTraduccion(car.description, corto = true),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 lineHeight = 19.5.sp,

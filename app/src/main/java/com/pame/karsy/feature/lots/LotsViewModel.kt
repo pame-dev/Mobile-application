@@ -9,6 +9,7 @@ import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.model.Lot
 import com.pame.karsy.data.model.LotContact
 import com.pame.karsy.data.repository.CarRepository
@@ -86,7 +87,7 @@ class LotProfileViewModel : ViewModel() {
                 ORDEN_OPCIONES[1] -> lista.sortedBy { it.priceValue }
                 ORDEN_OPCIONES[2] -> lista.sortedByDescending { it.priceValue }
                 else -> lista.sortedByDescending { it.publishedAt }
-            }
+            }.sortedBy { it.status == EstadoAuto.VENDIDO } // los vendidos siempre al final
         }
 
     fun load(lotId: String, onDone: () -> Unit = {}) {
@@ -95,7 +96,7 @@ class LotProfileViewModel : ViewModel() {
             safeCall {
                 val datos = LotRepository.lot(lotId)
                 val inventario = CarRepository.ownerCars(lotId, onlyVisible = true)
-                datos?.copy(vehicleCount = inventario.size) to inventario
+                datos?.copy(vehicleCount = inventario.count { it.status == EstadoAuto.ACTIVO }) to inventario
             }
                 .onSuccess { (datos, inventario) ->
                     lot = datos

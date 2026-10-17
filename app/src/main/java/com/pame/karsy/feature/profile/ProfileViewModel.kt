@@ -16,6 +16,7 @@ import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.PasswordRules
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.model.User
 import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.data.repository.CarRepository
@@ -47,8 +48,8 @@ class ProfileViewModel : ViewModel() {
     val stats: List<Pair<String, String>>
         get() = listOf(
             visibleCars.size.toString() to texto(R.string.profile_stat_posts),
-            cars.count { it.status == "Vendido" }.toString() to texto(R.string.profile_stat_sold),
-            cars.count { it.status == "Activo" }.toString() to texto(R.string.profile_stat_active),
+            cars.count { it.status == EstadoAuto.VENDIDO }.toString() to texto(R.string.profile_stat_sold),
+            cars.count { it.status == EstadoAuto.ACTIVO }.toString() to texto(R.string.profile_stat_active),
         )
 
     /** [onDone]: al terminar (jalar para recargar quita la ruedita). */

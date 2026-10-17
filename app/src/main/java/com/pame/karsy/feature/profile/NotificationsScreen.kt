@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.core.app.NotificationManagerCompat
 import android.provider.Settings
 import android.content.Intent
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.push.datosDeAviso
 import com.pame.karsy.core.push.notificationText
 import androidx.compose.ui.platform.LocalContext
@@ -228,7 +229,7 @@ private fun NotificationRow(n: NotificacionDto, onOpen: (() -> Unit)?) {
             n.motivo?.takeIf { it.isNotBlank() }?.let { motivo ->
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    stringResource(R.string.notif_reason, motivo),
+                    stringResource(R.string.notif_reason, rememberTraduccion(motivo)),
                     fontFamily = DmSans,
                     fontSize = 12.sp,
                     lineHeight = 17.sp,

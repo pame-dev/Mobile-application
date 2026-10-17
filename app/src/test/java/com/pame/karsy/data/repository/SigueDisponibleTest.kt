@@ -6,7 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Favoritos e historial solo muestran lo que ve el público: activas y vendidas. */
+/** Favoritos e historial solo muestran los autos que siguen a la venta (activos). */
 class SigueDisponibleTest {
 
     private fun car(id: Long, status: String) = Car(
@@ -15,10 +15,13 @@ class SigueDisponibleTest {
     )
 
     @Test
-    fun activoYVendido_siguenDisponibles() {
-        for (s in listOf("Activo", "Vendido")) {
-            assertTrue("$s debería seguir disponible", CarRepository.sigueDisponible(car(1, s)))
-        }
+    fun activo_sigueDisponible() {
+        assertTrue(CarRepository.sigueDisponible(car(1, "Activo")))
+    }
+
+    @Test
+    fun vendido_noSigueDisponible_quedaSoloEnElPerfilDelVendedor() {
+        assertFalse(CarRepository.sigueDisponible(car(1, "Vendido")))
     }
 
     @Test
@@ -45,12 +48,12 @@ class SigueDisponibleTest {
     }
 
     @Test
-    fun filtrarUnaListaMixta_conservaElOrdenYSoloDejaActivasYVendidas() {
+    fun filtrarUnaListaMixta_conservaElOrdenYSoloDejaActivas() {
         val lista = listOf(
             car(1, "Activo"), car(2, "Pausado"), car(3, "Vendido"),
             car(4, "Deshabilitado"), car(5, "Pendiente"), car(6, "Rechazado"),
         )
-        assertEquals(listOf(1L, 3L), lista.filter(CarRepository::sigueDisponible).map { it.id })
+        assertEquals(listOf(1L), lista.filter(CarRepository::sigueDisponible).map { it.id })
     }
 
     @Test

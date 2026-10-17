@@ -642,12 +642,12 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
         <Badge s={estado} />
         {row.estado_ultima_propuesta === 'rechazada' && row.motivo_rechazo_propuesta && (
           <span className="muted" style={{ fontSize: 12.5 }}>
-            {t('admin.reason', { m: row.motivo_rechazo_propuesta })}
+            <Traducido texto={row.motivo_rechazo_propuesta}>{(m) => t('admin.reason', { m })}</Traducido>
           </span>
         )}
         {!habilitada && row.motivo_deshabilitacion && (
           <span className="muted" style={{ fontSize: 12.5 }}>
-            {t('admin.reason', { m: row.motivo_deshabilitacion })}
+            <Traducido texto={row.motivo_deshabilitacion}>{(m) => t('admin.reason', { m })}</Traducido>
           </span>
         )}
       </div>
@@ -866,7 +866,7 @@ function ReportReview({ r, datos, listo, tab }: { r: ReporteAdmin; datos: Datos;
       </div>
       {r.motivo_resolucion && (
         <div className="note" style={{ background: 'var(--success-l)' }}>
-          <b>{t('admin.resolution')}</b> {r.motivo_resolucion}
+          <b>{t('admin.resolution')}</b> <Traducido texto={r.motivo_resolucion} />
         </div>
       )}
       {auto && (
@@ -976,7 +976,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
                     <span className={`badge ${deCuenta ? 'b-info' : 'b-neu'}`}>{t(deCuenta ? 'admin.user' : 'admin.listing')}</span>
                   </td>
                   <td data-label={t('admin.reported')}>{deCuenta ? dueno ?? r.publicacion : r.publicacion}</td>
-                  <td data-label={t('admin.reasonCol')} style={{ whiteSpace: 'normal', minWidth: 220 }}><Traducido texto={r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')} /></td>
+                  <td data-label={t('admin.reasonCol')} style={{ whiteSpace: 'normal', minWidth: 220 }}><Traducido texto={r.motivo_reporte.replace(/^(Publicación|Cuenta del vendedor): /, '')} corto /></td>
                   <td data-label={t('admin.reportedBy')}>{r.reportante}</td>
                   <td data-label={t('admin.date')}>{haceCuanto(r.fecha_reporte)}</td>
                   <td data-label={t('admin.status')}>
@@ -1139,7 +1139,7 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
                   </div>
                   {d.motivo_rechazo && (
                     <p className="muted" style={{ fontSize: 12.5 }}>
-                      {t('admin.reason', { m: d.motivo_rechazo })}
+                      <Traducido texto={d.motivo_rechazo}>{(m) => t('admin.reason', { m })}</Traducido>
                     </p>
                   )}
                   {tab === 'pendiente' && (

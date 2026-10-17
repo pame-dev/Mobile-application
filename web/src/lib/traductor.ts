@@ -1,16 +1,30 @@
 /**
  * Traducción automática español → inglés con MyMemory (gratis, sin cuenta ni clave; la
- * llama directo el navegador). La usa en inglés el detalle de un auto (descripción
- * e imperfecciones) y las tarjetas (inicio de la descripción). Igual que core/util/Traductor.kt.
+ * llama directo el navegador). En inglés la usan el detalle de un auto (descripción e
+ * imperfecciones) y los textos que escriben los usuarios y el admin (components/Traducido).
+ * Igual que core/util/Traductor.kt.
  *
  * - MyMemory acepta hasta ~500 bytes por petición: el texto se parte por oraciones.
  * - Límite gratuito: unos 5,000 caracteres al día por conexión; si se acaba o falla,
- *   regresa null y se muestra el original.
+ *   regresa null y se muestra el original. Si se acabó, no se vuelve a pedir en una hora.
  * - Cada traducción se guarda en el navegador para no pedirla dos veces.
  */
 
 const API = 'https://api.mymemory.translated.net/get'
 const MAX_BYTES = 450
+/** Hasta cuándo (ms) no se pide nada porque se acabó el límite diario; se recuerda en el navegador. */
+const AGOTADO = 'karsy-traduccion-agotada'
+const ESPERA_SI_AGOTADO = 60 * 60 * 1000
+
+class CuotaAgotada extends Error {}
+
+function agotada(): boolean {
+  try {
+    return Date.now() < Number(localStorage.getItem(AGOTADO) ?? 0)
+  } catch {
+    return false
+  }
+}
 const CACHE = 'karsy-traduccion:'
 
 const bytes = (t: string) => new TextEncoder().encode(t).length
@@ -41,7 +55,8 @@ async function traducirParte(texto: string): Promise<string> {
   const d = (await r.json()) as { responseStatus: number | string; responseData?: { translatedText?: string } }
   const traducido = d.responseData?.translatedText
   // Con la cuota agotada responde 429 o un texto "MYMEMORY WARNING…".
-  if (Number(d.responseStatus) !== 200 || !traducido || traducido.startsWith('MYMEMORY WARNING')) throw new Error('sin traducción')
+  if (Number(d.responseStatus) === 429 || traducido?.startsWith('MYMEMORY WARNING')) throw new CuotaAgotada()
+  if (Number(d.responseStatus) !== 200 || !traducido) throw new Error('sin traducción')
   // Conserva los espacios y saltos de línea de alrededor.
   return texto.replace(texto.trim(), traducido)
 }
@@ -58,12 +73,21 @@ export function inicio(texto: string, max = 100): [string, boolean] {
   return [limpio.slice(0, corte).trimEnd(), true]
 }
 
-/** El texto en inglés, o null si no se pudo traducir. */
-export async function traducirAlIngles(texto: string): Promise<string | null> {
+/**
+ * El texto en inglés, o null si no se pudo traducir. Con `corto` solo se traduce su
+ * `inicio` (listas y tarjetas) y se agrega "…" si se cortó.
+ */
+export async function traducirAlIngles(texto: string, corto = false): Promise<string | null> {
+  if (corto) {
+    const [ini, cortado] = inicio(texto)
+    const tr = await traducirAlIngles(ini)
+    return tr && cortado ? `${tr}…` : tr
+  }
   const limpio = texto.trim()
   if (!limpio) return null
   const guardado = traduccionGuardada(limpio)
   if (guardado) return guardado
+  if (agotada()) return null
   // Una sola petición por texto aunque la pidan varias tarjetas a la vez.
   let pedido = enCurso.get(limpio)
   if (!pedido) {
@@ -75,8 +99,13 @@ export async function traducirAlIngles(texto: string): Promise<string | null> {
 
 const enCurso = new Map<string, Promise<string | null>>()
 
-/** La traducción ya guardada en este navegador (sin pedirla), o null. */
-export function traduccionGuardada(texto: string): string | null {
+/** La traducción ya guardada en este navegador (sin pedirla), o null; `corto` igual que en traducirAlIngles. */
+export function traduccionGuardada(texto: string, corto = false): string | null {
+  if (corto) {
+    const [ini, cortado] = inicio(texto)
+    const tr = traduccionGuardada(ini)
+    return tr && cortado ? `${tr}…` : tr
+  }
   try {
     return localStorage.getItem(CACHE + texto.trim())
   } catch {
@@ -96,7 +125,14 @@ async function pedir(limpio: string): Promise<string | null> {
       // sin espacio o bloqueado: no pasa nada
     }
     return resultado
-  } catch {
+  } catch (e) {
+    if (e instanceof CuotaAgotada) {
+      try {
+        localStorage.setItem(AGOTADO, String(Date.now() + ESPERA_SI_AGOTADO))
+      } catch {
+        // bloqueado: se volverá a intentar
+      }
+    }
     return null
   }
 }

@@ -25,7 +25,7 @@ data class Car(
     /** Tipo de cuenta del vendedor: "lote" (agencia) o "particular". */
     val sellerType: String = "",
     /** Estado para el dueño / admin: Activo, Pendiente, Rechazado, Vendido, Deshabilitado. */
-    val status: String = "Activo",
+    val status: String = EstadoAuto.ACTIVO,
     // Campos numéricos para filtrar y ordenar en la app.
     val priceValue: Double = 0.0,
     val brandId: Long? = null,
@@ -58,4 +58,17 @@ data class Car(
     val soldVia: String? = null,
 ) {
     val title: String get() = "$brand $model"
+}
+
+/**
+ * Estados de un auto ([Car.status]) tal como los calcula CarRepository.statusOf. Se usan
+ * estas constantes en lugar del texto suelto para que un error de dedo no compile.
+ */
+object EstadoAuto {
+    const val ACTIVO = "Activo"
+    const val PENDIENTE = "Pendiente"
+    const val RECHAZADO = "Rechazado"
+    const val DESHABILITADO = "Deshabilitado"
+    const val VENDIDO = "Vendido"
+    const val PAUSADO = "Pausado"
 }

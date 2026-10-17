@@ -110,7 +110,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
-                                    rememberTraduccion(report.reason),
+                                    rememberTraduccion(report.reason, corto = true),
                                     fontFamily = DmSans,
                                     fontSize = 12.sp,
                                     color = AdminColors.TableText,
@@ -148,7 +148,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
             DetailRow(stringResource(R.string.admin2_value_publication), report.target)
             DetailRow(stringResource(R.string.admin2_reason), rememberTraduccion(report.reason))
             DetailRow(stringResource(R.string.admin2_status), adminValueLabel(report.status))
-            report.resolution?.let { DetailRow(stringResource(R.string.admin2_resolution), it) }
+            report.resolution?.let { DetailRow(stringResource(R.string.admin2_resolution), rememberTraduccion(it)) }
             // Solo un reporte pendiente se puede resolver (admin_resolver_reporte).
             AdminSheetActions {
                 AdminSheetButton(stringResource(R.string.admin2_view_publication), AdminButtonStyle.Secondary) {

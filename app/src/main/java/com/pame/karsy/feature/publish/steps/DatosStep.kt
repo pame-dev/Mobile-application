@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -299,7 +300,7 @@ private fun RejectedNotice(reason: String) {
             color = KarsyError
         )
         Text(
-            reason,
+            rememberTraduccion(reason),
             fontFamily = DmSans,
             fontSize = 13.sp,
             lineHeight = 18.sp,

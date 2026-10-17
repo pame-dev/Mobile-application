@@ -163,6 +163,7 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'notif.precio_bajo': 'A car you saved dropped in price: "{v}" now costs {precio} (was {antes}).',
   'notif.precio_bajo_simple': 'A car you saved dropped in price: "{v}".',
   'notif.favorito_no_disponible': '"{v}", which you saved, is no longer available. See similar cars on Karsy.',
+  'notif.favorito_vendido': '"{v}", which you saved, has been sold. See similar cars on Karsy.',
   'notif.resumen_semanal': 'New cars this week in {estado}: {n}.',
   'notif.resumen_semanal_coincidencias': 'New cars this week in {estado}: {n} ({m} match your saved searches).',
   'notif.resumen_semanal_simple': "See this week's new cars on Karsy.",

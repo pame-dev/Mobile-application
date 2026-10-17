@@ -36,6 +36,8 @@ data class SessionAccount(
     val tipoCuenta: String,
     val esAdmin: Boolean,
     val correo: String,
+    /** Tema guardado en la cuenta (códigos de Tema); null = nunca lo eligió. */
+    val tema: String? = null,
 ) {
     /** El modo sale solo del tipo de cuenta; el rol de admin se suma aparte. */
     val mode: UserMode
@@ -69,6 +71,10 @@ object SessionManager {
 
     fun updateName(nombre: String) {
         account = account?.copy(nombre = nombre)
+    }
+
+    fun updateTema(tema: String) {
+        account = account?.copy(tema = tema)
     }
 
     fun logout() {

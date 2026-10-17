@@ -1,6 +1,5 @@
 package com.pame.karsy.core.util
 
-import com.pame.karsy.data.repository.CarRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -9,6 +8,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.io.ByteArrayInputStream
@@ -62,6 +63,12 @@ class TraductorAlInglesTest {
             }
             return ByteArrayInputStream(cuerpo.toByteArray())
         }
+    }
+
+    /** Cada prueba empieza con el límite diario disponible (una prueba lo agota a propósito). */
+    @Before
+    fun cuotaDisponible() {
+        Traductor.agotadoHasta = 0L
     }
 
     private fun esperarPeticion(q: String) {
@@ -121,12 +128,43 @@ class TraductorAlInglesTest {
     }
 
     @Test
-    fun resumenEnIngles_agregaPuntosSoloSiSeCorto() = runBlocking {
-        assertEquals("EN(Corto)", CarRepository.resumenEnIngles("Corto"))
+    fun corto_traduceSoloElInicioYAgregaPuntosSiSeCorto() = runBlocking {
+        assertEquals("EN(Corto)", Traductor.alIngles("Corto", corto = true))
         val largo = List(30) { "carro" }.joinToString(" ")
         val inicio = List(16) { "carro" }.joinToString(" ")
-        assertEquals("EN($inicio)…", CarRepository.resumenEnIngles(largo))
-        assertEquals("EN($inicio)…", CarRepository.resumenGuardado(largo))
-        assertNull(CarRepository.resumenGuardado("Nunca pedido"))
+        assertEquals("EN($inicio)…", Traductor.alIngles(largo, corto = true))
+        assertEquals("EN($inicio)…", Traductor.guardada(largo, corto = true))
+        assertNull(Traductor.guardada("Nunca pedido", corto = true))
+    }
+
+    @Test
+    fun cuotaAgotada_noSeVuelveAPedirNadaHastaQuePaseUnaHora() = runBlocking {
+        assertNull(Traductor.alIngles("Otra vez CUOTA"))
+        assertTrue(Traductor.agotadoHasta > System.currentTimeMillis())
+        // Mientras esté agotada, otro texto no hace petición y se queda en el original.
+        assertNull(Traductor.alIngles("Pickup sin pedir"))
+        assertEquals(0, peticionesDe("Pickup sin pedir"))
+        // Lo que ya estaba guardado sí se sigue mostrando.
+        Traductor.agotadoHasta = 0L
+        assertEquals("EN(Hatchback guardado)", Traductor.alIngles("Hatchback guardado"))
+        Traductor.agotadoHasta = System.currentTimeMillis() + 60_000
+        assertEquals("EN(Hatchback guardado)", Traductor.alIngles("Hatchback guardado"))
+    }
+
+    @Test
+    fun corto_conCuotaAgotada_noPideNadaYRegresaNull() = runBlocking {
+        Traductor.agotadoHasta = System.currentTimeMillis() + 60_000
+        val largo = List(30) { "sedan" }.joinToString(" ")
+        val inicio = List(16) { "sedan" }.joinToString(" ")
+        assertNull(Traductor.alIngles(largo, corto = true))
+        assertNull(Traductor.guardada(largo, corto = true))
+        assertEquals(0, peticionesDe(inicio))
+        assertEquals(0, peticionesDe(largo))
+    }
+
+    @Test
+    fun corto_conTextoQueCabe_noAgregaPuntos() = runBlocking {
+        assertEquals("EN(Versa 2020 impecable)", Traductor.alIngles("  Versa 2020 impecable ", corto = true))
+        assertEquals("EN(Versa 2020 impecable)", Traductor.guardada("Versa 2020 impecable", corto = true))
     }
 }

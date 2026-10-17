@@ -42,6 +42,9 @@ export function textoAviso(t: T, tipo: string, vehiculo: string, datos?: Record<
         ? t('notif.resumen_vendedor', { vistas, favoritos })
         : t('notif.resumen_vendedor_simple')
     }
+    case 'favorito_no_disponible':
+      if (d.estado === 'vendida') return t('notif.favorito_vendido', { v: vehiculo })
+      break
     case 'hito_vistas': {
       const vistas = num('vistas')
       return vistas != null ? t('notif.hito_vistas', { v: vehiculo, n: vistas }) : t('notif.hito_vistas_simple', { v: vehiculo })

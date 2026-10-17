@@ -5,6 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.async
 import com.pame.karsy.core.util.Traductor
 import kotlinx.serialization.json.Json
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.remote.TraduccionDto
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
@@ -85,10 +86,17 @@ object CarRepository {
         db.from(VISTA).select {
             filter {
                 eq("id_propietario", ownerId)
-                if (onlyVisible) eq("visible", true)
+                // Lo que ve el público en el perfil: activas y vendidas (estas al final).
+                if (onlyVisible) {
+                    eq("aprobada", true)
+                    eq("estado_administrativo", "habilitada")
+                    isIn("estado_publicacion", listOf("activa", "vendida"))
+                }
             }
             order("fecha_creacion", Order.DESCENDING)
-        }.decodeList<AnuncioDto>().map(::toCar).let { withFeaturedUntil(it) }
+        }.decodeList<AnuncioDto>().map(::toCar)
+            .let { if (onlyVisible) it.sortedBy { car -> car.status == EstadoAuto.VENDIDO } else it }
+            .let { withFeaturedUntil(it) }
 
     /**
      * Llena [Car.featuredUntil] con la fecha de fin del destacado vigente (dura 1 mes desde
@@ -132,11 +140,12 @@ object CarRepository {
     }
 
     /**
-     * Favoritos e historial solo muestran lo que el público puede ver (activas y vendidas):
-     * no las pausadas, deshabilitadas, en revisión ni rechazadas, aunque las haya abierto el
-     * dueño o el admin. No se borran: si se reactivan, vuelven a aparecer.
+     * Favoritos e historial solo muestran los autos que siguen a la venta (activos): no las
+     * vendidas (esas quedan en el perfil del vendedor), pausadas, deshabilitadas, en revisión ni
+     * rechazadas, aunque las haya abierto el dueño o el admin. No se borran: si se reactivan,
+     * vuelven a aparecer.
      */
-    internal fun sigueDisponible(car: Car): Boolean = car.status == "Activo" || car.status == "Vendido"
+    internal fun sigueDisponible(car: Car): Boolean = car.status == EstadoAuto.ACTIVO
 
     suspend fun setFavorite(id: Long, favorite: Boolean) {
         val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_favorite))
@@ -314,12 +323,12 @@ object CarRepository {
     }
 
     private fun statusOf(a: AnuncioDto): String = when {
-        !a.aprobada && a.estadoUltimaPropuesta == "rechazada" -> "Rechazado"
-        !a.aprobada -> "Pendiente"
-        a.estadoAdministrativo == "deshabilitada_administrador" -> "Deshabilitado"
-        a.estadoPublicacion == "vendida" -> "Vendido"
-        a.estadoPublicacion == "deshabilitada" -> "Pausado"
-        else -> "Activo"
+        !a.aprobada && a.estadoUltimaPropuesta == "rechazada" -> EstadoAuto.RECHAZADO
+        !a.aprobada -> EstadoAuto.PENDIENTE
+        a.estadoAdministrativo == "deshabilitada_administrador" -> EstadoAuto.DESHABILITADO
+        a.estadoPublicacion == "vendida" -> EstadoAuto.VENDIDO
+        a.estadoPublicacion == "deshabilitada" -> EstadoAuto.PAUSADO
+        else -> EstadoAuto.ACTIVO
     }
 
     private fun toDetail(a: AnuncioDto): CarDetail {
@@ -356,17 +365,5 @@ object CarRepository {
         val d = async { Traductor.alIngles(descripcion) }
         val p = async { Traductor.alIngles(problemas) }
         TraduccionDto(d.await(), p.await()).takeIf { it.descripcion != null || it.problemas != null }
-    }
-
-    /** Lo que se ve de la descripción en una tarjeta, en inglés ("…" si se cortó); null si no se pudo. */
-    suspend fun resumenEnIngles(descripcion: String): String? {
-        val (inicio, cortado) = Traductor.inicio(descripcion)
-        return Traductor.alIngles(inicio)?.let { if (cortado) "$it…" else it }
-    }
-
-    /** Igual que [resumenEnIngles] pero solo si ya está guardado (para mostrarlo sin esperar). */
-    fun resumenGuardado(descripcion: String): String? {
-        val (inicio, cortado) = Traductor.inicio(descripcion)
-        return Traductor.guardada(inicio)?.let { if (cortado) "$it…" else it }
     }
 }

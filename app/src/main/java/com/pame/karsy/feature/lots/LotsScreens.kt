@@ -293,6 +293,8 @@ fun LotProfileScreen(
     val msgRegisterContact = stringResource(R.string.detail_toast_register_contact)
     val msgRegisterFav = stringResource(R.string.home_toast_register_favorites)
     val lot = vm.lot
+    // Se lee aquí (no dentro del clic) para que cambie con el idioma de la app.
+    val msgWhatsapp = lot?.let { stringResource(R.string.lot_whatsapp_message, it.name) }.orEmpty()
     val cars = vm.visibleCars
     val bottomBarSpace = LocalBottomBarSpace.current
 
@@ -345,7 +347,7 @@ fun LotProfileScreen(
                                         val numero = vm.contact?.whatsapp
                                         when {
                                             isVisitor -> toastMsg = msgRegisterContact
-                                            numero != null -> openWhatsapp(context, numero, context.getString(R.string.lot_whatsapp_message, lot.name))
+                                            numero != null -> openWhatsapp(context, numero, msgWhatsapp)
                                         }
                                     },
                                     onDirections = {

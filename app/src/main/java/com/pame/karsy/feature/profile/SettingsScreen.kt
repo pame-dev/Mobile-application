@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.karsyTint
 import androidx.compose.material.icons.outlined.NotificationsActive
 import com.pame.karsy.core.theme.KarsyTealLight
@@ -59,6 +60,7 @@ import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.data.repository.UserRepository
 import com.pame.karsy.feature.home.LogoutConfirmDialog
 
 private data class SettingsItem(
@@ -217,6 +219,9 @@ fun SettingsScreen(
             phoneIsDark = Tema.telefonoEnOscuro(context),
             onSelect = { codigo ->
                 themeOpen = false
+                // También en la cuenta, para que sea el mismo en la web y en otros teléfonos.
+                SessionManager.updateTema(codigo)
+                UserRepository.guardarTema(context, codigo)
                 // Si cambia el tema en uso, la app se recrea con los colores nuevos.
                 (context as? Activity)?.let { Tema.cambiar(it, codigo) }
             },

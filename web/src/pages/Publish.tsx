@@ -5,6 +5,7 @@ import { CarPhoto } from '../components/CarPhoto'
 import { ConfirmModal } from '../components/Confirm'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
+import { useTraduccion } from '../components/Traducido'
 import { mensajeUsuario } from '../data/auth'
 import { catalogs as cargarCatalogos } from '../data/api'
 import { crearPublicacion, editarPublicacion, ownListing, uploadPhoto } from '../data/seller'
@@ -110,6 +111,8 @@ export function Publish() {
   const [error, setError] = useState<string | null>(null)
   const [cargandoEdicion, setCargandoEdicion] = useState(editId != null)
   const [rechazo, setRechazo] = useState<string | null>(null)
+  // Lo escribe el admin (en español): en inglés se muestra traducido.
+  const rechazoTraducido = useTraduccion(rechazo ?? '')
   const [editandoAprobada, setEditandoAprobada] = useState(false)
   const [intentoFotos, setIntentoFotos] = useState(false)
   const [repetidas, setRepetidas] = useState<Set<string>>(new Set())
@@ -558,7 +561,7 @@ export function Publish() {
         <div className="note" style={{ background: 'var(--error-l)', color: 'var(--error)', marginBottom: 16 }}>
           <b>{t('publicar.rejectedTitle')}</b>
           <br />
-          {t('publicar.rejectedReason', { motivo: rechazo })}
+          {t('publicar.rejectedReason', { motivo: rechazoTraducido })}
         </div>
       )}
       <div style={{ marginBottom: error ? 16 : 0 }}>

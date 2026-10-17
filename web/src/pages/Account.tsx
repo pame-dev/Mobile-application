@@ -6,6 +6,7 @@ import { Icon, type IconName } from '../components/Icon'
 import { LogoutModal } from '../components/TopNav'
 import { VolverButton } from '../components/VolverButton'
 import { ModalHead, useUi } from '../components/Ui'
+import { Traducido } from '../components/Traducido'
 import {
   changePassword,
   markAllRead,
@@ -25,6 +26,7 @@ import type { Clave } from '../i18n/es'
 import { passwordError } from '../lib/formRules'
 import { destinoAviso, textoAviso } from '../lib/avisos'
 import { haceCuanto } from '../lib/format'
+import { aplicarTema, guardarTemaEnCuenta, temaGuardado, type Tema } from '../lib/tema'
 import { useRecargar } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
 
@@ -183,7 +185,11 @@ export function Notifications() {
                 </span>
                 <div className="grow">
                   <p style={{ color: 'var(--charcoal)', fontWeight: n.leida ? 400 : 600 }}>{texto}</p>
-                  {n.motivo?.trim() && <p className="muted" style={{ fontSize: 13 }}>{t('notif.reason', { motivo: n.motivo })}</p>}
+                  {n.motivo?.trim() && (
+                    <p className="muted" style={{ fontSize: 13 }}>
+                      <Traducido texto={n.motivo}>{(m) => t('notif.reason', { motivo: m })}</Traducido>
+                    </p>
+                  )}
                   <span className="mid" style={{ fontSize: 12 }}>
                     {haceCuanto(n.fecha_creacion)}
                   </span>
@@ -371,29 +377,6 @@ export function SavedSearches() {
 
 // ── Configuración ──────────────────────────────────────────────────────────
 
-type Tema = 'light' | 'dark' | ''
-
-function temaGuardado(): Tema {
-  try {
-    const t = localStorage.getItem('karsy-theme')
-    return t === 'light' || t === 'dark' ? t : ''
-  } catch {
-    return ''
-  }
-}
-
-/** Claro, oscuro o el del sistema; se recuerda en este navegador. */
-function aplicarTema(t: Tema) {
-  if (t) document.documentElement.setAttribute('data-theme', t)
-  else document.documentElement.removeAttribute('data-theme')
-  try {
-    if (t) localStorage.setItem('karsy-theme', t)
-    else localStorage.removeItem('karsy-theme')
-  } catch {
-    /* sin almacenamiento: solo dura esta visita */
-  }
-}
-
 /** Selector de idioma (LanguageSheet de la app): español o inglés, se recuerda en este navegador. */
 function LanguageModal() {
   const { closeModal } = useUi()
@@ -463,13 +446,15 @@ export function Settings() {
   const navigate = useNavigate()
   const { openModal } = useUi()
   const { t, lang } = useI18n()
-  const { redirect } = useRequireAccount('/configuracion')
+  const { account, redirect } = useRequireAccount('/configuracion')
   const [tema, setTema] = useState<Tema>(temaGuardado)
   if (redirect) return redirect
 
   const elegirTema = (t: Tema) => {
     setTema(t)
     aplicarTema(t)
+    // También en la cuenta, para que sea el mismo en la app y en otros navegadores.
+    if (account) void guardarTemaEnCuenta(account.id, t).catch(() => {})
   }
 
   return (

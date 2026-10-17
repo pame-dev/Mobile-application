@@ -78,6 +78,8 @@ data class CuentaDto(
     @SerialName("fecha_creacion") val fechaCreacion: String,
     @SerialName("medio_contacto_principal") val medioContactoPrincipal: String? = null,
     @SerialName("foto_portada") val fotoPortada: String? = null,
+    /** Tema elegido en Configuración: "claro", "oscuro" o "sistema"; null = nunca lo eligió. */
+    @SerialName("tema") val tema: String? = null,
 )
 
 /** Dirección del lote (perfiles_lote); nombre, descripción, logo y ubicación están en cuentas. */

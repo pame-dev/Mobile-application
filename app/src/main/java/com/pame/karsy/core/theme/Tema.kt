@@ -3,6 +3,7 @@ package com.pame.karsy.core.theme
 import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
+import androidx.core.content.edit
 
 /**
  * Tema de la app (claro u oscuro), elegido en Configuración y guardado en preferencias.
@@ -18,6 +19,7 @@ object Tema {
 
     private const val PREFS = "karsy_prefs"
     private const val KEY = "tema"
+    private const val KEY_PENDIENTE = "tema_pendiente"
 
     /** Tema en uso en esta Activity. */
     var oscuro: Boolean = false
@@ -41,6 +43,14 @@ object Tema {
     /** Se llama en onCreate, antes de setContent. */
     fun aplicar(context: Context) {
         oscuro = esOscuro(context)
+    }
+
+    /** Hay un tema elegido en este teléfono que todavía no se pudo guardar en la cuenta. */
+    fun pendiente(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_PENDIENTE, false)
+
+    fun marcarPendiente(context: Context, si: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putBoolean(KEY_PENDIENTE, si) }
     }
 
     /** Guarda el tema y recrea la Activity si cambia el que está en uso. */

@@ -11,6 +11,7 @@ import { entero, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
 import { ModalHead, useUi } from '../components/Ui'
+import { Traducido, useTraduccion } from '../components/Traducido'
 import { DIAS, TIP, descargar, diasDesde, difMercado, efectoDestacado, filasRendimiento, libroPanel, pct, pendientes, pico, rangoHora, resumenReporte, ultimosMeses, vendidos } from '../lib/exportarPanel'
 
 /**
@@ -274,7 +275,14 @@ function ReportePanel({ nombre, kpis, stats, cars, extra }: { nombre: string; kp
               return (
                 <li key={c.id}>
                   <b>{titulo(c)}:</b> {t(statusLabel(c.status))}
-                  {motivo ? ` — ${motivo}` : ''}
+                  {motivo ? (
+                    <>
+                      {' — '}
+                      <Traducido texto={motivo} />
+                    </>
+                  ) : (
+                    ''
+                  )}
                 </li>
               )
             })}
@@ -305,8 +313,10 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
   const navigate = useNavigate()
   const { t } = useI18n()
   const motivo = c.status === 'Rechazado' && c.rejectedReason ? c.rejectedReason : c.status === 'Deshabilitado' && c.disabledReason ? c.disabledReason : null
+  // Lo escribe el admin (en español): en inglés se muestra traducido.
+  const motivoTraducido = useTraduccion(motivo ?? '')
   const nota = motivo
-    ? t('perfil.reason', { motivo })
+    ? t('perfil.reason', { motivo: motivoTraducido })
     : c.status === 'Vendido'
       ? c.soldVia === 'fuera_app'
         ? t('perfil.soldOutside')
