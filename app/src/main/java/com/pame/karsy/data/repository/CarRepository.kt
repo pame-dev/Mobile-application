@@ -132,10 +132,11 @@ object CarRepository {
     }
 
     /**
-     * Favoritos e historial no muestran las publicaciones que su dueño pausó o que el admin
-     * deshabilitó (no se borran: si se reactivan, vuelven a aparecer).
+     * Favoritos e historial solo muestran lo que el público puede ver (activas y vendidas):
+     * no las pausadas, deshabilitadas, en revisión ni rechazadas, aunque las haya abierto el
+     * dueño o el admin. No se borran: si se reactivan, vuelven a aparecer.
      */
-    internal fun sigueDisponible(car: Car): Boolean = car.status != "Pausado" && car.status != "Deshabilitado"
+    internal fun sigueDisponible(car: Car): Boolean = car.status == "Activo" || car.status == "Vendido"
 
     suspend fun setFavorite(id: Long, favorite: Boolean) {
         val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_favorite))

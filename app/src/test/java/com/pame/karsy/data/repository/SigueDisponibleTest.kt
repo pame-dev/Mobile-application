@@ -6,7 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Favoritos e historial ocultan las publicaciones pausadas por su dueño o deshabilitadas por el admin. */
+/** Favoritos e historial solo muestran lo que ve el público: activas y vendidas. */
 class SigueDisponibleTest {
 
     private fun car(id: Long, status: String) = Car(
@@ -15,9 +15,16 @@ class SigueDisponibleTest {
     )
 
     @Test
-    fun activoVendidoPendienteYRechazado_siguenDisponibles() {
-        for (s in listOf("Activo", "Vendido", "Pendiente", "Rechazado")) {
+    fun activoYVendido_siguenDisponibles() {
+        for (s in listOf("Activo", "Vendido")) {
             assertTrue("$s debería seguir disponible", CarRepository.sigueDisponible(car(1, s)))
+        }
+    }
+
+    @Test
+    fun enRevisionORechazada_noSigueDisponible() {
+        for (s in listOf("Pendiente", "Rechazado")) {
+            assertFalse("$s no debería seguir disponible", CarRepository.sigueDisponible(car(1, s)))
         }
     }
 
@@ -38,12 +45,12 @@ class SigueDisponibleTest {
     }
 
     @Test
-    fun filtrarUnaListaMixta_conservaElOrdenYSoloQuitaPausadasYDeshabilitadas() {
+    fun filtrarUnaListaMixta_conservaElOrdenYSoloDejaActivasYVendidas() {
         val lista = listOf(
             car(1, "Activo"), car(2, "Pausado"), car(3, "Vendido"),
             car(4, "Deshabilitado"), car(5, "Pendiente"), car(6, "Rechazado"),
         )
-        assertEquals(listOf(1L, 3L, 5L, 6L), lista.filter(CarRepository::sigueDisponible).map { it.id })
+        assertEquals(listOf(1L, 3L), lista.filter(CarRepository::sigueDisponible).map { it.id })
     }
 
     @Test

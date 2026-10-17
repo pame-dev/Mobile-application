@@ -155,10 +155,11 @@ export async function favoriteCars(userId: string): Promise<Car[]> {
 }
 
 /**
- * Favoritos e historial no muestran las publicaciones que su dueño pausó o que el admin
- * deshabilitó (no se borran: si se reactivan, vuelven a aparecer). Igual que la app.
+ * Favoritos e historial solo muestran lo que el público puede ver (activas y vendidas):
+ * no las pausadas, deshabilitadas, en revisión ni rechazadas, aunque las haya abierto el
+ * dueño o el admin. No se borran: si se reactivan, vuelven a aparecer. Igual que la app.
  */
-export const sigueDisponible = (car: Car) => car.status !== 'Pausado' && car.status !== 'Deshabilitado'
+export const sigueDisponible = (car: Car) => car.status === 'Activo' || car.status === 'Vendido'
 
 export async function setFavorite(userId: string, id: number, favorite: boolean): Promise<void> {
   if (favorite) check(await supabase.from('favoritos').insert({ id_cuenta: userId, id_publicacion: id }))
