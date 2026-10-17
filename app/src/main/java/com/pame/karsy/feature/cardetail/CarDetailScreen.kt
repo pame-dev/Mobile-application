@@ -5,6 +5,8 @@ import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.rounded.Translate
+import com.pame.karsy.core.locale.rememberTraduccion
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.remote.TraduccionDto
 import com.pame.karsy.core.locale.Idioma
@@ -263,11 +265,11 @@ fun CarDetailScreen(
             ) {
                 topNotice?.invoke()
                 // Vendida: quien la tenga en favoritos (o la abra) ve que ya no está disponible.
-                if (detail.car.status == "Vendido") {
+                if (detail.car.status == EstadoAuto.VENDIDO) {
                     SoldNotice(isOwner = isOwner, via = detail.car.soldVia)
                 }
                 // El dueño ve por qué administración deshabilitó su publicación.
-                if (isOwner && detail.car.status == "Deshabilitado") {
+                if (isOwner && detail.car.status == EstadoAuto.DESHABILITADO) {
                     DisabledNotice(reason = detail.car.disabledReason)
                 }
                 // Rechazada (o rechazados sus cambios): el dueño ve el motivo y puede corregirla.
@@ -321,7 +323,7 @@ fun CarDetailScreen(
                         .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp)
                 ) {
                     // Ya vendido: no tiene caso contactar al vendedor.
-                    if (detail.car.status == "Vendido") PrimaryButton(
+                    if (detail.car.status == EstadoAuto.VENDIDO) PrimaryButton(
                         text = stringResource(R.string.detail_sold_unavailable),
                         onClick = {},
                         enabled = false
@@ -549,11 +551,11 @@ private fun OwnerActionsBar(
 ) {
     // Pausar, destacar y marcar como vendida solo aplican a una publicación aprobada que el dueño controla.
     // Marcar como vendida, además, solo cuando está activa.
-    val canToggle = car.approved && car.status in listOf("Activo", "Pausado")
-    val showFeature = car.approved && car.status == "Activo"
+    val canToggle = car.approved && car.status in listOf(EstadoAuto.ACTIVO, EstadoAuto.PAUSADO)
+    val showFeature = car.approved && car.status == EstadoAuto.ACTIVO
     // Una rechazada se corrige desde el aviso de arriba.
-    val canEdit = car.status != "Vendido" && car.rejectedReason == null
-    val isSold = car.status == "Vendido"
+    val canEdit = car.status != EstadoAuto.VENDIDO && car.rejectedReason == null
+    val isSold = car.status == EstadoAuto.VENDIDO
     // Rechazada o deshabilitada: el dueño puede quitarla de su perfil (solo en este teléfono).
     val canHide = PublicacionesOcultas.sePuedeOcultar(car)
     if (!canToggle && !showFeature && !canEdit && !isSold && !canHide) return
@@ -577,7 +579,7 @@ private fun OwnerActionsBar(
             )
             if (canToggle || showFeature || canEdit) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (canToggle) {
-                    val paused = car.status == "Pausado"
+                    val paused = car.status == EstadoAuto.PAUSADO
                     OwnerButton(
                         text = stringResource(if (paused) R.string.detail_owner_resume else R.string.detail_owner_pause),
                         onClick = if (paused) onResume else onPause,
@@ -614,7 +616,7 @@ private fun OwnerActionsBar(
                 )
             }
             // Debajo de deshabilitar / destacar / editar. Una deshabilitada primero se vuelve a habilitar.
-            if (canToggle && car.status == "Activo") OwnerButton(
+            if (canToggle && car.status == EstadoAuto.ACTIVO) OwnerButton(
                 text = stringResource(R.string.detail_owner_mark_sold),
                 onClick = onMarkSold,
                 enabled = !updating,
@@ -764,7 +766,7 @@ private fun DisabledNotice(
         }
         Spacer(Modifier.height(6.dp))
         Text(
-            if (reason != null) stringResource(R.string.detail_disabled_reason, reason)
+            if (reason != null) stringResource(R.string.detail_disabled_reason, rememberTraduccion(reason))
             else stringResource(R.string.detail_disabled_no_reason),
             fontFamily = DmSans,
             fontSize = 13.sp,

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.model.SOLD_INSIDE_APP
 import com.pame.karsy.data.model.SOLD_OUTSIDE_APP
 import com.pame.karsy.core.theme.KarsyBg
@@ -96,12 +97,12 @@ internal val ProfileCoverBrush = Brush.linearGradient(listOf(KarsyNavyDeep, Kars
  */
 @Composable
 internal fun carStatusLabel(status: String): String = when (status) {
-    "Activo" -> stringResource(R.string.profile_status_active)
-    "Pendiente" -> stringResource(R.string.profile_status_pending)
-    "Rechazado" -> stringResource(R.string.profile_status_rejected)
-    "Deshabilitado" -> stringResource(R.string.profile_status_disabled)
-    "Vendido" -> stringResource(R.string.profile_status_sold)
-    "Pausado" -> stringResource(R.string.profile_status_paused)
+    EstadoAuto.ACTIVO -> stringResource(R.string.profile_status_active)
+    EstadoAuto.PENDIENTE -> stringResource(R.string.profile_status_pending)
+    EstadoAuto.RECHAZADO -> stringResource(R.string.profile_status_rejected)
+    EstadoAuto.DESHABILITADO -> stringResource(R.string.profile_status_disabled)
+    EstadoAuto.VENDIDO -> stringResource(R.string.profile_status_sold)
+    EstadoAuto.PAUSADO -> stringResource(R.string.profile_status_paused)
     else -> status
 }
 

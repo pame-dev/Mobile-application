@@ -82,6 +82,7 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.feature.home.FilterSheet
 import com.pame.karsy.feature.home.HomeFilters
 
@@ -273,7 +274,7 @@ private fun FavoriteCard(
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(18.dp)
-    val sold = car.status == "Vendido"
+    val sold = car.status == EstadoAuto.VENDIDO
     Column(
         modifier
             .fillMaxWidth()

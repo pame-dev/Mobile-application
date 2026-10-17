@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -48,12 +49,16 @@ import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.Traductor
 import com.pame.karsy.core.util.Xlsx
 import com.pame.karsy.data.repository.AdminStats
 import com.pame.karsy.data.repository.ReporteApp
 import com.pame.karsy.data.repository.StatsRepository
 import com.pame.karsy.feature.dashboard.ExportarPanel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -542,7 +547,13 @@ fun ExportarAdminBoton(vm: AdminViewModel) {
                     withContext(Dispatchers.IO) {
                         // Todo del mismo rango: las estadísticas en pantalla pueden ser del rango anterior.
                         val st = StatsRepository.admin(dias)
-                        val r = StatsRepository.adminReport(dias)
+                        val r = StatsRepository.adminReport(dias).let { r ->
+                            // Los motivos los escriben los usuarios (en español): en inglés van traducidos.
+                            if (Idioma.actual(context) != Idioma.EN) r
+                            else r.copy(motivos = coroutineScope {
+                                r.motivos.map { (m, n) -> async { (Traductor.alIngles(m) ?: m) to n } }.awaitAll()
+                            })
+                        }
                         if (pdf) ExportarAdmin.generarPdf(context, st, r, dias) else ExportarAdmin.generarExcel(context, st, r, dias)
                     }
                 }.onSuccess { ExportarPanel.compartir(context, it, R.string.admin3_export_title) }

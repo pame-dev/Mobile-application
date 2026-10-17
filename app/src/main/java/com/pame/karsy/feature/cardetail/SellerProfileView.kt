@@ -9,7 +9,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.UserRepository
+import com.pame.karsy.feature.home.EtiquetaVendido
 import com.pame.karsy.feature.profile.AvatarViewer
 import com.pame.karsy.feature.profile.ProfileCover
 import com.pame.karsy.feature.profile.ZoomableProfileAvatar
@@ -227,16 +229,21 @@ internal fun SellerProfileView(
                     cars.chunked(3).forEach { row ->
                         Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                             row.forEach { car ->
-                                AsyncImage(
-                                    model = car.imageUrl,
-                                    contentDescription = "${car.title} ${car.year}",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
+                                Box(
+                                    Modifier
                                         .weight(1f)
                                         .aspectRatio(1f)
                                         .background(ImagePlaceholder)
                                         .clickable { onCarClick(car.id) }
-                                )
+                                ) {
+                                    AsyncImage(
+                                        model = car.imageUrl,
+                                        contentDescription = "${car.title} ${car.year}",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                    if (car.status == EstadoAuto.VENDIDO) EtiquetaVendido(Modifier.align(Alignment.TopStart).padding(5.dp))
+                                }
                             }
                             // Mantiene el tamaño de las celdas en la última fila.
                             repeat(3 - row.size) { Box(Modifier.weight(1f)) }

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { traducir } from '../i18n/I18nContext'
 import { cerrarSesionLocal, supabase } from '../lib/supabase'
 import type { Account } from '../data/types'
+import { aplicarTemaDeCuenta } from '../lib/tema'
 
 /** Visitante (sin sesión), usuario (particular o lote) o administrador. */
 export type Mode = 'guest' | 'user' | 'admin'
@@ -54,6 +55,17 @@ async function loadAccount(): Promise<{ account: Account | null; notice: string 
     return { account: null, notice: traducir('vehiculo.session.suspended') }
   }
   const { data: esAdmin } = await supabase.rpc('es_administrador', { p_id_cuenta: user.id })
+  // El tema elegido en otro dispositivo, aparte: si falla (o aún no existe la columna), no
+  // impide iniciar sesión.
+  void supabase
+    .from('cuentas')
+    .select('tema')
+    .eq('id_cuenta', user.id)
+    .maybeSingle()
+    .then(
+      ({ data }) => aplicarTemaDeCuenta(data?.tema as string | null | undefined, user.id),
+      () => {},
+    )
   return {
     account: {
       id: cuenta.id_cuenta,

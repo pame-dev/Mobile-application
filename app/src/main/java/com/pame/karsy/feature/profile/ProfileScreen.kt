@@ -2,6 +2,7 @@ package com.pame.karsy.feature.profile
 
 import android.net.Uri
 import com.pame.karsy.core.components.KarsyPullToRefresh
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -82,6 +83,7 @@ import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.model.User
 
 /** Pantalla "Mi perfil" (WebProfileView del mockup). */
@@ -360,7 +362,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = listOf(user.bio, user.location).filter { it.isNotBlank() }.joinToString(" · "),
+                    text = listOf(rememberTraduccion(user.bio), user.location).filter { it.isNotBlank() }.joinToString(" · "),
                     fontFamily = DmSans,
                     fontSize = 14.sp,
                     lineHeight = 21.sp,
@@ -562,7 +564,7 @@ private fun PostsGrid(cars: List<Car>, onCarClick: (Long) -> Unit) {
                             modifier = Modifier.fillMaxSize()
                         )
                         // Estado de moderación / venta cuando no está activo.
-                        if (car.status != "Activo") Text(
+                        if (car.status != EstadoAuto.ACTIVO) Text(
                             carStatusLabel(car.status),
                             fontFamily = DmSans,
                             fontSize = 10.sp,

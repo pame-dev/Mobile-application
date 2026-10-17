@@ -4,6 +4,7 @@ import { AlertBox } from '../components/AuthParts'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
+import { Traducido } from '../components/Traducido'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { mensajeUsuario, uploadAvatar } from '../data/auth'
@@ -465,7 +466,9 @@ export function Profile() {
               <div className="label" style={{ marginBottom: 8 }}>
                 {t('perfil.description')}
               </div>
-              <p className="muted">{perfil.bio}</p>
+              <p className="muted">
+                <Traducido texto={perfil.bio} />
+              </p>
             </div>
           )}
           <button className="card row" style={{ padding: 18, width: '100%', textAlign: 'left' }} onClick={() => navigate('/panel')}>

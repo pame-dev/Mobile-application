@@ -3,7 +3,7 @@
 import { traducir } from '../i18n/I18nContext'
 import { publicUrl, supabase } from '../lib/supabase'
 import type { AnuncioRow, Car, CarDetail, Catalogs, Lot, LotContact, SellerContact, SellerProfile } from './types'
-import { inicio, traduccionGuardada, traducirAlIngles } from '../lib/traductor'
+import { traducirAlIngles } from '../lib/traductor'
 
 const VISTA = 'v_anuncios'
 
@@ -155,11 +155,12 @@ export async function favoriteCars(userId: string): Promise<Car[]> {
 }
 
 /**
- * Favoritos e historial solo muestran lo que el público puede ver (activas y vendidas):
- * no las pausadas, deshabilitadas, en revisión ni rechazadas, aunque las haya abierto el
- * dueño o el admin. No se borran: si se reactivan, vuelven a aparecer. Igual que la app.
+ * Favoritos e historial solo muestran los autos que siguen a la venta (activos): no las
+ * vendidas (esas quedan en el perfil del vendedor), pausadas, deshabilitadas, en revisión ni
+ * rechazadas, aunque las haya abierto el dueño o el admin. No se borran: si se reactivan,
+ * vuelven a aparecer. Igual que la app.
  */
-export const sigueDisponible = (car: Car) => car.status === 'Activo' || car.status === 'Vendido'
+export const sigueDisponible = (car: Car) => car.status === 'Activo'
 
 export async function setFavorite(userId: string, id: number, favorite: boolean): Promise<void> {
   if (favorite) check(await supabase.from('favoritos').insert({ id_cuenta: userId, id_publicacion: id }))
@@ -306,13 +307,26 @@ export async function sellerProfile(id: string): Promise<SellerProfile | null> {
   }
 }
 
-/** Publicaciones visibles de una cuenta (CarRepository.ownerCars con onlyVisible). */
+/**
+ * Lo que el público ve de una cuenta en su perfil: sus autos activos y, al final, los vendidos
+ * (CarRepository.ownerCars con onlyVisible).
+ */
 export async function ownerVisibleCars(ownerId: string): Promise<Car[]> {
   const rows = check(
-    await supabase.from(VISTA).select('*').eq('id_propietario', ownerId).eq('visible', true).order('fecha_creacion', { ascending: false }),
+    await supabase
+      .from(VISTA)
+      .select('*')
+      .eq('id_propietario', ownerId)
+      .eq('aprobada', true)
+      .eq('estado_administrativo', 'habilitada')
+      .in('estado_publicacion', ['activa', 'vendida'])
+      .order('fecha_creacion', { ascending: false }),
   ) as AnuncioRow[]
-  return rows.map(toCar)
+  return alFinalLosVendidos(rows.map(toCar))
 }
+
+/** Los vendidos después de los que siguen a la venta, sin cambiar el orden dentro de cada grupo. */
+export const alFinalLosVendidos = (cars: Car[]) => [...cars.filter((c) => c.status !== 'Vendido'), ...cars.filter((c) => c.status === 'Vendido')]
 
 /**
  * Descripción e imperfecciones en inglés (traducción automática gratuita, lib/traductor.ts).
@@ -324,18 +338,4 @@ export async function traduccionPublicacion(
 ): Promise<{ descripcion: string | null; problemas: string | null } | null> {
   const [d, p] = await Promise.all([traducirAlIngles(descripcion), traducirAlIngles(problemas)])
   return d || p ? { descripcion: d, problemas: p } : null
-}
-
-/** Lo que se ve de la descripción en una tarjeta, en inglés ("…" si se cortó); null si no se pudo. */
-export async function resumenEnIngles(descripcion: string): Promise<string | null> {
-  const [texto, cortado] = inicio(descripcion)
-  const tr = await traducirAlIngles(texto)
-  return tr && cortado ? `${tr}…` : tr
-}
-
-/** Igual que resumenEnIngles pero solo si ya está guardado (para mostrarlo sin esperar). */
-export function resumenGuardado(descripcion: string): string | null {
-  const [texto, cortado] = inicio(descripcion)
-  const tr = traduccionGuardada(texto)
-  return tr && cortado ? `${tr}…` : tr
 }

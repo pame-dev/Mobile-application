@@ -8,6 +8,7 @@ import { traducir, useI18n } from '../../i18n/I18nContext'
 import { fraccion, libroAdmin, seccionesResumen } from '../../lib/exportarAdmin'
 import { descargar } from '../../lib/exportarPanel'
 import { entero } from '../../lib/format'
+import { traducirAlIngles } from '../../lib/traductor'
 import { LineChart, PairBars } from './AdminParts'
 
 /** Elegir formato: Excel (.xlsx) para trabajar los números o PDF para presentarlos. */
@@ -249,7 +250,7 @@ function ReportePdf({ stats, r, dias }: { stats: AdminStats; r: ReporteApp; dias
  */
 export function ExportarAdmin({ stats, dias }: { stats: AdminStats | null; dias: number }) {
   const { openModal, toast } = useUi()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [reporte, setReporte] = useState<{ r: ReporteApp; stats: AdminStats } | null>(null)
   const [imprimir, setImprimir] = useState(false)
   const [cargando, setCargando] = useState(false)
@@ -259,6 +260,10 @@ export function ExportarAdmin({ stats, dias }: { stats: AdminStats | null; dias:
     try {
       // Todo del mismo rango: las estadísticas en pantalla pueden ser del rango anterior.
       const [r, st] = await Promise.all([adminReport(dias), adminStats(dias)])
+      // Los motivos los escriben los usuarios (en español): en inglés van traducidos.
+      if (lang === 'en') {
+        r.motivos = await Promise.all(r.motivos.map(async (m) => ({ ...m, motivo: (await traducirAlIngles(m.motivo)) ?? m.motivo })))
+      }
       return { r, stats: st }
     } catch (e) {
       toast(mensajeUsuario(e))

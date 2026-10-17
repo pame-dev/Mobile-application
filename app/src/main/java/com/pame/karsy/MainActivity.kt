@@ -1,6 +1,7 @@
 package com.pame.karsy
 
 import android.content.Context
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.net.toUri
 import androidx.compose.runtime.mutableStateOf
 import android.content.Intent
@@ -17,8 +18,10 @@ import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.navigation.KarsyNavGraph
 import com.pame.karsy.core.push.KarsyMessagingService
 import com.pame.karsy.core.session.PublicacionesOcultas
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.KarsyTheme
 import com.pame.karsy.core.theme.Tema
+import com.pame.karsy.data.repository.UserRepository
 
 class MainActivity : ComponentActivity() {
     // Cada toque en una notificación push incrementa el contador y abre la bandeja.
@@ -43,6 +46,19 @@ class MainActivity : ComponentActivity() {
         // Solo al abrir; al girar la pantalla el enlace ya se atendió.
         if (savedInstanceState == null) handleCarLink(intent)
         setContent {
+            // Al iniciar sesión, el tema guardado en la cuenta (elegido en otro dispositivo). Si
+            // aquí hay uno que no se pudo subir, se reintenta en vez de reemplazarlo.
+            val cuenta = SessionManager.account
+            val temaCuenta = cuenta?.tema
+            LaunchedEffect(cuenta?.id, temaCuenta) {
+                val actividad = this@MainActivity
+                val local = Tema.elegido(actividad)
+                when {
+                    cuenta == null || temaCuenta == local -> Unit
+                    Tema.pendiente(actividad) -> UserRepository.guardarTema(actividad, local)
+                    temaCuenta != null -> Tema.cambiar(actividad, temaCuenta)
+                }
+            }
             KarsyTheme {
                 KarsyNavGraph(openNotificationsRequest = openNotificationsRequest, openCarRequest = openCarRequest)
             }

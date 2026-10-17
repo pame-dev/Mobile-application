@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.model.EstadoAuto
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +31,7 @@ object PublicacionesOcultas {
     private const val KEY_PREFIX = "ocultas_"
 
     /** Estados que se pueden ocultar; si la publicación vuelve a estar activa, aparece de nuevo. */
-    private val ESTADOS_OCULTABLES = listOf("Rechazado", "Deshabilitado", "Pausado")
+    private val ESTADOS_OCULTABLES = listOf(EstadoAuto.RECHAZADO, EstadoAuto.DESHABILITADO, EstadoAuto.PAUSADO)
 
     private var prefs: SharedPreferences? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

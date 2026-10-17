@@ -27,7 +27,7 @@ export function LotProfile() {
     setError(null)
     Promise.all([cargarLote(id), ownerVisibleCars(id)])
       .then(([l, inventario]) => {
-        setLote(l ? { ...l, vehicleCount: inventario.length } : null)
+        setLote(l ? { ...l, vehicleCount: inventario.filter((c) => c.status === 'Activo').length } : null)
         setCars(inventario)
       })
       .catch(() => setError(traducir('perfil.lotError')))

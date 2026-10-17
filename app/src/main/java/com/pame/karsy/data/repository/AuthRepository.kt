@@ -4,6 +4,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.supabase.Supabase
+import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.data.remote.CuentaDto
 import io.github.jan.supabase.auth.OtpType
@@ -177,6 +178,7 @@ object AuthRepository {
             tipoCuenta = cuenta.tipoCuenta,
             esAdmin = esAdmin,
             correo = user.email.orEmpty(),
+            tema = if (cuenta.tema == "sistema") Tema.SISTEMA else cuenta.tema,
         )
     }
 }

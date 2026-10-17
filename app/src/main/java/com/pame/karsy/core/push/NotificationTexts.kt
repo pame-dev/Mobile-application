@@ -70,6 +70,9 @@ fun notificationText(context: Context, tipo: String, vehiculo: String, datos: Ma
             if (vistas != null && favoritos != null) context.getString(R.string.notif_seller_summary, vistas, favoritos)
             else context.getString(R.string.notif_seller_summary_simple)
         }
+        "favorito_no_disponible" ->
+            if (datos["estado"] == "vendida") context.getString(R.string.notif_favorite_sold, vehiculo)
+            else context.getString(R.string.notif_favorite_unavailable, vehiculo)
         "hito_vistas" -> numero("vistas")?.let { context.getString(R.string.notif_views_milestone, vehiculo, it) }
             ?: context.getString(R.string.notif_views_milestone_simple, vehiculo)
         else -> context.getString(notificationTextRes(tipo), vehiculo)

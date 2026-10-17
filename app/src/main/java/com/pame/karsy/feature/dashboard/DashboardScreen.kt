@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.dashboard
 
 import kotlin.coroutines.cancellation.CancellationException
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.locale.texto
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
@@ -86,6 +87,7 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
@@ -115,7 +117,7 @@ fun DashboardScreen(
             onElegir = { pdf ->
                 exportar = false
                 if (stats != null) {
-                    val destacadas = vm.myListings.count { it.featured && it.status == "Activo" }
+                    val destacadas = vm.myListings.count { it.featured && it.status == EstadoAuto.ACTIVO }
                     val nombre = vm.displayName
                     val listings = vm.myListings
                     // El archivo se arma fuera del hilo principal; el menú de compartir se abre de vuelta en él.
@@ -180,7 +182,7 @@ fun DashboardScreen(
                     }
                     if (stats != null) {
                         // Solo las que se ven en portada: un destacado vigente de un auto vendido o pausado no cuenta.
-                        StatsRow(stats, vm.myListings.count { it.featured && it.status == "Activo" })
+                        StatsRow(stats, vm.myListings.count { it.featured && it.status == EstadoAuto.ACTIVO })
                         PerformanceCard(stats, vm.myListings, vm.loading, onCarClick)
                     }
                     // Las que el dueño ocultó de su perfil van en su propia sección, al final.
@@ -650,7 +652,7 @@ private fun ListingCard(
                 modifier = Modifier
                     .padding(8.dp)
                     .clip(RoundedCornerShape(6.dp))
-                    .background((if (car.status == "Activo") KarsyTeal else KarsyNavy).copy(alpha = 0.85f))
+                    .background((if (car.status == EstadoAuto.ACTIVO) KarsyTeal else KarsyNavy).copy(alpha = 0.85f))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             )
         }
@@ -687,7 +689,7 @@ private fun ListingCard(
                 )
             }
             // Vendida: dónde se vendió (dentro o fuera de la app).
-            if (car.status == "Vendido") soldViaLabel(car.soldVia)?.let {
+            if (car.status == EstadoAuto.VENDIDO) soldViaLabel(car.soldVia)?.let {
                 Text(
                     it,
                     fontFamily = DmSans,
@@ -700,7 +702,7 @@ private fun ListingCard(
             // Motivo del admin; el texto completo se ve al abrir la publicación (o al corregirla).
             (car.disabledReason ?: car.rejectedReason)?.let { reason ->
                 Text(
-                    stringResource(R.string.detail_disabled_reason, reason),
+                    stringResource(R.string.detail_disabled_reason, rememberTraduccion(reason)),
                     fontFamily = DmSans,
                     fontSize = 11.sp,
                     lineHeight = 14.sp,
@@ -753,7 +755,7 @@ private fun ListingCard(
                 // Solo un anuncio activo puede destacarse, y una solicitud a la vez.
                 // Si el destacado termina en 3 días o menos, se puede renovar.
                 val renovar = car.featured && car.featuredEndsSoon && !car.featuredPending
-                val puedeDestacar = car.status == "Activo" && !car.featuredPending && (!car.featured || renovar)
+                val puedeDestacar = car.status == EstadoAuto.ACTIVO && !car.featuredPending && (!car.featured || renovar)
                 Button(
                     onClick = { onDestacar(car) },
                     enabled = puedeDestacar,

@@ -53,7 +53,10 @@ object NotificationRepository {
             put("resumenes", p.resumenes)
             put("recomendaciones", p.recomendaciones)
             put("vendedor", p.vendedor)
-            put("fecha_actualizacion", java.time.Instant.now().toString())
+            // Sin java.time: Instant necesita Android 8 y la app funciona desde Android 7.
+            put("fecha_actualizacion", java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+                .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                .format(java.util.Date()))
         })
     }
 }

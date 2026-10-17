@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Car } from '../data/types'
+import { alFinalLosVendidos } from '../data/api'
 import { useI18n } from '../i18n/I18nContext'
 import { ORDEN, SIN_FILTROS, filtrarCars, hayFiltros, type Filtros } from '../lib/filtros'
 import { iniciales } from '../lib/format'
@@ -69,7 +70,7 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
   const [filtros, setFiltros] = useState<Filtros>(SIN_FILTROS)
   const [orden, setOrden] = useState('recientes')
   const { t } = useI18n()
-  const lista = useMemo(() => filtrarCars(cars, filtros, q, orden), [cars, filtros, q, orden])
+  const lista = useMemo(() => alFinalLosVendidos(filtrarCars(cars, filtros, q, orden)), [cars, filtros, q, orden])
   const filtrando = !!q.trim() || hayFiltros(filtros)
 
   return (
@@ -118,7 +119,7 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
       ) : (
         <div className="vgrid">
           {lista.map((c) => (
-            <VehicleCard key={c.id} car={c} />
+            <VehicleCard key={c.id} car={c} showStatus={c.status === 'Vendido'} />
           ))}
         </div>
       )}

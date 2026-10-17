@@ -16,6 +16,7 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.Idioma
+import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.StatsRepository
 import com.pame.karsy.data.repository.DestacadoPublicacion
 import com.pame.karsy.data.repository.ReporteExtra
@@ -61,12 +62,12 @@ object ExportarPanel {
     }
 
     /** Publicaciones que necesitan algo: rechazadas, en revisión o deshabilitadas (con su motivo). */
-    fun pendientes(listings: List<Car>): List<Car> = listings.filter { it.status == "Rechazado" || it.status == "Pendiente" || it.status == "Deshabilitado" }
+    fun pendientes(listings: List<Car>): List<Car> = listings.filter { it.status == EstadoAuto.RECHAZADO || it.status == EstadoAuto.PENDIENTE || it.status == EstadoAuto.DESHABILITADO }
 
     data class Vendidos(val total: Int, val dentro: Int, val fuera: Int)
 
     fun vendidos(listings: List<Car>): Vendidos {
-        val v = listings.filter { it.status == "Vendido" }
+        val v = listings.filter { it.status == EstadoAuto.VENDIDO }
         return Vendidos(v.size, v.count { it.soldVia == "dentro_app" }, v.count { it.soldVia == "fuera_app" })
     }
 
@@ -138,8 +139,8 @@ object ExportarPanel {
             val dif = difMercado(car, extra)
             when {
                 r.vistas >= 20 && r.contactos == 0 -> TipoConsejo.SinContacto to car
-                car.status == "Activo" && r.vistas < 5 && diasDesde(car.publishedAt, hoy) >= 7 -> TipoConsejo.PocasVistas to car
-                car.status == "Activo" && dif != null && dif >= 0.1 && similares >= 2 -> TipoConsejo.PrecioAlto to car
+                car.status == EstadoAuto.ACTIVO && r.vistas < 5 && diasDesde(car.publishedAt, hoy) >= 7 -> TipoConsejo.PocasVistas to car
+                car.status == EstadoAuto.ACTIVO && dif != null && dif >= 0.1 && similares >= 2 -> TipoConsejo.PrecioAlto to car
                 else -> null
             }
         }
@@ -314,12 +315,12 @@ object ExportarPanel {
     }
 
     private fun estadoRes(status: String): Int? = when (status) {
-        "Activo" -> R.string.profile_status_active
-        "Pendiente" -> R.string.profile_status_pending
-        "Rechazado" -> R.string.profile_status_rejected
-        "Deshabilitado" -> R.string.profile_status_disabled
-        "Vendido" -> R.string.profile_status_sold
-        "Pausado" -> R.string.profile_status_paused
+        EstadoAuto.ACTIVO -> R.string.profile_status_active
+        EstadoAuto.PENDIENTE -> R.string.profile_status_pending
+        EstadoAuto.RECHAZADO -> R.string.profile_status_rejected
+        EstadoAuto.DESHABILITADO -> R.string.profile_status_disabled
+        EstadoAuto.VENDIDO -> R.string.profile_status_sold
+        EstadoAuto.PAUSADO -> R.string.profile_status_paused
         else -> null
     }
 

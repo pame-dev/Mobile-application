@@ -1,6 +1,12 @@
 package com.pame.karsy.data.repository
 
+import android.content.Context
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.Tema
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import com.pame.karsy.core.location.Lugar
@@ -28,6 +34,9 @@ import java.util.UUID
 
 /** Perfil de la cuenta en sesión (public.cuentas + perfiles_lote + teléfono + correo). */
 object UserRepository {
+    /** Para guardar cosas que no deben cancelarse si la pantalla se recrea (p. ej. el tema). */
+    private val alcance = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 
     /** Valores de cuentas.medio_contacto_principal. */
     const val LLAMADA = "llamada"
@@ -221,4 +230,21 @@ object UserRepository {
             .decodeList<TelefonoDto>()
             .filter { it.activo }
             .sortedByDescending { it.esPrincipal }
+
+    /**
+     * Guarda el tema en la cuenta (cuentas.tema) para que sea el mismo en la web y en otros
+     * teléfonos. Corre aparte porque al cambiar el tema la pantalla se recrea. Si falla (sin
+     * internet), queda pendiente y se reintenta al volver a abrir la app; mientras, el de la
+     * cuenta no reemplaza al elegido en este teléfono.
+     */
+    fun guardarTema(context: Context, codigo: String) {
+        val uid = SessionManager.userId ?: return
+        val app = context.applicationContext
+        val valor = if (codigo == Tema.SISTEMA) "sistema" else codigo
+        Tema.marcarPendiente(app, true)
+        alcance.launch {
+            runCatching { db.from("cuentas").update({ set("tema", valor) }) { filter { eq("id_cuenta", uid) } } }
+                .onSuccess { Tema.marcarPendiente(app, false) }
+        }
+    }
 }
