@@ -478,7 +478,7 @@ table.t tr:hover td{background:var(--bg)}
   .reportepanel .rmeses{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;height:70px;align-items:end;margin-top:4px}
   .reportepanel .rmeses>div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .reportepanel .rmeses i{display:block;width:70%;background:#2C9AA0;border-radius:3px 3px 0 0}
-  .reportepanel .rmeses small{font-size:8.5px}
+  .reportepanel .rmeses small{font-size:8.5px;line-height:12px;min-height:12px;white-space:nowrap}
   .reportepanel .radmin{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
   .reportepanel .radmin.rdos{grid-template-columns:1fr 1fr}
   .reportepanel .radmin>div{border:1px solid #D7DEE5;border-radius:8px;padding:8px 10px;break-inside:avoid}

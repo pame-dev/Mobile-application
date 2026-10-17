@@ -214,20 +214,28 @@ object ExportarAdmin {
         if (rep.size == 1) rep += listOf(c(tx(R.string.admin3_no_data), E.TEXTO))
         val reportes = Xlsx.Hoja(tx(R.string.admin3_reports), listOf(60, 10), rep, fijas = 1)
 
-        // 6. Actividad (vistas por día y por hora)
+        // 6. Actividad (vistas por fecha del rango, por día de la semana y por hora)
         val act = mutableListOf<List<Xlsx.Celda?>>(
-            listOf(cab(R.string.admin3_day), cab(R.string.admin3_views), null, cab(R.string.admin3_hour), cab(R.string.admin3_views))
+            listOf(
+                cab(R.string.admin3_date), cab(R.string.admin3_views), null,
+                cab(R.string.admin3_day), cab(R.string.admin3_views), null,
+                cab(R.string.admin3_hour), cab(R.string.admin3_views),
+            )
         )
-        for (i in 0 until 24) {
+        for (i in 0 until maxOf(24, r.porFecha.size)) {
+            val f = r.porFecha.getOrNull(i)
             act += listOf(
+                f?.let { c(it.first, E.TEXTO) },
+                f?.let { c(it.second, E.ENTERO) },
+                null,
                 if (i < 7) c(tx(ExportarPanel.DIAS[i]), E.TEXTO) else null,
                 if (i < 7) c(r.porDia.getOrElse(i) { 0 }, E.ENTERO) else null,
                 null,
-                c(ExportarPanel.rangoHora(i), E.TEXTO),
-                c(r.porHora.getOrElse(i) { 0 }, E.ENTERO),
+                if (i < 24) c(ExportarPanel.rangoHora(i), E.TEXTO) else null,
+                if (i < 24) c(r.porHora.getOrElse(i) { 0 }, E.ENTERO) else null,
             )
         }
-        val actividad = Xlsx.Hoja(tx(R.string.admin3_activity), listOf(14, 10, 3, 14, 10), act, fijas = 1)
+        val actividad = Xlsx.Hoja(tx(R.string.admin3_activity), listOf(12, 10, 3, 14, 10, 3, 14, 10), act, fijas = 1)
 
         return listOf(resumen, crecimiento, masVistas, marcas, reportes, actividad)
     }
@@ -429,18 +437,24 @@ object ExportarAdmin {
                 }
             }
 
-            // Vistas por día de la semana (barras)
+            // Vistas por fecha del rango (barras): por día hasta 31 días, por semana si es más.
             // Título y barras juntos (no se separan entre hojas).
             asegurar(110f)
-            titulo(R.string.admin3_by_day)
-            val maxDia = (r.porDia.maxOrNull() ?: 0).coerceAtLeast(1)
-            val paso = (ancho - margen * 2) / 7
+            titulo(R.string.admin3_by_date)
+            val fechas = r.porFecha
+            val maxFecha = (fechas.maxOfOrNull { it.second } ?: 0).coerceAtLeast(1)
+            val paso = (ancho - margen * 2) / fechas.size.coerceAtLeast(1)
             val base = y + 56
-            r.porDia.take(7).forEachIndexed { i, v ->
-                val h = maxOf(2f, 50f * v / maxDia)
+            // Con muchas barras (30 días) no caben todas las fechas: se muestra una de cada tantas.
+            val cadaCuantas = (fechas.size + 7) / 8
+            fechas.forEachIndexed { i, (etiqueta, v) ->
+                val h = maxOf(2f, 50f * v / maxFecha)
                 val x = margen + i * paso
-                c.drawRoundRect(RectF(x + paso * 0.25f, base - h, x + paso * 0.75f, base), 2f, 2f, relleno(teal))
-                c.drawText(texto(ExportarPanel.DIAS[i]).take(3), x + paso * 0.3f, base + 11, paint(8f, gris))
+                c.drawRoundRect(RectF(x + paso * 0.15f, base - h, x + paso * 0.85f, base), 2f, 2f, relleno(teal))
+                if ((fechas.lastIndex - i) % cadaCuantas.coerceAtLeast(1) == 0) {
+                    val p = paint(7.5f, gris)
+                    c.drawText(etiqueta, x + paso / 2 - p.measureText(etiqueta) / 2, base + 11, p)
+                }
             }
             y = base + 20
 

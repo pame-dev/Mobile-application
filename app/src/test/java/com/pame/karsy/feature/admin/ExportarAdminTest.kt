@@ -68,6 +68,7 @@ class ExportarAdminTest {
             ReporteApp.MasVista(2, "Nissan Versa 2026", "Pame", 29, 1),
         ),
         motivos: List<Pair<String, Int>> = listOf("Publicación: Precio falso" to 3, "Fotos" to 2),
+        porFecha: List<Pair<String, Int>> = listOf("10 oct" to 4, "11 oct" to 0, "12 oct" to 7),
     ) = ReporteApp(
         usuarios = mapOf("total" to 15, "nuevos" to 5, "particulares" to 12, "lotes" to 3, "suspendidos" to 1),
         publicaciones = mapOf(
@@ -81,7 +82,7 @@ class ExportarAdminTest {
         revision = mapOf("pendientes" to 1, "aprobadas" to 6, "rechazadas" to 2),
         horasRevision = horas,
         marcas = marcas, estados = estados, masVistas = masVistas,
-        porDia = porDia, porHora = porHora, motivos = motivos,
+        porFecha = porFecha, porDia = porDia, porHora = porHora, motivos = motivos,
     )
 
     private fun libro(r: ReporteApp = reporte(), s: AdminStats = stats(), t: (Int, Array<out Any>) -> String = tNombre) =
@@ -201,7 +202,7 @@ class ExportarAdminTest {
         assertEquals(listOf("admin3_listing", "admin3_seller", "admin3_views", "admin3_contacts", "admin3_conversion"), cab(2))
         assertEquals(listOf("admin3_brand", "admin3_active_listings", null, "admin3_state", "admin3_active_listings"), cab(3))
         assertEquals(listOf("admin3_reason", "admin3_reports"), cab(4))
-        assertEquals(listOf("admin3_day", "admin3_views", null, "admin3_hour", "admin3_views"), cab(5))
+        assertEquals(listOf("admin3_date", "admin3_views", null, "admin3_day", "admin3_views", null, "admin3_hour", "admin3_views"), cab(5))
         (1..5).forEach { i ->
             assertTrue(h[i].filas.first().filterNotNull().all { it.s == E.ENCABEZADO })
             assertEquals(1, h[i].fijas)
@@ -267,15 +268,21 @@ class ExportarAdminTest {
     fun libro_actividadCon24Filas() {
         val f = libro()[5].filas
         assertEquals(1 + 24, f.size)
-        assertEquals(listOf<Any?>("profile_dashboard_day_sun", 10, null, "00:00–01:00", 0), f[1].map { it?.v })
-        assertEquals(listOf<Any?>("profile_dashboard_day_sat", 35, null, "06:00–07:00", 1), f[7].map { it?.v })
-        assertEquals(listOf<Any?>(null, null, null, "07:00–08:00", 2), f[8].map { it?.v })
-        assertEquals(listOf<Any?>(null, null, null, "20:00–21:00", 30), f[21].map { it?.v })
-        assertEquals(listOf<Any?>(null, null, null, "23:00–00:00", 3), f[24].map { it?.v })
+        // Columnas: fecha | vistas | · | día | vistas | · | hora | vistas
+        assertEquals(listOf<Any?>("10 oct", 4, null, "profile_dashboard_day_sun", 10, null, "00:00–01:00", 0), f[1].map { it?.v })
+        assertEquals(listOf<Any?>("12 oct", 7, null, "profile_dashboard_day_tue", 4, null, "02:00–03:00", 2), f[3].map { it?.v })
+        assertEquals(listOf<Any?>(null, null, null, "profile_dashboard_day_sat", 35, null, "06:00–07:00", 1), f[7].map { it?.v })
+        assertEquals(listOf<Any?>(null, null, null, null, null, null, "07:00–08:00", 2), f[8].map { it?.v })
+        assertEquals(listOf<Any?>(null, null, null, null, null, null, "20:00–21:00", 30), f[21].map { it?.v })
+        assertEquals(listOf<Any?>(null, null, null, null, null, null, "23:00–00:00", 3), f[24].map { it?.v })
         // Series cortas: lo que falta es 0.
         val g = libro(reporte(porDia = listOf(1), porHora = emptyList()))[5].filas
-        assertEquals(0, g[2][1]!!.v)
-        assertEquals(0, g[24][4]!!.v)
+        assertEquals(0, g[2][4]!!.v)
+        assertEquals(0, g[24][7]!!.v)
+        // 30 días: una fila por fecha (más que las 24 horas).
+        val treinta = libro(reporte(porFecha = (1..30).map { "$it sep" to it }))[5].filas
+        assertEquals(1 + 30, treinta.size)
+        assertEquals(listOf<Any?>("30 sep", 30), treinta[30].take(2).map { it?.v })
     }
 
     @Test

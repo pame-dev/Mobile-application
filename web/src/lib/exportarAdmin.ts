@@ -158,18 +158,24 @@ export function libroAdmin(stats: AdminStats, r: ReporteApp, info: { fecha: stri
   if (rep.length === 1) rep.push([s(t('admin.xlsNoData'), ESTILO.texto)])
   const reportes: Hoja = { nombre: t('admin.sec.reports'), anchos: [60, 10], fijas: 1, filas: rep }
 
-  // 6. Actividad (vistas por día y por hora)
-  const act: Celda[][] = [[cab('admin.xlsDay'), cab('admin.views'), null, cab('admin.xlsHour'), cab('admin.views')]]
-  for (let i = 0; i < 24; i++) {
+  // 6. Actividad (vistas por fecha del rango, por día de la semana y por hora)
+  const act: Celda[][] = [
+    [cab('admin.xlsDate'), cab('admin.views'), null, cab('admin.xlsDay'), cab('admin.views'), null, cab('admin.xlsHour'), cab('admin.views')],
+  ]
+  for (let i = 0; i < Math.max(24, r.porFecha.length); i++) {
+    const f = r.porFecha[i]
     act.push([
+      f ? s(f.etiqueta, ESTILO.texto) : null,
+      f ? s(f.vistas, ESTILO.entero) : null,
+      null,
       i < 7 ? s(t(DIAS[i]), ESTILO.texto) : null,
       i < 7 ? s(r.porDia[i] ?? 0, ESTILO.entero) : null,
       null,
-      s(rangoHora(i), ESTILO.texto),
-      s(r.porHora[i] ?? 0, ESTILO.entero),
+      i < 24 ? s(rangoHora(i), ESTILO.texto) : null,
+      i < 24 ? s(r.porHora[i] ?? 0, ESTILO.entero) : null,
     ])
   }
-  const actividad: Hoja = { nombre: t('admin.xlsActivity'), anchos: [14, 10, 3, 14, 10], fijas: 1, filas: act }
+  const actividad: Hoja = { nombre: t('admin.xlsActivity'), anchos: [12, 10, 3, 14, 10, 3, 14, 10], fijas: 1, filas: act }
 
   return xlsx([resumen, crecimiento, masVistas, marcas, reportes, actividad])
 }

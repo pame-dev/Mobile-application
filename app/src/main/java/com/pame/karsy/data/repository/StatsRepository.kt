@@ -49,6 +49,8 @@ data class ReporteApp(
     val marcas: List<Pair<String, Int>>,
     val estados: List<Pair<String, Int>>,
     val masVistas: List<MasVista>,
+    /** Vistas por fecha del rango: por día hasta 31 días, por semana si es más (etiqueta = primer día). */
+    val porFecha: List<Pair<String, Int>>,
     val porDia: List<Int>,
     val porHora: List<Int>,
     val motivos: List<Pair<String, Int>>,
@@ -171,6 +173,7 @@ object StatsRepository {
                     o.int("contactos"),
                 )
             },
+            porFecha = pares("por_fecha", "etiqueta", "vistas"),
             porDia = j.floats("por_dia").map { it.toInt() },
             porHora = j.floats("por_hora").map { it.toInt() },
             motivos = pares("motivos", "motivo", "reportes"),

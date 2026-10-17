@@ -1230,7 +1230,7 @@
     <string name="admin3_interest_chart">Interés en publicaciones</string>
     <string name="admin3_growth">Crecimiento de la plataforma</string>
     <string name="admin3_views_contacts">%1$d vistas · %2$d contactos</string>
-    <string name="admin3_by_day">Vistas por día de la semana</string>
+    <string name="admin3_by_date">Vistas por fecha del rango</string>
     <string name="admin3_top_brands">Marcas con más autos</string>
     <string name="admin3_top_states">Estados con más autos</string>
     <string name="admin3_report_reasons">Motivos de reporte más comunes</string>

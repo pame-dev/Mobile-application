@@ -6,7 +6,7 @@ import { adminReport, adminStats, type AdminStats, type ReporteApp } from '../..
 import { mensajeUsuario } from '../../data/auth'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import { fraccion, libroAdmin, seccionesResumen } from '../../lib/exportarAdmin'
-import { DIAS, descargar } from '../../lib/exportarPanel'
+import { descargar } from '../../lib/exportarPanel'
 import { entero } from '../../lib/format'
 import { LineChart, PairBars } from './AdminParts'
 
@@ -51,7 +51,10 @@ function ReportePdf({ stats, r, dias }: { stats: AdminStats; r: ReporteApp; dias
     [t('admin.views'), r.interes.vistas, t('admin.reportInRange', { n: dias })],
     [t('admin.contacts'), r.interes.contactos, pctTexto(r.interes.contactos, r.interes.vistas)],
   ]
-  const maxDia = Math.max(1, ...r.porDia)
+  const maxFecha = Math.max(1, ...r.porFecha.map((f) => f.vistas))
+  // Con muchas barras (30 días) no caben todas las fechas: se muestra una de cada tantas,
+  // contando desde la última para que hoy siempre tenga su fecha.
+  const cadaCuantas = Math.ceil(r.porFecha.length / 8)
   const maxVistas = Math.max(1, ...r.masVistas.map((m) => m.vistas))
   const c = stats.crecimiento
   return createPortal(
@@ -175,12 +178,12 @@ function ReportePdf({ stats, r, dias }: { stats: AdminStats; r: ReporteApp; dias
         <h2>{t('admin.xlsActivity')}</h2>
         <div className="ractividad">
           <div>
-            <span>{t('admin.reportByDay')}</span>
-            <div className="rmeses" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
-              {r.porDia.map((v, i) => (
-                <div key={i}>
-                  <i style={{ height: `${Math.max(2, (v * 100) / maxDia)}%` }} />
-                  <small>{t(DIAS[i]).slice(0, 3)}</small>
+            <span>{t('admin.reportByDate')}</span>
+            <div className="rmeses" style={{ gridTemplateColumns: `repeat(${Math.max(1, r.porFecha.length)}, 1fr)`, gap: 2 }}>
+              {r.porFecha.map((f, i) => (
+                <div key={f.etiqueta + i} title={`${f.etiqueta}: ${f.vistas}`}>
+                  <i style={{ height: `${Math.max(2, (f.vistas * 100) / maxFecha)}%` }} />
+                  <small>{(r.porFecha.length - 1 - i) % cadaCuantas === 0 ? f.etiqueta : ''}</small>
                 </div>
               ))}
             </div>

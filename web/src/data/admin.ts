@@ -76,6 +76,8 @@ export interface ReporteApp {
   marcas: { nombre: string; publicaciones: number }[]
   estados: { nombre: string; publicaciones: number }[]
   masVistas: { id: number; titulo: string; vendedor: string; vistas: number; contactos: number }[]
+  /** Vistas por fecha del rango: por día hasta 31 días, por semana si es más (etiqueta = primer día). */
+  porFecha: { etiqueta: string; vistas: number }[]
   porDia: number[]
   porHora: number[]
   motivos: { motivo: string; reportes: number }[]
@@ -101,6 +103,7 @@ export async function adminReport(dias: number): Promise<ReporteApp> {
     marcas: lista('marcas').map((m) => ({ nombre: String(m.nombre ?? '—'), publicaciones: n(m.publicaciones) })),
     estados: lista('estados').map((m) => ({ nombre: String(m.nombre ?? '—'), publicaciones: n(m.publicaciones) })),
     masVistas: lista('mas_vistas').map((m) => ({ id: n(m.id), titulo: String(m.titulo ?? ''), vendedor: String(m.vendedor ?? ''), vistas: n(m.vistas), contactos: n(m.contactos) })),
+    porFecha: lista('por_fecha').map((m) => ({ etiqueta: String(m.etiqueta ?? ''), vistas: n(m.vistas) })),
     porDia: ((j.por_dia as unknown[]) ?? []).map(Number),
     porHora: ((j.por_hora as unknown[]) ?? []).map(Number),
     motivos: lista('motivos').map((m) => ({ motivo: String(m.motivo ?? ''), reportes: n(m.reportes) })),
