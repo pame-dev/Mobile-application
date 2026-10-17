@@ -435,11 +435,12 @@ table.t tr:hover td{background:var(--bg)}
 /* Mi panel: reporte para imprimir / "Guardar como PDF" (solo existe mientras se imprime) */
 .reportepanel{display:none}
 @media print{
-  /* Sin márgenes de hoja: así el navegador no agrega fecha y título arriba; el margen va adentro. */
+  /* Sin márgenes de hoja: así el navegador no agrega fecha y título arriba; el margen va adentro
+     y se repite en cada hoja (clone), para que lo que pasa a otra hoja no quede pegado a la orilla. */
   @page{margin:0}
   html:has(body.imprimiendo),body.imprimiendo{background:#fff!important}
   body.imprimiendo #root{display:none}
-  body.imprimiendo .reportepanel{display:block;padding:14mm 14mm 12mm;color:#0D2B45;font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body.imprimiendo .reportepanel{display:block;padding:14mm 14mm 12mm;box-decoration-break:clone;-webkit-box-decoration-break:clone;color:#0D2B45;font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .reportepanel header{display:flex;align-items:center;gap:12px;border-bottom:2px solid #0D2B45;padding-bottom:10px;margin-bottom:14px}
   .reportepanel header img{width:44px;height:44px;border-radius:10px}
   .reportepanel .rmarca{font-size:20px;letter-spacing:.02em}
