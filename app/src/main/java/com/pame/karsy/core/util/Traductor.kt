@@ -1,7 +1,10 @@
 package com.pame.karsy.core.util
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
@@ -24,17 +27,46 @@ object Traductor {
     private const val API = "https://api.mymemory.translated.net/get"
     private const val MAX_BYTES = 450
     private val cache = mutableMapOf<String, String>()
+    private val enCurso = mutableMapOf<String, Deferred<String?>>()
+    private val alcance = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val json = Json { ignoreUnknownKeys = true }
+
+    /**
+     * Inicio del texto que cabe en una tarjeta (hasta [max] caracteres, cortado en la última
+     * palabra completa) y si se cortó. Se traduce solo eso para gastar poco del límite diario.
+     */
+    fun inicio(texto: String, max: Int = 100): Pair<String, Boolean> {
+        val limpio = texto.trim().replace(Regex("\\s+"), " ")
+        if (limpio.length <= max) return limpio to false
+        val corte = limpio.lastIndexOf(' ', max).takeIf { it > max / 2 } ?: max
+        return limpio.substring(0, corte).trimEnd() to true
+    }
 
     /** El texto en inglés, o null si no se pudo traducir. */
     suspend fun alIngles(texto: String): String? {
         val limpio = texto.trim()
         if (limpio.isEmpty()) return null
-        synchronized(cache) { cache[limpio] }?.let { return it }
-        return withContext(Dispatchers.IO) {
-            runCatching { partes(limpio).joinToString("") { traducirParte(it) }.trim() }.getOrNull()
-        }?.also { synchronized(cache) { cache[limpio] = it } }
+        // Una sola petición por texto aunque la pidan varias tarjetas a la vez. Corre aparte de
+        // quien la pidió: si esa tarjeta sale de pantalla, el resultado se guarda igual.
+        val pedido = synchronized(cache) {
+            cache[limpio]?.let { return it }
+            enCurso.getOrPut(limpio) {
+                alcance.async {
+                    runCatching { partes(limpio).joinToString("") { traducirParte(it) }.trim() }.getOrNull()
+                        .also { r ->
+                            synchronized(cache) {
+                                if (r != null) cache[limpio] = r
+                                enCurso.remove(limpio)
+                            }
+                        }
+                }
+            }
+        }
+        return pedido.await()
     }
+
+    /** La traducción ya guardada (sin pedirla), o null. */
+    fun guardada(texto: String): String? = synchronized(cache) { cache[texto.trim()] }
 
     private fun bytes(t: String) = t.toByteArray(Charsets.UTF_8).size
 

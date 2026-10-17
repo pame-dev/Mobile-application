@@ -3,7 +3,7 @@
 import { traducir } from '../i18n/I18nContext'
 import { publicUrl, supabase } from '../lib/supabase'
 import type { AnuncioRow, Car, CarDetail, Catalogs, Lot, LotContact, SellerContact, SellerProfile } from './types'
-import { traducirAlIngles } from '../lib/traductor'
+import { inicio, traduccionGuardada, traducirAlIngles } from '../lib/traductor'
 
 const VISTA = 'v_anuncios'
 
@@ -324,4 +324,18 @@ export async function traduccionPublicacion(
 ): Promise<{ descripcion: string | null; problemas: string | null } | null> {
   const [d, p] = await Promise.all([traducirAlIngles(descripcion), traducirAlIngles(problemas)])
   return d || p ? { descripcion: d, problemas: p } : null
+}
+
+/** Lo que se ve de la descripción en una tarjeta, en inglés ("…" si se cortó); null si no se pudo. */
+export async function resumenEnIngles(descripcion: string): Promise<string | null> {
+  const [texto, cortado] = inicio(descripcion)
+  const tr = await traducirAlIngles(texto)
+  return tr && cortado ? `${tr}…` : tr
+}
+
+/** Igual que resumenEnIngles pero solo si ya está guardado (para mostrarlo sin esperar). */
+export function resumenGuardado(descripcion: string): string | null {
+  const [texto, cortado] = inicio(descripcion)
+  const tr = traduccionGuardada(texto)
+  return tr && cortado ? `${tr}…` : tr
 }

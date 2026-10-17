@@ -357,4 +357,16 @@ object CarRepository {
         val p = async { Traductor.alIngles(problemas) }
         TraduccionDto(d.await(), p.await()).takeIf { it.descripcion != null || it.problemas != null }
     }
+
+    /** Lo que se ve de la descripción en una tarjeta, en inglés ("…" si se cortó); null si no se pudo. */
+    suspend fun resumenEnIngles(descripcion: String): String? {
+        val (inicio, cortado) = Traductor.inicio(descripcion)
+        return Traductor.alIngles(inicio)?.let { if (cortado) "$it…" else it }
+    }
+
+    /** Igual que [resumenEnIngles] pero solo si ya está guardado (para mostrarlo sin esperar). */
+    fun resumenGuardado(descripcion: String): String? {
+        val (inicio, cortado) = Traductor.inicio(descripcion)
+        return Traductor.guardada(inicio)?.let { if (cortado) "$it…" else it }
+    }
 }
