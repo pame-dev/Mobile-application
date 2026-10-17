@@ -151,8 +151,14 @@ export async function favoriteCars(userId: string): Promise<Car[]> {
   const rows = check(
     await supabase.from('favoritos').select('id_publicacion').eq('id_cuenta', userId).order('fecha_guardado', { ascending: false }),
   ) as { id_publicacion: number }[]
-  return carsByIds(rows.map((r) => r.id_publicacion))
+  return (await carsByIds(rows.map((r) => r.id_publicacion))).filter(sigueDisponible)
 }
+
+/**
+ * Favoritos e historial no muestran las publicaciones que su dueño pausó o que el admin
+ * deshabilitó (no se borran: si se reactivan, vuelven a aparecer). Igual que la app.
+ */
+export const sigueDisponible = (car: Car) => car.status !== 'Pausado' && car.status !== 'Deshabilitado'
 
 export async function setFavorite(userId: string, id: number, favorite: boolean): Promise<void> {
   if (favorite) check(await supabase.from('favoritos').insert({ id_cuenta: userId, id_publicacion: id }))

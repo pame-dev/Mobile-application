@@ -128,8 +128,14 @@ object CarRepository {
             filter { eq("id_cuenta", uid) }
             order("fecha_guardado", Order.DESCENDING)
         }.decodeList<FavoritoDto>().map { it.idPublicacion }
-        return carsByIds(ids)
+        return carsByIds(ids).filter(::sigueDisponible)
     }
+
+    /**
+     * Favoritos e historial no muestran las publicaciones que su dueño pausó o que el admin
+     * deshabilitó (no se borran: si se reactivan, vuelven a aparecer).
+     */
+    internal fun sigueDisponible(car: Car): Boolean = car.status != "Pausado" && car.status != "Deshabilitado"
 
     suspend fun setFavorite(id: Long, favorite: Boolean) {
         val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_favorite))
@@ -200,7 +206,7 @@ object CarRepository {
             limit(200)
         }.decodeList<InteraccionDto>().distinctBy { it.idPublicacion }
 
-        val autos = carsByIds(vistas.map { it.idPublicacion }).associateBy { it.id }
+        val autos = carsByIds(vistas.map { it.idPublicacion }).filter(::sigueDisponible).associateBy { it.id }
         return vistas.mapNotNull { v ->
             autos[v.idPublicacion]?.let { it to texto(R.string.core_history_seen, Formato.haceCuanto(v.fechaHora).replaceFirstChar { c -> c.lowercase() }) }
         }
