@@ -1,7 +1,7 @@
 /**
  * Traducción automática español → inglés con MyMemory (gratis, sin cuenta ni clave; la
- * llama directo el navegador). La usa el detalle de un auto en inglés para la descripción
- * y las imperfecciones. Igual que core/util/Traductor.kt en la app.
+ * llama directo el navegador). La usa en inglés el detalle de un auto (descripción
+ * e imperfecciones) y las tarjetas (inicio de la descripción). Igual que core/util/Traductor.kt.
  *
  * - MyMemory acepta hasta ~500 bytes por petición: el texto se parte por oraciones.
  * - Límite gratuito: unos 5,000 caracteres al día por conexión; si se acaba o falla,
@@ -46,17 +46,46 @@ async function traducirParte(texto: string): Promise<string> {
   return texto.replace(texto.trim(), traducido)
 }
 
+/**
+ * Inicio del texto que cabe en una tarjeta (hasta `max` caracteres, cortado en la última
+ * palabra completa) y si se cortó. Se traduce solo eso para gastar poco del límite diario.
+ */
+export function inicio(texto: string, max = 100): [string, boolean] {
+  const limpio = texto.trim().replace(/\s+/g, ' ')
+  if (limpio.length <= max) return [limpio, false]
+  const espacio = limpio.lastIndexOf(' ', max)
+  const corte = espacio > max / 2 ? espacio : max
+  return [limpio.slice(0, corte).trimEnd(), true]
+}
+
 /** El texto en inglés, o null si no se pudo traducir. */
 export async function traducirAlIngles(texto: string): Promise<string | null> {
   const limpio = texto.trim()
   if (!limpio) return null
-  const clave = CACHE + limpio
-  try {
-    const guardado = localStorage.getItem(clave)
-    if (guardado) return guardado
-  } catch {
-    // almacenamiento bloqueado: se traduce sin guardar
+  const guardado = traduccionGuardada(limpio)
+  if (guardado) return guardado
+  // Una sola petición por texto aunque la pidan varias tarjetas a la vez.
+  let pedido = enCurso.get(limpio)
+  if (!pedido) {
+    pedido = pedir(limpio).finally(() => enCurso.delete(limpio))
+    enCurso.set(limpio, pedido)
   }
+  return pedido
+}
+
+const enCurso = new Map<string, Promise<string | null>>()
+
+/** La traducción ya guardada en este navegador (sin pedirla), o null. */
+export function traduccionGuardada(texto: string): string | null {
+  try {
+    return localStorage.getItem(CACHE + texto.trim())
+  } catch {
+    return null // almacenamiento bloqueado: se traduce sin guardar
+  }
+}
+
+async function pedir(limpio: string): Promise<string | null> {
+  const clave = CACHE + limpio
   try {
     let resultado = ''
     for (const p of partes(limpio)) resultado += await traducirParte(p)

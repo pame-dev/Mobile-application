@@ -2,7 +2,7 @@
 // StatsRepository y UserRepository de la app (mismas tablas y funciones de la BD).
 import { publicUrl, supabase, BUCKET } from '../lib/supabase'
 import { traducir } from '../i18n/I18nContext'
-import { carsByIds, toCar, UserError } from './api'
+import { carsByIds, sigueDisponible, toCar, UserError } from './api'
 import type { AnuncioRow, Car } from './types'
 
 function check<T>(res: { data: T; error: { message: string; code?: string } | null }): T {
@@ -222,7 +222,7 @@ export async function history(userId: string): Promise<{ car: Car; seenAt: strin
   ) as { id_publicacion: number; fecha_hora: string }[]
   const vistas = new Map<number, string>()
   for (const r of rows) if (!vistas.has(r.id_publicacion)) vistas.set(r.id_publicacion, r.fecha_hora)
-  const cars = await carsByIds([...vistas.keys()])
+  const cars = (await carsByIds([...vistas.keys()])).filter(sigueDisponible)
   return cars.map((car) => ({ car, seenAt: vistas.get(car.id)! }))
 }
 

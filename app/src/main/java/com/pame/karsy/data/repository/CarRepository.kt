@@ -128,8 +128,15 @@ object CarRepository {
             filter { eq("id_cuenta", uid) }
             order("fecha_guardado", Order.DESCENDING)
         }.decodeList<FavoritoDto>().map { it.idPublicacion }
-        return carsByIds(ids)
+        return carsByIds(ids).filter(::sigueDisponible)
     }
+
+    /**
+     * Favoritos e historial solo muestran lo que el público puede ver (activas y vendidas):
+     * no las pausadas, deshabilitadas, en revisión ni rechazadas, aunque las haya abierto el
+     * dueño o el admin. No se borran: si se reactivan, vuelven a aparecer.
+     */
+    internal fun sigueDisponible(car: Car): Boolean = car.status == "Activo" || car.status == "Vendido"
 
     suspend fun setFavorite(id: Long, favorite: Boolean) {
         val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_favorite))
@@ -200,7 +207,7 @@ object CarRepository {
             limit(200)
         }.decodeList<InteraccionDto>().distinctBy { it.idPublicacion }
 
-        val autos = carsByIds(vistas.map { it.idPublicacion }).associateBy { it.id }
+        val autos = carsByIds(vistas.map { it.idPublicacion }).filter(::sigueDisponible).associateBy { it.id }
         return vistas.mapNotNull { v ->
             autos[v.idPublicacion]?.let { it to texto(R.string.core_history_seen, Formato.haceCuanto(v.fechaHora).replaceFirstChar { c -> c.lowercase() }) }
         }
@@ -349,5 +356,17 @@ object CarRepository {
         val d = async { Traductor.alIngles(descripcion) }
         val p = async { Traductor.alIngles(problemas) }
         TraduccionDto(d.await(), p.await()).takeIf { it.descripcion != null || it.problemas != null }
+    }
+
+    /** Lo que se ve de la descripción en una tarjeta, en inglés ("…" si se cortó); null si no se pudo. */
+    suspend fun resumenEnIngles(descripcion: String): String? {
+        val (inicio, cortado) = Traductor.inicio(descripcion)
+        return Traductor.alIngles(inicio)?.let { if (cortado) "$it…" else it }
+    }
+
+    /** Igual que [resumenEnIngles] pero solo si ya está guardado (para mostrarlo sin esperar). */
+    fun resumenGuardado(descripcion: String): String? {
+        val (inicio, cortado) = Traductor.inicio(descripcion)
+        return Traductor.guardada(inicio)?.let { if (cortado) "$it…" else it }
     }
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
 import { Inventory, ProfileHeader } from '../components/ProfileParts'
+import { Traducido } from '../components/Traducido'
 import { useUi } from '../components/Ui'
 import { lot as cargarLote, lotContact, ownerVisibleCars } from '../data/api'
 import type { Car, Lot, LotContact } from '../data/types'
@@ -107,7 +108,11 @@ export function LotProfile() {
 
       <div className="twocol" style={{ marginTop: 24 }}>
         <aside className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {lote.description && <p className="muted">{lote.description}</p>}
+          {lote.description && (
+            <p className="muted">
+              <Traducido texto={lote.description} />
+            </p>
+          )}
           <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
             {invitado || !contacto?.phone ? (
               <button className="btn btn-primary btn-sm" aria-disabled={!puedeLlamar} onClick={pedirRegistro}>

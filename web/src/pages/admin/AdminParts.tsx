@@ -3,6 +3,7 @@ import { VolverButton } from '../../components/VolverButton'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertBox } from '../../components/AuthParts'
 import { Icon } from '../../components/Icon'
+import { Traducido } from '../../components/Traducido'
 import { ModalHead, useUi } from '../../components/Ui'
 import { adminAccounts, adminReports, moderateProposal, resolveReport, setAccountSuspended, type CuentaAdmin, type ReporteAdmin } from '../../data/admin'
 import { mensajeUsuario } from '../../data/auth'
@@ -437,7 +438,7 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
         <b style={{ color: 'var(--ink)' }}>{t('admin.reportReviewBar', { id: idReporte })}</b>
         {r && <Badge s={r.estado_reporte.charAt(0).toUpperCase() + r.estado_reporte.slice(1)} />}
         <span className="grow muted" style={{ fontSize: 13 }}>
-          {r === null ? t('admin.reportNotFound') : r ? r.motivo_reporte : ''}
+          {r === null ? t('admin.reportNotFound') : r ? <Traducido texto={r.motivo_reporte} /> : ''}
         </span>
       </div>
       <div className="acts">

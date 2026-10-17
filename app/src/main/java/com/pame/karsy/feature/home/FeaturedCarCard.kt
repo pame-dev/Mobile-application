@@ -130,7 +130,7 @@ fun FeaturedCarCard(
                 )
             }
             Text(
-                car.description,
+                rememberDescripcionTarjeta(car.description),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 lineHeight = 19.5.sp,

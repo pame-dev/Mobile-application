@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
+import { Traducido } from '../components/Traducido'
 import { VolverButton } from '../components/VolverButton'
 import { lots as cargarLotes } from '../data/api'
 import type { Lot } from '../data/types'
@@ -111,7 +112,7 @@ export function Lots() {
                 )}
                 {l.description && (
                   <span className="muted" style={{ fontSize: 13, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {l.description}
+                    <Traducido texto={l.description} />
                   </span>
                 )}
                 <span className="badge b-info" style={{ alignSelf: 'flex-start', marginTop: 6 }}>

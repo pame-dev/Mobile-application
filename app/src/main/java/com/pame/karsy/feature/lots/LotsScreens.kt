@@ -68,6 +68,7 @@ import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import com.pame.karsy.core.session.UserMode
@@ -256,7 +257,7 @@ private fun LotCard(lot: Lot, onClick: () -> Unit) {
                 modifier = Modifier.padding(top = 2.dp)
             )
             if (lot.description.isNotBlank()) Text(
-                lot.description,
+                rememberTraduccion(lot.description),
                 fontFamily = DmSans,
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
@@ -483,7 +484,7 @@ private fun LotIdentityCard(
             }
         }
         if (lot.description.isNotBlank()) Text(
-            lot.description,
+            rememberTraduccion(lot.description),
             fontFamily = DmSans,
             fontSize = 14.sp,
             lineHeight = 20.sp,

@@ -429,12 +429,18 @@ export function Dashboard() {
       new Promise((ok) => setTimeout(ok, 4000)),
     ])
     document.body.classList.add('imprimiendo')
+    // En el celular window.print() no espera a que se cierre la vista previa y "afterprint" llega
+    // antes de que se genere el PDF (salía la pantalla en vez del reporte). Por eso se limpia hasta
+    // el siguiente toque o tecla; mientras tanto el reporte sigue oculto en pantalla.
     const fin = () => {
+      window.removeEventListener('pointerdown', fin)
+      window.removeEventListener('keydown', fin)
       document.body.classList.remove('imprimiendo')
       setImprimir(false)
     }
-    window.addEventListener('afterprint', fin, { once: true })
     window.print()
+    window.addEventListener('pointerdown', fin)
+    window.addEventListener('keydown', fin)
   }
 
   const visibles = (cars ?? []).filter((c) => !(sePuedeOcultar(c) && ocultasIds.has(c.id)))

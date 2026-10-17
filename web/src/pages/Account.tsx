@@ -426,6 +426,39 @@ function LanguageModal() {
   )
 }
 
+const TEMAS: [Tema, 'settings.themeLight' | 'settings.themeDark' | 'settings.themeSystem', string][] = [
+  ['light', 'settings.themeLight', '☀️'],
+  ['dark', 'settings.themeDark', '🌙'],
+  ['', 'settings.themeSystem', '📱'],
+]
+
+/** Selector de tema, igual que el de idioma: claro, oscuro o el del sistema. */
+function ThemeModal({ tema, onElegir }: { tema: Tema; onElegir: (t: Tema) => void }) {
+  const { closeModal } = useUi()
+  const { t } = useI18n()
+  return (
+    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <ModalHead title={t('settings.theme')} sub={t('settings.themeDesc')} />
+      {TEMAS.map(([v, clave, icono]) => (
+        <button
+          key={clave}
+          className={`langopt ${tema === v ? 'on' : ''}`}
+          role="radio"
+          aria-checked={tema === v}
+          onClick={() => {
+            onElegir(v)
+            closeModal()
+          }}
+        >
+          <span style={{ fontSize: 22 }}>{icono}</span>
+          <b className="grow">{t(clave)}</b>
+          <span className="radio" />
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export function Settings() {
   const navigate = useNavigate()
   const { openModal } = useUi()
@@ -461,22 +494,8 @@ export function Settings() {
         <SetRow
           icon="moon"
           title={t('settings.theme')}
-          desc={t('settings.themeDesc')}
-          right={
-            <span className="seg">
-              {(
-                [
-                  ['light', 'settings.themeLight'],
-                  ['dark', 'settings.themeDark'],
-                  ['', 'settings.themeSystem'],
-                ] as const
-              ).map(([v, clave]) => (
-                <button key={clave} className={tema === v ? 'on' : ''} onClick={() => elegirTema(v)}>
-                  {t(clave)}
-                </button>
-              ))}
-            </span>
-          }
+          desc={t(TEMAS.find(([v]) => v === tema)![1])}
+          onClick={() => openModal(<ThemeModal tema={tema} onElegir={elegirTema} />)}
         />
         <SetRow icon="doc" title={t('settings.terms')} desc={t('settings.termsDesc')} onClick={() => navigate('/terminos')} />
       </div>
