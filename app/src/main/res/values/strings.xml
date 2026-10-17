@@ -1227,6 +1227,7 @@
     <string name="admin3_day">Día</string>
     <string name="admin3_hour">Hora</string>
     <string name="admin3_report_footer">Generado con Karsy · karsy.netlify.app</string>
+    <string name="admin3_interest_chart">Interés en publicaciones</string>
     <string name="admin3_growth">Crecimiento de la plataforma</string>
     <string name="admin3_views_contacts">%1$d vistas · %2$d contactos</string>
     <string name="admin3_by_day">Vistas por día de la semana</string>

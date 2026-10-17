@@ -485,6 +485,11 @@ table.t tr:hover td{background:var(--bg)}
   .reportepanel .radmin h3{font-size:12px;margin:0 0 4px;color:#2C9AA0}
   .reportepanel .radmin p{display:flex;justify-content:space-between;gap:8px;margin:2px 0}
   .reportepanel .radmin p b{font-size:11.5px}
+  /* Gráficas del panel en el reporte: colores fijos para hoja blanca (aunque la web esté en modo oscuro). */
+  .reportepanel .legend{margin:6px 0;color:#5B6B7A}
+  .reportepanel .chart{max-height:200px}
+  .reportepanel .chart text{fill:#5B6B7A}
+  .reportepanel .chart .grid line{stroke:#D7DEE5}
   .reportepanel .rconsejos{break-inside:avoid}
   .reportepanel .rconsejos ul{margin:6px 0 0;padding-left:18px}
   .reportepanel .rconsejos li{margin:3px 0}

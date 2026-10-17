@@ -8,6 +8,7 @@ import { traducir, useI18n } from '../../i18n/I18nContext'
 import { fraccion, libroAdmin, seccionesResumen } from '../../lib/exportarAdmin'
 import { DIAS, descargar } from '../../lib/exportarPanel'
 import { entero } from '../../lib/format'
+import { LineChart, PairBars } from './AdminParts'
 
 /** Elegir formato: Excel (.xlsx) para trabajar los números o PDF para presentarlos. */
 function ExportarModal({ onExcel, onPdf }: { onExcel: () => void; onPdf: () => void }) {
@@ -92,36 +93,49 @@ function ReportePdf({ stats, r, dias }: { stats: AdminStats; r: ReporteApp; dias
           ))}
       </div>
 
+      {/* Las dos gráficas del panel, con el mismo rango (7, 30 o 90 días). */}
       <section className="rbloque">
         <h2>{t('admin.growthTitle')}</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>{t('admin.xlsDate')}</th>
-              {c.etiquetas.map((e) => (
-                <th key={e}>{e}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {(
-              [
-                [t('admin.legendUsers'), c.usuarios],
-                [t('admin.legendLots'), c.lotes],
-                [t('admin.legendListings'), c.publicaciones],
-              ] as [string, number[]][]
-            ).map(([k, v]) => (
-              <tr key={k}>
-                <td>
-                  <b className="rauto">{k}</b>
-                </td>
-                {v.map((x, i) => (
-                  <td key={i}>{entero(x)}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <p className="rsub">{t('admin.growthSub')}</p>
+        <div className="legend">
+          <span>
+            <i style={{ background: '#3B82F6' }} />
+            {t('admin.legendUsers')}
+          </span>
+          <span>
+            <i style={{ background: '#8B5CF6' }} />
+            {t('admin.legendLots')}
+          </span>
+          <span>
+            <i style={{ background: '#22C55E' }} />
+            {t('admin.legendListings')}
+          </span>
+        </div>
+        <LineChart
+          labels={c.etiquetas}
+          h={180}
+          series={[
+            ['#3B82F6', c.usuarios],
+            ['#8B5CF6', c.lotes],
+            ['#22C55E', c.publicaciones],
+          ]}
+        />
+      </section>
+
+      <section className="rbloque">
+        <h2>{t('admin.interestTitle')}</h2>
+        <p className="rsub">{t('admin.interestSub')}</p>
+        <div className="legend">
+          <span>
+            <i style={{ background: '#3B82F6' }} />
+            {t('admin.views')}
+          </span>
+          <span>
+            <i style={{ background: 'var(--teal)' }} />
+            {t('admin.contacts')}
+          </span>
+        </div>
+        <PairBars labels={stats.interacciones.etiquetas} a={stats.interacciones.vistas} b={stats.interacciones.contactos} h={180} />
       </section>
 
       {r.masVistas.length > 0 && (
@@ -175,7 +189,7 @@ function ReportePdf({ stats, r, dias }: { stats: AdminStats; r: ReporteApp; dias
             {seccionesResumen(r, t)
               .find(([k]) => k === 'admin.xlsActivity')![1]
               .map(([k, v]) => (
-                <div key={k} style={{ border: 0, padding: 0 }}>
+                <div key={k} style={{ border: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
                   <span>{k}</span>
                   <b>{v}</b>
                 </div>

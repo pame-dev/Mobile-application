@@ -341,22 +341,78 @@ object ExportarAdmin {
                 y += altoFila + gap
             }
 
-            // Crecimiento (acumulados)
-            titulo(R.string.admin3_growth)
-            val et = stats.crecimientoEtiquetas
-            val colW = (ancho - margen * 2 - 90) / et.size.coerceAtLeast(1)
-            c.drawText(texto(R.string.admin3_date), margen, y + 10, paint(8f, gris, true))
-            et.forEachIndexed { i, e -> c.drawText(e, margen + 90 + i * colW, y + 10, paint(8f, gris, true)) }
-            y += 16
-            listOf(
-                R.string.admin3_legend_users to stats.crecimientoUsuarios,
-                R.string.admin3_legend_lots to stats.crecimientoLotes,
-                R.string.admin3_legend_listings to stats.crecimientoPublicaciones,
-            ).forEach { (id, serie) ->
-                c.drawText(texto(id), margen, y + 10, paint(9.5f, bold = true))
-                serie.forEachIndexed { i, v -> c.drawText(entero(v.toInt()), margen + 90 + i * colW, y + 10, paint(9.5f)) }
-                y += 15
+            // Gráficas del panel, con el mismo rango (7, 30 o 90 días)
+            val azul = Color.rgb(59, 130, 246)
+            val morado = Color.rgb(139, 92, 246)
+            val verde = Color.rgb(34, 197, 94)
+            /** Leyenda: cuadrito de color y texto, en una fila. */
+            fun leyenda(items: List<Pair<Int, Int>>) {
+                var x = margen
+                items.forEach { (color, id) ->
+                    c.drawRoundRect(RectF(x, y + 3, x + 8, y + 11), 2f, 2f, relleno(color))
+                    val txt = texto(id)
+                    c.drawText(txt, x + 12, y + 11, paint(8.5f, gris))
+                    x += 12 + paint(8.5f).measureText(txt) + 14
+                }
+                y += 18
             }
+            /** Ejes: líneas guía con su valor y las etiquetas abajo. Devuelve (x de cada punto, función valor→y). */
+            fun ejes(etiquetas: List<String>, max: Float, alturaG: Float): Pair<List<Float>, (Float) -> Float> {
+                val izq = margen + 28
+                val der = ancho - margen
+                val base = y + alturaG
+                val tope = maxOf(4f, max).let { m -> (kotlin.math.ceil(m / 4.0) * 4).toFloat() }
+                for (k in 0..4) {
+                    val yy = base - alturaG * k / 4
+                    c.drawLine(izq, yy, der, yy, paint(1f, linea))
+                    // Alineado a la derecha, pegado a la gráfica (las cifras grandes no la tocan).
+                    val valor = entero((tope * k / 4).roundToInt())
+                    val pv = paint(7.5f, gris)
+                    c.drawText(valor, izq - 4 - pv.measureText(valor), yy + 3, pv)
+                }
+                val n = etiquetas.size.coerceAtLeast(1)
+                val paso = (der - izq) / n
+                val xs = etiquetas.indices.map { izq + paso * it + paso / 2 }
+                etiquetas.forEachIndexed { i, e ->
+                    val p = paint(7.5f, gris)
+                    c.drawText(e, xs[i] - p.measureText(e) / 2, base + 11, p)
+                }
+                return xs to { v: Float -> base - alturaG * v / tope }
+            }
+
+            // Crecimiento (acumulados): líneas
+            asegurar(190f)
+            titulo(R.string.admin3_growth)
+            leyenda(listOf(azul to R.string.admin3_legend_users, morado to R.string.admin3_legend_lots, verde to R.string.admin3_legend_listings))
+            val series = listOf(azul to stats.crecimientoUsuarios, morado to stats.crecimientoLotes, verde to stats.crecimientoPublicaciones)
+            val maxC = series.flatMap { it.second }.maxOrNull() ?: 0f
+            val (xsC, yC) = ejes(stats.crecimientoEtiquetas, maxC, 110f)
+            series.forEach { (color, datos) ->
+                val trazo = paint(1f, color).apply { strokeWidth = 2f; style = Paint.Style.STROKE }
+                datos.take(xsC.size).forEachIndexed { i, v ->
+                    if (i > 0) c.drawLine(xsC[i - 1], yC(datos[i - 1]), xsC[i], yC(v), trazo)
+                    c.drawCircle(xsC[i], yC(v), 2.5f, relleno(color))
+                }
+            }
+            y += 110f + 22
+
+            // Interés: vistas vs contactos por periodo (barras pareadas)
+            asegurar(190f)
+            titulo(R.string.admin3_interest_chart)
+            leyenda(listOf(azul to R.string.admin3_views, teal to R.string.admin3_contacts))
+            val vistasP = stats.vistasPorMes.map { it.toFloat() }
+            val contactosP = stats.contactosPorMes.map { it.toFloat() }
+            val maxI = (vistasP + contactosP).maxOrNull() ?: 0f
+            val (xsI, yI) = ejes(stats.interaccionesEtiquetas, maxI, 110f)
+            val anchoBarra = ((ancho - margen * 2 - 28) / xsI.size.coerceAtLeast(1)) * 0.28f
+            xsI.forEachIndexed { i, x ->
+                val v = vistasP.getOrElse(i) { 0f }
+                val k = contactosP.getOrElse(i) { 0f }
+                val base = yI(0f)
+                c.drawRoundRect(RectF(x - anchoBarra - 1, yI(v), x - 1, base), 2f, 2f, relleno(azul))
+                c.drawRoundRect(RectF(x + 1, yI(k), x + anchoBarra + 1, base), 2f, 2f, relleno(teal))
+            }
+            y += 110f + 22
 
             // Más vistas del rango
             if (r.masVistas.isNotEmpty()) {
