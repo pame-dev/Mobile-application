@@ -432,6 +432,71 @@ table.t tr:hover td{background:var(--bg)}
 .perftrack span{display:block;height:100%;border-radius:99px;background:var(--teal)}
 .perfnums{font-size:12px}
 @media (max-width:640px){ .funnelstep{width:100%!important} }
+/* Mi panel: reporte para imprimir / "Guardar como PDF" (solo existe mientras se imprime) */
+.reportepanel{display:none}
+@media print{
+  /* Sin márgenes de hoja: así el navegador no agrega fecha y título arriba; el margen va adentro
+     y se repite en cada hoja (clone), para que lo que pasa a otra hoja no quede pegado a la orilla. */
+  @page{margin:0}
+  html:has(body.imprimiendo),body.imprimiendo{background:#fff!important}
+  body.imprimiendo #root{display:none}
+  body.imprimiendo .reportepanel{display:block;padding:14mm 14mm 12mm;box-decoration-break:clone;-webkit-box-decoration-break:clone;color:#0D2B45;font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .reportepanel header{display:flex;align-items:center;gap:12px;border-bottom:2px solid #0D2B45;padding-bottom:10px;margin-bottom:14px}
+  .reportepanel header img{width:44px;height:44px;border-radius:10px}
+  .reportepanel .rmarca{font-size:20px;letter-spacing:.02em}
+  .reportepanel h1{font-size:19px;margin:0}
+  .reportepanel header p{margin:2px 0 0;color:#5B6B7A}
+  .reportepanel h2{font-size:14px;margin:16px 0 2px}
+  .reportepanel .rsub{margin:0 0 8px;color:#5B6B7A}
+  .reportepanel .rkpis,.reportepanel .rembudo,.reportepanel .rdestacados{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .reportepanel .rembudo,.reportepanel .rdestacados{grid-template-columns:repeat(3,1fr)}
+  .reportepanel .rdestacados{margin-top:8px}
+  .reportepanel .rkpis div,.reportepanel .rembudo div,.reportepanel .rdestacados div{border:1px solid #D7DEE5;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+  .reportepanel .rdestacados div{background:#F3F7FA}
+  .reportepanel .rdestacados b{font-size:13px}
+  .reportepanel span,.reportepanel small{color:#5B6B7A;font-size:10.5px}
+  .reportepanel b{font-size:17px}
+  .reportepanel table{width:100%;border-collapse:collapse;margin-top:14px}
+  .reportepanel th{text-align:left;font-size:9.5px;text-transform:uppercase;color:#5B6B7A;border-bottom:1px solid #D7DEE5;padding:6px}
+  .reportepanel td{border-bottom:1px solid #EEF2F5;padding:6px;vertical-align:middle}
+  .reportepanel td small{display:block}
+  .reportepanel .rauto{font-size:12px}
+  .reportepanel .rfoto{width:64px}
+  .reportepanel .rfoto img,.reportepanel .rfoto span{display:block;width:60px;height:42px;border-radius:6px;object-fit:cover;background:#EEF2F5}
+  .reportepanel tr{break-inside:avoid}
+  .reportepanel .rbar{display:block;height:5px;margin-top:4px;border-radius:9px;background:#EEF2F5}
+  .reportepanel .rbar span{display:block;height:100%;border-radius:9px;background:#2C9AA0}
+  .reportepanel .rnota{margin:6px 0 0;color:#5B6B7A;font-size:10.5px}
+  .reportepanel .ralto{color:#B42318}
+  .reportepanel .rbajo{color:#16824A}
+  .reportepanel .rbloque{break-inside:avoid;margin-top:6px}
+  .reportepanel .rbloque ul{margin:6px 0 0;padding-left:18px}
+  .reportepanel .rbloque li{margin:3px 0}
+  .reportepanel .rbloque li b{font-size:11.5px}
+  .reportepanel .ractividad{display:grid;grid-template-columns:3fr 1fr;gap:8px;margin-top:6px}
+  .reportepanel .ractividad>div{border:1px solid #D7DEE5;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+  .reportepanel .ractividad b{font-size:14px;margin-bottom:4px}
+  .reportepanel .rmeses{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;height:70px;align-items:end;margin-top:4px}
+  .reportepanel .rmeses>div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .reportepanel .rmeses i{display:block;width:70%;background:#2C9AA0;border-radius:3px 3px 0 0}
+  .reportepanel .rmeses small{font-size:8.5px;line-height:12px;min-height:12px;white-space:nowrap}
+  .reportepanel .radmin{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .reportepanel .radmin.rdos{grid-template-columns:1fr 1fr}
+  .reportepanel .radmin>div{border:1px solid #D7DEE5;border-radius:8px;padding:8px 10px;break-inside:avoid}
+  .reportepanel .radmin h3{font-size:12px;margin:0 0 4px;color:#2C9AA0}
+  .reportepanel .radmin p{display:flex;justify-content:space-between;gap:8px;margin:2px 0}
+  .reportepanel .radmin p b{font-size:11.5px}
+  /* Gráficas del panel en el reporte: colores fijos para hoja blanca (aunque la web esté en modo oscuro). */
+  .reportepanel .legend{margin:6px 0;color:#5B6B7A}
+  .reportepanel .chart{max-height:200px}
+  .reportepanel .chart text{fill:#5B6B7A}
+  .reportepanel .chart .grid line{stroke:#D7DEE5}
+  .reportepanel .rconsejos{break-inside:avoid}
+  .reportepanel .rconsejos ul{margin:6px 0 0;padding-left:18px}
+  .reportepanel .rconsejos li{margin:3px 0}
+  .reportepanel .rconsejos li b{font-size:11.5px}
+  .reportepanel footer{margin-top:16px;color:#5B6B7A;font-size:9.5px;text-align:right}
+}
 /* Tablas del admin: en tableta se deslizan dentro de su tarjeta; en celular cada fila es una tarjeta. */
 .tablewrap{overflow-x:auto}
 @media (max-width:640px){
@@ -469,8 +534,6 @@ table.t tr:hover td{background:var(--bg)}
 @media (max-width:640px){ .akpis{grid-template-columns:1fr} }
 
 /* Idioma y regreso en textos legales */
-.backlink{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;margin-bottom:18px;color:var(--teal);font-weight:600;cursor:pointer}
-.backlink:hover{text-decoration:underline}
 .langopt{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid var(--border);background:var(--surface);color:var(--charcoal);text-align:left;cursor:pointer}
 .langopt.on{border-color:var(--teal);background:var(--teal-light)}
 .langopt .radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex:none;display:grid;place-items:center}

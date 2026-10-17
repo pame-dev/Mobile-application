@@ -23,7 +23,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.theme.DmSans
@@ -302,13 +302,7 @@ private fun ReasonsStep(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.padding(bottom = 16.dp)
     ) {
-        IconButton(
-            onClick = onBack,
-            colors = IconButtonDefaults.iconButtonColors(containerColor = KarsyBg, contentColor = KarsyInk),
-            modifier = Modifier.size(32.dp)
-        ) {
-            Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.detail_back), modifier = Modifier.size(20.dp))
-        }
+        KarsyBackButton(onClick = onBack, contentDescription = stringResource(R.string.detail_back))
         Column(Modifier.weight(1f)) {
             Text(
                 if (isPublicacion) stringResource(R.string.detail_reasons_listing_title) else stringResource(R.string.detail_reasons_seller_title),

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { VolverButton } from '../components/VolverButton'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Icon } from '../components/Icon'
 import { VehicleCard } from '../components/VehicleCard'
@@ -52,9 +53,7 @@ export function History() {
     <div className="wrap" style={{ paddingBottom: 40 }}>
       <div className="pagehead">
         <div className="row">
-          <button className="iconbtn" aria-label={t('settings.backLabel')} onClick={() => navigate('/perfil')}>
-            <Icon name="back" size={18} />
-          </button>
+          <VolverButton to="/perfil" />
           <h1>{t('nav.history')}</h1>
         </div>
       </div>

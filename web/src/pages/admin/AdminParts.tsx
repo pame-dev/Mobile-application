@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { VolverButton } from '../../components/VolverButton'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertBox } from '../../components/AuthParts'
 import { Icon } from '../../components/Icon'
@@ -314,10 +315,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
         </span>
       </div>
       <div className="acts">
-        <button className="btn btn-ghost btn-sm" onClick={volver}>
-          <Icon name="back" size={14} />
-          {t('admin.backToReview')}
-        </button>
+        <VolverButton onClick={volver} label={t('admin.backToReview')} />
         {propuesta != null && (
           <>
             <button className="btn btn-danger btn-sm" disabled={busy} onClick={() => moderacion.rechazar(propuesta, listo)}>
@@ -443,10 +441,7 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
         </span>
       </div>
       <div className="acts">
-        <button className="btn btn-ghost btn-sm" onClick={volver}>
-          <Icon name="back" size={14} />
-          {t('admin.backToReport')}
-        </button>
+        <VolverButton onClick={volver} label={t('admin.backToReport')} />
         {r && pendiente && (
           <>
             <button className="btn btn-ghost btn-sm" onClick={() => acciones.descartar(r, listo)}>

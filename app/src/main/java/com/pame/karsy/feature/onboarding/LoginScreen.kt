@@ -29,7 +29,6 @@ import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -58,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.components.OtpInput
@@ -140,9 +140,7 @@ private fun LoginForm(
                     .statusBarsPadding()
                     .padding(start = 12.dp, top = 8.dp)
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyInk, modifier = Modifier.size(28.dp))
-                }
+                KarsyBackButton(onClick = onBack, contentDescription = stringResource(R.string.auth_back))
             }
 
             Column(
@@ -333,9 +331,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     .statusBarsPadding()
                     .padding(start = 12.dp, end = 24.dp, top = 8.dp)
             ) {
-                IconButton(onClick = vm::back, modifier = Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.auth_back), tint = KarsyInk, modifier = Modifier.size(28.dp))
-                }
+                KarsyBackButton(onClick = vm::back, modifier = Modifier.align(Alignment.CenterStart), contentDescription = stringResource(R.string.auth_back))
                 KarsyLogo(size = 46.dp, modifier = Modifier.align(Alignment.Center))
             }
 
