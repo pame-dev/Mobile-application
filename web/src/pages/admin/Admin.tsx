@@ -249,7 +249,8 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
       title={t('admin.greeting', { name: nombre.split(' ')[0] })}
       desc={t('admin.homeDesc')}
       right={
-        <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+        // Alineados arriba: el selector de días trae margen abajo y desfasaba el botón.
+        <div className="row" style={{ gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <ExportarAdmin stats={stats} dias={rango} />
           <Tabs value={String(rango)} onChange={(v) => setRango(Number(v))} options={[7, 30, 90].map((d) => [String(d), t('admin.rangeDays', { n: d })] as [string, string])} />
         </div>

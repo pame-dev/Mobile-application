@@ -10,6 +10,8 @@ import android.graphics.pdf.PdfDocument
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -439,13 +441,20 @@ fun ExportarAdminBoton(vm: AdminViewModel) {
     var dialogo by remember { mutableStateOf(false) }
     var exportando by remember { mutableStateOf(false) }
 
-    OutlinedButton(onClick = { dialogo = true }, enabled = vm.stats != null && !exportando) {
-        if (exportando) CircularProgressIndicator(color = KarsyTeal, strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
-        else Icon(Icons.Outlined.FileDownload, contentDescription = null, tint = KarsyInk, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(8.dp))
+    // Compacto y de la misma altura que los chips de 7/30/90 días, para que quepa en la misma fila.
+    OutlinedButton(
+        onClick = { dialogo = true },
+        enabled = vm.stats != null && !exportando,
+        contentPadding = PaddingValues(horizontal = 12.dp),
+        modifier = Modifier.height(42.dp)
+    ) {
+        if (exportando) CircularProgressIndicator(color = KarsyTeal, strokeWidth = 2.dp, modifier = Modifier.size(14.dp))
+        else Icon(Icons.Outlined.FileDownload, contentDescription = null, tint = KarsyInk, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
         Text(
             stringResource(if (exportando) R.string.admin3_exporting else R.string.admin3_export),
             fontFamily = DmSans,
+            fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
             color = KarsyInk
         )

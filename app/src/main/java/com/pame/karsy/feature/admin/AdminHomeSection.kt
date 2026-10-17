@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
@@ -91,10 +92,15 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection, String?) -> 
         )
         Spacer(Modifier.height(14.dp))
         // Único selector de rango: afecta KPIs, alertas y gráficas
-        RangeChips(range = range, onSelect = vm::changeRange)
-        Spacer(Modifier.height(10.dp))
-        // Reporte de toda la app (Excel o PDF) con el rango elegido
-        ExportarAdminBoton(vm)
+        // Rango y "Exportar" en la misma fila (el botón baja solo si no cabe)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            itemVerticalAlignment = Alignment.CenterVertically
+        ) {
+            RangeChips(range = range, onSelect = vm::changeRange)
+            ExportarAdminBoton(vm)
+        }
         Spacer(Modifier.height(20.dp))
 
         // Pendientes primero: es lo que el admin tiene que atender
