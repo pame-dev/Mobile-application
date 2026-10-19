@@ -107,6 +107,10 @@ export function Publish() {
   const [d, setD] = useState<Datos>(VACIO)
   const [angulos, setAngulos] = useState<(Foto | null)[]>([null, null, null, null, null])
   const [extras, setExtras] = useState<Foto[]>([])
+  /** Foto del motor: recomendada, no obligatoria. Se sube después de los 5 ángulos. */
+  const [motor, setMotor] = useState<Foto | null>(null)
+  /** Fotos del tablero en las que el detector ve el exterior de un auto (solo avisa). */
+  const [tableroExterior, setTableroExterior] = useState<Set<string>>(new Set())
   const [step, setStep] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [cargandoEdicion, setCargandoEdicion] = useState(editId != null)
@@ -218,9 +222,14 @@ export function Publish() {
   const marcaNombre = marcaSel?.esOtro ? d.marcaOtra.trim() : marcaSel?.nombre ?? ''
   const modeloNombre = modeloSel?.esOtro ? d.modeloOtro.trim() : modeloSel?.nombre ?? ''
   const titulo = [marcaNombre, modeloNombre, d.anio.trim()].filter(Boolean).join(' ')
-  const fotos = [...angulos.filter((f): f is Foto => !!f), ...extras]
+  const fotos = [...angulos.filter((f): f is Foto => !!f), ...(motor ? [motor] : []), ...extras]
+  /** "foto del tablero, foto frontal": nombres de los ángulos en minúscula para los avisos. */
+  const nombresFotos = (indices: number[]) =>
+    indices.map((i) => t(ANGULOS[i]).replace(/^./, (c) => c.toLocaleLowerCase())).join(', ')
   fotosActuales.current = fotos
   const lugaresExtra = MAX_FOTOS - fotos.length
+  /** Ya no cabe la foto del motor: entre ángulos y adicionales se llegó a MAX_FOTOS. */
+  const motorSinLugar = !motor && fotos.length >= MAX_FOTOS
 
   const validar = (paso: number): string | null => {
     if (paso === 0) {
@@ -237,7 +246,10 @@ export function Publish() {
       if (!d.idColor) return t('publicar.errColor')
       return null
     }
-    if (paso === 1) return angulos.some((f) => !f) ? t('publicar.errRequiredPhotos') : null
+    if (paso === 1) {
+      const faltan = angulos.flatMap((f, i) => (f ? [] : [i]))
+      return faltan.length ? t('publicar.errRequiredPhotos', { fotos: nombresFotos(faltan) }) : null
+    }
     if (paso === 2) return d.descripcion.trim() ? null : t('publicar.errDescription')
     return null
   }
@@ -268,7 +280,7 @@ export function Publish() {
     const autos = await Promise.all(angulos.slice(0, ANGULOS_CON_AUTO).map((f) => revisarAuto(f!)))
     if (autos.includes(false)) {
       setRevisando(false)
-      setError(t('publicar.photosMustShowCar'))
+      setError(t('publicar.photosMustShowCar', { fotos: nombresFotos(autos.flatMap((ok, i) => (ok ? [] : [i]))) }))
       arriba.current?.scrollIntoView({ behavior: 'smooth' })
       return
     }
@@ -356,6 +368,13 @@ export function Publish() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, editId, cargandoEdicion])
 
+  /** Si en el recuadro del tablero se ve el auto por fuera, se avisa (sin bloquear: el detector puede fallar). */
+  const revisarTablero = (f: Foto) => {
+    void pareceAuto(f.url).then((r) => {
+      if (r === true) setTableroExterior((s) => new Set(s).add(f.key))
+    })
+  }
+
   const nuevaFoto = (file: File): Foto => ({ key: 'f:' + crypto.randomUUID(), url: URL.createObjectURL(file), file })
   const esImagen = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
 
@@ -364,8 +383,16 @@ export function Publish() {
     setTocado(true)
     setRepetidas(new Set())
     const foto = nuevaFoto(file)
+    // La foto del motor no es un ángulo obligatorio (va en su propio recuadro) y solo si cabe.
+    if (anguloElegido.current === ANGULOS.length) {
+      if (motorSinLugar) return
+      prepararFoto(foto)
+      setMotor(foto)
+      return
+    }
     if (anguloElegido.current < ANGULOS_CON_AUTO) void revisarAuto(foto)
     if (anguloElegido.current !== ANGULOS.length - 1) prepararFoto(foto)
+    else revisarTablero(foto)
     setAngulos((a) => a.map((f, i) => (i === anguloElegido.current ? foto : f)))
   }
   const agregarExtras = (files: File[]) => {
@@ -482,17 +509,19 @@ export function Publish() {
     </select>
   )
 
-  const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void, debeSerAuto = false) => {
+  const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void, debeSerAuto = false, opcional = false) => {
     const revisandoAuto =
       !!f && (tapando.has(f.key) || (debeSerAuto && !!f.file && !f.key.startsWith('r:') && !revisionAuto.has(f.key)))
     const noEsAuto = debeSerAuto && !!f && revisionAuto.get(f.key) === false
-    const mal = f ? repetidas.has(f.key) || noEsAuto : intentoFotos
+    const pareceExterior = !!f && tableroExterior.has(f.key)
+    const mal = f ? repetidas.has(f.key) || noEsAuto : intentoFotos && !opcional
     return f ? (
       <div className={`photoslot filled ${mal ? 'bad' : ''}`} onClick={onPick} role="button" tabIndex={0} aria-label={t('publicar.changePhoto', { foto: etiqueta })}>
         <img src={f.url} alt={etiqueta} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         {(revisandoAuto || noEsAuto) && (
           <span className={`autocheck ${noEsAuto ? 'bad' : ''}`}>{noEsAuto ? t('publicar.notACar') : t('publicar.checkingPhoto')}</span>
         )}
+        {!revisandoAuto && !noEsAuto && pareceExterior && <span className="autocheck warn">{t('publicar.looksExterior')}</span>}
         <span className="tag">{etiqueta}</span>
         {onRemove && (
           <button
@@ -684,12 +713,41 @@ export function Publish() {
                     )}
                   </div>
                 ))}
+                <div>
+                  {fotoSlot(
+                    motor,
+                    `${t('publicar.photoEngine')} · ${t('publicar.recommended')}`,
+                    () => {
+                      if (motorSinLugar) return
+                      anguloElegido.current = ANGULOS.length
+                      anguloInput.current?.click()
+                    },
+                    motor
+                      ? () => {
+                          setRepetidas(new Set())
+                          setMotor(null)
+                        }
+                      : undefined,
+                    false,
+                    true,
+                  )}
+                </div>
               </div>
+              {angulos[ANGULOS.length - 1] && tableroExterior.has(angulos[ANGULOS.length - 1]!.key) && (
+                <p className="note" style={{ margin: 0, background: 'var(--warning-l)', color: 'var(--ink)' }}>
+                  {t('publicar.dashLooksExterior')}
+                </p>
+              )}
+              {!motor && (
+                <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                  {motorSinLugar ? t('publicar.engineNoRoom', { n: MAX_FOTOS }) : t('publicar.engineHint')}
+                </p>
+              )}
               <div className="label">{t('publicar.extraPhotos')}</div>
               <div className="photogrid extra">
                 {extras.map((f, i) =>
                   <div key={f.key}>
-                    {fotoSlot(f, t('publicar.photoN', { n: ANGULOS.length + i + 1 }), () => undefined, () => {
+                    {fotoSlot(f, t('publicar.photoN', { n: ANGULOS.length + (motor ? 1 : 0) + i + 1 }), () => undefined, () => {
                       setRepetidas(new Set())
                       setExtras((x) => x.filter((y) => y.key !== f.key))
                     })}
