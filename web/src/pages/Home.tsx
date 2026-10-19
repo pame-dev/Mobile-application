@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
@@ -342,6 +342,13 @@ function CarruselDestacados({ cars, onOpen }: { cars: Car[]; onOpen: (id: number
   const [pos, setPos] = useState(copias)
   const [animar, setAnimar] = useState(true)
   const [pausado, setPausado] = useState(false)
+  /** Desplazamiento en px mientras se arrastra con el mouse o el dedo; null si no se arrastra. */
+  const [arrastre, setArrastre] = useState<number | null>(null)
+  const viewport = useRef<HTMLDivElement>(null)
+  /** Punto donde empezó el gesto y si ya se decidió que es horizontal (arrastre) o vertical (scroll). */
+  const gesto = useRef<{ x: number; y: number; paso: number; eje: 'h' | 'v' | null; dx: number } | null>(null)
+  /** Hubo arrastre: el clic que llega al soltar no abre la ficha. */
+  const huboArrastre = useRef(false)
 
   // Si cambia el ancho o la cantidad de destacados, se vuelve a la primera sin animación.
   useEffect(() => {
@@ -373,10 +380,10 @@ function CarruselDestacados({ cars, onOpen }: { cars: Car[]; onOpen: (id: number
 
   // Avanza sola; cada movimiento (también con las flechas) reinicia la cuenta.
   useEffect(() => {
-    if (!mueve || pausado) return
+    if (!mueve || pausado || arrastre != null) return
     const id = window.setTimeout(() => setPos((p) => Math.min(p + 1, copias + n)), AUTOPLAY_MS)
     return () => window.clearTimeout(id)
-  }, [pos, mueve, pausado, copias, n])
+  }, [pos, mueve, pausado, arrastre, copias, n])
 
   const pausa = {
     onMouseEnter: () => setPausado(true),
@@ -384,6 +391,57 @@ function CarruselDestacados({ cars, onOpen }: { cars: Car[]; onOpen: (id: number
     onFocus: () => setPausado(true),
     onBlur: () => setPausado(false),
   }
+  // Arrastre con mouse o dedo (Pointer Events): la fila sigue el movimiento y al soltar se
+  // ajusta a la tarjeta más cercana. Un gesto vertical se deja al navegador (scroll de la página).
+  const empezarGesto = (e: PointerEvent<HTMLDivElement>) => {
+    if (!mueve || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return
+    huboArrastre.current = false
+    // Si estaba en una copia (a mitad del salto del bucle), pasa ya a la tarjeta real equivalente.
+    if (pos < copias || pos >= copias + n) {
+      setAnimar(false)
+      setPos((p) => (p >= copias + n ? p - n : p + n))
+    }
+    const ancho = viewport.current?.clientWidth ?? 0
+    gesto.current = { x: e.clientX, y: e.clientY, paso: (ancho + GAP_CARRUSEL) / visibles, eje: null, dx: 0 }
+  }
+  const moverGesto = (e: PointerEvent<HTMLDivElement>) => {
+    const g = gesto.current
+    if (!g) return
+    // Se soltó el botón fuera del carrusel antes de arrastrar: el gesto ya terminó.
+    if (e.pointerType === 'mouse' && e.buttons === 0) {
+      gesto.current = null
+      setArrastre(null)
+      return
+    }
+    const dx = e.clientX - g.x
+    const dy = e.clientY - g.y
+    if (g.eje == null) {
+      if (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) {
+        g.eje = 'h'
+        e.currentTarget.setPointerCapture(e.pointerId)
+      } else if (Math.abs(dy) > 6) g.eje = 'v'
+    }
+    if (g.eje !== 'h') return
+    // Sin pasar de las copias de los extremos (siempre hay al menos [copias] tarjetas de margen).
+    g.dx = Math.max((pos - (n + copias)) * g.paso, Math.min(pos * g.paso, dx))
+    setArrastre(g.dx)
+  }
+  const soltarGesto = () => {
+    const g = gesto.current
+    gesto.current = null
+    // El desplazamiento se lee del gesto (el estado puede no haberse actualizado en un tirón rápido).
+    if (!g || g.eje !== 'h') return setArrastre(null)
+    huboArrastre.current = true
+    // El clic que sigue al soltar llega enseguida; si no llega (táctil), el aviso no se queda puesto.
+    window.setTimeout(() => (huboArrastre.current = false), 0)
+    // Tarjeta más cercana; un tirón corto (más de 40 px) también avanza una.
+    let pasos = Math.round(-g.dx / g.paso)
+    if (pasos === 0 && Math.abs(g.dx) > 40) pasos = g.dx < 0 ? 1 : -1
+    setAnimar(true)
+    setPos((p) => Math.max(0, Math.min(p + pasos, n + copias)))
+    setArrastre(null)
+  }
+
   // Las flechas no pasan de las copias (si se pica muy rápido, esperan al salto).
   const anterior = () => setPos((p) => Math.max(p - 1, copias - 1))
   const siguiente = () => setPos((p) => Math.min(p + 1, copias + n))
@@ -406,15 +464,30 @@ function CarruselDestacados({ cars, onOpen }: { cars: Car[]; onOpen: (id: number
           </div>
         )}
       </div>
-      <div className="featviewport" {...pausa}>
+      <div
+        ref={viewport}
+        className={`featviewport ${mueve ? 'arrastrable' : ''} ${arrastre != null ? 'arrastrando' : ''}`}
+        {...pausa}
+        onPointerDown={empezarGesto}
+        onPointerMove={moverGesto}
+        onPointerUp={soltarGesto}
+        onPointerCancel={soltarGesto}
+        onDragStart={(e) => e.preventDefault()}
+        onClickCapture={(e) => {
+          if (!huboArrastre.current) return
+          huboArrastre.current = false
+          e.preventDefault()
+          e.stopPropagation()
+        }}
+      >
         <div
-          className={`feattrack ${animar ? 'anim' : ''}`}
+          className={`feattrack ${animar && arrastre == null ? 'anim' : ''}`}
           style={{
             gap: GAP_CARRUSEL,
             ['--visibles' as string]: visibles,
             ['--gap' as string]: `${GAP_CARRUSEL}px`,
             // Cada paso mueve una tarjeta: (ancho de la fila + separación) / tarjetas visibles.
-            transform: `translateX(calc(${-pos} * (100% + ${GAP_CARRUSEL}px) / ${visibles}))`,
+            transform: `translateX(calc(${-pos} * (100% + ${GAP_CARRUSEL}px) / ${visibles} + ${arrastre ?? 0}px))`,
           }}
         >
           {pista.map((c, i) => {

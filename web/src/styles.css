@@ -169,6 +169,11 @@ textarea.input{height:auto;min-height:96px;padding:12px 14px;resize:vertical}
 .feattrack.anim{transition:transform .7s cubic-bezier(.45,0,.2,1)}
 .feattrack>.fcard{flex:0 0 calc((100% - (var(--visibles) - 1) * var(--gap)) / var(--visibles))}
 @media (prefers-reduced-motion:reduce){.feattrack.anim{transition:none}}
+/* Arrastre: mano abierta encima, cerrada al arrastrar; el scroll vertical sigue siendo del navegador. */
+.featviewport.arrastrable{touch-action:pan-y;user-select:none}
+.featviewport.arrastrable,.featviewport.arrastrable .fcard{cursor:grab}
+.featviewport.arrastrable:active,.featviewport.arrastrable:active .fcard,.featviewport.arrastrando,.featviewport.arrastrando .fcard{cursor:grabbing}
+.featviewport img{-webkit-user-drag:none}
 .fcard{position:relative;border-radius:20px;overflow:hidden;height:250px;cursor:pointer;border:0;padding:0;text-align:left}
 .fcard .ph{position:absolute;inset:0}
 .fcard .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(13,43,69,.92))}
