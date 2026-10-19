@@ -599,9 +599,9 @@
     <string name="publish_error_cylinders">Los cilindros no pueden ser más de %1$d.</string>
     <string name="publish_error_body_type">Elige el tipo de carro.</string>
     <string name="publish_error_color">Elige el color.</string>
-    <string name="publish_error_required_photos">Debes subir las 5 fotos obligatorias para continuar.</string>
+    <string name="publish_error_required_photos">Falta subir: %1$s.</string>
     <string name="publish_error_duplicate_photos">Se detectaron fotos repetidas. Todas las fotos deben ser diferentes.</string>
-    <string name="publish_error_not_car">Las fotos frontal, trasera y laterales deben mostrar el auto. Cambia las marcadas en rojo.</string>
+    <string name="publish_error_not_car">No parece un auto: %1$s. Cámbiala por una foto donde se vea el vehículo.</string>
     <string name="publish_photo_checking">Revisando foto…</string>
     <string name="publish_photo_not_car">Esta foto no parece de un auto. Elige una donde se vea el vehículo.</string>
     <string name="publish_photos_plates_hint">Por tu seguridad, las placas que aparezcan en las fotos se tapan automáticamente.</string>
@@ -642,6 +642,10 @@
     <string name="publish_photo_left">Foto lateral izquierda</string>
     <string name="publish_photo_right">Foto lateral derecha</string>
     <string name="publish_photo_dashboard">Foto del tablero</string>
+    <string name="publish_photo_engine">Foto del motor · Recomendada</string>
+    <string name="publish_engine_no_room">Ya tienes %1$d fotos, el máximo. Quita una adicional si quieres agregar la del motor.</string>
+    <string name="publish_engine_hint">Recomendada: una foto del motor con el cofre abierto da más confianza a los compradores.</string>
+    <string name="publish_photo_looks_exterior">Parece del exterior del auto. Si te equivocaste, sube una del tablero donde se vea el kilometraje.</string>
     <string name="publish_pick_from_gallery">Elegir de galería</string>
     <string name="publish_description_title">Descripción del auto</string>
     <string name="publish_description_placeholder">Una buena descripción aumenta las visitas</string>

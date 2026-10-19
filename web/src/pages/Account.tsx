@@ -33,12 +33,12 @@ import { useSession } from '../session/SessionContext'
 // Notificaciones, Configuración, Privacidad y seguridad, Términos y Políticas de privacidad.
 
 /** [back]: ruta fija, o 'historial' para regresar a la pantalla anterior (al Inicio si se abrió directo). */
-function PageHead({ title, back, children }: { title: string; back?: string; children?: ReactNode }) {
+function PageHead({ title, back, fallback = '/', children }: { title: string; back?: string; fallback?: string; children?: ReactNode }) {
   return (
     <div className="pagehead">
       <div className="row">
         {back === 'historial' ? (
-          <VolverButton fallback="/" />
+          <VolverButton fallback={fallback} />
         ) : (
           back && <VolverButton to={back} />
         )}
@@ -256,7 +256,9 @@ export function NotificationPreferences() {
 
   return (
     <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
-      <PageHead title={t('notif.prefs.title')} back="/notificaciones" />
+      {/* Regresa por el historial: ir directo a /notificaciones agregaba otra página y su
+          botón de regresar volvía aquí (bucle entre las dos). */}
+      <PageHead title={t('notif.prefs.title')} back="historial" fallback="/notificaciones" />
       <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
         <SetRow
           icon="bell"

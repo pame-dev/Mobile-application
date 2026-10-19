@@ -597,9 +597,9 @@
     <string name="publish_error_cylinders">Cylinders can\'t be more than %1$d.</string>
     <string name="publish_error_body_type">Choose the body type.</string>
     <string name="publish_error_color">Choose the color.</string>
-    <string name="publish_error_required_photos">Please upload all 5 required photos to continue.</string>
+    <string name="publish_error_required_photos">Still missing: %1$s.</string>
     <string name="publish_error_duplicate_photos">Duplicate photos detected. All photos must be different.</string>
-    <string name="publish_error_not_car">The front, rear and side photos must show the car. Replace the ones marked in red.</string>
+    <string name="publish_error_not_car">Doesn\'t look like a car: %1$s. Replace it with a photo that shows the vehicle.</string>
     <string name="publish_photo_checking">Checking photo…</string>
     <string name="publish_photo_not_car">This photo doesn\'t look like a car. Pick one that shows the vehicle.</string>
     <string name="publish_photos_plates_hint">For your safety, license plates that appear in the photos are blurred automatically.</string>
@@ -640,6 +640,10 @@
     <string name="publish_photo_left">Left side photo</string>
     <string name="publish_photo_right">Right side photo</string>
     <string name="publish_photo_dashboard">Dashboard photo</string>
+    <string name="publish_photo_engine">Engine photo · Recommended</string>
+    <string name="publish_engine_no_room">You already have %1$d photos, the maximum. Remove an extra one to add the engine photo.</string>
+    <string name="publish_engine_hint">Recommended: a photo of the engine with the hood open gives buyers more confidence.</string>
+    <string name="publish_photo_looks_exterior">Looks like the outside of the car. If that was a mistake, upload one of the dashboard showing the mileage.</string>
     <string name="publish_pick_from_gallery">Choose from gallery</string>
     <string name="publish_description_title">Car description</string>
     <string name="publish_description_placeholder">A good description gets more views</string>

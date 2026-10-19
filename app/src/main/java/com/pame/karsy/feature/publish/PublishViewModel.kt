@@ -102,6 +102,11 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     // y hasta completar MAX_FOTOS con fotos adicionales.
     val photos = mutableStateListOf<Uri?>(null, null, null, null, null)
     val extraPhotos = mutableStateListOf<Uri>()
+    /** Foto del motor: recomendada, no obligatoria. Se sube después de los 5 ángulos. */
+    var enginePhoto by mutableStateOf<Uri?>(null)
+        private set
+    /** Fotos del tablero en las que el detector ve el exterior de un auto (solo se avisa). */
+    private val tableroExterior = mutableStateMapOf<Uri, Boolean>()
     /** Fotos que ya estaban en Storage (al corregir): no se vuelven a subir. */
     private val rutasExistentes = mutableMapOf<Uri, String>()
 
@@ -124,18 +129,46 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun procesandoFoto(uri: Uri): Boolean = uri in procesando
     fun revisandoAuto(uri: Uri): Boolean = uri in procesando || (uri !in rutasExistentes && uri !in revisionAuto)
     fun noPareceAuto(uri: Uri): Boolean = revisionAuto[uri] == false
+    fun pareceExterior(uri: Uri): Boolean = tableroExterior[uri] == true
 
     /**
      * Pone la foto de un ángulo. Al momento se le tapan las placas (menos al tablero, que no
      * tiene y donde se ve el kilometraje) y las de los primeros 4 se revisan como auto.
      */
     fun setAnglePhoto(context: Context, slot: Int, uri: Uri) {
+        photos[slot]?.let { anterior -> tableroExterior.remove(anterior) }
         photos[slot] = uri
         val esTablero = slot == photos.lastIndex
         prepararFoto(context, uri, taparPlacas = !esTablero) { lista ->
             if (photos[slot] == uri) photos[slot] = lista // si no la cambiaron mientras tanto
             if (slot < DetectorAutos.ANGULOS_CON_AUTO) revisarAuto(context.applicationContext, lista)
         }
+        // En el tablero se avisa si se ve el auto por fuera (sin bloquear: el detector puede
+        // fallar). Va aparte para que "Siguiente" no tenga que esperarla.
+        if (esTablero) {
+            val appContext = context.applicationContext
+            viewModelScope.launch {
+                if (DetectorAutos.pareceAuto(appContext, uri) == true) tableroExterior[uri] = true
+            }
+        }
+    }
+
+    /** Ya no cabe la foto del motor: entre ángulos y adicionales se llegó a [MAX_FOTOS]. */
+    val motorSinLugar: Boolean get() = enginePhoto == null && fotosElegidas.size >= MAX_FOTOS
+
+    /** Pone la foto del motor (recomendada); se le tapan las placas como a las demás. */
+    fun setEnginePhoto(context: Context, uri: Uri) {
+        if (motorSinLugar) return
+        enginePhoto?.let { duplicatePhotos = duplicatePhotos - it }
+        enginePhoto = uri
+        prepararFoto(context, uri, taparPlacas = true) { lista ->
+            if (enginePhoto == uri) enginePhoto = lista
+        }
+    }
+
+    fun removeEnginePhoto() {
+        enginePhoto?.let { duplicatePhotos = duplicatePhotos - it }
+        enginePhoto = null
     }
 
     /**
@@ -279,7 +312,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val titulo: String get() = listOf(marcaNombre, modeloNombre, anio.trim()).filter { it.isNotEmpty() }.joinToString(" ")
     val precioTexto: String get() = Formato.precio(precio.filter(Char::isDigit).toDoubleOrNull())
-    val fotosElegidas: List<Uri> get() = photos.filterNotNull() + extraPhotos
+    val fotosElegidas: List<Uri> get() = photos.filterNotNull() + listOfNotNull(enginePhoto) + extraPhotos
     /** Cuántas fotos adicionales caben todavía. */
     val extraPhotosLeft: Int get() = MAX_FOTOS - fotosElegidas.size
 
@@ -305,6 +338,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             modeloOtro = ""
         }
     }
+
+    /** "foto del tablero, foto frontal": nombres de los ángulos en minúscula para los avisos. */
+    private fun nombresFotos(slots: List<Int>): String =
+        slots.joinToString(", ") { texto(ETIQUETAS_ANGULOS[it]).replaceFirstChar { c -> c.lowercase() } }
 
     // ── Navegación entre pasos ───────────────────────────────────────────────
 
@@ -341,9 +378,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             // Las fotos de los ángulos deben mostrar el auto (espera las que se estén revisando).
             val angulos = photos.take(DetectorAutos.ANGULOS_CON_AUTO).filterNotNull()
             angulos.forEach { revisarAuto(appContext, it) }
-            if (angulos.any(::noPareceAuto)) {
+            val noSonAuto = photos.take(DetectorAutos.ANGULOS_CON_AUTO).indices.filter { i -> photos[i]?.let(::noPareceAuto) == true }
+            if (noSonAuto.isNotEmpty()) {
                 checkingPhotos = false
-                error = texto(R.string.publish_error_not_car)
+                error = texto(R.string.publish_error_not_car, nombresFotos(noSonAuto))
                 photoErrorSignal++
                 return@launch
             }
@@ -411,7 +449,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 else -> null
             }
         }
-        2 -> if (photos.any { it == null }) texto(R.string.publish_error_required_photos) else null
+        2 -> photos.indices.filter { photos[it] == null }
+            .takeIf { it.isNotEmpty() }
+            ?.let { texto(R.string.publish_error_required_photos, nombresFotos(it)) }
+            ?: if (fotosElegidas.size > MAX_FOTOS) texto(R.string.publish_photos_limit, MAX_FOTOS) else null
         3 -> if (descripcion.isBlank()) texto(R.string.publish_error_description) else null
         else -> null
     }
@@ -483,6 +524,15 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     companion object {
+        /** Nombre de cada ángulo obligatorio, en el orden de [photos]. */
+        val ETIQUETAS_ANGULOS = listOf(
+            R.string.publish_photo_front,
+            R.string.publish_photo_rear,
+            R.string.publish_photo_left,
+            R.string.publish_photo_right,
+            R.string.publish_photo_dashboard,
+        )
+
         /** Máximo de fotos por publicación (editar_publicacion valida lo mismo). */
         const val MAX_FOTOS = 15
 

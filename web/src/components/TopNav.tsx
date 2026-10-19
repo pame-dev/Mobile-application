@@ -243,7 +243,7 @@ export function TopNav() {
             <>
               <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
                 <Icon name="bell" size={19} />
-                {sinLeer > 0 && <span className="dot" />}
+                {sinLeer > 0 && <span className="dot">{sinLeer > 99 ? '99+' : sinLeer}</span>}
               </button>
               <div className="navdesk" style={{ position: 'relative' }} ref={menuRef}>
                 <button
