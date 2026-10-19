@@ -230,6 +230,13 @@ textarea.input{height:auto;min-height:96px;padding:12px 14px;resize:vertical}
 .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border-muted);flex:none;margin-top:2px}
 .opt.on .radio{border:5px solid var(--teal)}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:14px;z-index:90;box-shadow:var(--shadow-lg);display:flex;gap:10px;align-items:center;animation:fade .2s}
+/* Botón flotante "+ Publicar" (Layout.tsx). Encima del contenido de la página (máx. 2) y debajo de la barra superior (30), que contiene
+   al menú lateral del celular; los modales, avisos y el visor (80–100) también quedan encima. */
+.fab{position:fixed;right:24px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:25;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:56px;padding:0 26px;border:0;border-radius:50px;background:#52A3AA;color:#fff;font-weight:700;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,.3);cursor:pointer;transition:all .2s ease}
+@media (hover:hover){ .fab:hover{transform:translateY(-3px) scale(1.05);filter:brightness(1.08)} }
+.fab:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media (max-width:767px){ .fab{width:56px;padding:0;border-radius:50%} .fab span{display:none} }
+@media (prefers-reduced-motion:reduce){ .fab{transition:none} .fab:hover{transform:none} }
 .toast a,.toast button.link{color:#8FD3D8;font-weight:600;background:none;border:0;padding:0}
 /* Rueda de carga dentro de un botón (toma el color del texto). */
 .spinner{width:16px;height:16px;flex:none;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:girar .7s linear infinite}
