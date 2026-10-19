@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Icon } from './Icon'
 import { TiempoReal } from './TiempoReal'
 import { useI18n } from '../i18n/I18nContext'
 import { useSession } from '../session/SessionContext'
@@ -43,6 +44,24 @@ export function Footer() {
   )
 }
 
+/**
+ * Botón flotante "+ Publicar" (esquina inferior derecha), para quien tiene sesión. En pantallas
+ * angostas es un círculo solo con el ícono. No sale en Publicar, para no tapar el formulario.
+ */
+function PublicarFab() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const { mode } = useSession()
+  const { t } = useI18n()
+  if (mode === 'guest' || pathname.startsWith('/publicar')) return null
+  return (
+    <button className="fab" aria-label={t('nav.publish')} onClick={() => navigate('/publicar')}>
+      <Icon name="plus" size={22} />
+      <span>{t('nav.publish')}</span>
+    </button>
+  )
+}
+
 /** Barra superior + contenido + pie, para las pantallas del marketplace y de la cuenta. */
 export function Layout() {
   const { notice, clearNotice } = useSession()
@@ -64,6 +83,7 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <PublicarFab />
     </>
   )
 }

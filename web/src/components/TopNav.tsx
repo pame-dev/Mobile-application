@@ -241,10 +241,6 @@ export function TopNav() {
             </>
           ) : (
             <>
-              <button className="btn btn-primary btn-sm navdesk" onClick={() => navigate('/publicar')}>
-                <Icon name="plus" size={18} />
-                {t('nav.publish')}
-              </button>
               <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
                 <Icon name="bell" size={19} />
                 {sinLeer > 0 && <span className="dot" />}
