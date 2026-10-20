@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -57,6 +58,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -76,6 +78,7 @@ import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.FormRules
 
 // Valores internos del orden (se comparan en HomeViewModel); no se traducen, solo su etiqueta visible.
 internal val ORDEN_OPCIONES = listOf("Más recientes", "Menor precio", "Mayor precio")
@@ -320,8 +323,10 @@ private fun PriceInput(value: String, onValueChange: (String) -> Unit, placehold
     val shape = RoundedCornerShape(10.dp)
     BasicTextField(
         value = value,
-        onValueChange = onValueChange,
+        // Precio: solo dígitos, también si pegan texto.
+        onValueChange = { onValueChange(FormRules.soloDigitos(it, 10)) },
         singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         textStyle = TextStyle(fontFamily = DmSans, fontSize = 12.sp, color = KarsyCharcoal),
         cursorBrush = SolidColor(KarsyTeal),
         modifier = modifier,
