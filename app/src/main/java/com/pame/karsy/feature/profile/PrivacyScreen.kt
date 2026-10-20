@@ -164,7 +164,11 @@ fun PrivacyScreen(
                     PushTokens.unregister(context)
                     safeCall { AuthRepository.signOutEverywhere() }
                         .onSuccess { onSignedOutEverywhere() }
-                        .onFailure { message = it.mensajeUsuario() }
+                        .onFailure {
+                            message = it.mensajeUsuario()
+                            // Sigue con sesión: el teléfono vuelve a recibir los avisos.
+                            safeCall { PushTokens.register(context) }
+                        }
                     loggingOut = false
                     confirmLogoutAll = false
                 }

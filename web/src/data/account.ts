@@ -79,10 +79,21 @@ export async function changePassword(email: string, current: string, next: strin
   if (error) throw error
 }
 
-/** Cierra la sesión en todos los dispositivos de la cuenta, incluido este. */
+/**
+ * Cierra la sesión en todos los dispositivos de la cuenta, incluido este. La Edge Function
+ * cerrar-sesiones invalida todas las sesiones y avisa por push a los teléfonos para que se
+ * cierren al instante. Después hay que borrar la sesión de este navegador (cerrarSesionLocal).
+ */
 export async function signOutEverywhere(): Promise<void> {
-  const { error } = await supabase.auth.signOut({ scope: 'global' })
-  if (error) throw error
+  const { error } = await supabase.functions.invoke('cerrar-sesiones')
+  if (!error) return
+  // La sesión de este navegador ya estaba cerrada desde otro lado: cuenta como hecho.
+  const { error: sesion } = await supabase.auth.getUser()
+  if (sesion?.code === 'session_not_found') return
+  // Sin la función (no desplegada o caída) se cierran igual todas las sesiones, solo que
+  // sin el aviso inmediato: los teléfonos se enteran al volver a la app o en un minuto.
+  const { error: global } = await supabase.auth.signOut({ scope: 'global' })
+  if (global) throw global
 }
 
 /** Estado y municipio del perfil ("Cerca de mí"); null si el perfil no tiene estado. */

@@ -16,6 +16,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.pame.karsy.MainActivity
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.Idioma
+import com.pame.karsy.data.repository.AuthRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,6 +39,12 @@ class KarsyMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         val data = message.data
         val tipo = data["tipo"] ?: return
+        // "Cerrar sesión en todos los dispositivos" (Edge Function cerrar-sesiones): no se
+        // muestra nada, se cierra la sesión de este teléfono.
+        if (tipo == TIPO_SESION_CERRADA) {
+            scope.launch { runCatching { AuthRepository.onSessionClosedPush() } }
+            return
+        }
         show(
             context = this,
             id = data["id_notificacion"]?.toIntOrNull() ?: tipo.hashCode(),
@@ -58,6 +65,8 @@ class KarsyMessagingService : FirebaseMessagingService() {
         private const val OLD_CHANNEL_ID = "avisos"
         /** Extra del intent: al tocar la notificación se abre la bandeja de avisos. */
         const val EXTRA_OPEN_NOTIFICATIONS = "open_notifications"
+        /** Push silencioso de la Edge Function cerrar-sesiones. */
+        private const val TIPO_SESION_CERRADA = "sesion_cerrada"
 
         /** Canal de Android para los avisos de la cuenta (obligatorio desde Android 8). */
         fun createChannel(context: Context) {

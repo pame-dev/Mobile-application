@@ -1065,6 +1065,7 @@
     <string name="privacy_logout_all_confirm_title">¿Cerrar sesión en todos lados?</string>
     <string name="privacy_logout_all_confirm_body">Se cerrará tu sesión en este teléfono y en todos los dispositivos donde hayas entrado. Tendrás que volver a iniciar sesión.</string>
     <string name="privacy_logout_all_confirm">Cerrar todas</string>
+    <string name="session_revoked">Tu sesión se cerró desde otro dispositivo. Vuelve a iniciar sesión.</string>
     <string name="privacy_notice">Políticas de privacidad</string>
     <string name="privacy_notice_desc">Qué datos guardamos y para qué</string>
     <string name="privacy_device_notifications">Notificaciones del teléfono</string>

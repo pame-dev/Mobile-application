@@ -37,6 +37,7 @@ export const es = {
   // Sesión
   'vehiculo.session.noProfile': 'Esta cuenta no tiene un perfil de Karsy.',
   'vehiculo.session.suspended': 'Tu cuenta está suspendida. Escríbenos si crees que es un error.',
+  'vehiculo.session.revoked': 'Tu sesión se cerró desde otro dispositivo. Vuelve a iniciar sesión.',
 
   // Contacto
   'vehiculo.contact.title': 'Información de contacto',
@@ -183,6 +184,7 @@ export const en: Record<keyof typeof es, string> = {
 
   'vehiculo.session.noProfile': "This account doesn't have a Karsy profile.",
   'vehiculo.session.suspended': 'Your account is suspended. Contact us if you think this is a mistake.',
+  'vehiculo.session.revoked': 'You were signed out from another device. Please sign in again.',
 
   'vehiculo.contact.title': 'Contact information',
   'vehiculo.contact.message': "Hi, I'm interested in your {v} that I saw on Karsy.",
