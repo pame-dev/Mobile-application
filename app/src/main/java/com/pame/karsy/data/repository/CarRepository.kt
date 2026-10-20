@@ -1,6 +1,8 @@
 package com.pame.karsy.data.repository
 
 import com.pame.karsy.R
+import com.pame.karsy.data.remote.PrecioDto
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.async
 import com.pame.karsy.core.util.Traductor
@@ -77,6 +79,25 @@ object CarRepository {
             .associateBy { it.idPublicacion }
         return ids.mapNotNull { porId[it]?.let(::toCar) }
     }
+
+    /**
+     * Precios en pesos de autos del mismo modelo que el público puede ver (activos o vendidos),
+     * para sugerir un precio al publicar. Con [desde]/[hasta] solo esos años; [excluir] deja
+     * fuera la publicación que se está editando. Igual que preciosSimilares en la web.
+     */
+    suspend fun preciosSimilares(idModelo: Long, desde: Int? = null, hasta: Int? = null, excluir: Long? = null): List<Double> =
+        db.from(VISTA).select(Columns.list("precio")) {
+            filter {
+                eq("id_modelo", idModelo)
+                eq("aprobada", true)
+                eq("estado_administrativo", "habilitada")
+                isIn("estado_publicacion", listOf("activa", "vendida"))
+                eq("moneda", "MXN")
+                desde?.let { gte("anio", it) }
+                hasta?.let { lte("anio", it) }
+                excluir?.let { neq("id_publicacion", it) }
+            }
+        }.decodeList<PrecioDto>().mapNotNull { it.precio }
 
     /**
      * Publicaciones de una cuenta. Si es la cuenta en sesión (o el admin) incluye
@@ -274,6 +295,25 @@ object CarRepository {
     suspend fun favoriteCounts(): Map<Long, Int> =
         db.postgrest.rpc("favoritos_mis_publicaciones").decodeList<FavoritosConteoDto>()
             .associate { it.idPublicacion to it.total }
+
+    /**
+     * Posiciones (desde 0) de las huellas visuales que ya están en una publicación de otra
+     * cuenta (función fotos_ya_usadas). Igual que fotosYaUsadas en la web.
+     */
+    suspend fun fotosYaUsadas(huellas: List<String>): List<Int> {
+        if (huellas.isEmpty()) return emptyList()
+        return db.postgrest.rpc("fotos_ya_usadas", buildJsonObject {
+            put("p_huellas", buildJsonArray { huellas.forEach { add(it) } })
+        }).decodeAs<List<Int>>().map { it - 1 }
+    }
+
+    /** Guarda las huellas visuales de las fotos de una publicación propia (al publicar o editar). */
+    suspend fun registrarHuellas(idPublicacion: Long, huellas: List<String>) {
+        db.postgrest.rpc("registrar_huellas_fotos", buildJsonObject {
+            put("p_id_publicacion", idPublicacion)
+            put("p_huellas", buildJsonArray { huellas.forEach { add(it) } })
+        })
+    }
 
     /** Crea la publicación con su propuesta pendiente (función crear_publicacion). */
     suspend fun publish(datos: JsonObject, fotos: List<String>): Long =

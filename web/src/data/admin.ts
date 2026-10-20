@@ -150,6 +150,17 @@ export const adminAccounts = async () => (check(await supabase.rpc('admin_listar
 export const adminReports = async () => (check(await supabase.rpc('admin_listar_reportes')) ?? []) as ReporteAdmin[]
 export const adminFeatured = async () => (check(await supabase.rpc('admin_listar_destacados')) ?? []) as DestacadoAdmin[]
 
+/** Publicaciones que todavía no tienen huellas de fotos (las que ya existían), con sus fotos. */
+export async function publicacionesSinHuellas(): Promise<{ id: number; fotos: string[] }[]> {
+  const rows = (check(await supabase.rpc('admin_publicaciones_sin_huellas')) ?? []) as { id_publicacion: number; fotos: string[] | null }[]
+  return rows.map((r) => ({ id: r.id_publicacion, fotos: r.fotos ?? [] }))
+}
+
+/** Guarda las huellas visuales de las fotos de una publicación ya existente. */
+export async function registrarHuellasAdmin(idPublicacion: number, huellas: string[]) {
+  check(await supabase.rpc('admin_registrar_huellas', { p_id_publicacion: idPublicacion, p_huellas: huellas }))
+}
+
 /** El admin abrió el filtro "Deshabilitado" o "Pausado": dejan de salir en "Requiere atención". */
 export async function marcarVistas(estado: 'deshabilitada' | 'pausada') {
   check(await supabase.rpc('admin_marcar_vistas', { p_estado: estado }))

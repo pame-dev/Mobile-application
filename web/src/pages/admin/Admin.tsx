@@ -21,6 +21,8 @@ import {
   type CuentaAdmin,
   type DestacadoAdmin,
   type ReporteAdmin,
+  publicacionesSinHuellas,
+  registrarHuellasAdmin,
 } from '../../data/admin'
 import { toCar } from '../../data/api'
 import { mensajeUsuario } from '../../data/auth'
@@ -30,6 +32,7 @@ import type { Clave } from '../../i18n/es'
 import type { AnuncioRow, Car } from '../../data/types'
 import { entero, haceCuanto, km, precio } from '../../lib/format'
 import { publicUrl } from '../../lib/supabase'
+import { huellaVisual } from '../../lib/huellaVisual'
 import { useSession } from '../../session/SessionContext'
 import { useRecargar } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
@@ -744,6 +747,41 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
 
 const FILTROS_VEHICULO = ['Todos', 'Pendiente', 'Cambios pendientes', 'Activo', 'Rechazado', 'Deshabilitado', 'Pausado', 'Vendido'] as const
 
+/**
+ * Una sola vez: registra la huella visual de las fotos de las publicaciones que ya existían,
+ * para que tampoco se puedan volver a publicar en otra cuenta. Solo aparece si faltan.
+ */
+function RegistrarHuellas() {
+  const { t } = useI18n()
+  const { toast } = useUi()
+  const [faltan, setFaltan] = useState<{ id: number; fotos: string[] }[] | null>(null)
+  const [avance, setAvance] = useState<[number, number] | null>(null)
+  useEffect(() => {
+    publicacionesSinHuellas().then(setFaltan).catch(() => setFaltan([]))
+  }, [])
+  if (!faltan?.length) return null
+  const registrar = async () => {
+    setAvance([0, faltan.length])
+    let hechas = 0
+    for (const p of faltan) {
+      const huellas = await Promise.all(p.fotos.map((r) => (publicUrl(r) ? huellaVisual(publicUrl(r)!) : Promise.resolve(null))))
+      await registrarHuellasAdmin(p.id, huellas.filter((h): h is string => !!h)).catch(() => undefined)
+      setAvance([++hechas, faltan.length])
+    }
+    setFaltan([])
+    setAvance(null)
+    toast(t('admin.fingerprintsDone', { n: hechas }))
+  }
+  return (
+    <div className="note row" style={{ background: 'var(--teal-light)', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+      <span>{t('admin.fingerprintsPending', { n: faltan.length })}</span>
+      <button className="btn btn-primary btn-sm" disabled={!!avance} onClick={() => void registrar()}>
+        {avance ? t('admin.fingerprintsProgress', { n: avance[0], total: avance[1] }) : t('admin.fingerprintsButton')}
+      </button>
+    </div>
+  )
+}
+
 function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string) => void; onVisto: () => void }) {
   const { openModal, toast } = useUi()
   const { t } = useI18n()
@@ -764,6 +802,7 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
   return (
     <>
       <AdminHead title={t('admin.sec.vehicles')} desc={t('admin.vehiclesDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.vehiclesSearch')} />} />
+      <RegistrarHuellas />
       <Tabs
         value={tab}
         onChange={setTab}

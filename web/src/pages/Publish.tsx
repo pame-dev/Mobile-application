@@ -7,10 +7,12 @@ import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
 import { useTraduccion } from '../components/Traducido'
 import { mensajeUsuario } from '../data/auth'
-import { catalogs as cargarCatalogos } from '../data/api'
-import { crearPublicacion, editarPublicacion, ownListing, uploadPhoto } from '../data/seller'
+import { catalogs as cargarCatalogos, preciosSimilares } from '../data/api'
+import { crearPublicacion, editarPublicacion, fotosYaUsadas, ownListing, registrarHuellas, uploadPhoto } from '../data/seller'
 import type { Catalogs } from '../data/types'
 import { entero, precio as formatoPrecio } from '../lib/format'
+import { calcularRango, compararPrecio, type Rango } from '../lib/precioSugerido'
+import { huellaVisual, mismaFoto } from '../lib/huellaVisual'
 import { ANGULOS_CON_AUTO, pareceAuto, precargarDetector } from '../lib/detectorAutos'
 import { jpegDe } from '../lib/mexico'
 import { precargarTapaPlacas, taparPlacas } from '../lib/tapaPlacas'
@@ -112,6 +114,8 @@ export function Publish() {
   /** Fotos del tablero en las que el detector ve el exterior de un auto (solo avisa). */
   const [tableroExterior, setTableroExterior] = useState<Set<string>>(new Set())
   const [step, setStep] = useState(0)
+  /** Precio sugerido (paso Detalles): 'cargando', el rango de autos similares o null si no hay suficientes. */
+  const [sugerencia, setSugerencia] = useState<'cargando' | 'error' | { rango: Rango; desde?: number; hasta?: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cargandoEdicion, setCargandoEdicion] = useState(editId != null)
   const [rechazo, setRechazo] = useState<string | null>(null)
@@ -120,6 +124,8 @@ export function Publish() {
   const [editandoAprobada, setEditandoAprobada] = useState(false)
   const [intentoFotos, setIntentoFotos] = useState(false)
   const [repetidas, setRepetidas] = useState<Set<string>>(new Set())
+  /** Fotos que ya están en una publicación de otra cuenta (fotos_ya_usadas). */
+  const [usadas, setUsadas] = useState<Set<string>>(new Set())
   const [revisando, setRevisando] = useState(false)
   const [publicando, setPublicando] = useState(false)
   /** Al publicar: [fotos subidas, total] mientras se suben a Storage. */
@@ -130,7 +136,12 @@ export function Publish() {
   const anguloInput = useRef<HTMLInputElement>(null)
   const anguloElegido = useRef(0)
   const extrasInput = useRef<HTMLInputElement>(null)
-  const huellas = useRef(new Map<string, string>())
+  /**
+   * Huellas de cada foto ORIGINAL (antes de tapar placas), por key: la exacta (SHA-256) y la
+   * visual. Se calculan al elegirla; así, aunque una copia se tape y la otra no, coinciden.
+   */
+  const huellas = useRef(new Map<string, Promise<string>>())
+  const visuales = useRef(new Map<string, Promise<string | null>>())
   /** ¿Parece auto? por foto de ángulo (key de la Foto). Sin entrada = revisando. */
   const [revisionAuto, setRevisionAuto] = useState<Map<string, boolean>>(new Map())
   const revisionesAuto = useRef(new Map<string, Promise<boolean>>())
@@ -201,6 +212,35 @@ export function Publish() {
     }
   }, [editId])
 
+  // Al llegar a Detalles se busca el precio de autos similares: mismo modelo y ±2 años; si hay
+  // pocos, el mismo modelo de cualquier año. Con "Otros" (modelo escrito a mano) no se sugiere.
+  useEffect(() => {
+    const modelo = cat?.modelos.find((m) => String(m.id) === d.idModelo)
+    const anio = Number(d.anio)
+    if (step !== 2 || !modelo || modelo.esOtro || !Number.isInteger(anio) || anio < 1900 || anio > new Date().getFullYear() + 1) {
+      setSugerencia(null)
+      return
+    }
+    let vivo = true
+    setSugerencia('cargando')
+    void (async () => {
+      const excluir = editId ?? undefined
+      let precios = await preciosSimilares(modelo.id, anio - 2, anio + 2, excluir)
+      let desde: number | undefined = anio - 2
+      let hasta: number | undefined = anio + 2
+      if (precios.length < 3) {
+        precios = await preciosSimilares(modelo.id, undefined, undefined, excluir)
+        desde = hasta = undefined
+      }
+      const rango = calcularRango(precios)
+      if (vivo) setSugerencia(rango ? { rango, desde, hasta } : null)
+      // Sin internet: no se muestra nada (no es que falten autos similares).
+    })().catch(() => vivo && setSugerencia('error'))
+    return () => {
+      vivo = false
+    }
+  }, [step, d.idModelo, d.anio, cat, editId])
+
   // Avisa antes de cerrar o recargar la pestaña si ya se escribió algo (y no se publicó).
   useEffect(() => {
     if (!tocado || listo) return
@@ -238,7 +278,6 @@ export function Publish() {
       if (!marcaSel || (marcaSel.esOtro && !d.marcaOtra.trim())) return t('publicar.errBrand')
       if (!modeloSel || (modeloSel.esOtro && !d.modeloOtro.trim())) return t('publicar.errModel')
       if (!Number.isInteger(anio) || anio < 1900 || anio > max) return t('publicar.errYear')
-      if (!(Number(d.precio) > 0)) return t('publicar.errPrice')
       if (!d.idTransmision) return t('publicar.errTransmission')
       if (!d.kilometraje) return t('publicar.errMileage')
       if (Number(d.cilindros || 0) > MAX_CILINDROS) return t('publicar.errCylinders', { n: MAX_CILINDROS })
@@ -250,7 +289,12 @@ export function Publish() {
       const faltan = angulos.flatMap((f, i) => (f ? [] : [i]))
       return faltan.length ? t('publicar.errRequiredPhotos', { fotos: nombresFotos(faltan) }) : null
     }
-    if (paso === 2) return d.descripcion.trim() ? null : t('publicar.errDescription')
+    if (paso === 2) {
+      if (!d.descripcion.trim()) return t('publicar.errDescription')
+      // El precio va al final del formulario, junto con la sugerencia de autos similares.
+      if (!(Number(d.precio) > 0)) return t('publicar.errPrice')
+      return null
+    }
     return null
   }
 
@@ -284,20 +328,36 @@ export function Publish() {
       arriba.current?.scrollIntoView({ behavior: 'smooth' })
       return
     }
-    const porHuella = new Map<string, string[]>()
-    for (const f of fotos) {
-      let h = huellas.current.get(f.key)
-      if (!h) {
-        h = await huella(f).catch(() => 'key:' + f.key)
-        huellas.current.set(f.key, h)
+    // Repetidas: misma huella del original. Una foto ya publicada (al editar) contra otra se
+    // compara por huella visual, porque la guardada ya se tapó y se volvió a guardar.
+    const lista = fotosActuales.current
+    const exactas = await Promise.all(lista.map(huellaExacta))
+    const vis = await Promise.all(lista.map(huellaVis))
+    const rep = new Set<string>()
+    for (let i = 0; i < lista.length; i++) {
+      for (let j = i + 1; j < lista.length; j++) {
+        const yaPublicada = lista[i].key.startsWith('r:') || lista[j].key.startsWith('r:')
+        const vi = vis[i]
+        const vj = vis[j]
+        if (exactas[i] === exactas[j] || (yaPublicada && vi && vj && mismaFoto(vi, vj))) rep.add(lista[i].key).add(lista[j].key)
       }
-      porHuella.set(h, [...(porHuella.get(h) ?? []), f.key])
     }
-    const rep = new Set([...porHuella.values()].filter((k) => k.length > 1).flat())
     setRepetidas(rep)
-    setRevisando(false)
     if (rep.size) {
+      setRevisando(false)
       setError(t('publicar.errDuplicatePhotos'))
+      arriba.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    // Fotos que ya están en una publicación de otra cuenta (solo las nuevas). Si no se pudo
+    // revisar (sin internet), no se bloquea: el admin revisa la publicación de todos modos.
+    const nuevas = lista.flatMap((f, i) => (!f.key.startsWith('r:') && vis[i] ? [{ key: f.key, v: vis[i]! }] : []))
+    const posiciones = await fotosYaUsadas(nuevas.map((n) => n.v)).catch(() => [] as number[])
+    const ajenas = new Set(posiciones.flatMap((p) => (nuevas[p] ? [nuevas[p].key] : [])))
+    setUsadas(ajenas)
+    setRevisando(false)
+    if (ajenas.size) {
+      setError(t('publicar.errPhotosUsedElsewhere'))
       arriba.current?.scrollIntoView({ behavior: 'smooth' })
     } else irA(2)
   }
@@ -347,6 +407,7 @@ export function Publish() {
         const tapada: Foto = { key: f.key, url: URL.createObjectURL(blob), file: new File([blob], 'foto.jpg', { type: 'image/jpeg' }) }
         // Solo si la foto sigue en el formulario (no la quitaron o cambiaron mientras tanto).
         setAngulos((a) => a.map((x) => (x?.key === f.key ? tapada : x)))
+        setMotor((m) => (m?.key === f.key ? tapada : m))
         setExtras((x) => x.map((y) => (y.key === f.key ? tapada : y)))
       }
       setTapando((t) => {
@@ -375,13 +436,30 @@ export function Publish() {
     })
   }
 
-  const nuevaFoto = (file: File): Foto => ({ key: 'f:' + crypto.randomUUID(), url: URL.createObjectURL(file), file })
+  const nuevaFoto = (file: File): Foto => {
+    const f: Foto = { key: 'f:' + crypto.randomUUID(), url: URL.createObjectURL(file), file }
+    huellas.current.set(f.key, huella(f).catch(() => 'key:' + f.key))
+    visuales.current.set(f.key, huellaVisual(file))
+    return f
+  }
+  const huellaExacta = (f: Foto): Promise<string> => {
+    let h = huellas.current.get(f.key)
+    if (!h) huellas.current.set(f.key, (h = huella(f).catch(() => 'key:' + f.key)))
+    return h
+  }
+  /** Las fotos ya publicadas (al editar) se leen de su URL la primera vez. */
+  const huellaVis = (f: Foto): Promise<string | null> => {
+    let h = visuales.current.get(f.key)
+    if (!h) visuales.current.set(f.key, (h = huellaVisual(f.file ?? f.url)))
+    return h
+  }
   const esImagen = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
 
   const ponerAngulo = (file: File | undefined) => {
     if (!file || !esImagen(file)) return
     setTocado(true)
     setRepetidas(new Set())
+    setUsadas(new Set())
     const foto = nuevaFoto(file)
     // La foto del motor no es un ángulo obligatorio (va en su propio recuadro) y solo si cabe.
     if (anguloElegido.current === ANGULOS.length) {
@@ -400,6 +478,7 @@ export function Publish() {
     if (!validas.length) return
     setTocado(true)
     setRepetidas(new Set())
+    setUsadas(new Set())
     const nuevas = validas.map(nuevaFoto)
     nuevas.forEach(prepararFoto)
     setExtras((x) => [...x, ...nuevas])
@@ -457,8 +536,16 @@ export function Publish() {
         tipo_combustible: d.combustible || null,
         descripcion_problemas: d.imperfecciones.trim(),
       }
-      if (editId != null) await editarPublicacion(editId, datos, rutas)
-      else await crearPublicacion(datos, rutas)
+      let id = editId
+      if (id != null) await editarPublicacion(id, datos, rutas)
+      else id = await crearPublicacion(datos, rutas)
+      // Huellas visuales de las fotos, para que nadie más publique estas fotos. Si falla no
+      // pasa nada (la publicación ya quedó guardada).
+      const idGuardada = id
+      // Solo si están todas: registrar reemplaza las anteriores de la publicación.
+      void Promise.all(fotos.map(huellaVis))
+        .then((vs) => (vs.every(Boolean) ? registrarHuellas(idGuardada, vs as string[]) : undefined))
+        .catch(() => undefined)
       setListo(true)
       openModal(<Exito titulo={titulo} editando={editId != null} aprobada={editandoAprobada} editId={editId} />)
     } catch (ex) {
@@ -514,7 +601,8 @@ export function Publish() {
       !!f && (tapando.has(f.key) || (debeSerAuto && !!f.file && !f.key.startsWith('r:') && !revisionAuto.has(f.key)))
     const noEsAuto = debeSerAuto && !!f && revisionAuto.get(f.key) === false
     const pareceExterior = !!f && tableroExterior.has(f.key)
-    const mal = f ? repetidas.has(f.key) || noEsAuto : intentoFotos && !opcional
+    const ajena = !!f && usadas.has(f.key)
+    const mal = f ? repetidas.has(f.key) || noEsAuto || ajena : intentoFotos && !opcional
     return f ? (
       <div className={`photoslot filled ${mal ? 'bad' : ''}`} onClick={onPick} role="button" tabIndex={0} aria-label={t('publicar.changePhoto', { foto: etiqueta })}>
         <img src={f.url} alt={etiqueta} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -522,6 +610,7 @@ export function Publish() {
           <span className={`autocheck ${noEsAuto ? 'bad' : ''}`}>{noEsAuto ? t('publicar.notACar') : t('publicar.checkingPhoto')}</span>
         )}
         {!revisandoAuto && !noEsAuto && pareceExterior && <span className="autocheck warn">{t('publicar.looksExterior')}</span>}
+        {!revisandoAuto && !noEsAuto && ajena && <span className="autocheck bad">{t('publicar.usedElsewhere')}</span>}
         <span className="tag">{etiqueta}</span>
         {onRemove && (
           <button
@@ -618,9 +707,6 @@ export function Publish() {
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo id="precio" label={t('publicar.price')}>
-                  <input className="input" id="precio" inputMode="numeric" placeholder="250,000" value={d.precio ? entero(Number(d.precio)) : ''} onChange={(e) => set('precio', digitos(e.target.value, 10))} />
-                </Campo>
                 <Campo label={t('publicar.transmission')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {cat.transmisiones.map((t) => (
@@ -725,6 +811,7 @@ export function Publish() {
                     motor
                       ? () => {
                           setRepetidas(new Set())
+                          setUsadas(new Set())
                           setMotor(null)
                         }
                       : undefined,
@@ -749,6 +836,7 @@ export function Publish() {
                   <div key={f.key}>
                     {fotoSlot(f, t('publicar.photoN', { n: ANGULOS.length + (motor ? 1 : 0) + i + 1 }), () => undefined, () => {
                       setRepetidas(new Set())
+                      setUsadas(new Set())
                       setExtras((x) => x.filter((y) => y.key !== f.key))
                     })}
                   </div>,
@@ -802,6 +890,51 @@ export function Publish() {
                 <b>{t('publicar.tipBold')}</b>
                 {t('publicar.tipAfter')}
               </div>
+              <Campo id="precio" label={t('publicar.price')}>
+                <input className="input" id="precio" inputMode="numeric" placeholder="250,000" value={d.precio ? entero(Number(d.precio)) : ''} onChange={(e) => set('precio', digitos(e.target.value, 10))} />
+              </Campo>
+              {sugerencia === 'cargando' ? (
+                <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                  {t('publicar.priceLoading')}
+                </p>
+              ) : sugerencia === 'error' ? null : sugerencia ? (
+                <div className="note" style={{ background: 'var(--teal-light)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span>
+                    {t('publicar.priceSuggest', {
+                      grupo:
+                        sugerencia.desde != null
+                          ? t('publicar.priceGroupYears', { modelo: `${marcaNombre} ${modeloNombre}`, desde: sugerencia.desde, hasta: sugerencia.hasta ?? '' })
+                          : t('publicar.priceGroupAllYears', { modelo: `${marcaNombre} ${modeloNombre}` }),
+                      n: sugerencia.rango.n,
+                      min: formatoPrecio(sugerencia.rango.min),
+                      max: formatoPrecio(sugerencia.rango.max),
+                      tipico: formatoPrecio(sugerencia.rango.tipico),
+                    })}
+                  </span>
+                  {Number(d.precio) > 0 && (
+                    <b>
+                      {t(
+                        { abajo: 'publicar.priceBelow', dentro: 'publicar.priceWithin', arriba: 'publicar.priceAbove' }[
+                          compararPrecio(Number(d.precio), sugerencia.rango)
+                        ] as Clave,
+                      )}
+                    </b>
+                  )}
+                  {Number(d.precio) !== sugerencia.rango.tipico && (
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => set('precio', String(sugerencia.rango.tipico))}>
+                      {t('publicar.priceUseTypical', { tipico: formatoPrecio(sugerencia.rango.tipico) })}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                step === 2 &&
+                modeloSel &&
+                !modeloSel.esOtro && (
+                  <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                    {t('publicar.priceNoData')}
+                  </p>
+                )
+              )}
             </section>
           )}
 

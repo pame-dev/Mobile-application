@@ -606,6 +606,15 @@
     <string name="publish_photo_not_car">Esta foto no parece de un auto. Elige una donde se vea el vehículo.</string>
     <string name="publish_photos_plates_hint">Por tu seguridad, las placas que aparezcan en las fotos se tapan automáticamente.</string>
     <string name="publish_error_description">Escribe una descripción del vehículo.</string>
+    <string name="publish_price_loading">Buscando autos similares en Karsy…</string>
+    <string name="publish_price_suggest">Autos similares (%1$s, %2$d publicados) se ofrecen entre %3$s y %4$s. Precio típico: %5$s.</string>
+    <string name="publish_price_group_years">%1$s %2$d–%3$d</string>
+    <string name="publish_price_group_all_years">%1$s de cualquier año</string>
+    <string name="publish_price_no_data">Aún no hay suficientes autos similares en Karsy para sugerirte un precio.</string>
+    <string name="publish_price_below">Tu precio está por debajo de autos similares: podría venderse rápido, pero revisa que no estés perdiendo dinero.</string>
+    <string name="publish_price_within">Tu precio está dentro del rango de autos similares.</string>
+    <string name="publish_price_above">Tu precio está arriba de autos similares: podría tardar más en venderse.</string>
+    <string name="publish_price_use_typical">Usar el precio típico (%1$s)</string>
     <string name="publish_next_photos">Siguiente: Fotos →</string>
     <string name="publish_next_details">Siguiente: Detalles →</string>
     <string name="publish_checking_photos">Revisando fotos…</string>
@@ -643,6 +652,8 @@
     <string name="publish_photo_right">Foto lateral derecha</string>
     <string name="publish_photo_dashboard">Foto del tablero</string>
     <string name="publish_photo_engine">Foto del motor · Recomendada</string>
+    <string name="publish_photo_used_elsewhere">Esta foto ya está en otra publicación de Karsy.</string>
+    <string name="publish_error_photos_used_elsewhere">Las fotos marcadas ya están en otra publicación de Karsy. Usa fotos tuyas del auto que vas a vender.</string>
     <string name="publish_engine_no_room">Ya tienes %1$d fotos, el máximo. Quita una adicional si quieres agregar la del motor.</string>
     <string name="publish_engine_hint">Recomendada: una foto del motor con el cofre abierto da más confianza a los compradores.</string>
     <string name="publish_photo_looks_exterior">Parece del exterior del auto. Si te equivocaste, sube una del tablero donde se vea el kilometraje.</string>

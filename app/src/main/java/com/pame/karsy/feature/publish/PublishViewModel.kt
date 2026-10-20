@@ -2,6 +2,8 @@ package com.pame.karsy.feature.publish
 
 import android.content.Context
 import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.util.HuellaVisual
+import com.pame.karsy.core.util.PrecioSugerido
 import com.pame.karsy.core.util.TapaPlacas
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.Job
@@ -167,7 +169,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun removeEnginePhoto() {
-        enginePhoto?.let { duplicatePhotos = duplicatePhotos - it }
+        enginePhoto?.let {
+            duplicatePhotos = duplicatePhotos - it
+            fotosAjenas = fotosAjenas - it
+        }
         enginePhoto = null
     }
 
@@ -185,11 +190,28 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         val appContext = context.applicationContext
         procesando[uri] = true
         trabajosFotos += viewModelScope.launch {
+            // Huellas de la foto ORIGINAL (antes de tapar placas): así la misma foto en dos
+            // recuadros coincide aunque a una se le tapen las placas y a la otra no.
+            val exacta = huella(appContext, uri)
+            val visual = visuales[uri] ?: HuellaVisual.calcular(appContext, uri)
             val lista = if (taparPlacas) TapaPlacas.tapar(appContext, uri, soloSiHayPlaca) else uri
+            huellas[lista] = exacta
+            visual?.let { visuales[uri] = it; visuales[lista] = it }
+            if (uri in rutasExistentes || uri in yaPublicadas) yaPublicadas += lista
             listo(lista)
             procesando.remove(uri)
         }
     }
+
+    /** Huella visual (HuellaVisual) de la foto original, por Uri (también la de su versión tapada). */
+    private val visuales = mutableMapOf<Uri, String>()
+    /** Versiones tapadas de fotos que ya estaban publicadas (al editar). */
+    private val yaPublicadas = mutableSetOf<Uri>()
+    private fun esYaPublicada(uri: Uri) = uri in rutasExistentes || uri in yaPublicadas
+
+    /** Fotos que ya están en una publicación de otra cuenta (fotos_ya_usadas), marcadas en rojo. */
+    var fotosAjenas by mutableStateOf<Set<Uri>>(emptySet())
+        private set
 
     private var existentesRevisadas = false
 
@@ -241,6 +263,58 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     // Paso 3: Detalles
     var descripcion by mutableStateOf("")
     var imperfecciones by mutableStateOf("")
+
+    /** Precio sugerido (paso 3): rango de autos similares; null si no hay suficientes. */
+    var sugerenciaPrecio by mutableStateOf<SugerenciaPrecio?>(null)
+        private set
+    var buscandoPrecio by mutableStateOf(false)
+        private set
+    /** No se pudo consultar (sin internet): no se muestra nada en vez de "no hay suficientes". */
+    var errorPrecio by mutableStateOf(false)
+        private set
+    private var jobPrecio: Job? = null
+
+    /** [desde]/[hasta] null = el mismo modelo de cualquier año (había pocos de años parecidos). */
+    data class SugerenciaPrecio(val rango: PrecioSugerido.Rango, val desde: Int?, val hasta: Int?)
+
+    /**
+     * Busca el precio de autos similares: mismo modelo y ±2 años; si hay pocos, el mismo modelo
+     * de cualquier año. Con "Otros" (modelo escrito a mano) no se sugiere.
+     */
+    fun cargarSugerenciaPrecio() {
+        // Una búsqueda nueva cancela la anterior (así un resultado viejo no pisa al nuevo).
+        jobPrecio?.cancel()
+        val modelo = idModelo
+        val anioNum = anio.trim().toIntOrNull()
+        val anioMax = Calendar.getInstance().get(Calendar.YEAR) + 1
+        if (modelo == null || modeloEsOtro || anioNum == null || anioNum !in 1900..anioMax) {
+            sugerenciaPrecio = null
+            buscandoPrecio = false
+            errorPrecio = false
+            return
+        }
+        jobPrecio = viewModelScope.launch {
+            buscandoPrecio = true
+            sugerenciaPrecio = null
+            errorPrecio = false
+            sugerenciaPrecio = safeCall {
+                var precios = CarRepository.preciosSimilares(modelo, anioNum - 2, anioNum + 2, editId)
+                var desde: Int? = anioNum - 2
+                var hasta: Int? = anioNum + 2
+                if (precios.size < 3) {
+                    precios = CarRepository.preciosSimilares(modelo, excluir = editId)
+                    desde = null
+                    hasta = null
+                }
+                PrecioSugerido.calcular(precios)?.let { SugerenciaPrecio(it, desde, hasta) }
+            }.onFailure { errorPrecio = true }.getOrNull()
+            buscandoPrecio = false
+        }
+    }
+
+    fun usarPrecioTipico() {
+        sugerenciaPrecio?.let { precio = it.rango.tipico.toString() }
+    }
 
     init {
         viewModelScope.launch {
@@ -329,6 +403,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun removeExtraPhoto(uri: Uri) {
         extraPhotos.remove(uri)
+        fotosAjenas = fotosAjenas - uri
     }
 
     fun selectMarca(id: Long) {
@@ -386,14 +461,41 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 return@launch
             }
             val fotos = fotosElegidas
-            val repetidas = fotos
-                .groupBy { huella(appContext, it) }
-                .values.filter { it.size > 1 }
-                .flatten().toSet()
+            val exactas = fotos.map { huella(appContext, it) }
+            // Solo se calcula aquí la de fotos ya publicadas que no pasaron por prepararFoto (el
+            // tablero al editar); las demás se calcularon del original al elegirlas.
+            val vis = fotos.map { u ->
+                visuales[u] ?: if (u in rutasExistentes) HuellaVisual.calcular(appContext, u)?.also { visuales[u] = it } else null
+            }
+            // Repetidas: misma huella del original. Una foto ya publicada (al editar) contra otra
+            // se compara por huella visual, porque la guardada ya se tapó y se volvió a guardar.
+            val repetidas = mutableSetOf<Uri>()
+            for (i in fotos.indices) for (j in i + 1 until fotos.size) {
+                val vi = vis[i]
+                val vj = vis[j]
+                val porVisual = (esYaPublicada(fotos[i]) || esYaPublicada(fotos[j])) &&
+                    vi != null && vj != null && HuellaVisual.mismaFoto(vi, vj)
+                if (exactas[i] == exactas[j] || porVisual) {
+                    repetidas += fotos[i]
+                    repetidas += fotos[j]
+                }
+            }
             duplicatePhotos = repetidas
-            checkingPhotos = false
+            fotosAjenas = emptySet()
             if (repetidas.isNotEmpty()) {
+                checkingPhotos = false
                 error = texto(R.string.publish_error_duplicate_photos)
+                photoErrorSignal++
+                return@launch
+            }
+            // Fotos que ya están en una publicación de otra cuenta (solo las nuevas). Si no se
+            // pudo revisar (sin internet), no se bloquea: el admin revisa la publicación igual.
+            val nuevas = fotos.indices.filter { !esYaPublicada(fotos[it]) && vis[it] != null }
+            val posiciones = safeCall { CarRepository.fotosYaUsadas(nuevas.map { vis[it]!! }) }.getOrDefault(emptyList())
+            fotosAjenas = posiciones.mapNotNull { nuevas.getOrNull(it)?.let(fotos::get) }.toSet()
+            checkingPhotos = false
+            if (fotosAjenas.isNotEmpty()) {
+                error = texto(R.string.publish_error_photos_used_elsewhere)
                 photoErrorSignal++
             } else {
                 error = null
@@ -440,7 +542,6 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 idMarca == null || (marcaEsOtro && marcaOtra.isBlank()) -> texto(R.string.publish_error_brand)
                 idModelo == null || (modeloEsOtro && modeloOtro.isBlank()) -> texto(R.string.publish_error_model)
                 anioNum == null || anioNum !in 1900..(anioActual + 1) -> texto(R.string.publish_error_year)
-                (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> texto(R.string.publish_error_price)
                 idTransmision == null -> texto(R.string.publish_error_transmission)
                 kilometraje.filter(Char::isDigit).isEmpty() -> texto(R.string.publish_error_mileage)
                 (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
@@ -453,7 +554,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             .takeIf { it.isNotEmpty() }
             ?.let { texto(R.string.publish_error_required_photos, nombresFotos(it)) }
             ?: if (fotosElegidas.size > MAX_FOTOS) texto(R.string.publish_photos_limit, MAX_FOTOS) else null
-        3 -> if (descripcion.isBlank()) texto(R.string.publish_error_description) else null
+        3 -> when {
+            descripcion.isBlank() -> texto(R.string.publish_error_description)
+            // El precio va al final del formulario, junto con la sugerencia de autos similares.
+            (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> texto(R.string.publish_error_price)
+            else -> null
+        }
         else -> null
     }
 
@@ -513,8 +619,14 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     put("descripcion_problemas", imperfecciones.trim())
                 }
                 val id = editId
-                if (id != null) CarRepository.edit(id, datos, rutas)
-                else CarRepository.publish(datos, rutas)
+                    ?.let { CarRepository.edit(it, datos, rutas); it }
+                    ?: CarRepository.publish(datos, rutas)
+                // Huellas visuales de las fotos, para que nadie más publique estas fotos. Solo si
+                // están todas (registrar reemplaza las anteriores); si falla no pasa nada.
+                val huellasFinales = fotos.mapNotNull { visuales[it] }
+                if (huellasFinales.size == fotos.size) {
+                    safeCall { CarRepository.registrarHuellas(id, huellasFinales.distinct()) }
+                }
             }
                 .onSuccess { published = true }
                 .onFailure { error = it.mensajeUsuario() }

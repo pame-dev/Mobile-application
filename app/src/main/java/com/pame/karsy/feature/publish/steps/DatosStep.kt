@@ -121,15 +121,10 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_year))
-                    PublishTextInput(form.anio, { form.anio = it }, "2023", numeric = true, maxDigits = 4)
-                }
-                Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_price))
-                    PublishTextInput(form.precio, { form.precio = it }, "685000", numeric = true, maxDigits = 10)
-                }
+            // El precio va al final del formulario (paso Detalles), con la sugerencia de precio.
+            Column {
+                FieldLabel(stringResource(R.string.publish_label_year))
+                PublishTextInput(form.anio, { form.anio = it }, "2023", numeric = true, maxDigits = 4)
             }
 
             Column {

@@ -308,6 +308,27 @@ export async function sellerProfile(id: string): Promise<SellerProfile | null> {
 }
 
 /**
+ * Precios en pesos de autos del mismo modelo que el público puede ver (activos o vendidos),
+ * para sugerir un precio al publicar. Con [desde]/[hasta] solo esos años; [excluir] deja
+ * fuera la publicación que se está editando. Igual que CarRepository.preciosSimilares.
+ */
+export async function preciosSimilares(idModelo: number, desde?: number, hasta?: number, excluir?: number): Promise<number[]> {
+  let q = supabase
+    .from(VISTA)
+    .select('precio')
+    .eq('id_modelo', idModelo)
+    .eq('aprobada', true)
+    .eq('estado_administrativo', 'habilitada')
+    .in('estado_publicacion', ['activa', 'vendida'])
+    .eq('moneda', 'MXN')
+  if (desde != null) q = q.gte('anio', desde)
+  if (hasta != null) q = q.lte('anio', hasta)
+  if (excluir != null) q = q.neq('id_publicacion', excluir)
+  const rows = check(await q) as { precio: number | null }[]
+  return rows.flatMap((r) => (r.precio ? [Number(r.precio)] : []))
+}
+
+/**
  * Lo que el público ve de una cuenta en su perfil: sus autos activos y, al final, los vendidos
  * (CarRepository.ownerCars con onlyVisible).
  */
