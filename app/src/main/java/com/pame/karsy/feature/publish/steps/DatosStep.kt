@@ -55,6 +55,7 @@ import com.pame.karsy.feature.publish.PublishTextInput
 import com.pame.karsy.feature.publish.PublishViewModel
 import com.pame.karsy.feature.publish.SectionCard
 import com.pame.karsy.feature.publish.SectionTitle
+import java.util.Calendar
 
 // Colores para las muestras; los nombres vienen del catálogo public.colores.
 private val coloresHex = mapOf(
@@ -124,7 +125,14 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             // El precio va al final del formulario (paso Detalles), con la sugerencia de precio.
             Column {
                 FieldLabel(stringResource(R.string.publish_label_year))
-                PublishTextInput(form.anio, { form.anio = it }, "2023", numeric = true, maxDigits = 4)
+                // Del año que viene hacia atrás, hasta ANIO_MIN.
+                val anioMax = Calendar.getInstance().get(Calendar.YEAR) + 1
+                CatalogDropdown(
+                    value = form.anio,
+                    placeholder = stringResource(R.string.publish_select_year),
+                    options = (anioMax downTo PublishViewModel.ANIO_MIN).map { it.toLong() to it.toString() },
+                    onSelect = { form.anio = it.toString() }
+                )
             }
 
             Column {
@@ -193,7 +201,12 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_cylinders))
-                    PublishTextInput(form.cilindros, { form.cilindros = it }, "4", numeric = true, maxDigits = 2)
+                    CatalogDropdown(
+                        value = form.cilindros,
+                        placeholder = stringResource(R.string.publish_select),
+                        options = PublishViewModel.CILINDROS.map { it.toLong() to it.toString() },
+                        onSelect = { form.cilindros = it.toString() }
+                    )
                 }
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_horsepower))
@@ -203,9 +216,22 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_engine))
-                    PublishTextInput(form.motor, { form.motor = it.take(PublishViewModel.MOTOR_MAX) }, "2.0 L Turbo")
+                    FieldLabel(stringResource(R.string.publish_label_engine_liters))
+                    PublishTextInput(form.litros, { form.litros = PublishViewModel.litrosAlEscribir(it) }, "2.0", numeric = true)
                 }
+                Column(Modifier.weight(1f)) {
+                    FieldLabel(stringResource(R.string.publish_label_aspiration))
+                    val aspiraciones = PublishViewModel.ASPIRACIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) }
+                    CatalogDropdown(
+                        value = aspiraciones.firstOrNull { it.first == form.aspiracion }?.second.orEmpty(),
+                        placeholder = stringResource(R.string.publish_select),
+                        options = aspiraciones.mapIndexed { i, (_, etiqueta) -> i.toLong() to etiqueta },
+                        onSelect = { form.aspiracion = aspiraciones[it.toInt()].first }
+                    )
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_fuel))
                     val combustibles = PublishViewModel.COMBUSTIBLES
@@ -270,7 +296,14 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             SectionTitle(stringResource(R.string.publish_section_additional_info))
             Column {
                 FieldLabel(stringResource(R.string.publish_label_previous_owners))
-                PublishTextInput(form.duenos, { form.duenos = it }, "1", numeric = true, maxDigits = 2)
+                val max = PublishViewModel.DUENOS_MAX
+                val masDe = stringResource(R.string.publish_owners_or_more, max)
+                CatalogDropdown(
+                    value = form.duenos.toIntOrNull()?.let { if (it >= max) masDe else it.toString() }.orEmpty(),
+                    placeholder = stringResource(R.string.publish_select),
+                    options = (0..max).map { it.toLong() to if (it == max) masDe else it.toString() },
+                    onSelect = { form.duenos = it.toString() }
+                )
             }
         }
     }
@@ -412,3 +445,4 @@ private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: 
         )
     }
 }
+

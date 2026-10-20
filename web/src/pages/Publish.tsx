@@ -26,8 +26,22 @@ import type { Clave } from '../i18n/es'
 const MAX_FOTOS = 15
 /** Máximo de publicaciones.cilindros (chk_publicaciones_cilindros). */
 const MAX_CILINDROS = 16
-/** Largo máximo de publicaciones.cilindrada (VARCHAR(30)). */
-const MOTOR_MAX = 30
+/** Cilindros que se ofrecen en el menú (el máximo es MAX_CILINDROS). */
+const CILINDROS = [2, 3, 4, 5, 6, 8, 10, 12, 16]
+/** Año más antiguo del menú de años. */
+const ANIO_MIN = 1960
+/** El menú de dueños anteriores llega hasta "5 o más" (se guarda 5). */
+const DUENOS_MAX = 5
+/**
+ * Aspiración del motor. Se guarda en cilindrada junto con los litros ("2.0 L Turbo");
+ * "Natural" no agrega nada. Biturbo va antes que Turbo para reconocerlo al editar.
+ */
+const ASPIRACIONES: { valor: string; label: Clave }[] = [
+  { valor: 'Natural', label: 'publicar.aspNatural' },
+  { valor: 'Biturbo', label: 'publicar.aspBiturbo' },
+  { valor: 'Turbo', label: 'publicar.aspTurbo' },
+  { valor: 'Supercargado', label: 'publicar.aspSuper' },
+]
 /** El valor se guarda tal cual en tipo_combustible; la etiqueta se traduce. */
 const COMBUSTIBLES: { valor: string; label: Clave }[] = [
   { valor: 'Gasolina', label: 'publicar.fuelGasolina' },
@@ -60,7 +74,10 @@ interface Datos {
   recuperado: boolean
   cilindros: string
   caballos: string
-  motor: string
+  /** Litros del motor con un entero y un decimal ("2.0"). */
+  litros: string
+  /** Uno de ASPIRACIONES o vacío. */
+  aspiracion: string
   combustible: string
   idCarroceria: string
   idColor: string
@@ -71,11 +88,34 @@ interface Datos {
 
 const VACIO: Datos = {
   idMarca: '', marcaOtra: '', idModelo: '', modeloOtro: '', anio: '', precio: '', idTransmision: '', kilometraje: '',
-  recuperado: false, cilindros: '', caballos: '', motor: '', combustible: '', idCarroceria: '', idColor: '', duenos: '',
+  recuperado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', idColor: '', duenos: '',
   descripcion: '', imperfecciones: '',
 }
 
 const digitos = (v: string, max = 12) => v.replace(/\D/g, '').slice(0, max)
+
+/** Litros al escribir: solo un entero y un decimal; el punto se pone solo ("20" → "2.0"). */
+function litrosAlEscribir(v: string): string {
+  const n = digitos(v, 2)
+  return n.length === 2 ? `${n[0]}.${n[1]}` : n
+}
+
+/** Cilindrada guardada ("2.0 L Turbo") → litros y aspiración del formulario. */
+function separarMotor(cilindrada: string | null): { litros: string; aspiracion: string } {
+  const texto = cilindrada ?? ''
+  // "2.0", "1,6" o "3 L"; un número suelto como el de "V6" no son litros.
+  const num = texto.match(/(?<![\d.,])(\d)[.,](\d)(?!\d)/) ?? texto.match(/(?<![\d.,])(\d)()\s*L\b/i)
+  const litros = num ? `${num[1]}.${num[2] || '0'}` : ''
+  const asp = ASPIRACIONES.find((a) => a.valor !== 'Natural' && texto.toLowerCase().includes(a.valor.toLowerCase()))
+  return { litros, aspiracion: asp ? asp.valor : litros ? 'Natural' : '' }
+}
+
+/** Litros y aspiración → texto de cilindrada ("2.0 L Turbo"), o null si no hay nada. */
+function unirMotor(litros: string, aspiracion: string): string | null {
+  const l = litros ? `${litros.length === 1 ? litros + '.0' : litros} L` : ''
+  const a = aspiracion === 'Natural' ? '' : aspiracion
+  return [l, a].filter(Boolean).join(' ') || null
+}
 
 /** SHA-256 del contenido: detecta la misma foto elegida dos veces aunque tenga otro nombre. */
 async function huella(f: Foto): Promise<string> {
@@ -183,7 +223,7 @@ export function Publish() {
             recuperado: a.recuperado_por_seguro === true,
             cilindros: a.cilindros != null ? String(a.cilindros) : '',
             caballos: pot?.[1] ?? '',
-            motor: a.cilindrada ?? '',
+            ...separarMotor(a.cilindrada),
             combustible: a.tipo_combustible ?? '',
             idCarroceria: a.id_carroceria ? String(a.id_carroceria) : '',
             idColor: a.id_color ? String(a.id_color) : '',
@@ -281,6 +321,7 @@ export function Publish() {
       if (!d.idTransmision) return t('publicar.errTransmission')
       if (!d.kilometraje) return t('publicar.errMileage')
       if (Number(d.cilindros || 0) > MAX_CILINDROS) return t('publicar.errCylinders', { n: MAX_CILINDROS })
+      if (d.litros && !(Number(d.litros) > 0)) return t('publicar.errLiters')
       if (!d.idCarroceria) return t('publicar.errBodyType')
       if (!d.idColor) return t('publicar.errColor')
       return null
@@ -532,7 +573,7 @@ export function Publish() {
         id_carroceria: Number(d.idCarroceria),
         numero_propietarios_anteriores: Number(d.duenos || 0),
         cilindros: d.cilindros ? Number(d.cilindros) : null,
-        cilindrada: d.motor.trim() || null,
+        cilindrada: unirMotor(d.litros, d.aspiracion),
         tipo_combustible: d.combustible || null,
         descripcion_problemas: d.imperfecciones.trim(),
       }
@@ -596,6 +637,24 @@ export function Publish() {
     </select>
   )
 
+  /** Menú de opciones fijas. Si el valor guardado no está en la lista (al editar), se agrega. */
+  const opciones = (k: keyof Datos, lista: { valor: string; texto: string }[], placeholder: string) => {
+    const actual = d[k] as string
+    const todas = actual && !lista.some((o) => o.valor === actual) ? [{ valor: actual, texto: actual }, ...lista] : lista
+    return (
+      <select className="input" id={k} value={actual} onChange={(e) => set(k, e.target.value as never)}>
+        <option value="">{placeholder}</option>
+        {todas.map((o) => (
+          <option key={o.valor} value={o.valor}>
+            {o.texto}
+          </option>
+        ))}
+      </select>
+    )
+  }
+  /** Del año que viene hacia atrás, hasta ANIO_MIN. */
+  const anios = Array.from({ length: new Date().getFullYear() + 1 - ANIO_MIN + 1 }, (_, i) => new Date().getFullYear() + 1 - i)
+
   const fotoSlot = (f: Foto | null, etiqueta: string, onPick: () => void, onRemove?: () => void, debeSerAuto = false, opcional = false) => {
     const revisandoAuto =
       !!f && (tapando.has(f.key) || (debeSerAuto && !!f.file && !f.key.startsWith('r:') && !revisionAuto.has(f.key)))
@@ -643,7 +702,7 @@ export function Publish() {
     ['publicar.insuranceRecovered', d.recuperado ? t('publicar.yes') : t('publicar.no')],
     ['publicar.cylinders', d.cilindros || '—'],
     ['publicar.horsepower', d.caballos || '—'],
-    ['publicar.engine', d.motor.trim() || '—'],
+    ['publicar.engine', unirMotor(d.litros, d.aspiracion) ?? '—'],
     ['publicar.fuel', combustible ? t(combustible.label) : d.combustible || '—'],
     ['publicar.bodyType', nombre(cat?.carrocerias, d.idCarroceria)],
     ['publicar.color', nombre(cat?.colores, d.idColor)],
@@ -703,7 +762,7 @@ export function Publish() {
                   {modeloSel?.esOtro && <input className="input" placeholder={t('publicar.enterModel')} maxLength={60} value={d.modeloOtro} onChange={(e) => set('modeloOtro', e.target.value)} />}
                 </Campo>
                 <Campo id="anio" label={t('publicar.year')}>
-                  <input className="input" id="anio" inputMode="numeric" placeholder={String(new Date().getFullYear())} value={d.anio} onChange={(e) => set('anio', digitos(e.target.value, 4))} />
+                  {opciones('anio', anios.map((a) => ({ valor: String(a), texto: String(a) })), t('publicar.selectYear'))}
                 </Campo>
               </div>
               <div className="grid3">
@@ -731,7 +790,11 @@ export function Publish() {
                   {select('idColor', cat.colores, t('publicar.select'))}
                 </Campo>
                 <Campo id="duenos" label={t('publicar.previousOwners')}>
-                  <input className="input" id="duenos" inputMode="numeric" placeholder="0" value={d.duenos} onChange={(e) => set('duenos', digitos(e.target.value, 2))} />
+                  {opciones(
+                    'duenos',
+                    Array.from({ length: DUENOS_MAX + 1 }, (_, n) => ({ valor: String(n), texto: n === DUENOS_MAX ? t('publicar.ownersOrMore', { n }) : String(n) })),
+                    t('publicar.select'),
+                  )}
                 </Campo>
               </div>
               <div className="label" style={{ marginTop: 8 }}>
@@ -739,11 +802,16 @@ export function Publish() {
               </div>
               <div className="grid3">
                 <Campo id="cilindros" label={t('publicar.cylinders')}>
-                  <input className="input" id="cilindros" inputMode="numeric" placeholder="4" value={d.cilindros} onChange={(e) => set('cilindros', digitos(e.target.value, 2))} />
+                  {opciones('cilindros', CILINDROS.map((n) => ({ valor: String(n), texto: String(n) })), t('publicar.select'))}
                 </Campo>
-                <Campo id="motor" label={t('publicar.engine')}>
-                  <input className="input" id="motor" placeholder="2.0 L Turbo" maxLength={MOTOR_MAX} value={d.motor} onChange={(e) => set('motor', e.target.value)} />
+                <Campo id="litros" label={t('publicar.engineLiters')}>
+                  <input className="input" id="litros" inputMode="decimal" placeholder="2.0" value={d.litros} onChange={(e) => set('litros', litrosAlEscribir(e.target.value))} />
                 </Campo>
+                <Campo id="aspiracion" label={t('publicar.aspiration')}>
+                  {opciones('aspiracion', ASPIRACIONES.map((a) => ({ valor: a.valor, texto: t(a.label) })), t('publicar.select'))}
+                </Campo>
+              </div>
+              <div className="grid3">
                 <Campo id="combustible" label={t('publicar.fuel')}>
                   <select className="input" id="combustible" value={d.combustible} onChange={(e) => set('combustible', e.target.value)}>
                     <option value="">{t('publicar.select')}</option>
@@ -754,8 +822,6 @@ export function Publish() {
                     ))}
                   </select>
                 </Campo>
-              </div>
-              <div className="grid3">
                 <Campo id="caballos" label={t('publicar.horsepower')}>
                   <input className="input" id="caballos" inputMode="numeric" placeholder="150" value={d.caballos} onChange={(e) => set('caballos', digitos(e.target.value, 4))} />
                 </Campo>

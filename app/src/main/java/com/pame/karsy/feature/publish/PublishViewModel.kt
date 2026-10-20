@@ -92,8 +92,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var recuperadoPorSeguro by mutableStateOf(false)
     var cilindros by mutableStateOf("")
     var caballos by mutableStateOf("")
-    /** Cilindrada / tipo de motor en texto libre (columna cilindrada), p. ej. "2.0 L Turbo". */
-    var motor by mutableStateOf("")
+    /** Litros del motor con un entero y un decimal ("2.0"); ver [litrosAlEscribir]. */
+    var litros by mutableStateOf("")
+    /** Uno de [ASPIRACIONES] o vacío. Junto con [litros] forma la columna cilindrada. */
+    var aspiracion by mutableStateOf("")
+    /** Texto que se guarda en cilindrada, p. ej. "2.0 L Turbo"; vacío si no hay datos. */
+    val motor: String get() = unirMotor(litros, aspiracion)
     /** Uno de [COMBUSTIBLES] o vacío (columna tipo_combustible). */
     var combustible by mutableStateOf("")
     var idCarroceria by mutableStateOf<Long?>(null)
@@ -345,7 +349,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         kilometraje = a.kilometraje?.toString().orEmpty()
         recuperadoPorSeguro = a.recuperadoPorSeguro == true
         cilindros = a.cilindros?.toString().orEmpty()
-        motor = a.cilindrada.orEmpty()
+        separarMotor(a.cilindrada.orEmpty()).let { (l, asp) -> litros = l; aspiracion = asp }
         combustible = a.combustible.orEmpty()
         idCarroceria = a.idCarroceria
         idColor = a.idColor
@@ -545,6 +549,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 idTransmision == null -> texto(R.string.publish_error_transmission)
                 kilometraje.filter(Char::isDigit).isEmpty() -> texto(R.string.publish_error_mileage)
                 (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
+                litros.isNotEmpty() && (litros.toDoubleOrNull() ?: 0.0) <= 0.0 -> texto(R.string.publish_error_liters)
                 idCarroceria == null -> texto(R.string.publish_error_body_type)
                 idColor == null -> texto(R.string.publish_error_color)
                 else -> null
@@ -654,8 +659,48 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         /** Opciones de combustible; se guardan tal cual en tipo_combustible (catálogo tipos_combustible). */
         val COMBUSTIBLES = listOf("Gasolina", "Diésel", "Híbrido", "Eléctrico")
 
-        /** Largo máximo de publicaciones.cilindrada (VARCHAR(30)). */
-        const val MOTOR_MAX = 30
+        /** Cilindros que se ofrecen en el menú (el máximo es [MAX_CILINDROS]). */
+        val CILINDROS = listOf(2, 3, 4, 5, 6, 8, 10, 12, 16)
+
+        /** Año más antiguo del menú de años. */
+        const val ANIO_MIN = 1960
+
+        /** El menú de dueños anteriores llega hasta "5 o más" (se guarda 5). */
+        const val DUENOS_MAX = 5
+
+        /**
+         * Aspiración del motor: valor que se guarda en cilindrada → etiqueta. "Natural" no
+         * agrega nada al texto. Biturbo va antes que Turbo para reconocerlo al editar.
+         */
+        val ASPIRACIONES = listOf(
+            "Natural" to R.string.publish_asp_natural,
+            "Biturbo" to R.string.publish_asp_biturbo,
+            "Turbo" to R.string.publish_asp_turbo,
+            "Supercargado" to R.string.publish_asp_super,
+        )
+
+        /** Litros al escribir: solo un entero y un decimal; el punto se pone solo ("20" → "2.0"). */
+        fun litrosAlEscribir(texto: String): String {
+            val d = texto.filter(Char::isDigit).take(2)
+            return if (d.length == 2) "${d[0]}.${d[1]}" else d
+        }
+
+        /** Litros y aspiración → texto de cilindrada ("2.0 L Turbo"), o vacío. */
+        fun unirMotor(litros: String, aspiracion: String): String {
+            val l = if (litros.isEmpty()) "" else (if (litros.length == 1) "$litros.0" else litros) + " L"
+            val a = if (aspiracion == "Natural") "" else aspiracion
+            return listOf(l, a).filter { it.isNotEmpty() }.joinToString(" ")
+        }
+
+        /** Cilindrada guardada ("2.0 L Turbo") → litros y aspiración. "V6" no cuenta como litros. */
+        fun separarMotor(cilindrada: String): Pair<String, String> {
+            val num = Regex("""(?<![\d.,])(\d)[.,](\d)(?!\d)""").find(cilindrada)
+                ?: Regex("""(?<![\d.,])(\d)()\s*L\b""", RegexOption.IGNORE_CASE).find(cilindrada)
+            val litros = num?.let { "${it.groupValues[1]}.${it.groupValues[2].ifEmpty { "0" }}" }.orEmpty()
+            val asp = ASPIRACIONES.map { it.first }
+                .firstOrNull { it != "Natural" && cilindrada.contains(it, ignoreCase = true) }
+            return litros to (asp ?: if (litros.isNotEmpty()) "Natural" else "")
+        }
 
         /** Sufijo "Potencia: N hp" que publish() agrega a la descripción. */
         private val POTENCIA = Regex("""\n\nPotencia: (\d+) hp$""")

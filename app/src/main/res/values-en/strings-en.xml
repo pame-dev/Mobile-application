@@ -595,6 +595,7 @@
     <string name="publish_error_transmission">Choose the transmission.</string>
     <string name="publish_error_mileage">Enter the mileage.</string>
     <string name="publish_error_cylinders">Cylinders can\'t be more than %1$d.</string>
+    <string name="publish_error_liters">Enter the engine size in liters, for example 2.0.</string>
     <string name="publish_error_body_type">Choose the body type.</string>
     <string name="publish_error_color">Choose the color.</string>
     <string name="publish_error_required_photos">Still missing: %1$s.</string>
@@ -633,6 +634,15 @@
     <string name="publish_label_cylinders">CYLINDERS</string>
     <string name="publish_label_horsepower">HORSEPOWER</string>
     <string name="publish_label_engine">ENGINE</string>
+    <string name="publish_label_engine_liters">ENGINE (LITERS)</string>
+    <string name="publish_label_aspiration">ASPIRATION</string>
+    <string name="publish_asp_natural">Naturally aspirated</string>
+    <string name="publish_asp_turbo">Turbo</string>
+    <string name="publish_asp_biturbo">Twin-turbo</string>
+    <string name="publish_asp_super">Supercharged</string>
+    <string name="publish_select">Select</string>
+    <string name="publish_select_year">Select the year</string>
+    <string name="publish_owners_or_more">%1$d or more</string>
     <string name="publish_label_fuel">FUEL</string>
     <string name="publish_select_fuel">Select</string>
     <string name="publish_label_body_type">BODY TYPE</string>

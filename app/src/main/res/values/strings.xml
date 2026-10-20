@@ -597,6 +597,7 @@
     <string name="publish_error_transmission">Elige la transmisión.</string>
     <string name="publish_error_mileage">Escribe el kilometraje.</string>
     <string name="publish_error_cylinders">Los cilindros no pueden ser más de %1$d.</string>
+    <string name="publish_error_liters">Escribe los litros del motor, por ejemplo 2.0.</string>
     <string name="publish_error_body_type">Elige el tipo de carro.</string>
     <string name="publish_error_color">Elige el color.</string>
     <string name="publish_error_required_photos">Falta subir: %1$s.</string>
@@ -635,6 +636,15 @@
     <string name="publish_label_cylinders">CILINDROS</string>
     <string name="publish_label_horsepower">CABALLOS DE FUERZA</string>
     <string name="publish_label_engine">MOTOR</string>
+    <string name="publish_label_engine_liters">MOTOR (LITROS)</string>
+    <string name="publish_label_aspiration">ASPIRACIÓN</string>
+    <string name="publish_asp_natural">Natural</string>
+    <string name="publish_asp_turbo">Turbo</string>
+    <string name="publish_asp_biturbo">Biturbo</string>
+    <string name="publish_asp_super">Supercargado</string>
+    <string name="publish_select">Selecciona</string>
+    <string name="publish_select_year">Selecciona el año</string>
+    <string name="publish_owners_or_more">%1$d o más</string>
     <string name="publish_label_fuel">COMBUSTIBLE</string>
     <string name="publish_select_fuel">Selecciona</string>
     <string name="publish_label_body_type">TIPO DE CARRO</string>
