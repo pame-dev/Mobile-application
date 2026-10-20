@@ -7,10 +7,11 @@ import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
 import { useTraduccion } from '../components/Traducido'
 import { mensajeUsuario } from '../data/auth'
-import { catalogs as cargarCatalogos } from '../data/api'
+import { catalogs as cargarCatalogos, preciosSimilares } from '../data/api'
 import { crearPublicacion, editarPublicacion, ownListing, uploadPhoto } from '../data/seller'
 import type { Catalogs } from '../data/types'
 import { entero, precio as formatoPrecio } from '../lib/format'
+import { calcularRango, compararPrecio, type Rango } from '../lib/precioSugerido'
 import { ANGULOS_CON_AUTO, pareceAuto, precargarDetector } from '../lib/detectorAutos'
 import { jpegDe } from '../lib/mexico'
 import { precargarTapaPlacas, taparPlacas } from '../lib/tapaPlacas'
@@ -112,6 +113,8 @@ export function Publish() {
   /** Fotos del tablero en las que el detector ve el exterior de un auto (solo avisa). */
   const [tableroExterior, setTableroExterior] = useState<Set<string>>(new Set())
   const [step, setStep] = useState(0)
+  /** Precio sugerido (paso Detalles): 'cargando', el rango de autos similares o null si no hay suficientes. */
+  const [sugerencia, setSugerencia] = useState<'cargando' | 'error' | { rango: Rango; desde?: number; hasta?: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cargandoEdicion, setCargandoEdicion] = useState(editId != null)
   const [rechazo, setRechazo] = useState<string | null>(null)
@@ -201,6 +204,35 @@ export function Publish() {
     }
   }, [editId])
 
+  // Al llegar a Detalles se busca el precio de autos similares: mismo modelo y ±2 años; si hay
+  // pocos, el mismo modelo de cualquier año. Con "Otros" (modelo escrito a mano) no se sugiere.
+  useEffect(() => {
+    const modelo = cat?.modelos.find((m) => String(m.id) === d.idModelo)
+    const anio = Number(d.anio)
+    if (step !== 2 || !modelo || modelo.esOtro || !Number.isInteger(anio) || anio < 1900 || anio > new Date().getFullYear() + 1) {
+      setSugerencia(null)
+      return
+    }
+    let vivo = true
+    setSugerencia('cargando')
+    void (async () => {
+      const excluir = editId ?? undefined
+      let precios = await preciosSimilares(modelo.id, anio - 2, anio + 2, excluir)
+      let desde: number | undefined = anio - 2
+      let hasta: number | undefined = anio + 2
+      if (precios.length < 3) {
+        precios = await preciosSimilares(modelo.id, undefined, undefined, excluir)
+        desde = hasta = undefined
+      }
+      const rango = calcularRango(precios)
+      if (vivo) setSugerencia(rango ? { rango, desde, hasta } : null)
+      // Sin internet: no se muestra nada (no es que falten autos similares).
+    })().catch(() => vivo && setSugerencia('error'))
+    return () => {
+      vivo = false
+    }
+  }, [step, d.idModelo, d.anio, cat, editId])
+
   // Avisa antes de cerrar o recargar la pestaña si ya se escribió algo (y no se publicó).
   useEffect(() => {
     if (!tocado || listo) return
@@ -238,7 +270,6 @@ export function Publish() {
       if (!marcaSel || (marcaSel.esOtro && !d.marcaOtra.trim())) return t('publicar.errBrand')
       if (!modeloSel || (modeloSel.esOtro && !d.modeloOtro.trim())) return t('publicar.errModel')
       if (!Number.isInteger(anio) || anio < 1900 || anio > max) return t('publicar.errYear')
-      if (!(Number(d.precio) > 0)) return t('publicar.errPrice')
       if (!d.idTransmision) return t('publicar.errTransmission')
       if (!d.kilometraje) return t('publicar.errMileage')
       if (Number(d.cilindros || 0) > MAX_CILINDROS) return t('publicar.errCylinders', { n: MAX_CILINDROS })
@@ -250,7 +281,12 @@ export function Publish() {
       const faltan = angulos.flatMap((f, i) => (f ? [] : [i]))
       return faltan.length ? t('publicar.errRequiredPhotos', { fotos: nombresFotos(faltan) }) : null
     }
-    if (paso === 2) return d.descripcion.trim() ? null : t('publicar.errDescription')
+    if (paso === 2) {
+      if (!d.descripcion.trim()) return t('publicar.errDescription')
+      // El precio va al final del formulario, junto con la sugerencia de autos similares.
+      if (!(Number(d.precio) > 0)) return t('publicar.errPrice')
+      return null
+    }
     return null
   }
 
@@ -618,9 +654,6 @@ export function Publish() {
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo id="precio" label={t('publicar.price')}>
-                  <input className="input" id="precio" inputMode="numeric" placeholder="250,000" value={d.precio ? entero(Number(d.precio)) : ''} onChange={(e) => set('precio', digitos(e.target.value, 10))} />
-                </Campo>
                 <Campo label={t('publicar.transmission')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {cat.transmisiones.map((t) => (
@@ -802,6 +835,51 @@ export function Publish() {
                 <b>{t('publicar.tipBold')}</b>
                 {t('publicar.tipAfter')}
               </div>
+              <Campo id="precio" label={t('publicar.price')}>
+                <input className="input" id="precio" inputMode="numeric" placeholder="250,000" value={d.precio ? entero(Number(d.precio)) : ''} onChange={(e) => set('precio', digitos(e.target.value, 10))} />
+              </Campo>
+              {sugerencia === 'cargando' ? (
+                <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                  {t('publicar.priceLoading')}
+                </p>
+              ) : sugerencia === 'error' ? null : sugerencia ? (
+                <div className="note" style={{ background: 'var(--teal-light)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span>
+                    {t('publicar.priceSuggest', {
+                      grupo:
+                        sugerencia.desde != null
+                          ? t('publicar.priceGroupYears', { modelo: `${marcaNombre} ${modeloNombre}`, desde: sugerencia.desde, hasta: sugerencia.hasta ?? '' })
+                          : t('publicar.priceGroupAllYears', { modelo: `${marcaNombre} ${modeloNombre}` }),
+                      n: sugerencia.rango.n,
+                      min: formatoPrecio(sugerencia.rango.min),
+                      max: formatoPrecio(sugerencia.rango.max),
+                      tipico: formatoPrecio(sugerencia.rango.tipico),
+                    })}
+                  </span>
+                  {Number(d.precio) > 0 && (
+                    <b>
+                      {t(
+                        { abajo: 'publicar.priceBelow', dentro: 'publicar.priceWithin', arriba: 'publicar.priceAbove' }[
+                          compararPrecio(Number(d.precio), sugerencia.rango)
+                        ] as Clave,
+                      )}
+                    </b>
+                  )}
+                  {Number(d.precio) !== sugerencia.rango.tipico && (
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => set('precio', String(sugerencia.rango.tipico))}>
+                      {t('publicar.priceUseTypical', { tipico: formatoPrecio(sugerencia.rango.tipico) })}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                step === 2 &&
+                modeloSel &&
+                !modeloSel.esOtro && (
+                  <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                    {t('publicar.priceNoData')}
+                  </p>
+                )
+              )}
             </section>
           )}
 

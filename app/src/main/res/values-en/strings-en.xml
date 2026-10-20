@@ -604,6 +604,15 @@
     <string name="publish_photo_not_car">This photo doesn\'t look like a car. Pick one that shows the vehicle.</string>
     <string name="publish_photos_plates_hint">For your safety, license plates that appear in the photos are blurred automatically.</string>
     <string name="publish_error_description">Enter a description of the vehicle.</string>
+    <string name="publish_price_loading">Looking for similar cars on Karsy…</string>
+    <string name="publish_price_suggest">Similar cars (%1$s, %2$d listed) are offered between %3$s and %4$s. Typical price: %5$s.</string>
+    <string name="publish_price_group_years">%1$s %2$d–%3$d</string>
+    <string name="publish_price_group_all_years">%1$s, any year</string>
+    <string name="publish_price_no_data">There aren’t enough similar cars on Karsy yet to suggest a price.</string>
+    <string name="publish_price_below">Your price is below similar cars: it could sell fast, but make sure you’re not losing money.</string>
+    <string name="publish_price_within">Your price is within the range of similar cars.</string>
+    <string name="publish_price_above">Your price is above similar cars: it could take longer to sell.</string>
+    <string name="publish_price_use_typical">Use the typical price (%1$s)</string>
     <string name="publish_next_photos">Next: Photos →</string>
     <string name="publish_next_details">Next: Details →</string>
     <string name="publish_checking_photos">Checking photos…</string>

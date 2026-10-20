@@ -328,3 +328,7 @@ data class TraduccionDto(
     val descripcion: String? = null,
     val problemas: String? = null,
 )
+
+/** Solo el precio de una publicación (precio sugerido al publicar). */
+@Serializable
+data class PrecioDto(val precio: Double? = null)

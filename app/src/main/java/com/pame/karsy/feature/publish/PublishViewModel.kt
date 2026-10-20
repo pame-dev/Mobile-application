@@ -2,6 +2,7 @@ package com.pame.karsy.feature.publish
 
 import android.content.Context
 import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.util.PrecioSugerido
 import com.pame.karsy.core.util.TapaPlacas
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.Job
@@ -242,6 +243,58 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var descripcion by mutableStateOf("")
     var imperfecciones by mutableStateOf("")
 
+    /** Precio sugerido (paso 3): rango de autos similares; null si no hay suficientes. */
+    var sugerenciaPrecio by mutableStateOf<SugerenciaPrecio?>(null)
+        private set
+    var buscandoPrecio by mutableStateOf(false)
+        private set
+    /** No se pudo consultar (sin internet): no se muestra nada en vez de "no hay suficientes". */
+    var errorPrecio by mutableStateOf(false)
+        private set
+    private var jobPrecio: Job? = null
+
+    /** [desde]/[hasta] null = el mismo modelo de cualquier año (había pocos de años parecidos). */
+    data class SugerenciaPrecio(val rango: PrecioSugerido.Rango, val desde: Int?, val hasta: Int?)
+
+    /**
+     * Busca el precio de autos similares: mismo modelo y ±2 años; si hay pocos, el mismo modelo
+     * de cualquier año. Con "Otros" (modelo escrito a mano) no se sugiere.
+     */
+    fun cargarSugerenciaPrecio() {
+        // Una búsqueda nueva cancela la anterior (así un resultado viejo no pisa al nuevo).
+        jobPrecio?.cancel()
+        val modelo = idModelo
+        val anioNum = anio.trim().toIntOrNull()
+        val anioMax = Calendar.getInstance().get(Calendar.YEAR) + 1
+        if (modelo == null || modeloEsOtro || anioNum == null || anioNum !in 1900..anioMax) {
+            sugerenciaPrecio = null
+            buscandoPrecio = false
+            errorPrecio = false
+            return
+        }
+        jobPrecio = viewModelScope.launch {
+            buscandoPrecio = true
+            sugerenciaPrecio = null
+            errorPrecio = false
+            sugerenciaPrecio = safeCall {
+                var precios = CarRepository.preciosSimilares(modelo, anioNum - 2, anioNum + 2, editId)
+                var desde: Int? = anioNum - 2
+                var hasta: Int? = anioNum + 2
+                if (precios.size < 3) {
+                    precios = CarRepository.preciosSimilares(modelo, excluir = editId)
+                    desde = null
+                    hasta = null
+                }
+                PrecioSugerido.calcular(precios)?.let { SugerenciaPrecio(it, desde, hasta) }
+            }.onFailure { errorPrecio = true }.getOrNull()
+            buscandoPrecio = false
+        }
+    }
+
+    fun usarPrecioTipico() {
+        sugerenciaPrecio?.let { precio = it.rango.tipico.toString() }
+    }
+
     init {
         viewModelScope.launch {
             safeCall { CatalogRepository.get() }
@@ -440,7 +493,6 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 idMarca == null || (marcaEsOtro && marcaOtra.isBlank()) -> texto(R.string.publish_error_brand)
                 idModelo == null || (modeloEsOtro && modeloOtro.isBlank()) -> texto(R.string.publish_error_model)
                 anioNum == null || anioNum !in 1900..(anioActual + 1) -> texto(R.string.publish_error_year)
-                (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> texto(R.string.publish_error_price)
                 idTransmision == null -> texto(R.string.publish_error_transmission)
                 kilometraje.filter(Char::isDigit).isEmpty() -> texto(R.string.publish_error_mileage)
                 (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
@@ -453,7 +505,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             .takeIf { it.isNotEmpty() }
             ?.let { texto(R.string.publish_error_required_photos, nombresFotos(it)) }
             ?: if (fotosElegidas.size > MAX_FOTOS) texto(R.string.publish_photos_limit, MAX_FOTOS) else null
-        3 -> if (descripcion.isBlank()) texto(R.string.publish_error_description) else null
+        3 -> when {
+            descripcion.isBlank() -> texto(R.string.publish_error_description)
+            // El precio va al final del formulario, junto con la sugerencia de autos similares.
+            (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> texto(R.string.publish_error_price)
+            else -> null
+        }
         else -> null
     }
 
