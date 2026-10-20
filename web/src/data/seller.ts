@@ -93,6 +93,21 @@ export async function uploadPhoto(blob: Blob): Promise<string> {
   return ruta
 }
 
+/**
+ * Posiciones (desde 0) de las huellas visuales que ya están en una publicación de otra cuenta
+ * (función fotos_ya_usadas). Igual que CarRepository.fotosYaUsadas en la app.
+ */
+export async function fotosYaUsadas(huellas: string[]): Promise<number[]> {
+  if (!huellas.length) return []
+  const r = check(await supabase.rpc('fotos_ya_usadas', { p_huellas: huellas })) as number[] | null
+  return (r ?? []).map((p) => p - 1)
+}
+
+/** Guarda las huellas visuales de las fotos de una publicación propia (al publicar o editar). */
+export async function registrarHuellas(idPublicacion: number, huellas: string[]): Promise<void> {
+  check(await supabase.rpc('registrar_huellas_fotos', { p_id_publicacion: idPublicacion, p_huellas: huellas }))
+}
+
 /** Crea la publicación con su propuesta pendiente (función crear_publicacion). */
 export async function crearPublicacion(datos: Record<string, unknown>, fotos: string[]): Promise<number> {
   return check(await supabase.rpc('crear_publicacion', { p_datos: datos, p_fotos: fotos })) as number

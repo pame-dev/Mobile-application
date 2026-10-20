@@ -652,6 +652,8 @@
     <string name="publish_photo_right">Foto lateral derecha</string>
     <string name="publish_photo_dashboard">Foto del tablero</string>
     <string name="publish_photo_engine">Foto del motor · Recomendada</string>
+    <string name="publish_photo_used_elsewhere">Esta foto ya está en otra publicación de Karsy.</string>
+    <string name="publish_error_photos_used_elsewhere">Las fotos marcadas ya están en otra publicación de Karsy. Usa fotos tuyas del auto que vas a vender.</string>
     <string name="publish_engine_no_room">Ya tienes %1$d fotos, el máximo. Quita una adicional si quieres agregar la del motor.</string>
     <string name="publish_engine_hint">Recomendada: una foto del motor con el cofre abierto da más confianza a los compradores.</string>
     <string name="publish_photo_looks_exterior">Parece del exterior del auto. Si te equivocaste, sube una del tablero donde se vea el kilometraje.</string>

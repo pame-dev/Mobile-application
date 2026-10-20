@@ -296,6 +296,25 @@ object CarRepository {
         db.postgrest.rpc("favoritos_mis_publicaciones").decodeList<FavoritosConteoDto>()
             .associate { it.idPublicacion to it.total }
 
+    /**
+     * Posiciones (desde 0) de las huellas visuales que ya están en una publicación de otra
+     * cuenta (función fotos_ya_usadas). Igual que fotosYaUsadas en la web.
+     */
+    suspend fun fotosYaUsadas(huellas: List<String>): List<Int> {
+        if (huellas.isEmpty()) return emptyList()
+        return db.postgrest.rpc("fotos_ya_usadas", buildJsonObject {
+            put("p_huellas", buildJsonArray { huellas.forEach { add(it) } })
+        }).decodeAs<List<Int>>().map { it - 1 }
+    }
+
+    /** Guarda las huellas visuales de las fotos de una publicación propia (al publicar o editar). */
+    suspend fun registrarHuellas(idPublicacion: Long, huellas: List<String>) {
+        db.postgrest.rpc("registrar_huellas_fotos", buildJsonObject {
+            put("p_id_publicacion", idPublicacion)
+            put("p_huellas", buildJsonArray { huellas.forEach { add(it) } })
+        })
+    }
+
     /** Crea la publicación con su propuesta pendiente (función crear_publicacion). */
     suspend fun publish(datos: JsonObject, fotos: List<String>): Long =
         db.postgrest.rpc("crear_publicacion", buildJsonObject {

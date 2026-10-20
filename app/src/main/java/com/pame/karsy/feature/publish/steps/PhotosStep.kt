@@ -130,13 +130,14 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 isDashboard = i == 4,
                 // Borde rojo: falta la foto (después de intentar avanzar), está repetida o no parece auto.
                 hasError = (form.photosAttempted && uri == null) ||
-                    (uri != null && (uri in form.duplicatePhotos || form.noPareceAuto(uri))),
+                    (uri != null && (uri in form.duplicatePhotos || uri in form.fotosAjenas || form.noPareceAuto(uri))),
                 status = when {
                     uri == null -> null
                     form.procesandoFoto(uri) -> stringResource(R.string.publish_photo_checking)
                     i >= DetectorAutos.ANGULOS_CON_AUTO -> null
                     form.revisandoAuto(uri) -> stringResource(R.string.publish_photo_checking)
                     form.noPareceAuto(uri) -> stringResource(R.string.publish_photo_not_car)
+                    uri in form.fotosAjenas -> stringResource(R.string.publish_photo_used_elsewhere)
                     else -> null
                 } ?: if (uri != null && i == slotLabels.lastIndex && form.pareceExterior(uri)) {
                     stringResource(R.string.publish_photo_looks_exterior)
@@ -152,11 +153,12 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         PhotoSlotCard(
             slot = PhotoSlot(stringResource(R.string.publish_photo_engine), motor),
             isDashboard = false,
-            hasError = motor != null && motor in form.duplicatePhotos,
+            hasError = motor != null && (motor in form.duplicatePhotos || motor in form.fotosAjenas),
             status = when {
                 form.motorSinLugar -> stringResource(R.string.publish_engine_no_room, PublishViewModel.MAX_FOTOS)
                 motor == null -> stringResource(R.string.publish_engine_hint)
                 form.procesandoFoto(motor) -> stringResource(R.string.publish_photo_checking)
+                motor in form.fotosAjenas -> stringResource(R.string.publish_photo_used_elsewhere)
                 else -> null
             },
             onPick = {
@@ -170,7 +172,8 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         )
         ExtraPhotosCard(
             photos = form.extraPhotos,
-            duplicates = form.duplicatePhotos,
+            // Repetidas o de otra publicación: las dos se marcan en rojo.
+            duplicates = remember(form.duplicatePhotos, form.fotosAjenas) { form.duplicatePhotos + form.fotosAjenas },
             total = form.fotosElegidas.size,
             canAdd = form.extraPhotosLeft > 0,
             onAdd = { extrasPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },

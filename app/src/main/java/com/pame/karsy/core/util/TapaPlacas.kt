@@ -125,7 +125,7 @@ object TapaPlacas {
     }
 
     /** Bitmap editable, girado según el EXIF y de máximo MAX_LADO por lado. */
-    private fun leer(context: Context, uri: Uri): Bitmap? {
+    internal fun leer(context: Context, uri: Uri): Bitmap? {
         // Las fotos que ya están publicadas se descargan de su URL pública.
         val bytes = if (uri.scheme == "http" || uri.scheme == "https") {
             URL(uri.toString()).openStream().use { it.readBytes() }
