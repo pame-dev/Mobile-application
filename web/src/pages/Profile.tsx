@@ -4,6 +4,7 @@ import { AlertBox } from '../components/AuthParts'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
+import { VolverButton } from '../components/VolverButton'
 import { Traducido } from '../components/Traducido'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
@@ -399,6 +400,9 @@ export function Profile() {
 
   return (
     <div className="wrap" style={{ paddingTop: 24 }}>
+      <div style={{ marginBottom: 14 }}>
+        <VolverButton fallback="/" />
+      </div>
       <div className="cover">
         {perfil.coverUrl && <img src={perfil.coverUrl} alt="" />}
         <button className="btn btn-sm coverbtn" onClick={() => portadaInput.current?.click()} disabled={subiendoPortada}>
