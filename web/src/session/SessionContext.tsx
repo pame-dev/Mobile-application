@@ -22,6 +22,9 @@ interface SessionValue {
 
 const SessionContext = createContext<SessionValue | null>(null)
 
+/** Cada cuánto se comprueba que la sesión siga viva en Supabase mientras la pestaña está visible. */
+const SESSION_CHECK_MS = 60_000
+
 /**
  * Durante "¿Olvidaste tu contraseña?" el código abre una sesión temporal que solo
  * sirve para cambiar la contraseña: mientras tanto la web sigue como visitante.
@@ -103,6 +106,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     })
     return () => data.subscription.unsubscribe()
   }, [reload])
+
+  // "Cerrar sesión en todos los dispositivos" desde otro lado (la app u otro navegador):
+  // Supabase revoca la sesión, pero esta pestaña no se entera sola. Mientras hay cuenta se
+  // comprueba al volver a la pestaña y cada minuto; si ya no existe, se cierra aquí también.
+  // Sin internet no se cierra nada.
+  const cuentaId = account?.id
+  useEffect(() => {
+    if (!cuentaId) return
+    let activo = true
+    const comprobar = async () => {
+      if (document.visibilityState !== 'visible') return
+      const { error } = await supabase.auth.getUser()
+      if (!activo || (error?.code !== 'session_not_found' && error?.code !== 'user_not_found')) return
+      await cerrarSesionLocal()
+      setAccount(null)
+      setNotice(traducir('vehiculo.session.revoked'))
+    }
+    const intervalo = setInterval(() => void comprobar(), SESSION_CHECK_MS)
+    const alVolver = () => void comprobar()
+    document.addEventListener('visibilitychange', alVolver)
+    return () => {
+      activo = false
+      clearInterval(intervalo)
+      document.removeEventListener('visibilitychange', alVolver)
+    }
+  }, [cuentaId])
 
   const signOut = useCallback(async () => {
     await cerrarSesionLocal()

@@ -12,8 +12,11 @@ import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.exceptions.RestException
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -144,14 +147,74 @@ object AuthRepository {
     }
 
     /**
-     * Cierra la sesión en todos los dispositivos de la cuenta (Supabase invalida todas
-     * las sesiones), incluido este.
+     * Cierra la sesión en todos los dispositivos de la cuenta, incluido este. La Edge
+     * Function cerrar-sesiones invalida todas las sesiones y avisa por push a los otros
+     * teléfonos para que se cierren al instante.
      */
     suspend fun signOutEverywhere() {
-        auth.signOut(SignOutScope.GLOBAL)
+        closingEverywhere = true
+        try {
+            try {
+                Supabase.client.functions.invoke("cerrar-sesiones")
+            } catch (e: RestException) {
+                // Si la sesión de este teléfono ya estaba cerrada desde otro lado, cuenta como
+                // hecho. Si no, la función no está desplegada o falló: se cierran igual todas
+                // las sesiones, sin el aviso inmediato (los teléfonos se enteran en un minuto).
+                if (!sessionRevoked()) auth.signOut(SignOutScope.GLOBAL)
+            }
+        } catch (e: Exception) {
+            closingEverywhere = false
+            throw e
+        }
+        signOut()
+    }
+
+    /**
+     * true desde que este teléfono pidió cerrar en todos lados hasta el siguiente inicio de
+     * sesión: su propia sesión revocada no debe mostrarle "se cerró desde otro dispositivo".
+     */
+    @Volatile
+    var closingEverywhere = false
+        private set
+
+    /**
+     * Avisa a la pantalla que la sesión se cerró desde otro dispositivo (push
+     * "sesion_cerrada"). Sin pantalla abierta el aviso se descarta: al abrir la app ya no
+     * hay sesión.
+     */
+    val closedElsewhere = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /**
+     * Llegó el push "sesion_cerrada". Antes de cerrar se comprueba con Supabase que la
+     * sesión ya no exista: un aviso atrasado no debe cerrar una sesión iniciada después.
+     * Si Android termina el proceso antes de acabar, la app lo detecta al volver a ella.
+     */
+    suspend fun onSessionClosedPush() {
+        if (closingEverywhere) return
+        auth.awaitInitialization()
+        if (!sessionRevoked()) return
+        signOut()
+        closedElsewhere.tryEmit(Unit)
+    }
+
+    /**
+     * true si Supabase ya no reconoce la sesión de este teléfono: se cerró en todos los
+     * dispositivos desde otro lado (o la cuenta ya no existe). Si no hay sesión guardada
+     * también es true (Supabase la borra al fallar la renovación). Los errores de red se
+     * lanzan: sin poder comprobarla no se cierra la sesión.
+     */
+    suspend fun sessionRevoked(): Boolean {
+        if (auth.currentSessionOrNull() == null) return true
+        return try {
+            auth.retrieveUserForCurrentSession()
+            false
+        } catch (e: AuthRestException) {
+            e.error == "session_not_found" || e.error == "user_not_found"
+        }
     }
 
     private suspend fun loadAccountOrSignOut(): SessionAccount {
+        closingEverywhere = false
         val user = auth.currentUserOrNull()
             ?: throw UserFacingException(texto(R.string.core_error_sign_in_failed))
 

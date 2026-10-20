@@ -74,6 +74,11 @@ import com.pame.karsy.feature.register.RegisterLoteScreen
 import com.pame.karsy.feature.register.RegisterParticularScreen
 import com.pame.karsy.feature.register.RegisterTypeScreen
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import android.widget.Toast
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -83,6 +88,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.pame.karsy.core.push.PushTokens
+
+/** Cada cuánto se comprueba que la sesión siga viva en Supabase mientras la app está visible. */
+private const val SESSION_CHECK_MS = 60_000L
 
 @Composable
 fun KarsyNavGraph(
@@ -172,6 +180,32 @@ fun KarsyNavGraph(
             SessionManager.logout()
             navController.navigate(Routes.Welcome.route) {
                 popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
+
+    // "Cerrar sesión en todos los dispositivos" desde otro teléfono o la web: la Edge Function
+    // cerrar-sesiones manda un push y este teléfono se cierra al instante. Respaldo (sin
+    // internet en ese momento, sin token de Firebase): mientras la app está visible se
+    // comprueba al volver a ella y cada minuto.
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val revokedText = stringResource(R.string.session_revoked)
+    LaunchedEffect(sessionUserId) {
+        if (sessionUserId == null) return@LaunchedEffect
+        // Una sola vez: si llegan el push y la comprobación juntos, logout() no se repite.
+        var cerrada = false
+        fun cerrar() {
+            // Este teléfono es el que pidió cerrar en todos lados: lo maneja Privacidad.
+            if (cerrada || AuthRepository.closingEverywhere) return
+            cerrada = true
+            Toast.makeText(context, revokedText, Toast.LENGTH_LONG).show()
+            logout()
+        }
+        launch { AuthRepository.closedElsewhere.collect { cerrar() } }
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (!cerrada) {
+                if (safeCall { AuthRepository.sessionRevoked() }.getOrDefault(false)) cerrar()
+                if (!cerrada) delay(SESSION_CHECK_MS)
             }
         }
     }

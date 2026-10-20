@@ -1063,6 +1063,7 @@
     <string name="privacy_logout_all_confirm_title">Sign out everywhere?</string>
     <string name="privacy_logout_all_confirm_body">You will be signed out on this phone and on every device where you signed in. You will need to sign in again.</string>
     <string name="privacy_logout_all_confirm">Sign out all</string>
+    <string name="session_revoked">You were signed out from another device. Please sign in again.</string>
     <string name="privacy_notice">Privacy policy</string>
     <string name="privacy_notice_desc">What data we keep and why</string>
     <string name="privacy_device_notifications">Phone notifications</string>
