@@ -437,16 +437,29 @@ function MenuMovil({
         </div>
         {filtros && <FilterPanel onClose={onCerrar} />}
 
+        {/* Una sola lista con la misma separación: navegación, cuenta y cerrar sesión. */}
         <nav className="drawerlinks">
-          {links.map(([to, texto, i]) => (
+          {[...links, ...(mode === 'guest' ? [] : cuentaItems)].map(([to, texto, i]) => (
             <button key={to} className={activo(to) ? 'on' : ''} onClick={() => ir(to)}>
               <Icon name={i} size={18} />
               {texto}
             </button>
           ))}
+          {mode !== 'guest' && (
+            <button
+              style={{ color: 'var(--error)' }}
+              onClick={() => {
+                onCerrar()
+                openModal(<LogoutModal />)
+              }}
+            >
+              <Icon name="logout" size={18} />
+              {t('nav.logout')}
+            </button>
+          )}
         </nav>
 
-        {mode === 'guest' ? (
+        {mode === 'guest' && (
           <div className="col" style={{ gap: 10 }}>
             <button
               className="btn btn-ghost btn-block"
@@ -461,31 +474,6 @@ function MenuMovil({
               {t('nav.register')}
             </button>
           </div>
-        ) : (
-          <>
-            <button className="btn btn-primary btn-block" onClick={() => ir('/publicar')}>
-              <Icon name="plus" size={18} />
-              {t('nav.publish')}
-            </button>
-            <nav className="drawerlinks">
-              {cuentaItems.map(([to, texto, i]) => (
-                <button key={to} className={activo(to) ? 'on' : ''} onClick={() => ir(to)}>
-                  <Icon name={i} size={18} />
-                  {texto}
-                </button>
-              ))}
-              <button
-                style={{ color: 'var(--error)' }}
-                onClick={() => {
-                  onCerrar()
-                  openModal(<LogoutModal />)
-                }}
-              >
-                <Icon name="logout" size={18} />
-                {t('nav.logout')}
-              </button>
-            </nav>
-          </>
         )}
 
         <div style={{ marginTop: 'auto' }}>
