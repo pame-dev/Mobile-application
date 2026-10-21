@@ -137,6 +137,7 @@ export const es = {
   'vehiculo.spec.bodyType': 'Tipo de carro',
   'vehiculo.spec.color': 'Color',
   'vehiculo.spec.owners': 'Dueños anteriores',
+  'vehiculo.spec.location': 'Ubicación',
   'vehiculo.spec.insurance': 'Recuperado por el seguro',
 
   // Acciones del dueño
@@ -296,6 +297,7 @@ export const en: Record<keyof typeof es, string> = {
   'vehiculo.spec.bodyType': 'Body type',
   'vehiculo.spec.color': 'Color',
   'vehiculo.spec.owners': 'Previous owners',
+  'vehiculo.spec.location': 'Location',
   'vehiculo.spec.insurance': 'Recovered by insurance',
 
   'vehiculo.soldVia.title': 'Where did you sell it?',
