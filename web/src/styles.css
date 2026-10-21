@@ -116,9 +116,12 @@ textarea.input{height:auto;min-height:96px;padding:12px 14px;resize:vertical}
 .drawerlinks button:hover{background:var(--bg)}
 .drawerlinks button.on{background:var(--pill);font-weight:600}
 .drawer .ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drawerlang{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;background:var(--bg);color:var(--ink);font-weight:600}
+.navlang{display:none}
 @media (max-width:1000px){
   .navlinks,.navsearch,.navdesk,.topnav > .langsw{display:none}
   .navburger{display:inline-grid}
+  .navlang{display:inline-flex}
 }
 
 /* Footer */

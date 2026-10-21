@@ -238,6 +238,10 @@ export function TopNav() {
               <button className="btn btn-primary btn-sm navdesk" onClick={() => navigate('/registro')}>
                 {t('nav.register')}
               </button>
+              {/* Pantallas chicas, visitante: el idioma siempre a la vista en la barra (no dentro del menú). */}
+              <span className="navlang">
+                <LangSwitch />
+              </span>
             </>
           ) : (
             <>
@@ -418,6 +422,15 @@ function MenuMovil({
           </button>
         </div>
 
+        {/* Con sesión, el idioma va arriba y con su nombre (los usuarios no lo encontraban al fondo).
+            El visitante lo tiene en la barra de arriba. */}
+        {mode !== 'guest' && (
+          <div className="drawerlang">
+            <span>{t('footer.language')}</span>
+            <LangSwitch />
+          </div>
+        )}
+
         <div className="drawersearch">
           <form
             className="inputicon grow"
@@ -475,10 +488,6 @@ function MenuMovil({
             </button>
           </div>
         )}
-
-        <div style={{ marginTop: 'auto' }}>
-          <LangSwitch />
-        </div>
       </aside>
     </div>
   )
