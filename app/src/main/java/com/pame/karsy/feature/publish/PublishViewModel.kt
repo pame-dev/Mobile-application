@@ -97,7 +97,47 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     /** Uno de [ASPIRACIONES] o vacío. Junto con [litros] forma la columna cilindrada. */
     var aspiracion by mutableStateOf("")
     /** Texto que se guarda en cilindrada, p. ej. "2.0 L Turbo"; vacío si no hay datos. */
-    val motor: String get() = unirMotor(litros, aspiracion)
+    val motor: String get() = if (esElectrico) "" else unirMotor(litros, aspiracion)
+
+    /** Un eléctrico no lleva cilindros, litros ni aspiración. */
+    val esElectrico: Boolean get() = combustible == ELECTRICO
+
+    /** Elige el combustible; con eléctrico se borran los datos del motor de combustión. */
+    fun selectCombustible(valor: String) {
+        combustible = valor
+        if (valor == ELECTRICO) {
+            cilindros = ""
+            litros = ""
+            aspiracion = ""
+        }
+    }
+
+    /**
+     * Campos obligatorios del paso 1 en el orden del formulario: (campo, está lleno, error).
+     * Cada campo se activa hasta que todos los anteriores están llenos.
+     */
+    private val ordenCampos: List<Triple<String, Boolean, Int>>
+        get() = listOf(
+            Triple("marca", idMarca != null && !(marcaEsOtro && marcaOtra.isBlank()), R.string.publish_error_brand),
+            Triple("modelo", idModelo != null && !(modeloEsOtro && modeloOtro.isBlank()), R.string.publish_error_model),
+            Triple("anio", anio.isNotBlank(), R.string.publish_error_year),
+            Triple("transmision", idTransmision != null, R.string.publish_error_transmission),
+            Triple("kilometraje", kilometraje.any(Char::isDigit), R.string.publish_error_mileage),
+            Triple("carroceria", idCarroceria != null, R.string.publish_error_body_type),
+            Triple("color", idColor != null, R.string.publish_error_color),
+            Triple("duenos", duenos.isNotBlank(), R.string.publish_error_owners),
+            Triple("combustible", combustible.isNotBlank(), R.string.publish_error_fuel),
+            Triple("cilindros", esElectrico || cilindros.isNotBlank(), R.string.publish_error_cylinders_required),
+            Triple("litros", esElectrico || (litros.toDoubleOrNull() ?: 0.0) > 0.0, R.string.publish_error_liters),
+            Triple("aspiracion", esElectrico || aspiracion.isNotBlank(), R.string.publish_error_aspiration),
+        )
+
+    /** Falta llenar algún campo anterior a [campo]; los que no están en la lista van al final. */
+    fun bloqueado(campo: String): Boolean {
+        val lista = ordenCampos
+        val i = lista.indexOfFirst { it.first == campo }.let { if (it < 0) lista.size else it }
+        return lista.take(i).any { !it.second }
+    }
     /** Uno de [COMBUSTIBLES] o vacío (columna tipo_combustible). */
     var combustible by mutableStateOf("")
     var idCarroceria by mutableStateOf<Long?>(null)
@@ -542,16 +582,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         1 -> {
             val anioActual = Calendar.getInstance().get(Calendar.YEAR)
             val anioNum = anio.trim().toIntOrNull()
+            // El primer campo vacío, en el mismo orden del formulario.
+            val falta = ordenCampos.firstOrNull { !it.second }
             when {
-                idMarca == null || (marcaEsOtro && marcaOtra.isBlank()) -> texto(R.string.publish_error_brand)
-                idModelo == null || (modeloEsOtro && modeloOtro.isBlank()) -> texto(R.string.publish_error_model)
+                falta != null -> texto(falta.third)
                 anioNum == null || anioNum !in 1900..(anioActual + 1) -> texto(R.string.publish_error_year)
-                idTransmision == null -> texto(R.string.publish_error_transmission)
-                kilometraje.filter(Char::isDigit).isEmpty() -> texto(R.string.publish_error_mileage)
                 (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
-                litros.isNotEmpty() && (litros.toDoubleOrNull() ?: 0.0) <= 0.0 -> texto(R.string.publish_error_liters)
-                idCarroceria == null -> texto(R.string.publish_error_body_type)
-                idColor == null -> texto(R.string.publish_error_color)
                 else -> null
             }
         }
@@ -618,7 +654,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     put("id_transmision", idTransmision)
                     put("id_carroceria", idCarroceria)
                     put("numero_propietarios_anteriores", duenos.filter(Char::isDigit).toIntOrNull() ?: 0)
-                    put("cilindros", cilindros.filter(Char::isDigit).toIntOrNull())
+                    put("cilindros", if (esElectrico) null else cilindros.filter(Char::isDigit).toIntOrNull())
                     put("cilindrada", motor.trim().ifEmpty { null })
                     put("tipo_combustible", combustible.ifEmpty { null })
                     put("descripcion_problemas", imperfecciones.trim())
@@ -658,6 +694,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
         /** Opciones de combustible; se guardan tal cual en tipo_combustible (catálogo tipos_combustible). */
         val COMBUSTIBLES = listOf("Gasolina", "Diésel", "Híbrido", "Eléctrico")
+
+        /** Combustible que no lleva cilindros ni litros. */
+        const val ELECTRICO = "Eléctrico"
 
         /** Cilindros que se ofrecen en el menú (el máximo es [MAX_CILINDROS]). */
         val CILINDROS = listOf(2, 3, 4, 5, 6, 8, 10, 12, 16)

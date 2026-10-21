@@ -615,6 +615,12 @@
     <string name="publish_error_mileage">Enter the mileage.</string>
     <string name="publish_error_cylinders">Cylinders can\'t be more than %1$d.</string>
     <string name="publish_error_liters">Enter the engine size in liters, for example 2.0.</string>
+    <string name="publish_error_owners">Choose how many previous owners it had.</string>
+    <string name="publish_error_fuel">Choose the fuel type.</string>
+    <string name="publish_error_cylinders_required">Choose the cylinders.</string>
+    <string name="publish_error_aspiration">Choose the engine aspiration.</string>
+    <string name="publish_fill_in_order">Fill in the fields in order: each one unlocks when the previous ones are complete.</string>
+    <string name="publish_not_applicable">Not applicable</string>
     <string name="publish_error_body_type">Choose the body type.</string>
     <string name="publish_error_color">Choose the color.</string>
     <string name="publish_error_required_photos">Still missing: %1$s.</string>
