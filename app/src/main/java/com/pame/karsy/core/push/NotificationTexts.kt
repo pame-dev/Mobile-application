@@ -36,6 +36,8 @@ fun notificationTextRes(tipo: String): Int = when (tipo) {
     "auto_parecido" -> R.string.notif_similar_car
     "poca_actividad" -> R.string.notif_low_activity
     "confirmar_venta" -> R.string.notif_confirm_sale
+    "verificacion_aprobada" -> R.string.notif_verification_approved
+    "verificacion_rechazada" -> R.string.notif_verification_rejected
     else -> R.string.notif_generic
 }
 
@@ -73,6 +75,10 @@ fun notificationText(context: Context, tipo: String, vehiculo: String, datos: Ma
         "favorito_no_disponible" ->
             if (datos["estado"] == "vendida") context.getString(R.string.notif_favorite_sold, vehiculo)
             else context.getString(R.string.notif_favorite_unavailable, vehiculo)
+        // datos.documento: "curp" (particular) o "constancia_situacion_fiscal" (lote).
+        "verificacion_pendiente" ->
+            if (datos["documento"] == "curp") context.getString(R.string.notif_verification_pending_curp)
+            else context.getString(R.string.notif_verification_pending)
         "hito_vistas" -> numero("vistas")?.let { context.getString(R.string.notif_views_milestone, vehiculo, it) }
             ?: context.getString(R.string.notif_views_milestone_simple, vehiculo)
         else -> context.getString(notificationTextRes(tipo), vehiculo)

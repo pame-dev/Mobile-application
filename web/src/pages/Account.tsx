@@ -93,6 +93,7 @@ function estiloDe(tipo: string): [IconName, string, string] {
     case 'edicion_aprobada':
     case 'publicacion_rehabilitada':
     case 'cuenta_reactivada':
+    case 'verificacion_aprobada':
       return ['check', 'var(--success-l)', 'var(--success)']
     case 'destacado_aprobado':
     case 'destacado_por_vencer':
@@ -102,7 +103,10 @@ function estiloDe(tipo: string): [IconName, string, string] {
     case 'edicion_rechazada':
     case 'publicacion_deshabilitada':
     case 'cuenta_suspendida':
+    case 'verificacion_rechazada':
       return ['alert', 'var(--error-l)', 'var(--error)']
+    case 'verificacion_pendiente':
+      return ['shield', 'var(--warning-l)', 'var(--warning)']
     case 'reporte_atendido':
     case 'reporte_descartado':
       return ['flag', 'var(--pill)', 'var(--ink)']

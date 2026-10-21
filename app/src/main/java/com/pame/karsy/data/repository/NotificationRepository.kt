@@ -7,6 +7,8 @@ import com.pame.karsy.data.remote.PreferenciasAvisosDto
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.data.remote.NotificacionDto
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Count
 import io.github.jan.supabase.postgrest.query.Order
 
 /**
@@ -25,6 +27,19 @@ object NotificationRepository {
             order("fecha_creacion", Order.DESCENDING)
             limit(100)
         }.decodeList<NotificacionDto>()
+    }
+
+    /** Cuántos avisos sin leer tiene la cuenta en sesión (solo cuenta, no los descarga). */
+    suspend fun unreadCount(): Int {
+        val uid = SessionManager.userId ?: return 0
+        return db.from("notificaciones").select(Columns.list("id_notificacion")) {
+            head = true
+            count(Count.EXACT)
+            filter {
+                eq("id_cuenta", uid)
+                eq("leida", false)
+            }
+        }.countOrNull()?.toInt() ?: 0
     }
 
     /** Marca como leídos todos los avisos pendientes de la cuenta en sesión. */

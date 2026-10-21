@@ -21,6 +21,8 @@ data class AdminUser(
     val responsible: String = "",
     val location: String = "",
     val activeVehicles: Int = 0,
+    /** URL pública de la foto de perfil (null = iniciales). */
+    val avatar: String? = null,
 )
 
 data class AdminVehicle(

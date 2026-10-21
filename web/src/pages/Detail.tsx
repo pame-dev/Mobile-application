@@ -91,8 +91,53 @@ function ContactModal({ detail }: { detail: CarDetail }) {
           <p className="mid" style={{ fontSize: 12 }}>
             {t('vehiculo.contact.suggested', { m: mensaje })}
           </p>
+          <GuiaSeguridad />
         </>
       )}
+    </div>
+  )
+}
+
+const GUIA: [Clave, Clave[]][] = [
+  ['vehiculo.safety.whereTitle', ['vehiculo.safety.where1', 'vehiculo.safety.where2']],
+  ['vehiculo.safety.checkTitle', ['vehiculo.safety.check1', 'vehiculo.safety.check2', 'vehiculo.safety.check3', 'vehiculo.safety.check4']],
+  ['vehiculo.safety.payTitle', ['vehiculo.safety.pay1', 'vehiculo.safety.pay2', 'vehiculo.safety.pay3']],
+]
+
+/** Al contactar: el consejo principal siempre visible y la guía completa para ver el auto en persona. */
+function GuiaSeguridad() {
+  const { t } = useI18n()
+  const [abierta, setAbierta] = useState(false)
+  return (
+    <div className="note" style={{ background: 'var(--warning-l)', color: 'var(--ink)' }}>
+      <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+        <span style={{ color: 'var(--warning)', flex: 'none' }}>
+          <Icon name="shield" size={17} />
+        </span>
+        <b>{t('vehiculo.safety.short')}</b>
+      </div>
+      {/* Oscuro y subrayado: el teal no contrasta lo suficiente sobre el fondo ámbar claro. */}
+      <button
+        className="linkbtn"
+        style={{ marginTop: 8, fontSize: 13, color: 'var(--ink)', textDecoration: 'underline', minHeight: 32 }}
+        aria-expanded={abierta}
+        onClick={() => setAbierta((a) => !a)}
+      >
+        {t(abierta ? 'vehiculo.safety.less' : 'vehiculo.safety.more')}
+      </button>
+      {abierta &&
+        GUIA.map(([titulo, puntos]) => (
+          <div key={titulo} style={{ marginTop: 10 }}>
+            <b style={{ fontSize: 13 }}>{t(titulo)}</b>
+            <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+              {puntos.map((p) => (
+                <li key={p} style={{ margin: '3px 0' }}>
+                  {t(p)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
     </div>
   )
 }

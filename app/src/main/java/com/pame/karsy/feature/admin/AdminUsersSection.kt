@@ -166,7 +166,7 @@ fun AdminUserRowContent(user: AdminUser, action: (@Composable () -> Unit)? = nul
         AdminStatusBadge(user.status)
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        ProfileAvatar(name = user.name, avatarUrl = null, size = 44.dp, initialsSize = 15.sp)
+        ProfileAvatar(name = user.name, avatarUrl = user.avatar, size = 44.dp, initialsSize = 15.sp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(user.name, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyInk)

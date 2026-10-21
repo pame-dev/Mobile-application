@@ -4,6 +4,7 @@ import { CarPhoto } from '../../components/CarPhoto'
 import { Icon, type IconName } from '../../components/Icon'
 import { Traducido } from '../../components/Traducido'
 import { Brand, LogoutModal } from '../../components/TopNav'
+import { TiempoReal } from '../../components/TiempoReal'
 import { ModalHead, useUi } from '../../components/Ui'
 import {
   adminAccounts,
@@ -26,6 +27,7 @@ import {
   publicacionesSinHuellas,
   registrarHuellasAdmin,
 } from '../../data/admin'
+import { unreadCount } from '../../data/account'
 import { toCar } from '../../data/api'
 import { mensajeUsuario } from '../../data/auth'
 import { traducir, useI18n } from '../../i18n/I18nContext'
@@ -36,7 +38,7 @@ import { entero, haceCuanto, km, precio } from '../../lib/format'
 import { publicUrl } from '../../lib/supabase'
 import { huellaVisual } from '../../lib/huellaVisual'
 import { useSession } from '../../session/SessionContext'
-import { useRecargar } from '../../lib/tiempoReal'
+import { EVENTO_CAMBIOS, useRecargar, type Tabla } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
 import { Verificaciones } from './Verificaciones'
 import { AdminHead, Badge, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
@@ -73,6 +75,7 @@ export function Admin() {
   const [menu, setMenu] = useState(false)
   const cerrarMenu = useCallback(() => setMenu(false), [])
   const sideRef = useRef<HTMLElement>(null)
+  const [sinLeer, setSinLeer] = useState(0)
 
   const cargar = useCallback(async () => {
     setError(null)
@@ -103,8 +106,26 @@ export function Admin() {
       void cargar()
       cargarStats()
     },
-    ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'reportes', 'solicitudes_destacado', 'cuentas'],
+    // notificaciones: así llegan las solicitudes de verificación nuevas.
+    ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'reportes', 'solicitudes_destacado', 'cuentas', 'notificaciones'],
   )
+
+  // Número en la campana: avisos sin leer del admin (como en TopNav).
+  const uid = account?.id
+  useEffect(() => {
+    if (!uid) return setSinLeer(0)
+    const revisar = () => void unreadCount(uid).then(setSinLeer).catch(() => undefined)
+    revisar()
+    const onCambios = (e: Event) => {
+      if ((e as CustomEvent<Tabla[]>).detail.includes('notificaciones')) revisar()
+    }
+    window.addEventListener('karsy:notificaciones', revisar)
+    window.addEventListener(EVENTO_CAMBIOS, onCambios)
+    return () => {
+      window.removeEventListener('karsy:notificaciones', revisar)
+      window.removeEventListener(EVENTO_CAMBIOS, onCambios)
+    }
+  }, [uid])
 
   /** Después de una acción: aviso y todo se vuelve a leer de la BD. */
   const listo = (msg: string) => {
@@ -192,17 +213,25 @@ export function Admin() {
   else if (seccion === 'reportes') contenido = <Reportes datos={datos} listo={listo} />
   else if (seccion === 'destacados') contenido = <Destacados datos={datos} listo={listo} />
   else if (seccion === 'verificacion') contenido = <Verificaciones verificaciones={datos.verificaciones} listo={listo} />
-  else contenido = <Inicio nombre={account.nombre} stats={stats} rango={rango} setRango={setRango} ir={ir} />
+  else contenido = <Inicio nombre={account.nombre} stats={stats} verificaciones={pendientes.verificacion} rango={rango} setRango={setRango} ir={ir} />
 
   return (
     <div className={`admin ${menu ? 'menuabierto' : ''}`}>
+      {/* Avisos en vivo (solicitudes nuevas, etc.): el panel no usa el Layout que lo monta. */}
+      <TiempoReal />
       {/* Solo en pantallas chicas: logo y botón ☰ en lugar de la barra lateral. */}
       <header className="admintop">
         <Brand />
-        <button className="iconbtn adminburger" aria-label={t('nav.openMenu')} aria-expanded={menu} onClick={() => setMenu(true)}>
-          <Icon name="menu" size={20} />
-          {totalPendientes > 0 && <span className="cnt">{totalPendientes}</span>}
-        </button>
+        <div className="row" style={{ gap: 8 }}>
+          <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
+            <Icon name="bell" size={19} />
+            {sinLeer > 0 && <span className="dot">{sinLeer > 99 ? '99+' : sinLeer}</span>}
+          </button>
+          <button className="iconbtn adminburger" aria-label={t('nav.openMenu')} aria-expanded={menu} onClick={() => setMenu(true)}>
+            <Icon name="menu" size={20} />
+            {totalPendientes > 0 && <span className="cnt">{totalPendientes}</span>}
+          </button>
+        </div>
       </header>
       <div className="adminfondo" onClick={cerrarMenu} />
       <aside ref={sideRef} className="side" aria-label={t('nav.menu')} {...(menu ? { role: 'dialog', 'aria-modal': true } : {})}>
@@ -231,6 +260,11 @@ export function Admin() {
             <Icon name="home" />
             {t('admin.backHome')}
           </button>
+          <button className="it" onClick={() => elegir(() => navigate('/notificaciones'))}>
+            <Icon name="bell" />
+            {t('nav.notifications')}
+            {sinLeer > 0 && <span className="cnt">{sinLeer > 99 ? '99+' : sinLeer}</span>}
+          </button>
           <button className="it" onClick={() => elegir(() => navigate('/perfil'))}>
             <Icon name="user" />
             {t('nav.myProfile')}
@@ -253,7 +287,7 @@ export function Admin() {
 
 // ── Inicio ─────────────────────────────────────────────────────────────────
 
-function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; rango: number; setRango: (n: number) => void; ir: (s: Seccion, filtro?: string) => void }) {
+function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; verificaciones: number; rango: number; setRango: (n: number) => void; ir: (s: Seccion, filtro?: string) => void }) {
   const { t } = useI18n()
   const head = (
     <AdminHead
@@ -293,6 +327,8 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
       [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'admin.alertReviewOne', 'admin.alertReviewMany'), 'vehiculos', '#F59E0B'],
       [stats.reportesPendientes, plural(stats.reportesPendientes, 'admin.alertReportsOne', 'admin.alertReportsMany'), 'reportes', '#EF4444'],
       [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', '#F59E0B'],
+      // Solicitudes de verificación sin revisar: se quitan al aprobarlas o rechazarlas.
+      [verificaciones, plural(verificaciones, 'admin.alertVerificationOne', 'admin.alertVerificationMany'), 'verificacion', '#14B8A6'],
       [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'tipo=lote'],
       [stats.suspendidasSinVer, plural(stats.suspendidasSinVer, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3', 'tipo=suspendido'],
       // Se quitan cuando el admin abre ese filtro en Vehículos (admin_marcar_vistas).
@@ -472,7 +508,7 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
     <div className="modal">
       <ModalHead title={t('admin.userDetail')} />
       <div className="row">
-        <Ini name={c.nombre_mostrar} />
+        <Ini name={c.nombre_mostrar} src={publicUrl(c.foto_perfil)} />
         <div>
           <b style={{ color: 'var(--ink)' }}>{c.nombre_mostrar}</b>
           <div className="muted" style={{ fontSize: 12.5 }}>
@@ -583,7 +619,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
               <tr key={x.id_cuenta}>
                 <td>
                   <div className="mini">
-                    <Ini name={x.nombre_mostrar} />
+                    <Ini name={x.nombre_mostrar} src={publicUrl(x.foto_perfil)} />
                     <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
                   </div>
                 </td>

@@ -23,9 +23,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,6 +51,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -58,6 +63,7 @@ import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -68,6 +74,11 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import kotlinx.coroutines.launch
 
+/** Sección que se pide abrir desde fuera del panel (p. ej. al tocar un aviso de verificación). */
+object AdminPanelRequest {
+    var section by mutableStateOf<AdminSection?>(null)
+}
+
 /**
  * Panel de administración (WebAdminDashboardView del mockup) adaptado a teléfono:
  * la barra lateral se convierte en un ModalNavigationDrawer y las tablas en listas de tarjetas.
@@ -77,6 +88,7 @@ fun AdminDashboardScreen(
     onCarClick: (Long) -> Unit,
     onReviewReport: (Long) -> Unit,
     onLogout: () -> Unit,
+    onNotifications: () -> Unit,
     vm: AdminViewModel = viewModel(),
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -95,6 +107,14 @@ fun AdminDashboardScreen(
         onPauseOrDispose { }
     }
     LaunchedEffect(section) { vm.refresh() }
+    val pedida = AdminPanelRequest.section
+    LaunchedEffect(pedida) {
+        if (pedida != null) {
+            filtro = "Todos"
+            section = pedida
+            AdminPanelRequest.section = null
+        }
+    }
 
     // Atrás desde una sección vuelve a Inicio (el menú abierto lo maneja ModalDrawerSheet).
     BackHandler(enabled = section != AdminSection.Inicio && drawerState.isClosed) {
@@ -128,7 +148,11 @@ fun AdminDashboardScreen(
                 .fillMaxSize()
                 .background(KarsyBg)
         ) {
-            AdminTopBar(onMenu = { scope.launch { drawerState.open() } })
+            AdminTopBar(
+                onMenu = { scope.launch { drawerState.open() } },
+                unread = vm.unreadNotifications,
+                onNotifications = onNotifications
+            )
             // Aviso del resultado de la última acción: se oculta solo a los MESSAGE_MS.
             // Se recuerda el último texto para que la animación de salida lo siga mostrando.
             val message = vm.message
@@ -189,7 +213,7 @@ fun AdminDashboardScreen(
 
 @Composable
 /** Barra superior del panel. Para volver al inicio se usa la barra inferior. */
-private fun AdminTopBar(onMenu: () -> Unit) {
+private fun AdminTopBar(onMenu: () -> Unit, unread: Int, onNotifications: () -> Unit) {
     Column(Modifier.fillMaxWidth().background(KarsySurface)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -211,6 +235,36 @@ private fun AdminTopBar(onMenu: () -> Unit) {
                 color = KarsyInk,
                 modifier = Modifier.weight(1f)
             )
+            // Campana con el número de avisos sin leer (p. ej. solicitudes de verificación).
+            Box {
+                TopBarButton(
+                    Icons.Rounded.Notifications,
+                    if (unread > 0) pluralStringResource(R.plurals.admin2_notifications_unread, unread, unread)
+                    else stringResource(R.string.home_notifications),
+                    onNotifications
+                )
+                if (unread > 0) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 6.dp, y = (-6).dp)
+                            .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                            .clip(CircleShape)
+                            .background(KarsyError)
+                            .border(2.dp, KarsySurface, CircleShape)
+                            .padding(horizontal = 5.dp)
+                    ) {
+                        Text(
+                            if (unread > 99) "99+" else unread.toString(),
+                            fontFamily = DmSans,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = KarsyWhite
+                        )
+                    }
+                }
+            }
         }
         HorizontalDivider(thickness = 1.dp, color = KarsyBorder)
     }

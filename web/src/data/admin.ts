@@ -123,6 +123,8 @@ export interface CuentaAdmin {
   responsable: string
   publicaciones: number
   activas: number
+  /** Ruta de la foto de perfil en el bucket público (null = iniciales). */
+  foto_perfil: string | null
 }
 
 export interface ReporteAdmin {
