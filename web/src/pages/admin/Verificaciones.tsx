@@ -1,15 +1,116 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../../components/Icon'
-import { useUi } from '../../components/Ui'
+import { ModalHead, useUi } from '../../components/Ui'
 import { constanciaUrl, resolveVerification, type VerificacionAdmin } from '../../data/admin'
 import { mensajeUsuario } from '../../data/auth'
-import { useI18n } from '../../i18n/I18nContext'
+import { traducir, useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
+import { ESTADOS_CURP, leerCurp } from '../../lib/curp'
 import { haceCuanto } from '../../lib/format'
 import { AdminHead, Ini, ReasonModal, Tabs } from './AdminParts'
 
 type Estado = VerificacionAdmin['estado']
+
+/** Página oficial para consultar una CURP. */
+const GOB_CURP = 'https://www.gob.mx/curp/'
+
+/**
+ * Revisar la CURP de un particular: pasos para consultarla en gob.mx, la CURP para copiar,
+ * el nombre del perfil y los datos que trae la CURP para comparar. Aprobar se activa hasta
+ * marcar las dos casillas; Rechazar pide el motivo (como en los demás documentos).
+ */
+function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; onAprobar: () => Promise<boolean>; onRechazar: () => void }) {
+  const { closeModal, toast } = useUi()
+  const { t } = useI18n()
+  const [existe, setExiste] = useState(false)
+  const [nombre, setNombre] = useState(false)
+  const [aprobando, setAprobando] = useState(false)
+  const curp = v.curp ?? ''
+  const datos = leerCurp(curp)
+  const copiar = () => {
+    void navigator.clipboard
+      .writeText(curp)
+      .then(() => toast(t('admin.curpCopied')))
+      .catch(() => undefined)
+  }
+  const fecha = datos
+    ? new Date(datos.anio, datos.mes - 1, datos.dia).toLocaleDateString(traducir('vehiculo.locale'), { day: 'numeric', month: 'long', year: 'numeric' })
+    : ''
+  const fila = (etiqueta: string, valor: string) => (
+    <p className="row" style={{ justifyContent: 'space-between', gap: 12, margin: 0 }}>
+      <span className="muted">{etiqueta}</span>
+      <b style={{ textAlign: 'right' }}>{valor}</b>
+    </p>
+  )
+  return (
+    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <ModalHead title={t('admin.curpReviewTitle', { nombre: v.nombre_mostrar })} sub={t('admin.curpReviewSub')} />
+      <div className="note" style={{ background: 'var(--teal-light)', color: 'var(--ink)' }}>
+        <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <li>{t('admin.curpStep1')}</li>
+          <li>{t('admin.curpStep2')}</li>
+          <li>{t('admin.curpStep3')}</li>
+          <li>{t('admin.curpStep4')}</li>
+        </ol>
+      </div>
+      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+        <code style={{ fontSize: 17, fontWeight: 700, letterSpacing: '.04em', userSelect: 'all', flex: '1 1 auto' }}>{curp}</code>
+        <button type="button" className="btn btn-ghost btn-sm" disabled={!curp} onClick={copiar}>
+          <Icon name="doc" size={14} />
+          {t('admin.curpCopy')}
+        </button>
+        <a className="btn btn-primary btn-sm" href={GOB_CURP} target="_blank" rel="noopener noreferrer">
+          {t('admin.curpOpenGob')}
+        </a>
+      </div>
+      <div className="card" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {fila(t('admin.curpProfileName'), v.nombre_mostrar)}
+        <div className="label" style={{ marginTop: 6 }}>
+          {t('admin.curpFromCurp')}
+        </div>
+        {datos ? (
+          <>
+            {fila(t('admin.curpBirth'), fecha)}
+            {fila(t('admin.curpSex'), t(datos.sexo === 'H' ? 'admin.curpSexH' : datos.sexo === 'M' ? 'admin.curpSexM' : 'admin.curpSexX'))}
+            {fila(t('admin.curpBirthState'), datos.estado === 'NE' ? t('admin.curpAbroad') : ESTADOS_CURP[datos.estado])}
+          </>
+        ) : (
+          <p className="muted" style={{ margin: 0 }}>
+            {t('admin.curpUnreadable')}
+          </p>
+        )}
+      </div>
+      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+        <input type="checkbox" checked={existe} onChange={(e) => setExiste(e.target.checked)} />
+        <span>{t('admin.curpCheckExists')}</span>
+      </label>
+      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+        <input type="checkbox" checked={nombre} onChange={(e) => setNombre(e.target.checked)} />
+        <span>{t('admin.curpCheckName')}</span>
+      </label>
+      <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+        <button className="btn btn-ghost" disabled={aprobando} onClick={onRechazar}>
+          {t('admin.reject')}
+        </button>
+        <button
+          className="btn btn-primary"
+          disabled={!existe || !nombre || aprobando}
+          onClick={() => {
+            setAprobando(true)
+            // Si falla, la ventana se queda abierta (con las casillas marcadas) y sale el aviso.
+            void onAprobar().then((ok) => {
+              setAprobando(false)
+              if (ok) closeModal()
+            })
+          }}
+        >
+          {t('admin.approve')}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 const ESTADO: Record<Estado, [Clave, string]> = {
   pendiente: ['admin.verifTabPending', 'b-warn'],
@@ -52,15 +153,19 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
     }
   }
 
-  const aprobar = async (v: VerificacionAdmin) => {
+  /** true si se aprobó (la ventana de la CURP solo se cierra entonces). */
+  const aprobar = async (v: VerificacionAdmin): Promise<boolean> => {
     setBusy(v.id)
     try {
       await resolveVerification(v.id, true, null)
       listo(t('admin.verifApproved'))
+      return true
     } catch (e) {
       toast(mensajeUsuario(e))
+      return false
+    } finally {
+      setBusy(null)
     }
-    setBusy(null)
   }
 
   const rechazar = (v: VerificacionAdmin) =>
@@ -152,7 +257,17 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
                         {t('admin.verifOpen')}
                       </button>
                     )}
-                    {v.estado === 'pendiente' && (
+                    {/* CURP: se revisa en una ventana con la guía para comparar en gob.mx. */}
+                    {v.estado === 'pendiente' && v.tipo_documento === 'curp' && (
+                      <button
+                        className="btn btn-primary btn-sm"
+                        disabled={busy === v.id}
+                        onClick={() => openModal(<RevisarCurpModal v={v} onAprobar={() => aprobar(v)} onRechazar={() => rechazar(v)} />)}
+                      >
+                        {t('admin.curpReview')}
+                      </button>
+                    )}
+                    {v.estado === 'pendiente' && v.tipo_documento !== 'curp' && (
                       <>
                         <button className="btn btn-ghost btn-sm" disabled={busy === v.id} onClick={() => rechazar(v)}>
                           {t('admin.reject')}
