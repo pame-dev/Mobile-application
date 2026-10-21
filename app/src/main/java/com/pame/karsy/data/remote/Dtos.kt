@@ -122,15 +122,13 @@ data class LotePerfilDto(
     @SerialName("horarios_atencion") val horarios: String? = null,
 )
 
-/** Solo cuentas.verificado (insignia del vendedor en el detalle de una publicación). */
-@Serializable
-data class CuentaVerificadaDto(val verificado: Boolean = false)
-
 /** Estado del último documento que envió el usuario (tarjeta de su perfil). */
 @Serializable
 data class VerificacionUsuarioDto(
     val estado: String,
     @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
+    @SerialName("fecha_envio") val fechaEnvio: String? = null,
+    @SerialName("fecha_revision") val fechaRevision: String? = null,
 )
 
 @Serializable

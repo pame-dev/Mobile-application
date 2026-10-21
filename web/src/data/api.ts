@@ -68,7 +68,6 @@ function toDetail(a: AnuncioRow): CarDetail {
     recuperadoPorSeguro: a.recuperado_por_seguro == null ? '—' : a.recuperado_por_seguro ? traducir('vehiculo.yes') : traducir('vehiculo.no'),
     detalles: a.tiene_problemas ? a.descripcion_problemas ?? '' : traducir('vehiculo.noProblems'),
     sellerAvatar: publicUrl(a.propietario_foto),
-    sellerVerified: false,
     row: a,
   }
 }
@@ -85,12 +84,7 @@ export async function visibleCars(): Promise<Car[]> {
 
 export async function carDetail(id: number): Promise<CarDetail | null> {
   const row = check(await supabase.from(VISTA).select('*').eq('id_publicacion', id).maybeSingle()) as AnuncioRow | null
-  if (!row) return null
-  const detalle = toDetail(row)
-  // Insignia de verificado (cuentas.verificado); si la consulta falla, el detalle se muestra igual sin ella.
-  const { data } = await supabase.from('cuentas').select('verificado').eq('id_cuenta', row.id_propietario).maybeSingle()
-  detalle.sellerVerified = (data as { verificado?: boolean } | null)?.verificado === true
-  return detalle
+  return row ? toDetail(row) : null
 }
 
 export async function carsByIds(ids: number[]): Promise<Car[]> {

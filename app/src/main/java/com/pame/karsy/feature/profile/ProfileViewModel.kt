@@ -12,7 +12,6 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.PublicacionesOcultas
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
-import com.pame.karsy.core.util.ArchivoConstancia
 import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.PasswordRules
@@ -24,6 +23,8 @@ import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.UserRepository
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import com.pame.karsy.core.util.FormRules
 
 /** Perfil de la cuenta en sesión y sus publicaciones. */
@@ -143,24 +144,10 @@ class ProfileViewModel : ViewModel() {
 
     // ── Constancia de Situación Fiscal (solo lote) ──
 
-    var constancia by mutableStateOf<ArchivoConstancia?>(null)
-        private set
     var constanciaError by mutableStateOf<String?>(null)
         private set
     var enviandoConstancia by mutableStateOf(false)
         private set
-
-    /** Revisa tipo (PDF, JPG o PNG) y tamaño (máx. 5 MB); si no sirve, no se guarda. */
-    fun elegirConstancia(context: Context, uri: Uri) {
-        runCatching { Constancia.revisar(context, uri) }
-            .onSuccess { constancia = it; constanciaError = null }
-            .onFailure { constancia = null; constanciaError = it.mensajeUsuario() }
-    }
-
-    fun quitarConstancia() {
-        constancia = null
-        constanciaError = null
-    }
 
     // ── CURP (solo particular) ──
 
@@ -193,11 +180,16 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    /** Sube la constancia elegida y la manda a revisión; el perfil queda "en revisión". */
-    fun enviarConstancia(context: Context) {
-        val archivo = constancia ?: return
+    /**
+     * Revisa la constancia elegida igual que el registro (PDF, JPG o PNG de máx. 5 MB) y, si sirve,
+     * la sube de inmediato y la manda a revisión; el perfil queda "en revisión" con la fecha de hoy.
+     */
+    @OptIn(ExperimentalTime::class)
+    fun subirConstancia(context: Context, uri: Uri) {
         if (enviandoConstancia) return
         val appContext = context.applicationContext
+        val archivo = runCatching { Constancia.revisar(appContext, uri) }
+            .getOrElse { constanciaError = it.mensajeUsuario(); return }
         enviandoConstancia = true
         constanciaError = null
         viewModelScope.launch {
@@ -205,8 +197,12 @@ class ProfileViewModel : ViewModel() {
                 UserRepository.enviarDocumentoVerificacion(Constancia.bytes(appContext, archivo), archivo.mime, Constancia.TIPO_DOCUMENTO)
             }
                 .onSuccess {
-                    constancia = null
-                    user = user?.copy(estadoVerificacion = Constancia.PENDIENTE, motivoRechazoVerificacion = null)
+                    user = user?.copy(
+                        estadoVerificacion = Constancia.PENDIENTE,
+                        motivoRechazoVerificacion = null,
+                        fechaEnvioVerificacion = Clock.System.now().toString(),
+                        fechaRevisionVerificacion = null,
+                    )
                     message = texto(R.string.profile_verification_sent)
                 }
                 .onFailure { constanciaError = it.mensajeUsuario() }

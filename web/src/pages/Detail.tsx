@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
-import { VerifiedBadge } from '../components/ConstanciaField'
 import { PhotoViewer } from '../components/PhotoViewer'
 import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
@@ -594,11 +593,9 @@ export function Detail() {
             <span className="sellerlogo" style={c.sellerType === 'lote' ? undefined : { borderRadius: '50%', background: 'var(--teal)' }}>
               {detail.sellerAvatar ? <img src={detail.sellerAvatar} alt="" /> : iniciales(c.ownerName)}
             </span>
-            <span className="grow" style={{ minWidth: 0 }}>
-              <span className="verified-name">
-                <b style={{ color: 'var(--ink)' }}>{c.ownerName}</b>
-                {detail.sellerVerified && <VerifiedBadge />}
-              </span>
+            <span className="grow">
+              <b style={{ color: 'var(--ink)' }}>{c.ownerName}</b>
+              <br />
               <span className="muted" style={{ fontSize: 12.5 }}>
                 {t('vehiculo.detail.viewProfile', { tipo: t(c.sellerType === 'lote' ? 'nav.lot' : 'nav.individual') })}
               </span>

@@ -270,6 +270,10 @@ export interface Perfil {
   /** Estado del último documento enviado (verificaciones_usuario) y motivo si se rechazó. */
   verificacion: EstadoVerificacion
   motivoVerificacion: string
+  /** Cuándo se envió el último documento ("Actualizado el …"). */
+  fechaVerificacion: string | null
+  /** Cuándo la revisó el admin ("Desde el …" si está verificada). */
+  fechaRevision: string | null
 }
 
 interface TelefonoRow {
@@ -297,8 +301,8 @@ export async function currentProfile(): Promise<Perfil | null> {
   const telefono = tels.find((t) => t.permite_llamadas)
   const whatsapp = tels.find((t) => t.es_whatsapp)
   // Último documento de verificación enviado (si la consulta falla, se muestra como sin enviar).
-  const { data: verif } = await supabase.from('verificaciones_usuario').select('estado,motivo_rechazo').eq('user_id', user.id).order('fecha_envio', { ascending: false }).limit(1)
-  const ultimaVerificacion = (verif?.[0] ?? null) as { estado: string; motivo_rechazo: string | null } | null
+  const { data: verif } = await supabase.from('verificaciones_usuario').select('estado,motivo_rechazo,fecha_envio,fecha_revision').eq('user_id', user.id).order('fecha_envio', { ascending: false }).limit(1)
+  const ultimaVerificacion = (verif?.[0] ?? null) as { estado: string; motivo_rechazo: string | null; fecha_envio: string; fecha_revision: string | null } | null
   let correo = user.email ?? ''
   if (!correo) correo = ((await supabase.rpc('mi_correo')).data as string | null) ?? ''
 
@@ -325,6 +329,8 @@ export async function currentProfile(): Promise<Perfil | null> {
     verificado: String(cuenta.verificado) === 'true',
     verificacion: (ultimaVerificacion?.estado as EstadoVerificacion | undefined) ?? 'sin_documento',
     motivoVerificacion: ultimaVerificacion?.motivo_rechazo ?? '',
+    fechaVerificacion: ultimaVerificacion?.fecha_envio ?? null,
+    fechaRevision: ultimaVerificacion?.fecha_revision ?? null,
   }
 }
 

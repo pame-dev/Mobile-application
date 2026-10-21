@@ -3,13 +3,13 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox } from '../components/AuthParts'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
-import { ConstanciaField, VerifiedBadge } from '../components/ConstanciaField'
+import { VerifiedBadge } from '../components/ConstanciaField'
 import { VehicleCard } from '../components/VehicleCard'
 import { VolverButton } from '../components/VolverButton'
 import { Traducido } from '../components/Traducido'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
-import { enviarCurp, mensajeUsuario, subirConstancia, uploadAvatar } from '../data/auth'
+import { enviarCurp, errorConstancia, mensajeUsuario, subirConstancia, uploadAvatar } from '../data/auth'
 import { currentProfile, LLAMADA, myCars, ocultas, removeCover, sePuedeOcultar, updateProfile, uploadCover, WHATSAPP, type OwnCar, type Perfil } from '../data/seller'
 import * as R from '../lib/formRules'
 import { iniciales } from '../lib/format'
@@ -363,47 +363,92 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
   )
 }
 
-function VerificarLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void }) {
+/** Estado de la constancia del lote: color del texto, fondo y color del ícono. */
+const ESTADO_CONSTANCIA = {
+  sin_documento: { color: '#9AA7B3', fondo: '#1D3550', icono: '#9CC3EA' },
+  pendiente: { color: '#E8C66A', fondo: '#3A3320', icono: '#E8C66A' },
+  verificado: { color: '#7FD3A4', fondo: '#1F3B2C', icono: '#7FD3A4' },
+  rechazado: { color: '#F08A8A', fondo: '#3D2224', icono: '#F08A8A' },
+} as const
+
+/**
+ * Fila de la Constancia de Situación Fiscal en el perfil del propio lote. Se sube solo una vez:
+ * sin documento o rechazada muestra el botón (abre el selector del registro y la sube enseguida);
+ * en revisión o verificada no se puede cambiar (la BD también lo impide).
+ */
+function ConstanciaLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void }) {
   const { t } = useI18n()
   const { toast } = useUi()
-  const [archivo, setArchivo] = useState<File | null>(null)
+  const input = useRef<HTMLInputElement>(null)
   const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  if (perfil.verificacion === 'pendiente') {
-    return (
-      <div className="note" style={{ marginTop: 22, background: 'var(--teal-light)', display: 'flex', gap: 10, alignItems: 'center' }}>
-        <Icon name="doc" size={18} />
-        {t('perfil.verifyPending')}
-      </div>
-    )
-  }
-  const rechazado = perfil.verificacion === 'rechazado'
-  const enviar = async () => {
-    if (!archivo) return
+  // Sin fila pero con la insignia (cuentas.verificado), se muestra como verificada.
+  const estado = perfil.verificacion === 'sin_documento' && perfil.verificado ? 'verificado' : perfil.verificacion
+  const colores = ESTADO_CONSTANCIA[estado]
+  const fecha = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(t('vehiculo.locale'), { day: '2-digit', month: '2-digit', year: 'numeric' }) : null
+  const enviada = fecha(perfil.fechaVerificacion)
+  const desde = fecha(perfil.fechaRevision)
+  const [etiqueta, detalle] =
+    estado === 'pendiente'
+      ? [t('perfil.csfPending'), enviada && t('perfil.csfSentOn', { fecha: enviada })]
+      : estado === 'verificado'
+        ? [t('perfil.csfVerified'), desde && t('perfil.csfSince', { fecha: desde })]
+        : estado === 'rechazado'
+          ? [t('perfil.csfRejected'), perfil.motivoVerificacion && t('perfil.csfReason', { motivo: perfil.motivoVerificacion })]
+          : [t('perfil.csfNone'), t('perfil.csfNoneDetail')]
+  const puedeSubir = estado === 'sin_documento' || estado === 'rechazado'
+
+  const elegir = async (f: File | undefined) => {
+    if (!f) return
+    const e = errorConstancia(f)
+    if (e) return setError(t(e))
+    setError(null)
     setEnviando(true)
     try {
-      await subirConstancia(archivo)
+      await subirConstancia(f)
       toast(t('perfil.verifySent'))
-      setArchivo(null)
       onSent()
-    } catch (e) {
-      toast(mensajeUsuario(e))
+    } catch (ex) {
+      // Si falló, todo queda como estaba.
+      setError(mensajeUsuario(ex))
     }
     setEnviando(false)
   }
+
   return (
-    <section className="card" style={{ marginTop: 22, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div>
-        <h3 style={{ fontSize: 17 }}>{t('perfil.verifyTitle')}</h3>
-        <p className="muted" style={{ fontSize: 13 }}>
-          {t('perfil.verifyDesc')}
-        </p>
+    <section className="card csfrow" style={{ marginTop: 22 }}>
+      <span className="csfrow-icon" style={{ background: colores.fondo, color: colores.icono }}>
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+          <path d="M14 3v5h5" />
+          <path d="M9 14.5l2 2 4-4" />
+        </svg>
+      </span>
+      <div className="csfrow-text">
+        <b>{t('perfil.csfTitle')}</b>
+        <span className="csfrow-status">
+          <span style={{ color: colores.color }}>● {etiqueta}</span>
+          {detalle && ` · ${detalle}`}
+        </span>
+        {error && <span className="ferr">{error}</span>}
       </div>
-      {rechazado && perfil.motivoVerificacion && <AlertBox message={t('perfil.verifyRejected', { motivo: perfil.motivoVerificacion })} />}
-      <ConstanciaField file={archivo} onChange={setArchivo} showLabel={false} />
-      <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={!archivo || enviando} onClick={() => void enviar()}>
-        {enviando ? t('perfil.verifySending') : rechazado ? t('perfil.verifyResend') : t('perfil.verifySend')}
-      </button>
+      {puedeSubir && (
+        <button className="btn csfrow-btn" disabled={enviando} onClick={() => input.current?.click()}>
+          {enviando ? t('perfil.verifySending') : estado === 'rechazado' ? t('perfil.csfChange') : t('perfil.csfUpload')}
+        </button>
+      )}
+      <input
+        ref={input}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png"
+        hidden
+        onChange={(e) => {
+          void elegir(e.target.files?.[0])
+          e.target.value = ''
+        }}
+      />
     </section>
   )
 }
@@ -525,7 +570,8 @@ export function Profile() {
           onChange={(ev) => (void cambiarPortada(ev.target.files?.[0]), (ev.target.value = ''))}
         />
       </div>
-      <div className="profilehead">
+      {/* Foto montada sobre el borde de la portada; nombre, insignias y datos a su derecha, debajo de la portada. */}
+      <div className="ownhead">
         {perfil.avatarUrl ? (
           <button
             className="bigavatar"
@@ -540,24 +586,15 @@ export function Profile() {
             {iniciales(perfil.displayName)}
           </div>
         )}
-        <div className="grow" style={{ paddingBottom: 10, minWidth: 220 }}>
-          <div className="row" style={{ flexWrap: 'wrap' }}>
-            {perfil.verificado ? (
-              <span className="verified-name">
-                <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
-                <VerifiedBadge />
-                <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
-              </span>
-            ) : (
-              <>
-                <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
-                <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
-              </>
-            )}
+        <div className="ownhead-info">
+          <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
+          <div className="ownhead-badges">
+            {perfil.verificado && <VerifiedBadge />}
+            <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
           </div>
           <p className="muted">{datos}</p>
         </div>
-        <div className="row" style={{ paddingBottom: 12 }}>
+        <div className="row ownhead-actions">
           <button className="iconbtn" aria-label={t('nav.history')} onClick={() => navigate('/historial')}>
             <Icon name="history" size={18} />
           </button>
@@ -571,7 +608,7 @@ export function Profile() {
         </div>
       </div>
 
-      {esLote && !perfil.verificado && <VerificarLote perfil={perfil} onSent={cargar} />}
+      {esLote && <ConstanciaLote perfil={perfil} onSent={cargar} />}
       {!esLote && mode !== 'admin' && !perfil.verificado && <VerificarParticular perfil={perfil} onSent={cargar} />}
 
       <div className="twocol" style={{ margin: '26px 0 40px' }}>

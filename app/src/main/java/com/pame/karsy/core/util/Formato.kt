@@ -43,6 +43,12 @@ object Formato {
         return "${fecha.day} ${MESES[fecha.month.ordinal]} ${fecha.year}"
     }
 
+    /** "2026-09-23T20:38:05+00:00" -> "23/09/2026"; null si no se puede leer. */
+    fun fechaNumerica(iso: String?): String? {
+        val fecha = local(iso) ?: return null
+        return "${fecha.day.toString().padStart(2, '0')}/${(fecha.month.ordinal + 1).toString().padStart(2, '0')}/${fecha.year}"
+    }
+
     /** "2024-03-10T…" -> "Marzo 2024" */
     fun mesAnio(iso: String?): String {
         val fecha = local(iso) ?: return "—"

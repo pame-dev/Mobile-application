@@ -89,8 +89,6 @@ export interface CarDetail {
   recuperadoPorSeguro: string
   detalles: string
   sellerAvatar: string | null
-  /** El vendedor es un lote verificado (insignia junto a su nombre). */
-  sellerVerified: boolean
   row: AnuncioRow
 }
 
