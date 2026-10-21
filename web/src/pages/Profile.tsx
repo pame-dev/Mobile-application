@@ -182,114 +182,121 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
   const foto = avatar?.url ?? p.avatarUrl
 
   return (
-    <div className="modal" style={{ maxWidth: 640 }}>
-      <div className="row" style={{ justifyContent: 'space-between' }}>
+    <div className="modal editmodal">
+      {/* Encabezado fijo arriba; solo el cuerpo hace scroll. */}
+      <div className="editmodal-head">
         <h3>{t('perfil.editProfile')}</h3>
         <button className="iconbtn" aria-label={t('common.close')} onClick={cerrar}>
           <Icon name="x" size={18} />
         </button>
       </div>
 
-      <div className="cover" style={{ height: 130, borderRadius: 16 }}>
-        {portada && <img src={portada} alt="" />}
-        <div className="row" style={{ position: 'absolute', right: 10, bottom: 10, gap: 6 }}>
-          {portada && (
-            <button
-              className="btn btn-sm coverbtn"
-              style={{ position: 'static' }}
-              aria-label={t('perfil.removeCover')}
-              onClick={() => {
-                setCover(null)
-                setQuitarPortada(true)
-              }}
-            >
-              <Icon name="x" size={14} />
-            </button>
-          )}
-          <button className="btn btn-sm coverbtn" style={{ position: 'static' }} onClick={() => coverInput.current?.click()}>
-            <Icon name="camera" size={16} />
-            {t('perfil.editCover')}
-          </button>
-        </div>
-      </div>
-      <div className="row" style={{ marginTop: -48, paddingLeft: 16 }}>
-        <div className="avatarwrap">
-          <div className="bigavatar" style={{ width: 96, height: 96, fontSize: 32, ...(esLote ? { borderRadius: 24, background: 'var(--navy)' } : {}) }}>
-            {foto ? <img src={foto} alt="" /> : iniciales(p.displayName)}
-          </div>
-          <button className="camb" aria-label={t('perfil.changePhoto')} onClick={() => avatarInput.current?.click()}>
-            <Icon name="camera" size={16} />
-          </button>
-        </div>
-      </div>
-      <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(ev) => (void elegir(ev.target.files?.[0], 'avatar'), (ev.target.value = ''))} />
-      <input ref={coverInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(ev) => (void elegir(ev.target.files?.[0], 'cover'), (ev.target.value = ''))} />
+      <div className="editmodal-body">
 
-      {input('displayName', esLote ? t('perfil.lotName') : t('perfil.fullName'), { filtro: esLote ? (v) => v.slice(0, R.LOTE_MAX) : (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
-      {esLote && input('responsable', t('perfil.responsible'), { filtro: (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
-      <Campo label={t('perfil.email')} hint={t('perfil.emailLocked')}>
-        <input className="input" value={p.email} disabled readOnly />
-      </Campo>
-      <div className="grid2">
-        <Campo id="ep-estado" label={t('perfil.state')} error={e('estado')}>
-          <select className={`input ${e('estado') ? 'bad' : ''}`} id="ep-estado" value={p.estado} onChange={(ev) => setP((x) => ({ ...x, estado: ev.target.value, municipio: '' }))}>
-            <option value="">{t('perfil.select')}</option>
-            {/* Si el estado guardado no está en la lista (nombre antiguo), igual se muestra. */}
-            {p.estado && !catalogo.some((x) => x.estado === p.estado) && <option>{p.estado}</option>}
-            {catalogo.map((x) => (
-              <option key={x.estado}>{x.estado}</option>
-            ))}
-          </select>
-        </Campo>
-        <Campo id="ep-municipio" label={t('perfil.city')} error={e('municipio')}>
-          <select className={`input ${e('municipio') ? 'bad' : ''}`} id="ep-municipio" value={p.municipio} disabled={!p.estado} onChange={(ev) => set('municipio', ev.target.value)}>
-            <option value="">{t('perfil.select')}</option>
-            {p.municipio && !municipios.includes(p.municipio) && <option>{p.municipio}</option>}
-            {municipios.map((m) => (
-              <option key={m}>{m}</option>
-            ))}
-          </select>
-        </Campo>
-      </div>
-      {esLote && (
-        <>
-          <div className="grid3">
-            <div style={{ gridColumn: 'span 2' }}>{input('calle', t('perfil.street'), { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}</div>
-            {input('numero', t('perfil.number'), { filtro: (v) => v.slice(0, R.NUMERO_MAX) })}
-          </div>
-          <div className="grid2">
-            {input('colonia', t('perfil.colony'), { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
-            {input('codigoPostal', t('perfil.zip'), { inputMode: 'numeric', filtro: (v) => R.soloDigitos(v, 5) })}
-          </div>
-        </>
-      )}
-      <div className="grid2">
-        {input('phone', t('perfil.phone'), { inputMode: 'tel', placeholder: t('perfil.tenDigits'), filtro: R.telefonoAlEscribir })}
-        {input('whatsapp', t('perfil.whatsapp'), { inputMode: 'tel', placeholder: t('perfil.tenDigits'), filtro: R.telefonoAlEscribir })}
-      </div>
-      <Campo label={t('perfil.mainContact')}>
-        <div className="row" style={{ gap: 8 }}>
-          {(
-            [
-              [WHATSAPP, 'perfil.whatsapp', 'chat'],
-              [LLAMADA, 'perfil.calls', 'phone'],
-            ] as const
-          ).map(([v, clave, i]) => (
-            <button key={v} type="button" className={`chip ${p.medioPrincipal === v ? 'on' : ''}`} onClick={() => set('medioPrincipal', v)}>
-              <Icon name={i} size={16} />
-              {t(clave)}
+        <div className="cover" style={{ height: 130, borderRadius: 16 }}>
+          {portada && <img src={portada} alt="" />}
+          <div className="row" style={{ position: 'absolute', right: 10, bottom: 10, gap: 6 }}>
+            {portada && (
+              <button
+                className="btn btn-sm coverbtn"
+                style={{ position: 'static' }}
+                aria-label={t('perfil.removeCover')}
+                onClick={() => {
+                  setCover(null)
+                  setQuitarPortada(true)
+                }}
+              >
+                <Icon name="x" size={14} />
+              </button>
+            )}
+            <button className="btn btn-sm coverbtn" style={{ position: 'static' }} onClick={() => coverInput.current?.click()}>
+              <Icon name="camera" size={16} />
+              {t('perfil.editCover')}
             </button>
-          ))}
+          </div>
         </div>
-      </Campo>
-      <Campo id="ep-bio" label={t('perfil.description')}>
-        <textarea className="input" id="ep-bio" maxLength={R.DESCRIPCION_MAX} value={p.bio} onChange={(ev) => set('bio', ev.target.value)} />
-        <span className="muted" style={{ fontSize: 12, alignSelf: 'flex-end' }}>
-          {p.bio.length}/{R.DESCRIPCION_MAX}
-        </span>
-      </Campo>
-      <AlertBox message={error} />
-      <div className="grid2">
+        {/* Foto en su propio bloque, debajo de la portada (sin encimarse). */}
+        <div className="editmodal-avatar">
+          <div className="avatarwrap">
+            <div className="bigavatar" style={esLote ? { borderRadius: 24, background: 'var(--navy)' } : undefined}>
+              {foto ? <img src={foto} alt="" /> : iniciales(p.displayName)}
+            </div>
+            <button className="camb" aria-label={t('perfil.changePhoto')} onClick={() => avatarInput.current?.click()}>
+              <Icon name="camera" size={16} />
+            </button>
+          </div>
+        </div>
+        <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(ev) => (void elegir(ev.target.files?.[0], 'avatar'), (ev.target.value = ''))} />
+        <input ref={coverInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(ev) => (void elegir(ev.target.files?.[0], 'cover'), (ev.target.value = ''))} />
+
+        {input('displayName', esLote ? t('perfil.lotName') : t('perfil.fullName'), { filtro: esLote ? (v) => v.slice(0, R.LOTE_MAX) : (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
+        {esLote && input('responsable', t('perfil.responsible'), { filtro: (v) => v.replace(/[^\p{L} .'-]/gu, '').slice(0, 100) })}
+        <Campo label={t('perfil.email')} hint={t('perfil.emailLocked')}>
+          <input className="input" value={p.email} disabled readOnly />
+        </Campo>
+        <div className="grid2">
+          <Campo id="ep-estado" label={t('perfil.state')} error={e('estado')}>
+            <select className={`input ${e('estado') ? 'bad' : ''}`} id="ep-estado" value={p.estado} onChange={(ev) => setP((x) => ({ ...x, estado: ev.target.value, municipio: '' }))}>
+              <option value="">{t('perfil.select')}</option>
+              {/* Si el estado guardado no está en la lista (nombre antiguo), igual se muestra. */}
+              {p.estado && !catalogo.some((x) => x.estado === p.estado) && <option>{p.estado}</option>}
+              {catalogo.map((x) => (
+                <option key={x.estado}>{x.estado}</option>
+              ))}
+            </select>
+          </Campo>
+          <Campo id="ep-municipio" label={t('perfil.city')} error={e('municipio')}>
+            <select className={`input ${e('municipio') ? 'bad' : ''}`} id="ep-municipio" value={p.municipio} disabled={!p.estado} onChange={(ev) => set('municipio', ev.target.value)}>
+              <option value="">{t('perfil.select')}</option>
+              {p.municipio && !municipios.includes(p.municipio) && <option>{p.municipio}</option>}
+              {municipios.map((m) => (
+                <option key={m}>{m}</option>
+              ))}
+            </select>
+          </Campo>
+        </div>
+        {esLote && (
+          <>
+            <div className="grid3">
+              <div style={{ gridColumn: 'span 2' }}>{input('calle', t('perfil.street'), { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}</div>
+              {input('numero', t('perfil.number'), { filtro: (v) => v.slice(0, R.NUMERO_MAX) })}
+            </div>
+            <div className="grid2">
+              {input('colonia', t('perfil.colony'), { filtro: (v) => v.slice(0, R.DIRECCION_MAX) })}
+              {input('codigoPostal', t('perfil.zip'), { inputMode: 'numeric', filtro: (v) => R.soloDigitos(v, 5) })}
+            </div>
+          </>
+        )}
+        <div className="grid2">
+          {input('phone', t('perfil.phone'), { inputMode: 'tel', placeholder: t('perfil.tenDigits'), filtro: R.telefonoAlEscribir })}
+          {input('whatsapp', t('perfil.whatsapp'), { inputMode: 'tel', placeholder: t('perfil.tenDigits'), filtro: R.telefonoAlEscribir })}
+        </div>
+        <Campo label={t('perfil.mainContact')}>
+          <div className="row" style={{ gap: 8 }}>
+            {(
+              [
+                [WHATSAPP, 'perfil.whatsapp', 'chat'],
+                [LLAMADA, 'perfil.calls', 'phone'],
+              ] as const
+            ).map(([v, clave, i]) => (
+              <button key={v} type="button" className={`chip ${p.medioPrincipal === v ? 'on' : ''}`} onClick={() => set('medioPrincipal', v)}>
+                <Icon name={i} size={16} />
+                {t(clave)}
+              </button>
+            ))}
+          </div>
+        </Campo>
+        <Campo id="ep-bio" label={t('perfil.description')}>
+          <textarea className="input" id="ep-bio" maxLength={R.DESCRIPCION_MAX} value={p.bio} onChange={(ev) => set('bio', ev.target.value)} />
+          <span className="muted" style={{ fontSize: 12, alignSelf: 'flex-end' }}>
+            {p.bio.length}/{R.DESCRIPCION_MAX}
+          </span>
+        </Campo>
+        <AlertBox message={error} />
+      </div>
+
+      {/* Botones fijos abajo. */}
+      <div className="grid2 editmodal-foot">
         <button className="btn btn-ghost" disabled={guardando} onClick={cerrar}>
           {t('common.cancel')}
         </button>
@@ -301,10 +308,6 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
   )
 }
 
-/**
- * Lotes sin verificar: subir (o volver a subir, con el motivo del rechazo) la constancia fiscal.
- * Mientras está en revisión solo se avisa.
- */
 /**
  * Particulares sin verificar: mandar (o volver a mandar, con el motivo del rechazo) su CURP.
  * Mientras está en revisión solo se avisa.

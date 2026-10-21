@@ -624,3 +624,23 @@ table.t tr:hover td{background:var(--bg)}
   .csfrow{flex-wrap:wrap}
   .csfrow-btn{width:100%}
 }
+
+/* Modal "Editar perfil" (Profile.tsx, EditProfileModal): encabezado y botones fijos, solo el cuerpo hace scroll.
+   La foto va en su propio bloque (sin márgenes negativos) para no encimarse sobre el título. */
+.modal.editmodal{max-width:560px;padding:0;gap:0;overflow:hidden;max-height:calc(100dvh - 40px)}
+.editmodal-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px 12px;background:var(--surface)}
+.editmodal-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:4px 24px 16px}
+.editmodal-foot{position:sticky;bottom:0;z-index:2;padding:12px 24px 20px;background:var(--surface);border-top:1px solid var(--border)}
+.editmodal-avatar{display:flex;justify-content:flex-start;padding-block:6px}
+.editmodal .bigavatar{width:112px;height:112px;font-size:36px}
+@media (max-width:640px){
+  .overlay:has(.editmodal){padding:12px}
+  .modal.editmodal{width:100%;max-height:calc(100dvh - 24px)}
+  .editmodal-head{padding:16px 16px 10px}
+  .editmodal-body{padding:4px 16px 14px}
+  .editmodal-foot{grid-template-columns:1fr;padding:12px 16px 16px}
+  .editmodal-avatar{justify-content:center}
+  .editmodal .bigavatar{width:96px;height:96px;font-size:32px}
+  /* En una sola columna, "Calle" (que ocupa 2 columnas en escritorio) no debe crear una columna extra. */
+  .editmodal .grid3 > *{grid-column:auto!important}
+}
