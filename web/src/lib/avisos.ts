@@ -7,7 +7,8 @@ const TIPOS = [
   'favorito', 'propuesta_enviada', 'publicacion_aprobada', 'destacado_aprobado', 'edicion_aprobada', 'publicacion_rehabilitada',
   'publicacion_rechazada', 'edicion_rechazada', 'publicacion_deshabilitada', 'destacado_rechazado', 'destacado_por_vencer',
   'cuenta_suspendida', 'cuenta_reactivada', 'reporte_atendido', 'reporte_descartado', 'busqueda_coincidencia',
-  'favorito_no_disponible', 'auto_parecido', 'poca_actividad', 'confirmar_venta',
+  'favorito_no_disponible', 'auto_parecido', 'poca_actividad', 'confirmar_venta', 'verificacion_aprobada',
+  'verificacion_rechazada',
 ] as const
 
 /**
@@ -45,6 +46,8 @@ export function textoAviso(t: T, tipo: string, vehiculo: string, datos?: Record<
     case 'favorito_no_disponible':
       if (d.estado === 'vendida') return t('notif.favorito_vendido', { v: vehiculo })
       break
+    case 'verificacion_pendiente':
+      return d.documento === 'curp' ? t('notif.verificacion_pendiente_curp') : t('notif.verificacion_pendiente')
     case 'hito_vistas': {
       const vistas = num('vistas')
       return vistas != null ? t('notif.hito_vistas', { v: vehiculo, n: vistas }) : t('notif.hito_vistas_simple', { v: vehiculo })
@@ -58,5 +61,7 @@ export function textoAviso(t: T, tipo: string, vehiculo: string, datos?: Record<
 export function destinoAviso(tipo: string, idPublicacion: number | null): string | null {
   if (tipo === 'resumen_semanal') return '/'
   if (tipo === 'resumen_vendedor') return '/panel'
+  if (tipo === 'verificacion_pendiente') return '/admin/verificacion'
+  if (tipo === 'verificacion_aprobada' || tipo === 'verificacion_rechazada') return '/perfil'
   return idPublicacion ? `/vehiculo/${idPublicacion}` : null
 }

@@ -43,6 +43,7 @@ import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -95,6 +96,9 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
     "publicacion_rechazada", "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2))
     "publicacion_deshabilitada", "cuenta_suspendida" -> NotifStyle(Icons.Rounded.Block, Color(0xFFDC2626), Color(0xFFFEF2F2))
     "cuenta_reactivada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4))
+    "verificacion_pendiente" -> NotifStyle(Icons.Rounded.VerifiedUser, Color(0xFFD97706), Color(0xFFFFFBEB))
+    "verificacion_aprobada" -> NotifStyle(Icons.Rounded.VerifiedUser, Color(0xFF16A34A), Color(0xFFF0FDF4))
+    "verificacion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2))
     "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, Color(0xFFD97706), Color(0xFFFFFBEB))
     "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, Color(0xFF2563EB), Color(0xFFEFF6FF))
     "reporte_descartado" -> NotifStyle(Icons.Rounded.Flag, KarsyTeal, KarsyBg)
@@ -120,6 +124,10 @@ fun NotificationsScreen(
     onHome: () -> Unit = {},
     /** Resumen semanal del vendedor → su panel. */
     onDashboard: () -> Unit = {},
+    /** Solicitud de verificación nueva (admin) → Verificación en el panel. */
+    onAdminVerifications: () -> Unit = {},
+    /** Verificación aprobada o rechazada → su perfil (ahí ve la insignia o la reenvía). */
+    onProfile: () -> Unit = {},
 ) {
     var notifications by remember { mutableStateOf<List<NotificacionDto>?>(null) }
     val scope = rememberCoroutineScope()
@@ -180,6 +188,8 @@ fun NotificationsScreen(
                                 onOpen = when {
                                     n.tipo == "resumen_semanal" -> onHome
                                     n.tipo == "resumen_vendedor" -> onDashboard
+                                    n.tipo == "verificacion_pendiente" -> onAdminVerifications
+                                    n.tipo == "verificacion_aprobada" || n.tipo == "verificacion_rechazada" -> onProfile
                                     n.idPublicacion != null -> ({ onCarClick(n.idPublicacion) })
                                     else -> null
                                 }

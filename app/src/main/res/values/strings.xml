@@ -884,6 +884,10 @@
     <string name="admin2_curp_unreadable">No se pudieron leer los datos de esta CURP.</string>
     <string name="admin2_curp_check_exists">La CURP existe en gob.mx y sus datos coinciden con los de la CURP</string>
     <string name="admin2_curp_check_name">El nombre que muestra gob.mx coincide con el del perfil</string>
+    <plurals name="admin2_notifications_unread">
+        <item quantity="one">Notificaciones (%1$d sin leer)</item>
+        <item quantity="other">Notificaciones (%1$d sin leer)</item>
+    </plurals>
     <string name="admin2_verif_reason_label">Motivo del rechazo</string>
     <string name="admin2_verif_user_type">Tipo de usuario</string>
     <string name="admin2_verif_document">Documento</string>
@@ -1208,6 +1212,10 @@
     <string name="notif_report_resolved">Gracias por tu reporte sobre \"%1$s\". Lo revisamos y tomamos medidas.</string>
     <string name="notif_report_dismissed">Revisamos tu reporte sobre \"%1$s\" y no encontramos un incumplimiento.</string>
     <string name="notif_saved_search_match">Nuevo auto que coincide con tu búsqueda: %1$s</string>
+    <string name="notif_verification_pending">Un lote envió su constancia de situación fiscal para verificar su cuenta. Revísala en Verificación.</string>
+    <string name="notif_verification_pending_curp">Un particular envió su CURP para verificar su cuenta. Revísala en Verificación.</string>
+    <string name="notif_verification_approved">¡Tu cuenta de Karsy fue verificada! Ya aparece la insignia en tu perfil.</string>
+    <string name="notif_verification_rejected">No pudimos verificar tu cuenta. Revisa el motivo y vuelve a enviarla desde tu perfil.</string>
     <string name="notif_prefs_title">Elegir qué avisos recibir</string>
     <string name="notif_prefs_system_off">Las notificaciones de Karsy están apagadas en tu teléfono. Toca aquí para activarlas.</string>
     <string name="notif_prefs_prices">Precios de tus favoritos</string>

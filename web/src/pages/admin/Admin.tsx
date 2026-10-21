@@ -4,6 +4,7 @@ import { CarPhoto } from '../../components/CarPhoto'
 import { Icon, type IconName } from '../../components/Icon'
 import { Traducido } from '../../components/Traducido'
 import { Brand, LogoutModal } from '../../components/TopNav'
+import { TiempoReal } from '../../components/TiempoReal'
 import { ModalHead, useUi } from '../../components/Ui'
 import {
   adminAccounts,
@@ -26,6 +27,7 @@ import {
   publicacionesSinHuellas,
   registrarHuellasAdmin,
 } from '../../data/admin'
+import { unreadCount } from '../../data/account'
 import { toCar } from '../../data/api'
 import { mensajeUsuario } from '../../data/auth'
 import { traducir, useI18n } from '../../i18n/I18nContext'
@@ -36,7 +38,7 @@ import { entero, haceCuanto, km, precio } from '../../lib/format'
 import { publicUrl } from '../../lib/supabase'
 import { huellaVisual } from '../../lib/huellaVisual'
 import { useSession } from '../../session/SessionContext'
-import { useRecargar } from '../../lib/tiempoReal'
+import { EVENTO_CAMBIOS, useRecargar, type Tabla } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
 import { Verificaciones } from './Verificaciones'
 import { AdminHead, Badge, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
@@ -73,6 +75,7 @@ export function Admin() {
   const [menu, setMenu] = useState(false)
   const cerrarMenu = useCallback(() => setMenu(false), [])
   const sideRef = useRef<HTMLElement>(null)
+  const [sinLeer, setSinLeer] = useState(0)
 
   const cargar = useCallback(async () => {
     setError(null)
@@ -103,8 +106,26 @@ export function Admin() {
       void cargar()
       cargarStats()
     },
-    ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'reportes', 'solicitudes_destacado', 'cuentas'],
+    // notificaciones: así llegan las solicitudes de verificación nuevas.
+    ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'reportes', 'solicitudes_destacado', 'cuentas', 'notificaciones'],
   )
+
+  // Número en la campana: avisos sin leer del admin (como en TopNav).
+  const uid = account?.id
+  useEffect(() => {
+    if (!uid) return setSinLeer(0)
+    const revisar = () => void unreadCount(uid).then(setSinLeer).catch(() => undefined)
+    revisar()
+    const onCambios = (e: Event) => {
+      if ((e as CustomEvent<Tabla[]>).detail.includes('notificaciones')) revisar()
+    }
+    window.addEventListener('karsy:notificaciones', revisar)
+    window.addEventListener(EVENTO_CAMBIOS, onCambios)
+    return () => {
+      window.removeEventListener('karsy:notificaciones', revisar)
+      window.removeEventListener(EVENTO_CAMBIOS, onCambios)
+    }
+  }, [uid])
 
   /** Después de una acción: aviso y todo se vuelve a leer de la BD. */
   const listo = (msg: string) => {
@@ -196,13 +217,21 @@ export function Admin() {
 
   return (
     <div className={`admin ${menu ? 'menuabierto' : ''}`}>
+      {/* Avisos en vivo (solicitudes nuevas, etc.): el panel no usa el Layout que lo monta. */}
+      <TiempoReal />
       {/* Solo en pantallas chicas: logo y botón ☰ en lugar de la barra lateral. */}
       <header className="admintop">
         <Brand />
-        <button className="iconbtn adminburger" aria-label={t('nav.openMenu')} aria-expanded={menu} onClick={() => setMenu(true)}>
-          <Icon name="menu" size={20} />
-          {totalPendientes > 0 && <span className="cnt">{totalPendientes}</span>}
-        </button>
+        <div className="row" style={{ gap: 8 }}>
+          <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
+            <Icon name="bell" size={19} />
+            {sinLeer > 0 && <span className="dot">{sinLeer > 99 ? '99+' : sinLeer}</span>}
+          </button>
+          <button className="iconbtn adminburger" aria-label={t('nav.openMenu')} aria-expanded={menu} onClick={() => setMenu(true)}>
+            <Icon name="menu" size={20} />
+            {totalPendientes > 0 && <span className="cnt">{totalPendientes}</span>}
+          </button>
+        </div>
       </header>
       <div className="adminfondo" onClick={cerrarMenu} />
       <aside ref={sideRef} className="side" aria-label={t('nav.menu')} {...(menu ? { role: 'dialog', 'aria-modal': true } : {})}>
@@ -230,6 +259,11 @@ export function Admin() {
           <button className="it" onClick={() => elegir(() => navigate('/'))}>
             <Icon name="home" />
             {t('admin.backHome')}
+          </button>
+          <button className="it" onClick={() => elegir(() => navigate('/notificaciones'))}>
+            <Icon name="bell" />
+            {t('nav.notifications')}
+            {sinLeer > 0 && <span className="cnt">{sinLeer > 99 ? '99+' : sinLeer}</span>}
           </button>
           <button className="it" onClick={() => elegir(() => navigate('/perfil'))}>
             <Icon name="user" />

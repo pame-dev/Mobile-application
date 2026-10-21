@@ -882,6 +882,10 @@
     <string name="admin2_curp_unreadable">The data in this CURP could not be read.</string>
     <string name="admin2_curp_check_exists">The CURP exists on gob.mx and its data matches the CURP</string>
     <string name="admin2_curp_check_name">The name shown on gob.mx matches the profile name</string>
+    <plurals name="admin2_notifications_unread">
+        <item quantity="one">Notifications (%1$d unread)</item>
+        <item quantity="other">Notifications (%1$d unread)</item>
+    </plurals>
     <string name="admin2_verif_reason_label">Rejection reason</string>
     <string name="admin2_verif_user_type">User type</string>
     <string name="admin2_verif_document">Document</string>
@@ -1206,6 +1210,10 @@
     <string name="notif_report_resolved">Thanks for your report about \"%1$s\". We reviewed it and took action.</string>
     <string name="notif_report_dismissed">We reviewed your report about \"%1$s\" and found no violation.</string>
     <string name="notif_saved_search_match">New car matching your saved search: %1$s</string>
+    <string name="notif_verification_pending">A dealership sent its tax status certificate to verify its account. Review it in Verification.</string>
+    <string name="notif_verification_pending_curp">A private seller sent their CURP to verify their account. Review it in Verification.</string>
+    <string name="notif_verification_approved">Your Karsy account was verified! The badge now shows on your profile.</string>
+    <string name="notif_verification_rejected">We couldn\'t verify your account. Check the reason and send it again from your profile.</string>
     <string name="notif_prefs_title">Choose which notifications to get</string>
     <string name="notif_prefs_system_off">Karsy notifications are turned off on your phone. Tap here to turn them on.</string>
     <string name="notif_prefs_prices">Prices of your favorites</string>

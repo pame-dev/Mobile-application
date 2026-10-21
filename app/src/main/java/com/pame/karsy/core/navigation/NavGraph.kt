@@ -50,6 +50,8 @@ import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.feature.admin.AdminDashboardScreen
+import com.pame.karsy.feature.admin.AdminPanelRequest
+import com.pame.karsy.feature.admin.AdminSection
 import com.pame.karsy.feature.admin.AdminVehicleReviewBar
 import com.pame.karsy.feature.admin.AdminViewModel
 import com.pame.karsy.feature.admin.ReportReviewBar
@@ -469,7 +471,12 @@ fun KarsyNavGraph(
                         onCarClick = ::openCar,
                         onPreferences = { navController.navigate(Routes.NotificationPreferences.route) },
                         onHome = { goTab(Routes.Home.route) },
-                        onDashboard = { navController.navigate(Routes.Dashboard.route) }
+                        onDashboard = { navController.navigate(Routes.Dashboard.route) },
+                        onAdminVerifications = {
+                            AdminPanelRequest.section = AdminSection.Verificaciones
+                            goSection(Routes.AdminDashboard.route)
+                        },
+                        onProfile = { goSection(Routes.Profile.route) }
                     )
                 }
                 composable(Routes.NotificationPreferences.route) {
@@ -521,7 +528,8 @@ fun KarsyNavGraph(
                     AdminDashboardScreen(
                         onCarClick = ::openAdminCar,
                         onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
-                        onLogout = ::logout
+                        onLogout = ::logout,
+                        onNotifications = { navController.navigate(Routes.Notifications.route) }
                     )
                 }
                 // Publicación abierta desde el panel: solo acciones de admin (aunque el admin sea el dueño).
