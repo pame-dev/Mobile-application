@@ -13,6 +13,8 @@ data class Lot(
     val hours: String?,
     /** Publicaciones visibles (aprobadas, activas y habilitadas). */
     val vehicleCount: Int,
+    /** cuentas.verificado: insignia "Lote verificado". */
+    val verificado: Boolean = false,
 )
 
 /** Números del lote para "Llamar" y "WhatsApp" (solo se piden con sesión iniciada). */

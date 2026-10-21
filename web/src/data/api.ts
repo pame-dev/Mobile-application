@@ -68,6 +68,7 @@ function toDetail(a: AnuncioRow): CarDetail {
     recuperadoPorSeguro: a.recuperado_por_seguro == null ? '—' : a.recuperado_por_seguro ? traducir('vehiculo.yes') : traducir('vehiculo.no'),
     detalles: a.tiene_problemas ? a.descripcion_problemas ?? '' : traducir('vehiculo.noProblems'),
     sellerAvatar: publicUrl(a.propietario_foto),
+    sellerVerified: false,
     row: a,
   }
 }
@@ -84,7 +85,12 @@ export async function visibleCars(): Promise<Car[]> {
 
 export async function carDetail(id: number): Promise<CarDetail | null> {
   const row = check(await supabase.from(VISTA).select('*').eq('id_publicacion', id).maybeSingle()) as AnuncioRow | null
-  return row ? toDetail(row) : null
+  if (!row) return null
+  const detalle = toDetail(row)
+  // Insignia de verificado (cuentas.verificado); si la consulta falla, el detalle se muestra igual sin ella.
+  const { data } = await supabase.from('cuentas').select('verificado').eq('id_cuenta', row.id_propietario).maybeSingle()
+  detalle.sellerVerified = (data as { verificado?: boolean } | null)?.verificado === true
+  return detalle
 }
 
 export async function carsByIds(ids: number[]): Promise<Car[]> {
@@ -210,6 +216,7 @@ interface CuentaRow {
   municipio_perfil_ubi: string | null
   estado_cuenta: string
   fecha_creacion: string
+  verificado: boolean | null
 }
 
 interface PerfilLoteRow {
@@ -222,7 +229,7 @@ interface PerfilLoteRow {
 }
 
 const CUENTA_COLS =
-  'id_cuenta,nombre_mostrar,tipo_cuenta,foto_perfil,foto_portada,descripcion_corta,estado_perfil_ubi,municipio_perfil_ubi,estado_cuenta,fecha_creacion'
+  'id_cuenta,nombre_mostrar,tipo_cuenta,foto_perfil,foto_portada,descripcion_corta,estado_perfil_ubi,municipio_perfil_ubi,estado_cuenta,fecha_creacion,verificado'
 
 const ciudadDe = (c: CuentaRow) => [c.municipio_perfil_ubi, c.estado_perfil_ubi].filter(Boolean).join(', ')
 
@@ -242,6 +249,7 @@ function toLot(c: CuentaRow, p: PerfilLoteRow | undefined, vehicleCount: number)
     address: direccion,
     hours: p?.horarios_atencion ?? null,
     vehicleCount,
+    verified: c.verificado === true,
   }
 }
 

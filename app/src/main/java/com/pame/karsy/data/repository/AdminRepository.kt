@@ -7,11 +7,13 @@ import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.CuentaAdminDto
 import com.pame.karsy.data.remote.DestacadoAdminDto
 import com.pame.karsy.data.remote.ReporteAdminDto
+import com.pame.karsy.data.remote.VerificacionAdminDto
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Operaciones del panel de administración. Las escrituras pasan por funciones
@@ -20,6 +22,9 @@ import kotlinx.serialization.json.put
 object AdminRepository {
 
     private val db get() = Supabase.client
+
+    /** Lo que dura la URL firmada para ver un documento de verificación. */
+    private val CONSTANCIA_URL_EXPIRA = 10.minutes
 
     suspend fun accounts(): List<CuentaAdminDto> =
         db.postgrest.rpc("admin_listar_cuentas").decodeList<CuentaAdminDto>()
@@ -92,6 +97,36 @@ object AdminRepository {
             put("p_deshabilitar", disableCar)
         })
     }
+
+    /** Documentos de verificación de todos los usuarios (pendientes primero). */
+    suspend fun verifications(): List<VerificacionAdminDto> =
+        db.postgrest.rpc("admin_listar_verificaciones_usuario").decodeList<VerificacionAdminDto>()
+
+    /** Aprueba el documento [id] (marca cuentas.verificado) o lo rechaza con [reason] (mín. 10 caracteres). */
+    suspend fun resolveVerification(id: String, approve: Boolean, reason: String? = null) {
+        db.postgrest.rpc("admin_resolver_verificacion_usuario", buildJsonObject {
+            put("p_id", id)
+            put("p_aprobar", approve)
+            put("p_motivo", reason)
+        })
+        borrarDocumentosSinUso()
+    }
+
+    /**
+     * Borra del bucket privado los documentos de verificación que ya ningún registro usa
+     * (reenvíos viejos y repetidos). Nunca lanza: si falla, se reintenta al abrir el panel
+     * o en la siguiente revisión.
+     */
+    suspend fun borrarDocumentosSinUso() {
+        runCatching {
+            val rutas = db.postgrest.rpc("admin_documentos_verificacion_sin_uso").decodeAs<List<String>>()
+            if (rutas.isNotEmpty()) db.storage.from(UserRepository.BUCKET_CONSTANCIAS).delete(rutas)
+        }
+    }
+
+    /** URL firmada y temporal de un documento del bucket privado (nunca una URL pública). */
+    suspend fun constanciaSignedUrl(ruta: String): String =
+        db.storage.from(UserRepository.BUCKET_CONSTANCIAS).createSignedUrl(ruta, CONSTANCIA_URL_EXPIRA)
 
     suspend fun resolveFeatured(idSolicitud: Long, approve: Boolean, reason: String? = null) {
         db.postgrest.rpc("admin_resolver_destacado", buildJsonObject {

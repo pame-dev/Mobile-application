@@ -2,10 +2,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { VolverButton } from '../../components/VolverButton'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox, AuthShell, BackButton, PasswordInput, PasswordRulesList } from '../../components/AuthParts'
+import { ConstanciaField } from '../../components/ConstanciaField'
 import { Icon, type IconName } from '../../components/Icon'
 import { Brand } from '../../components/TopNav'
 import { useUi } from '../../components/Ui'
-import { EmailNotVerifiedError, holdAvatarUntilVerified, mensajeUsuario, msgEmailExiste, signUp, telefonoEnUso, uploadAvatar } from '../../data/auth'
+import { EmailNotVerifiedError, holdAvatarUntilVerified, holdConstanciaUntilVerified, mensajeUsuario, msgEmailExiste, signUp, subirConstancia, telefonoEnUso, uploadAvatar } from '../../data/auth'
 import { docAceptado, limpiarAceptaciones, type DocLegal } from '../../data/legal'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
@@ -97,7 +98,7 @@ const VACIO: Form = {
  * al volver con "← Volver" se restaura. Solo vive en memoria (incluye la contraseña, así que no se
  * guarda en el navegador) y se descarta al recargar la página.
  */
-let borrador: { tipo: Tipo; f: Form; logo: Blob | null } | null = null
+let borrador: { tipo: Tipo; f: Form; logo: Blob | null; constancia: File | null } | null = null
 
 /** "Campo obligatorio" en el idioma actual (se compara contra los errores armados en el mismo momento). */
 const requerido = () => traducir('auth.reg.required')
@@ -171,6 +172,8 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
   const [correoRegistrado, setCorreoRegistrado] = useState<string | null>(null)
   const [telefonoAviso, setTelefonoAviso] = useState<string | null>(null)
   const [catalogo, setCatalogo] = useState<EstadoMunicipios[]>([])
+  /** Constancia de Situación Fiscal (opcional, solo lotes): se sube después de crear la cuenta. */
+  const [constancia, setConstancia] = useState<File | null>(() => (borrador?.tipo === tipo ? borrador.constancia : null))
   const [logo, setLogo] = useState<{ blob: Blob; url: string } | null>(() => {
     const blob = borrador?.tipo === tipo ? borrador.logo : null
     return blob ? { blob, url: URL.createObjectURL(blob) } : null
@@ -240,7 +243,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
 
   /** Antes de ir a los términos o las políticas: se guarda lo escrito para restaurarlo al volver. */
   const guardarBorrador = () => {
-    borrador = { tipo, f, logo: logo?.blob ?? null }
+    borrador = { tipo, f, logo: logo?.blob ?? null, constancia }
   }
 
   const leer = (doc: DocLegal) => {
@@ -324,8 +327,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
       limpiarAceptaciones()
       // Sin verificación de correo: ya hay sesión. El logo es opcional; si falla la cuenta ya quedó creada.
       if (logo) await uploadAvatar(logo.blob).catch(() => undefined)
+      // La constancia también es opcional: si no se pudo subir, la cuenta queda 'sin_documento' y se avisa.
+      const constanciaFallo = esLote && constancia ? await subirConstancia(constancia).then(() => false, () => true) : false
       await reload()
-      toast(t('auth.reg.created'))
+      toast(t(constanciaFallo ? 'auth.csf.uploadFailed' : 'auth.reg.created'))
       navigate('/', { replace: true })
     } catch (ex) {
       setLoading(false)
@@ -333,6 +338,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         limpiarAceptaciones()
         // Cuenta creada, pero sin sesión hasta escribir el código: el logo se sube al verificarlo.
         if (logo) holdAvatarUntilVerified(ex.email, logo.blob)
+        if (esLote && constancia) holdConstanciaUntilVerified(ex.email, constancia)
         navigate('/verificar', { replace: true, state: { email: ex.email, sendCode: false } })
         return
       }
@@ -602,6 +608,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
               </Field>
             </div>
             {ubicacion}
+            <ConstanciaField file={constancia} onChange={setConstancia} />
             <Field id="descripcion" label={t('auth.reg.description')}>
               <textarea
                 className="input"

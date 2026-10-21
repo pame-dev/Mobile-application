@@ -11,6 +11,8 @@ import {
   adminFeatured,
   adminReports,
   adminStats,
+  adminVerifications,
+  type VerificacionAdmin,
   marcarSuspendidasVistas,
   marcarVistas,
   moderateProposal,
@@ -36,9 +38,10 @@ import { huellaVisual } from '../../lib/huellaVisual'
 import { useSession } from '../../session/SessionContext'
 import { useRecargar } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
+import { Verificaciones } from './Verificaciones'
 import { AdminHead, Badge, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
-type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados'
+type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
 
 /** Todo lo que necesita el panel; se recarga después de cada acción. */
 interface Datos {
@@ -46,6 +49,7 @@ interface Datos {
   autos: { car: Car; row: AnuncioRow }[]
   reportes: ReporteAdmin[]
   destacados: DestacadoAdmin[]
+  verificaciones: VerificacionAdmin[]
 }
 
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -73,8 +77,8 @@ export function Admin() {
   const cargar = useCallback(async () => {
     setError(null)
     try {
-      const [cuentas, filas, reportes, destacados] = await Promise.all([adminAccounts(), adminCars(), adminReports(), adminFeatured()])
-      setDatos({ cuentas, autos: filas.map((row) => ({ car: toCar(row), row })), reportes, destacados })
+      const [cuentas, filas, reportes, destacados, verificaciones] = await Promise.all([adminAccounts(), adminCars(), adminReports(), adminFeatured(), adminVerifications()])
+      setDatos({ cuentas, autos: filas.map((row) => ({ car: toCar(row), row })), reportes, destacados, verificaciones })
     } catch (e) {
       setError(mensajeUsuario(e))
     }
@@ -153,6 +157,7 @@ export function Admin() {
     vehiculos: datos?.autos.filter((a) => propuestaPendiente(a.row) != null).length ?? 0,
     reportes: datos?.reportes.filter((r) => r.estado_reporte === 'pendiente').length ?? 0,
     destacados: datos?.destacados.filter((d) => d.estado_solicitud === 'pendiente').length ?? 0,
+    verificacion: datos?.verificaciones.filter((v) => v.estado === 'pendiente').length ?? 0,
   }
   const items: [Seccion, Clave, IconName, number?][] = [
     ['inicio', 'admin.sec.home', 'home'],
@@ -160,6 +165,7 @@ export function Admin() {
     ['vehiculos', 'admin.sec.vehicles', 'car', pendientes.vehiculos],
     ['reportes', 'admin.sec.reports', 'flag', pendientes.reportes],
     ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
+    ['verificacion', 'admin.sec.verification', 'shield', pendientes.verificacion],
   ]
   const ir = (s: Seccion, filtro?: string) => navigate((s === 'inicio' ? '/admin' : `/admin/${s}`) + (filtro ? `?${filtro}` : ''))
   /** Navega y, si el panel móvil estaba abierto, lo cierra. */
@@ -167,7 +173,7 @@ export function Admin() {
     setMenu(false)
     accion()
   }
-  const totalPendientes = pendientes.vehiculos + pendientes.reportes + pendientes.destacados
+  const totalPendientes = pendientes.vehiculos + pendientes.reportes + pendientes.destacados + pendientes.verificacion
 
   let contenido
   if (error && !datos) {
@@ -185,6 +191,7 @@ export function Admin() {
   else if (seccion === 'vehiculos') contenido = <Vehiculos datos={datos} listo={listo} onVisto={cargarStats} />
   else if (seccion === 'reportes') contenido = <Reportes datos={datos} listo={listo} />
   else if (seccion === 'destacados') contenido = <Destacados datos={datos} listo={listo} />
+  else if (seccion === 'verificacion') contenido = <Verificaciones verificaciones={datos.verificaciones} listo={listo} />
   else contenido = <Inicio nombre={account.nombre} stats={stats} rango={rango} setRango={setRango} ir={ir} />
 
   return (

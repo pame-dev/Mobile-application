@@ -1,6 +1,8 @@
 import { AuthError } from '@supabase/supabase-js'
 import { BUCKET, supabase, cerrarSesionLocal } from '../lib/supabase'
 import { traducir } from '../i18n/I18nContext'
+import type { Clave } from '../i18n/es'
+import type { TipoDocumento } from './types'
 import { UserError } from './api'
 
 // Inicio de sesión, registro y códigos por correo: lo mismo que AuthRepository.kt.
@@ -162,4 +164,66 @@ export async function uploadAvatar(blob: Blob): Promise<void> {
   if (up.error) throw up.error
   const { error } = await supabase.from('cuentas').update({ foto_perfil: ruta }).eq('id_cuenta', uid)
   if (error) throw error
+}
+
+// ── Constancia de Situación Fiscal (verificación de lotes) ──
+
+/** Bucket privado de los documentos de verificación (migración 20261021120000_verificaciones_usuario). */
+const BUCKET_CONSTANCIAS = 'constancias-fiscales'
+export const CONSTANCIA_MAX_BYTES = 5 * 1024 * 1024
+const EXT_CONSTANCIA: Record<string, string> = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }
+const TIPO_POR_EXT: Record<string, string> = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' }
+
+/** Tipo MIME del archivo (si el navegador no lo da, se toma de la extensión). */
+const tipoConstancia = (f: File) => f.type || TIPO_POR_EXT[f.name.split('.').pop()?.toLowerCase() ?? ''] || ''
+
+/** Error de la constancia elegida, o null si sirve: PDF, JPG o PNG de hasta 5 MB. */
+export function errorConstancia(f: File): Clave | null {
+  if (!EXT_CONSTANCIA[tipoConstancia(f)]) return 'auth.csf.badType'
+  if (f.size > CONSTANCIA_MAX_BYTES) return 'auth.csf.tooBig'
+  if (f.size === 0) return 'auth.csf.empty'
+  return null
+}
+
+/**
+ * Sube un documento de verificación a <id_cuenta>/<tipo_documento>_<timestamp>.<ext> y lo manda a
+ * revisión con enviar_documento_verificacion: crea el registro 'pendiente' o, si estaba rechazado,
+ * lo reemplaza (un solo registro por usuario y documento). Sirve para lotes y particulares. Necesita sesión.
+ */
+export async function enviarDocumentoVerificacion(f: File, tipoDocumento: TipoDocumento): Promise<void> {
+  const { data } = await supabase.auth.getUser()
+  const uid = data.user?.id
+  if (!uid) throw new UserError(traducir('auth.err.signInFirst'))
+  const tipo = tipoConstancia(f)
+  const ruta = `${uid}/${tipoDocumento}_${Date.now()}.${EXT_CONSTANCIA[tipo]}`
+  const bucket = supabase.storage.from(BUCKET_CONSTANCIAS)
+  const up = await bucket.upload(ruta, f, { upsert: false, contentType: tipo })
+  if (up.error) throw up.error
+  const { data: anterior, error } = await supabase.rpc('enviar_documento_verificacion', { p_tipo_documento: tipoDocumento, p_archivo_path: ruta })
+  if (error) {
+    // No se envió: el archivo recién subido no sirve (si no se puede borrar, lo limpia el admin después).
+    await bucket.remove([ruta]).catch(() => undefined)
+    throw error
+  }
+  // Reenvío después de un rechazo: el archivo anterior ya no se usa.
+  if (typeof anterior === 'string' && anterior) await bucket.remove([anterior]).catch(() => undefined)
+}
+
+/** Constancia de Situación Fiscal (lotes). */
+export const subirConstancia = (f: File) => enviarDocumentoVerificacion(f, 'constancia_situacion_fiscal')
+
+// Igual que el logo: sin sesión (falta verificar el correo) se guarda hasta validar el código.
+let pendingConstancia: { email: string; file: File } | null = null
+
+export function holdConstanciaUntilVerified(email: string, file: File) {
+  pendingConstancia = { email: email.trim().toLowerCase(), file }
+}
+
+/** Sube la constancia que se eligió en el registro. false si no había ninguna. */
+export async function uploadPendingConstancia(email: string): Promise<boolean> {
+  const p = pendingConstancia
+  pendingConstancia = null
+  if (!p || p.email !== email.trim().toLowerCase()) return false
+  await subirConstancia(p.file)
+  return true
 }

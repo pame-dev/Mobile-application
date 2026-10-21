@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Inventory, ProfileHeader } from '../components/ProfileParts'
 import { Traducido } from '../components/Traducido'
+import { VolverButton } from '../components/VolverButton'
 import { ownerVisibleCars, sellerProfile } from '../data/api'
 import type { Car, SellerProfile as Perfil } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
@@ -72,6 +73,9 @@ export function SellerProfile() {
 
   return (
     <div className="wrap" style={{ paddingTop: 24 }}>
+      <div style={{ marginBottom: 14 }}>
+        <VolverButton fallback="/" />
+      </div>
       <ProfileHeader name={perfil.name} avatarUrl={perfil.avatarUrl} coverUrl={perfil.coverUrl}>
         <h1 style={{ fontSize: 28 }}>{perfil.name}</h1>
         <p className="muted">{datos}</p>

@@ -48,6 +48,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.components.EstadoMunicipioPickers
 import com.pame.karsy.core.components.BackTopBar
+import com.pame.karsy.core.components.ConstanciaField
 import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.components.PasswordRequirements
 import com.pame.karsy.core.components.PrimaryButton
@@ -159,6 +160,13 @@ fun RegisterLoteScreen(
                 estadoError = vm.errorFor("estado"),
                 municipioError = vm.errorFor("ciudad"),
                 modifier = scroller.markModifier("estado", "ciudad")
+            )
+            // Opcional: con ella el admin puede darle al lote la insignia "Lote verificado".
+            ConstanciaField(
+                archivo = vm.constancia,
+                error = vm.constanciaError,
+                onPick = { vm.elegirConstancia(context, it) },
+                onRemove = vm::quitarConstancia
             )
             FormInput(
                 label = stringResource(R.string.auth_lote_description),

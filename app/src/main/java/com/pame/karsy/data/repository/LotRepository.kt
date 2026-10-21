@@ -82,6 +82,7 @@ object LotRepository {
             address = direccion,
             hours = p?.horarios,
             vehicleCount = vehicleCount,
+            verificado = c.verificado,
         )
     }
 }

@@ -29,4 +29,10 @@ data class User(
     val whatsapp: String = "",
     /** Cómo prefiere que lo contacten: "llamada" o "whatsapp". */
     val medioPrincipal: String = "llamada",
+    /** cuentas.verificado: un admin aprobó su documento (insignia). */
+    val verificado: Boolean = false,
+    /** Estado del último documento enviado (verificaciones_usuario.estado) o Constancia.SIN_DOCUMENTO. */
+    val estadoVerificacion: String = "sin_documento",
+    /** Comentario del admin si rechazó ese último documento. */
+    val motivoRechazoVerificacion: String? = null,
 )

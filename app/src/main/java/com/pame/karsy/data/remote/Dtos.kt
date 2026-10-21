@@ -80,6 +80,8 @@ data class CuentaDto(
     @SerialName("foto_portada") val fotoPortada: String? = null,
     /** Tema elegido en Configuración: "claro", "oscuro" o "sistema"; null = nunca lo eligió. */
     @SerialName("tema") val tema: String? = null,
+    /** Cuenta verificada con un documento aprobado por el admin (insignia). */
+    val verificado: Boolean = false,
 )
 
 /** Dirección del lote (perfiles_lote); nombre, descripción, logo y ubicación están en cuentas. */
@@ -105,6 +107,8 @@ data class LoteCuentaDto(
     @SerialName("descripcion_corta") val descripcionCorta: String? = null,
     @SerialName("estado_perfil_ubi") val estado: String,
     @SerialName("municipio_perfil_ubi") val municipio: String,
+    /** Insignia "Lote verificado". */
+    val verificado: Boolean = false,
 )
 
 /** Fila completa de public.perfiles_lote (dirección y horario). */
@@ -116,6 +120,17 @@ data class LotePerfilDto(
     val colonia: String = "",
     @SerialName("codigo_postal") val codigoPostal: String = "",
     @SerialName("horarios_atencion") val horarios: String? = null,
+)
+
+/** Solo cuentas.verificado (insignia del vendedor en el detalle de una publicación). */
+@Serializable
+data class CuentaVerificadaDto(val verificado: Boolean = false)
+
+/** Estado del último documento que envió el usuario (tarjeta de su perfil). */
+@Serializable
+data class VerificacionUsuarioDto(
+    val estado: String,
+    @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
 )
 
 @Serializable
@@ -270,6 +285,27 @@ data class DestacadoAdminDto(
     @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
     val solicitante: String,
     @SerialName("solicitante_foto") val solicitanteFoto: String? = null,
+)
+
+/** Fila de admin_listar_verificaciones_usuario(): documento que envió un usuario (lote o particular). */
+@Serializable
+data class VerificacionAdminDto(
+    val id: String,
+    @SerialName("user_id") val userId: String,
+    @SerialName("nombre_mostrar") val nombre: String = "",
+    val correo: String = "",
+    /** 'lote' | 'particular'. */
+    @SerialName("tipo_usuario") val tipoUsuario: String,
+    /** Hoy solo 'constancia_situacion_fiscal'. */
+    @SerialName("tipo_documento") val tipoDocumento: String,
+    /** Ruta en el bucket privado constancias-fiscales (se abre con URL firmada). */
+    @SerialName("archivo_path") val archivoPath: String,
+    val estado: String,
+    @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
+    /** Nombre del admin que lo revisó. */
+    @SerialName("revisado_por") val revisadoPor: String? = null,
+    @SerialName("fecha_envio") val fechaEnvio: String? = null,
+    @SerialName("fecha_revision") val fechaRevision: String? = null,
 )
 
 /** Fila de public.notificaciones (bandeja del usuario, la llenan triggers). */

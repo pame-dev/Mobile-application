@@ -1,6 +1,16 @@
 // Textos del área "perfil". Claves con prefijo "perfil." para no chocar con otras áreas.
 
 export const es = {
+  'perfil.verified': 'Verificado',
+  'perfil.verifiedA11y': 'Usuario verificado',
+  'perfil.verifyTitle': 'Verifica tu lote',
+  'perfil.verifyDesc': 'Sube tu Constancia de Situación Fiscal para obtener la insignia de Lote verificado.',
+  'perfil.verifyRejected': 'Tu constancia fue rechazada: {motivo}',
+  'perfil.verifyPending': 'Tu constancia está en revisión. Te avisaremos cuando el equipo de Karsy la revise.',
+  'perfil.verifySend': 'Enviar constancia',
+  'perfil.verifyResend': 'Volver a subir constancia',
+  'perfil.verifySending': 'Enviando…',
+  'perfil.verifySent': 'Constancia enviada. La revisaremos pronto.',
   // Comunes del área
   'perfil.ofTotal': '{n} de {total}',
   'perfil.vehiclesOne': '{n} vehículo',
@@ -243,6 +253,16 @@ export const es = {
 } as const
 
 export const en: Record<keyof typeof es, string> = {
+  'perfil.verified': 'Verified',
+  'perfil.verifiedA11y': 'Verified user',
+  'perfil.verifyTitle': 'Verify your dealership',
+  'perfil.verifyDesc': 'Upload your tax status certificate (Constancia de Situación Fiscal) to get the Verified dealer badge.',
+  'perfil.verifyRejected': 'Your certificate was rejected: {motivo}',
+  'perfil.verifyPending': "Your certificate is under review. We'll let you know when the Karsy team reviews it.",
+  'perfil.verifySend': 'Send certificate',
+  'perfil.verifyResend': 'Upload certificate again',
+  'perfil.verifySending': 'Sending…',
+  'perfil.verifySent': "Certificate sent. We'll review it soon.",
   // Comunes del área
   'perfil.ofTotal': '{n} of {total}',
   'perfil.vehiclesOne': '{n} vehicle',

@@ -83,6 +83,7 @@ import com.pame.karsy.core.components.HeartIcon
 import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.RegisterToast
+import com.pame.karsy.core.components.VerifiedBadge
 import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.session.PublicacionesOcultas
@@ -1031,13 +1032,20 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                     .clickable(onClick = onOpenSeller)
             )
             Column(Modifier.weight(1f)) {
-                Text(
-                    detail.contactoNombre,
-                    fontFamily = DmSans,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KarsyInk
-                )
+                // Nombre + "Verificado": si el nombre es largo se corta; la insignia siempre se ve completa.
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        detail.contactoNombre,
+                        fontFamily = DmSans,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = KarsyInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (detail.sellerType == "lote" && detail.sellerVerificado) VerifiedBadge()
+                }
                 Text(
                     if (detail.sellerType == "lote") stringResource(R.string.detail_dealer_view_profile) else stringResource(R.string.detail_private_view_profile),
                     fontFamily = DmSans,

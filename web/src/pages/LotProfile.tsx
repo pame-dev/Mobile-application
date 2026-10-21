@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
+import { VerifiedBadge } from '../components/ConstanciaField'
 import { Inventory, ProfileHeader } from '../components/ProfileParts'
 import { Traducido } from '../components/Traducido'
 import { useUi } from '../components/Ui'
+import { VolverButton } from '../components/VolverButton'
 import { lot as cargarLote, lotContact, ownerVisibleCars } from '../data/api'
 import type { Car, Lot, LotContact } from '../data/types'
 import { traducir, useI18n } from '../i18n/I18nContext'
@@ -88,15 +90,20 @@ export function LotProfile() {
 
   return (
     <div className="wrap" style={{ paddingTop: 24 }}>
-      <div className="crumbs" style={{ paddingTop: 0 }}>
-        <button onClick={() => navigate('/lotes')}>{t('nav.lots')}</button>
-        <Icon name="chev" size={14} />
-        <span style={{ color: 'var(--ink)' }}>{lote.name}</span>
+      <div style={{ marginBottom: 14 }}>
+        <VolverButton fallback="/lotes" />
       </div>
 
       <ProfileHeader name={lote.name} avatarUrl={lote.logoUrl} coverUrl={lote.coverUrl} square>
         <div className="row" style={{ flexWrap: 'wrap' }}>
-          <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
+          {lote.verified ? (
+            <span className="verified-name">
+              <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
+              <VerifiedBadge />
+            </span>
+          ) : (
+            <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
+          )}
           <span className="badge b-info">{t('nav.lot')}</span>
         </div>
         <p className="muted">

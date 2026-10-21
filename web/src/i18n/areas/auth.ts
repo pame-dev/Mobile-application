@@ -1,6 +1,16 @@
 // Textos del área "auth". Claves con prefijo "auth." para no chocar con otras áreas.
 
 export const es = {
+  'auth.csf.label': 'Constancia de Situación Fiscal (opcional)',
+  'auth.csf.help': 'Sube tu constancia del SAT para obtener la insignia de Lote verificado. Debe tener una antigüedad máxima de 3 meses y mostrar una actividad relacionada con la venta de vehículos.',
+  'auth.csf.drop': 'Haz clic o arrastra tu archivo aquí',
+  'auth.csf.formats': 'PDF, JPG o PNG · máximo 5 MB',
+  'auth.csf.change': 'Cambiar',
+  'auth.csf.remove': 'Quitar',
+  'auth.csf.badType': 'Formato no válido. Sube un PDF, JPG o PNG.',
+  'auth.csf.tooBig': 'El archivo pesa más de 5 MB. Sube uno más ligero.',
+  'auth.csf.empty': 'El archivo está vacío. Elige otro.',
+  'auth.csf.uploadFailed': 'Tu cuenta se creó, pero no pudimos subir tu constancia. Puedes subirla después desde tu perfil.',
   'auth.reg.legalTitle': 'Documentos legales',
   'auth.reg.termsCard': 'Términos y condiciones',
   'auth.reg.termsCardDesc': 'Las reglas para usar Karsy, publicar vehículos y tratar con otros usuarios.',
@@ -199,6 +209,16 @@ export const es = {
 } as const
 
 export const en: Record<keyof typeof es, string> = {
+  'auth.csf.label': 'Tax status certificate (optional)',
+  'auth.csf.help': 'Upload your SAT certificate (Constancia de Situación Fiscal) to get the Verified dealer badge. It must be at most 3 months old and show an activity related to selling vehicles.',
+  'auth.csf.drop': 'Click or drag your file here',
+  'auth.csf.formats': 'PDF, JPG or PNG · 5 MB max',
+  'auth.csf.change': 'Change',
+  'auth.csf.remove': 'Remove',
+  'auth.csf.badType': 'Invalid format. Upload a PDF, JPG or PNG.',
+  'auth.csf.tooBig': 'The file is larger than 5 MB. Upload a smaller one.',
+  'auth.csf.empty': 'The file is empty. Choose another one.',
+  'auth.csf.uploadFailed': "Your account was created, but we couldn't upload your certificate. You can upload it later from your profile.",
   'auth.reg.legalTitle': 'Legal documents',
   'auth.reg.termsCard': 'Terms and conditions',
   'auth.reg.termsCardDesc': 'The rules for using Karsy, publishing vehicles and dealing with other users.',
