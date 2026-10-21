@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.PersonOff
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -278,6 +279,8 @@ class AdminViewModel : ViewModel() {
                 AdminAlert(s.propuestasPendientes, textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Icons.Outlined.Shield, Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
                 AdminAlert(s.reportesPendientes, textoPlural(R.plurals.admin2_alert_pending_reports, s.reportesPendientes, s.reportesPendientes), Icons.Outlined.Flag, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Reportes),
                 AdminAlert(s.destacadosPendientes, textoPlural(R.plurals.admin2_alert_pending_featured, s.destacadosPendientes, s.destacadosPendientes), Icons.Outlined.StarOutline, Color(0xFFFFFBEB), Color(0xFFD97706), AdminSection.Destacados),
+                // Solicitudes de verificación sin revisar: se quitan al aprobarlas o rechazarlas.
+                AdminAlert(pendingVerifications, textoPlural(R.plurals.admin2_alert_pending_verifications, pendingVerifications, pendingVerifications), Icons.Outlined.VerifiedUser, Color(0xFFF0FDFA), Color(0xFF14B8A6), AdminSection.Verificaciones),
             ).filter { it.count > 0 }
         }
 

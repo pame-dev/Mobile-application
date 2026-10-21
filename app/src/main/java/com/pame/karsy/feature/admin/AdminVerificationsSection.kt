@@ -70,6 +70,7 @@ fun AdminVerificationsSection(vm: AdminViewModel) {
     var filter by rememberSaveable { mutableStateOf(VerificationStatus.Pendiente) }
     var rejectingId by rememberSaveable { mutableStateOf<String?>(null) }
     var reviewingCurpId by rememberSaveable { mutableStateOf<String?>(null) }
+    var reviewingConstanciaId by rememberSaveable { mutableStateOf<String?>(null) }
     val visible = verifications.filter { it.status == filter }
 
     // Abre la URL firmada con la app que el teléfono tenga para verla (navegador o visor de PDF).
@@ -123,12 +124,11 @@ fun AdminVerificationsSection(vm: AdminViewModel) {
                         VerificationRow(
                             verification = verification,
                             onOpen = { abrir(verification) },
-                            onApprove = { vm.resolveVerification(verification, approve = true) },
-                            onReject = {
+                            onReviewCurp = { reviewingCurpId = verification.id },
+                            onReviewConstancia = {
                                 vm.dismissMessage()
-                                rejectingId = verification.id
-                            },
-                            onReviewCurp = { reviewingCurpId = verification.id }
+                                reviewingConstanciaId = verification.id
+                            }
                         )
                     }
                 }
@@ -152,6 +152,26 @@ fun AdminVerificationsSection(vm: AdminViewModel) {
                 rejectingId = verification.id
             },
             onDismiss = { if (!vm.working) reviewingCurpId = null }
+        )
+    }
+
+    verifications.firstOrNull { it.id == reviewingConstanciaId }?.let { verification ->
+        RevisarConstanciaDialog(
+            verification = verification,
+            working = vm.working,
+            // Si falla, el error se ve dentro de la ventana (no detrás).
+            error = vm.message,
+            onOpen = { abrir(verification) },
+            onApprove = {
+                vm.dismissMessage()
+                vm.resolveVerification(verification, approve = true) { reviewingConstanciaId = null }
+            },
+            onReject = {
+                reviewingConstanciaId = null
+                vm.dismissMessage()
+                rejectingId = verification.id
+            },
+            onDismiss = { if (!vm.working) reviewingConstanciaId = null }
         )
     }
 
@@ -196,9 +216,8 @@ private fun documentTypeLabel(type: String): String = when (type) {
 private fun VerificationRow(
     verification: UserVerification,
     onOpen: () -> Unit,
-    onApprove: () -> Unit,
-    onReject: () -> Unit,
     onReviewCurp: () -> Unit,
+    onReviewConstancia: () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -253,8 +272,8 @@ private fun VerificationRow(
         if (verification.status == VerificationStatus.Pendiente && verification.documentType == TIPO_CURP) {
             AdminActionButton(stringResource(R.string.admin2_curp_review), tone = ActionTone.Success, onClick = onReviewCurp)
         } else if (verification.status == VerificationStatus.Pendiente) {
-            AdminActionButton(stringResource(R.string.admin1_reject), tone = ActionTone.Danger, onClick = onReject)
-            AdminActionButton(stringResource(R.string.admin2_approve), tone = ActionTone.Success, onClick = onApprove)
+            // Constancia (y cualquier otro documento con archivo): ventana con la guía de qué revisar.
+            AdminActionButton(stringResource(R.string.admin2_csf_review), tone = ActionTone.Success, onClick = onReviewConstancia)
         }
     }
 }
@@ -370,6 +389,78 @@ private fun RevisarCurpDialog(
                     fontFamily = DmSans,
                     fontWeight = FontWeight.Bold,
                     color = if (existe && nombre && !working) BadgeTone.Success.fg else AdminColors.Muted
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onReject, enabled = !working) {
+                Text(stringResource(R.string.admin1_reject), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = BadgeTone.Danger.fg)
+            }
+        }
+    )
+}
+
+/**
+ * Revisar la constancia de situación fiscal de un lote: guía de qué revisar, botón para ver
+ * el documento (foto o PDF) y el nombre del lote para comparar. Aprobar se activa hasta marcar
+ * las dos casillas; Rechazar pide el motivo (como en la CURP).
+ */
+@Composable
+private fun RevisarConstanciaDialog(
+    verification: UserVerification,
+    working: Boolean,
+    error: String?,
+    onOpen: () -> Unit,
+    onApprove: () -> Unit,
+    onReject: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var documento by rememberSaveable { mutableStateOf(false) }
+    var nombre by rememberSaveable { mutableStateOf(false) }
+    val listo = documento && nombre && !working
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = KarsySurface,
+        title = {
+            Text(
+                stringResource(R.string.admin2_csf_review_title, verification.name),
+                fontFamily = Outfit,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyInk
+            )
+        },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.admin2_csf_review_sub), fontFamily = DmSans, fontSize = 13.sp, color = AdminColors.NeutralText)
+                Text(
+                    stringResource(R.string.admin2_csf_steps),
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                    color = KarsyInk,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(KarsyTealSoft)
+                        .padding(12.dp)
+                )
+                AdminField(stringResource(R.string.admin2_csf_lot_name), verification.name)
+                if (verification.documentPath != null) {
+                    AdminActionButton(stringResource(R.string.admin2_verif_open), tone = ActionTone.Success, onClick = onOpen)
+                }
+                CasillaRevision(documento, stringResource(R.string.admin2_csf_check_document)) { documento = it }
+                CasillaRevision(nombre, stringResource(R.string.admin2_csf_check_name)) { nombre = it }
+                error?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onApprove, enabled = listo) {
+                Text(
+                    stringResource(R.string.admin2_approve),
+                    fontFamily = DmSans,
+                    fontWeight = FontWeight.Bold,
+                    color = if (listo) BadgeTone.Success.fg else AdminColors.Muted
                 )
             }
         },

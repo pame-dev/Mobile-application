@@ -213,7 +213,7 @@ export function Admin() {
   else if (seccion === 'reportes') contenido = <Reportes datos={datos} listo={listo} />
   else if (seccion === 'destacados') contenido = <Destacados datos={datos} listo={listo} />
   else if (seccion === 'verificacion') contenido = <Verificaciones verificaciones={datos.verificaciones} listo={listo} />
-  else contenido = <Inicio nombre={account.nombre} stats={stats} rango={rango} setRango={setRango} ir={ir} />
+  else contenido = <Inicio nombre={account.nombre} stats={stats} verificaciones={pendientes.verificacion} rango={rango} setRango={setRango} ir={ir} />
 
   return (
     <div className={`admin ${menu ? 'menuabierto' : ''}`}>
@@ -287,7 +287,7 @@ export function Admin() {
 
 // ── Inicio ─────────────────────────────────────────────────────────────────
 
-function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; rango: number; setRango: (n: number) => void; ir: (s: Seccion, filtro?: string) => void }) {
+function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre: string; stats: AdminStats | null; verificaciones: number; rango: number; setRango: (n: number) => void; ir: (s: Seccion, filtro?: string) => void }) {
   const { t } = useI18n()
   const head = (
     <AdminHead
@@ -327,6 +327,8 @@ function Inicio({ nombre, stats, rango, setRango, ir }: { nombre: string; stats:
       [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'admin.alertReviewOne', 'admin.alertReviewMany'), 'vehiculos', '#F59E0B'],
       [stats.reportesPendientes, plural(stats.reportesPendientes, 'admin.alertReportsOne', 'admin.alertReportsMany'), 'reportes', '#EF4444'],
       [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', '#F59E0B'],
+      // Solicitudes de verificación sin revisar: se quitan al aprobarlas o rechazarlas.
+      [verificaciones, plural(verificaciones, 'admin.alertVerificationOne', 'admin.alertVerificationMany'), 'verificacion', '#14B8A6'],
       [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'tipo=lote'],
       [stats.suspendidasSinVer, plural(stats.suspendidasSinVer, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3', 'tipo=suspendido'],
       // Se quitan cuando el admin abre ese filtro en Vehículos (admin_marcar_vistas).

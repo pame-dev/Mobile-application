@@ -112,6 +112,72 @@ function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; 
   )
 }
 
+/**
+ * Revisar la constancia de situación fiscal de un lote: guía de qué revisar, botón para ver
+ * el documento (foto o PDF) y el nombre del lote para comparar. Aprobar se activa hasta marcar
+ * las dos casillas; Rechazar pide el motivo (como en la CURP).
+ */
+function RevisarConstanciaModal({ v, onVer, onAprobar, onRechazar }: { v: VerificacionAdmin; onVer: () => void; onAprobar: () => Promise<boolean>; onRechazar: () => void }) {
+  const { closeModal } = useUi()
+  const { t } = useI18n()
+  const [documento, setDocumento] = useState(false)
+  const [nombre, setNombre] = useState(false)
+  const [aprobando, setAprobando] = useState(false)
+  return (
+    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <ModalHead title={t('admin.csfReviewTitle', { nombre: v.nombre_mostrar })} sub={t('admin.csfReviewSub')} />
+      <div className="note" style={{ background: 'var(--teal-light)', color: 'var(--ink)' }}>
+        <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <li>{t('admin.csfStep1')}</li>
+          <li>{t('admin.csfStep2')}</li>
+          <li>{t('admin.csfStep3')}</li>
+          <li>{t('admin.csfStep4')}</li>
+          <li>{t('admin.csfStep5')}</li>
+          <li>{t('admin.csfStep6')}</li>
+        </ol>
+      </div>
+      <div className="row" style={{ gap: 12, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <p style={{ margin: 0 }}>
+          <span className="muted">{t('admin.csfLotName')}</span>
+          <br />
+          <b>{v.nombre_mostrar}</b>
+        </p>
+        <button type="button" className="btn btn-primary btn-sm" disabled={!v.archivo_path} onClick={onVer}>
+          <Icon name="doc" size={14} />
+          {t('admin.verifOpen')}
+        </button>
+      </div>
+      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+        <input type="checkbox" checked={documento} onChange={(e) => setDocumento(e.target.checked)} />
+        <span>{t('admin.csfCheckDocument')}</span>
+      </label>
+      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+        <input type="checkbox" checked={nombre} onChange={(e) => setNombre(e.target.checked)} />
+        <span>{t('admin.csfCheckName')}</span>
+      </label>
+      <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+        <button className="btn btn-ghost" disabled={aprobando} onClick={onRechazar}>
+          {t('admin.reject')}
+        </button>
+        <button
+          className="btn btn-primary"
+          disabled={!documento || !nombre || aprobando}
+          onClick={() => {
+            setAprobando(true)
+            // Si falla, la ventana se queda abierta (con las casillas marcadas) y sale el aviso.
+            void onAprobar().then((ok) => {
+              setAprobando(false)
+              if (ok) closeModal()
+            })
+          }}
+        >
+          {t('admin.approve')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const ESTADO: Record<Estado, [Clave, string]> = {
   pendiente: ['admin.verifTabPending', 'b-warn'],
   verificado: ['admin.verifTabVerified', 'b-succ'],
@@ -153,7 +219,7 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
     }
   }
 
-  /** true si se aprobó (la ventana de la CURP solo se cierra entonces). */
+  /** true si se aprobó (las ventanas de revisión solo se cierran entonces). */
   const aprobar = async (v: VerificacionAdmin): Promise<boolean> => {
     setBusy(v.id)
     try {
@@ -267,15 +333,15 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
                         {t('admin.curpReview')}
                       </button>
                     )}
+                    {/* Constancia (y cualquier otro documento con archivo): ventana con la guía de qué revisar. */}
                     {v.estado === 'pendiente' && v.tipo_documento !== 'curp' && (
-                      <>
-                        <button className="btn btn-ghost btn-sm" disabled={busy === v.id} onClick={() => rechazar(v)}>
-                          {t('admin.reject')}
-                        </button>
-                        <button className="btn btn-primary btn-sm" disabled={busy === v.id} onClick={() => void aprobar(v)}>
-                          {t('admin.approve')}
-                        </button>
-                      </>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        disabled={busy === v.id}
+                        onClick={() => openModal(<RevisarConstanciaModal v={v} onVer={() => void abrir(v)} onAprobar={() => aprobar(v)} onRechazar={() => rechazar(v)} />)}
+                      >
+                        {t('admin.csfReview')}
+                      </button>
                     )}
                   </div>
                 </td>

@@ -899,6 +899,13 @@
     <string name="admin2_curp_unreadable">No se pudieron leer los datos de esta CURP.</string>
     <string name="admin2_curp_check_exists">La CURP existe en gob.mx y sus datos coinciden con los de la CURP</string>
     <string name="admin2_curp_check_name">El nombre que muestra gob.mx coincide con el del perfil</string>
+    <string name="admin2_csf_review">Revisar constancia</string>
+    <string name="admin2_csf_review_title">Revisar la constancia de %1$s</string>
+    <string name="admin2_csf_review_sub">Revisa la constancia de situación fiscal del lote antes de aprobar.</string>
+    <string name="admin2_csf_steps">1. Abre el documento con “Ver documento”.\n2. Revisa que sea una Constancia de Situación Fiscal del SAT y que se lea completa.\n3. Compara el nombre o razón social con el nombre del lote.\n4. Revisa que el estatus en el padrón diga “ACTIVO”.\n5. Opcional: escanea el código QR de la constancia con otro celular; debe abrir una página del SAT con los mismos datos.\n6. Si todo coincide, apruébala; si no, recházala y escribe el motivo.</string>
+    <string name="admin2_csf_lot_name">Nombre del lote</string>
+    <string name="admin2_csf_check_document">Es una constancia del SAT, se lee completa y el estatus dice “ACTIVO”</string>
+    <string name="admin2_csf_check_name">El nombre o razón social coincide con el del lote</string>
     <plurals name="admin2_notifications_unread">
         <item quantity="one">Notificaciones (%1$d sin leer)</item>
         <item quantity="other">Notificaciones (%1$d sin leer)</item>
@@ -1077,6 +1084,10 @@
     <plurals name="admin2_alert_pending_featured">
         <item quantity="one">%1$d solicitud de destacado pendiente</item>
         <item quantity="other">%1$d solicitudes de destacado pendientes</item>
+    </plurals>
+    <plurals name="admin2_alert_pending_verifications">
+        <item quantity="one">%1$d solicitud de verificación pendiente</item>
+        <item quantity="other">%1$d solicitudes de verificación pendientes</item>
     </plurals>
     <plurals name="admin2_reports_count">
         <item quantity="one">%1$d reporte registrado</item>

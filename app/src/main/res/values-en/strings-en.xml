@@ -897,6 +897,13 @@
     <string name="admin2_curp_unreadable">The data in this CURP could not be read.</string>
     <string name="admin2_curp_check_exists">The CURP exists on gob.mx and its data matches the CURP</string>
     <string name="admin2_curp_check_name">The name shown on gob.mx matches the profile name</string>
+    <string name="admin2_csf_review">Review certificate</string>
+    <string name="admin2_csf_review_title">Review %1$s’s certificate</string>
+    <string name="admin2_csf_review_sub">Check the dealership’s tax status certificate before approving.</string>
+    <string name="admin2_csf_steps">1. Open the document with “View document”.\n2. Check that it is a SAT Constancia de Situación Fiscal (tax status certificate) and that it is fully readable.\n3. Compare the name or company name with the dealership’s name.\n4. Check that the registry status says “ACTIVO”.\n5. Optional: scan the certificate’s QR code with another phone; it should open a SAT page with the same data.\n6. If everything matches, approve it; otherwise reject it and write the reason.</string>
+    <string name="admin2_csf_lot_name">Dealership name</string>
+    <string name="admin2_csf_check_document">It is a SAT certificate, fully readable, and the status says “ACTIVO”</string>
+    <string name="admin2_csf_check_name">The name or company name matches the dealership’s name</string>
     <plurals name="admin2_notifications_unread">
         <item quantity="one">Notifications (%1$d unread)</item>
         <item quantity="other">Notifications (%1$d unread)</item>
@@ -1075,6 +1082,10 @@
     <plurals name="admin2_alert_pending_featured">
         <item quantity="one">%1$d pending featured request</item>
         <item quantity="other">%1$d pending featured requests</item>
+    </plurals>
+    <plurals name="admin2_alert_pending_verifications">
+        <item quantity="one">%1$d pending verification request</item>
+        <item quantity="other">%1$d pending verification requests</item>
     </plurals>
     <plurals name="admin2_reports_count">
         <item quantity="one">%1$d report on file</item>
