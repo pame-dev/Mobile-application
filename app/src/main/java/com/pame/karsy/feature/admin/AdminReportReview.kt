@@ -190,6 +190,11 @@ data class ReasonDialogTexts(
             R.string.admin2_close_report_dialog_title, R.string.admin2_close_report_dialog_desc,
             R.string.admin2_close_report_dialog_hint, R.string.admin2_close_report_confirm, R.string.admin2_close_report_dialog_working,
         )
+        /** Rechazar el documento de verificación de un usuario (el motivo lo ve en su perfil). */
+        val RejectVerification = ReasonDialogTexts(
+            R.string.admin2_reject_verification_dialog_title, R.string.admin2_reject_verification_dialog_desc,
+            R.string.admin2_reject_verification_dialog_hint, R.string.admin2_reject_verification_confirm, R.string.admin2_reject_verification_dialog_working,
+        )
     }
 }
 

@@ -3,12 +3,13 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox } from '../components/AuthParts'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
+import { ConstanciaField, VerifiedBadge } from '../components/ConstanciaField'
 import { VehicleCard } from '../components/VehicleCard'
 import { VolverButton } from '../components/VolverButton'
 import { Traducido } from '../components/Traducido'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
-import { mensajeUsuario, uploadAvatar } from '../data/auth'
+import { mensajeUsuario, subirConstancia, uploadAvatar } from '../data/auth'
 import { currentProfile, LLAMADA, myCars, ocultas, removeCover, sePuedeOcultar, updateProfile, uploadCover, WHATSAPP, type OwnCar, type Perfil } from '../data/seller'
 import * as R from '../lib/formRules'
 import { iniciales } from '../lib/format'
@@ -300,6 +301,55 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
   )
 }
 
+/**
+ * Lotes sin verificar: subir (o volver a subir, con el motivo del rechazo) la constancia fiscal.
+ * Mientras está en revisión solo se avisa.
+ */
+function VerificarLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void }) {
+  const { t } = useI18n()
+  const { toast } = useUi()
+  const [archivo, setArchivo] = useState<File | null>(null)
+  const [enviando, setEnviando] = useState(false)
+
+  if (perfil.verificacion === 'pendiente') {
+    return (
+      <div className="note" style={{ marginTop: 22, background: 'var(--teal-light)', display: 'flex', gap: 10, alignItems: 'center' }}>
+        <Icon name="doc" size={18} />
+        {t('perfil.verifyPending')}
+      </div>
+    )
+  }
+  const rechazado = perfil.verificacion === 'rechazado'
+  const enviar = async () => {
+    if (!archivo) return
+    setEnviando(true)
+    try {
+      await subirConstancia(archivo)
+      toast(t('perfil.verifySent'))
+      setArchivo(null)
+      onSent()
+    } catch (e) {
+      toast(mensajeUsuario(e))
+    }
+    setEnviando(false)
+  }
+  return (
+    <section className="card" style={{ marginTop: 22, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div>
+        <h3 style={{ fontSize: 17 }}>{t('perfil.verifyTitle')}</h3>
+        <p className="muted" style={{ fontSize: 13 }}>
+          {t('perfil.verifyDesc')}
+        </p>
+      </div>
+      {rechazado && perfil.motivoVerificacion && <AlertBox message={t('perfil.verifyRejected', { motivo: perfil.motivoVerificacion })} />}
+      <ConstanciaField file={archivo} onChange={setArchivo} showLabel={false} />
+      <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={!archivo || enviando} onClick={() => void enviar()}>
+        {enviando ? t('perfil.verifySending') : rechazado ? t('perfil.verifyResend') : t('perfil.verifySend')}
+      </button>
+    </section>
+  )
+}
+
 /** Mi perfil (ProfileScreen de la app). */
 export function Profile() {
   const navigate = useNavigate()
@@ -434,7 +484,14 @@ export function Profile() {
         )}
         <div className="grow" style={{ paddingBottom: 10, minWidth: 220 }}>
           <div className="row" style={{ flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
+            {perfil.verificado ? (
+              <span className="verified-name">
+                <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
+                <VerifiedBadge />
+              </span>
+            ) : (
+              <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
+            )}
             <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
           </div>
           <p className="muted">{datos}</p>
@@ -452,6 +509,8 @@ export function Profile() {
           </button>
         </div>
       </div>
+
+      {esLote && !perfil.verificado && <VerificarLote perfil={perfil} onSent={cargar} />}
 
       <div className="twocol" style={{ margin: '26px 0 40px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

@@ -22,6 +22,8 @@ data class CarDetail(
     val sellerId: String,
     val sellerType: String,
     val sellerAvatar: String?,
+    /** cuentas.verificado del vendedor (hoy la insignia solo se muestra si es lote). */
+    val sellerVerificado: Boolean = false,
     val contactoNombre: String,
     val detalles: String,
     /** El vendedor escribió imperfecciones (detalles no es el texto de "sin problemas"). */

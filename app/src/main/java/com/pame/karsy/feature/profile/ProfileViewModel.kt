@@ -12,6 +12,8 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.PublicacionesOcultas
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.ArchivoConstancia
+import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.PasswordRules
 import com.pame.karsy.core.util.safeCall
@@ -135,6 +137,48 @@ class ProfileViewModel : ViewModel() {
                 }
                 .onFailure { passwordError = it.mensajeUsuario() }
             saving = false
+        }
+    }
+
+    // ── Constancia de Situación Fiscal (solo lote) ──
+
+    var constancia by mutableStateOf<ArchivoConstancia?>(null)
+        private set
+    var constanciaError by mutableStateOf<String?>(null)
+        private set
+    var enviandoConstancia by mutableStateOf(false)
+        private set
+
+    /** Revisa tipo (PDF, JPG o PNG) y tamaño (máx. 5 MB); si no sirve, no se guarda. */
+    fun elegirConstancia(context: Context, uri: Uri) {
+        runCatching { Constancia.revisar(context, uri) }
+            .onSuccess { constancia = it; constanciaError = null }
+            .onFailure { constancia = null; constanciaError = it.mensajeUsuario() }
+    }
+
+    fun quitarConstancia() {
+        constancia = null
+        constanciaError = null
+    }
+
+    /** Sube la constancia elegida y la manda a revisión; el perfil queda "en revisión". */
+    fun enviarConstancia(context: Context) {
+        val archivo = constancia ?: return
+        if (enviandoConstancia) return
+        val appContext = context.applicationContext
+        enviandoConstancia = true
+        constanciaError = null
+        viewModelScope.launch {
+            safeCall {
+                UserRepository.enviarDocumentoVerificacion(Constancia.bytes(appContext, archivo), archivo.mime, Constancia.TIPO_DOCUMENTO)
+            }
+                .onSuccess {
+                    constancia = null
+                    user = user?.copy(estadoVerificacion = Constancia.PENDIENTE, motivoRechazoVerificacion = null)
+                    message = texto(R.string.profile_verification_sent)
+                }
+                .onFailure { constanciaError = it.mensajeUsuario() }
+            enviandoConstancia = false
         }
     }
 

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
@@ -61,7 +62,8 @@ enum class AdminSection(@StringRes val labelRes: Int) {
     Usuarios(R.string.admin2_section_users),
     Vehiculos(R.string.admin2_section_vehicles),
     Reportes(R.string.admin2_section_reports),
-    Destacados(R.string.admin2_section_featured);
+    Destacados(R.string.admin2_section_featured),
+    Verificaciones(R.string.admin2_section_verifications);
 
     val label: String get() = texto(labelRes)
 
@@ -72,6 +74,7 @@ enum class AdminSection(@StringRes val labelRes: Int) {
             Vehiculos -> Icons.Outlined.DirectionsCar
             Reportes -> Icons.Outlined.Flag
             Destacados -> Icons.Outlined.StarOutline
+            Verificaciones -> Icons.Outlined.VerifiedUser
         }
 }
 
@@ -79,7 +82,7 @@ private val AvatarBlue = Color(0xFF3B82F6)
 
 /**
  * Contenido del menú lateral (ModalNavigationDrawer) en azul marino.
- * [badges] = pendientes por sección (reportes, publicaciones, destacados) de la BD.
+ * [badges] = pendientes por sección (reportes, publicaciones, destacados, verificaciones) de la BD.
  */
 @Composable
 fun AdminDrawerContent(

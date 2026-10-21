@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.mutableIntStateOf
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +15,8 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.ArchivoConstancia
+import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.PasswordRules
@@ -120,6 +123,24 @@ class RegisterViewModel : ViewModel() {
             lado < FormRules.LOGO_MIN_PX -> logoError = texto(R.string.form_error_logo_small, FormRules.LOGO_MIN_PX)
             else -> { logo = uri; logoError = null }
         }
+    }
+
+    /** Constancia de Situación Fiscal (opcional, solo lote): no bloquea el registro. */
+    var constancia by mutableStateOf<ArchivoConstancia?>(null)
+        private set
+    var constanciaError by mutableStateOf<String?>(null)
+        private set
+
+    /** Revisa tipo (PDF, JPG o PNG) y tamaño (máx. 5 MB); si no sirve, no se guarda. */
+    fun elegirConstancia(context: Context, uri: Uri) {
+        runCatching { Constancia.revisar(context, uri) }
+            .onSuccess { constancia = it; constanciaError = null }
+            .onFailure { constancia = null; constanciaError = it.mensajeUsuario() }
+    }
+
+    fun quitarConstancia() {
+        constancia = null
+        constanciaError = null
     }
 
     /** La casilla de términos se marca en rojo si se intentó enviar sin aceptarlos. */
@@ -237,6 +258,13 @@ class RegisterViewModel : ViewModel() {
                     logo?.let { uri ->
                         safeCall { UserRepository.uploadAvatar(Imagenes.jpegBytes(appContext, uri, maxLado = 800)) }
                     }
+                    // La constancia también es opcional: si falla, se avisa y se sube después desde el perfil.
+                    if (esLote) constancia?.let { archivo ->
+                        safeCall {
+                            UserRepository.enviarDocumentoVerificacion(Constancia.bytes(appContext, archivo), archivo.mime, Constancia.TIPO_DOCUMENTO)
+                        }
+                            .onFailure { avisarConstanciaFallida(appContext) }
+                    }
                     loading = false
                     onCreated(cuenta)
                 }
@@ -247,6 +275,12 @@ class RegisterViewModel : ViewModel() {
                         logo?.let { uri ->
                             safeCall { Imagenes.jpegBytes(appContext, uri, maxLado = 800) }
                                 .onSuccess { UserRepository.holdAvatarUntilVerified(e.email, it) }
+                        }
+                        // La constancia se sube igual que el logo, al verificar el correo.
+                        if (esLote) constancia?.let { archivo ->
+                            safeCall { Constancia.bytes(appContext, archivo) }
+                                .onSuccess { UserRepository.holdConstanciaUntilVerified(e.email, it, archivo.mime) }
+                                .onFailure { avisarConstanciaFallida(appContext) }
                         }
                         loading = false
                         onVerifyEmail(e.email)
@@ -261,6 +295,11 @@ class RegisterViewModel : ViewModel() {
                     }
                 }
         }
+    }
+
+    /** "Tu cuenta se creó, pero no pudimos subir tu constancia…" (la pantalla ya se cierra). */
+    private fun avisarConstanciaFallida(context: Context) {
+        Toast.makeText(context, texto(R.string.auth_constancia_upload_failed), Toast.LENGTH_LONG).show()
     }
 
     companion object {

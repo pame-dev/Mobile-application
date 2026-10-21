@@ -97,6 +97,9 @@
     <string name="form_warning_phone_in_use">Este teléfono ya está registrado en otra cuenta.</string>
     <string name="form_error_logo_small">La imagen es muy pequeña (mínimo %1$d × %1$d px); se vería borrosa.</string>
     <string name="form_error_logo_invalid">No pudimos leer esa imagen. Elige otra.</string>
+    <string name="form_error_constancia_format">Solo se aceptan archivos PDF, JPG o PNG.</string>
+    <string name="form_error_constancia_size">El archivo pesa más de %1$d MB. Elige uno más ligero.</string>
+    <string name="form_error_constancia_unreadable">No pudimos leer ese archivo. Elige otro.</string>
     <string name="auth_error_phone_digits">Escribe un número de 10 dígitos.</string>
     <string name="auth_error_choose_contact">Elige cómo prefieres que te contacten.</string>
     <string name="auth_error_whatsapp_or_calls">Escribe tu WhatsApp o elige Llamadas como método principal.</string>
@@ -135,6 +138,12 @@
     <string name="auth_state_placeholder">Ej. Coahuila</string>
     <string name="auth_lote_description">Descripción del lote</string>
     <string name="auth_lote_description_placeholder">Describe brevemente tu lote, los servicios que ofrece y el tipo de vehículos que maneja.</string>
+    <string name="form_constancia_label">Constancia de Situación Fiscal (opcional)</string>
+    <string name="form_constancia_help">Sube tu constancia del SAT para obtener la insignia de Lote verificado. Debe tener una antigüedad máxima de 3 meses y mostrar una actividad relacionada con la venta de vehículos.</string>
+    <string name="form_constancia_pick">Toca para subir PDF o imagen</string>
+    <string name="form_constancia_change">Cambiar</string>
+    <string name="form_constancia_remove">Quitar</string>
+    <string name="auth_constancia_upload_failed">Tu cuenta se creó, pero no pudimos subir tu constancia. Puedes subirla después desde tu perfil.</string>
     <string name="auth_section_profile_photo">Foto de perfil</string>
     <string name="auth_lote_logo_hint">Logo del lote o imagen de perfil</string>
     <string name="auth_lote_logo">Logo del lote</string>
@@ -556,6 +565,16 @@
     <string name="profile_panel_seller">Mi panel</string>
     <string name="profile_badge_admin">Administrador</string>
     <string name="profile_badge_lot">Lote</string>
+    <string name="profile_verification_title">Verifica tu lote</string>
+    <string name="profile_verification_field_label">Constancia de Situación Fiscal</string>
+    <string name="profile_verification_rejected_title">Tu constancia fue rechazada</string>
+    <string name="profile_verification_reason">Motivo: %1$s</string>
+    <string name="profile_verification_send">Enviar constancia</string>
+    <string name="profile_verification_resend">Volver a subir constancia</string>
+    <string name="profile_verification_sending">Enviando…</string>
+    <string name="profile_verification_pending_title">Tu constancia está en revisión</string>
+    <string name="profile_verification_pending_desc">Cuando la aprobemos, tu lote mostrará la insignia de Lote verificado.</string>
+    <string name="profile_verification_sent">Recibimos tu constancia. La revisaremos pronto.</string>
     <string name="profile_my_posts">Mis publicaciones</string>
     <string name="profile_no_posts">Aún no tienes publicaciones.</string>
     <string name="profile_hidden_posts">Publicaciones ocultas (%1$d)</string>
@@ -775,6 +794,7 @@
     <string name="admin2_section_vehicles">Vehículos</string>
     <string name="admin2_section_reports">Reportes</string>
     <string name="admin2_section_featured">Destacados</string>
+    <string name="admin2_section_verifications">Verificación</string>
     <string name="admin2_administrator">Administrador</string>
     <string name="admin2_logout">Cerrar sesión</string>
     <string name="admin2_last_days">Últimos %1$d días</string>
@@ -814,6 +834,27 @@
     <string name="admin2_msg_report_dismissed">Reporte descartado.</string>
     <string name="admin2_msg_featured_approved">Publicación destacada por 1 mes.</string>
     <string name="admin2_msg_featured_rejected">Solicitud rechazada.</string>
+    <string name="admin2_msg_verification_approved">Usuario verificado.</string>
+    <string name="admin2_msg_verification_rejected">Documento rechazado.</string>
+    <string name="admin2_verif_title">Verificación</string>
+    <string name="admin2_verif_desc">Revisa los documentos que enviaron los usuarios. La Constancia de Situación Fiscal debe tener máximo 3 meses de antigüedad y una actividad relacionada con la venta de vehículos.</string>
+    <string name="admin2_verif_list_title">Documentos</string>
+    <string name="admin2_verif_filter_pending">Pendientes</string>
+    <string name="admin2_verif_filter_verified">Verificados</string>
+    <string name="admin2_verif_filter_rejected">Rechazados</string>
+    <string name="admin2_verif_status_pending">Pendiente</string>
+    <string name="admin2_verif_status_verified">Verificado</string>
+    <string name="admin2_verif_status_rejected">Rechazado</string>
+    <string name="admin2_verif_empty">No hay documentos en esta lista</string>
+    <string name="admin2_verif_open">Ver documento</string>
+    <string name="admin2_verif_reason_label">Motivo del rechazo</string>
+    <string name="admin2_verif_user_type">Tipo de usuario</string>
+    <string name="admin2_verif_document">Documento</string>
+    <string name="admin2_verif_doc_constancia">Constancia de Situación Fiscal</string>
+    <string name="admin2_verif_sent_on">Fecha de envío</string>
+    <string name="admin2_verif_reviewed_on">Revisado el</string>
+    <string name="admin2_verif_reviewed_by">Revisado por</string>
+    <string name="admin2_verif_open_error">No encontramos una app para abrir el documento.</string>
     <string name="admin2_value_all">Todos</string>
     <string name="admin2_value_active">Activo</string>
     <string name="admin2_value_suspended">Suspendido</string>
@@ -896,6 +937,11 @@
     <string name="admin2_close_report_dialog_hint">Ej. La cuenta ya fue suspendida por un reporte anterior.</string>
     <string name="admin2_close_report_confirm">Atender reporte</string>
     <string name="admin2_close_report_dialog_working">Guardando…</string>
+    <string name="admin2_reject_verification_dialog_title">Rechazar documento</string>
+    <string name="admin2_reject_verification_dialog_desc">Explica al usuario por qué no se aprobó. Lo verá en su perfil para volver a subirlo.</string>
+    <string name="admin2_reject_verification_dialog_hint">Ej. La constancia tiene más de 3 meses de antigüedad.</string>
+    <string name="admin2_reject_verification_confirm">Rechazar</string>
+    <string name="admin2_reject_verification_dialog_working">Rechazando…</string>
     <plurals name="admin2_accounts_count">
         <item quantity="one">%d cuenta</item>
         <item quantity="other">%d cuentas</item>
@@ -907,6 +953,10 @@
     <plurals name="admin2_featured_count">
         <item quantity="one">%d solicitud</item>
         <item quantity="other">%d solicitudes</item>
+    </plurals>
+    <plurals name="admin2_verif_count">
+        <item quantity="one">%d documento</item>
+        <item quantity="other">%d documentos</item>
     </plurals>
     <string name="admin2_reports_empty_title">Sin reportes</string>
     <string name="admin2_reports_empty_desc">No hay reportes con este estado.</string>
@@ -987,6 +1037,8 @@
     <string name="core_register_toast_subtitle">Crea una cuenta gratis para continuar.</string>
     <string name="core_register_me">Registrarme</string>
     <string name="core_close">Cerrar</string>
+    <string name="core_verified_badge">Verificado</string>
+    <string name="core_verified_badge_a11y">Usuario verificado</string>
     <string name="core_terms_prefix">"Acepto los "</string>
     <string name="core_terms_link">términos y condiciones</string>
     <string name="core_terms_suffix">" de KARSY."</string>

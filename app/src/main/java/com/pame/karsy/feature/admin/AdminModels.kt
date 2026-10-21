@@ -77,6 +77,31 @@ data class FeaturedRequest(
     val description: String,
 )
 
+enum class VerificationStatus { Pendiente, Verificado, Rechazado }
+
+/** Documento de verificación que envió un usuario (fila de verificaciones_usuario). */
+data class UserVerification(
+    /** id de la fila: es lo que se aprueba o rechaza. */
+    val id: String,
+    val userId: String,
+    val name: String,
+    val email: String,
+    /** 'lote' | 'particular'. */
+    val userType: String,
+    /** p. ej. 'constancia_situacion_fiscal'. */
+    val documentType: String,
+    /** Ruta en el bucket privado; se abre con una URL firmada. */
+    val documentPath: String,
+    val status: VerificationStatus,
+    val rejectionReason: String?,
+    /** Nombre del admin que lo revisó. */
+    val reviewedBy: String?,
+    /** Hace cuánto lo envió ("" si no se sabe). */
+    val sentAgo: String,
+    val sentOn: String,
+    val reviewedOn: String?,
+)
+
 /** [change] es lo nuevo en el rango elegido; null cuando no aplica un cambio. */
 data class AdminKpi(
     val label: String,

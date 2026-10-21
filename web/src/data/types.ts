@@ -89,6 +89,8 @@ export interface CarDetail {
   recuperadoPorSeguro: string
   detalles: string
   sellerAvatar: string | null
+  /** El vendedor es un lote verificado (insignia junto a su nombre). */
+  sellerVerified: boolean
   row: AnuncioRow
 }
 
@@ -132,6 +134,12 @@ export interface Account {
   fotoPerfil: string | null
 }
 
+/** Estado del último documento de verificación del usuario (verificaciones_usuario.estado, o sin enviar). */
+export type EstadoVerificacion = 'sin_documento' | 'pendiente' | 'verificado' | 'rechazado'
+
+/** Documentos de verificación (chk_verificaciones_usuario_tipo_documento). */
+export type TipoDocumento = 'constancia_situacion_fiscal'
+
 /** Lote o agencia del directorio (cuentas tipo "lote" + perfiles_lote). */
 export interface Lot {
   id: string
@@ -146,6 +154,8 @@ export interface Lot {
   hours: string | null
   /** Publicaciones visibles (aprobadas, activas y habilitadas). */
   vehicleCount: number
+  /** Lote verificado con su constancia fiscal (insignia). */
+  verified: boolean
 }
 
 /** Números del lote para "Llamar" y "WhatsApp" (solo se piden con sesión iniciada). */

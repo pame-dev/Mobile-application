@@ -95,6 +95,9 @@
     <string name="form_warning_phone_in_use">This phone number is already registered to another account.</string>
     <string name="form_error_logo_small">The image is too small (minimum %1$d × %1$d px); it would look blurry.</string>
     <string name="form_error_logo_invalid">We could not read that image. Choose another one.</string>
+    <string name="form_error_constancia_format">Only PDF, JPG or PNG files are accepted.</string>
+    <string name="form_error_constancia_size">The file is larger than %1$d MB. Choose a smaller one.</string>
+    <string name="form_error_constancia_unreadable">We could not read that file. Choose another one.</string>
     <string name="auth_error_phone_digits">Enter a 10-digit number.</string>
     <string name="auth_error_choose_contact">Choose how you\'d like to be contacted.</string>
     <string name="auth_error_whatsapp_or_calls">Enter your WhatsApp number or choose Calls as your preferred method.</string>
@@ -133,6 +136,12 @@
     <string name="auth_state_placeholder">e.g. Coahuila</string>
     <string name="auth_lote_description">Dealership description</string>
     <string name="auth_lote_description_placeholder">Briefly describe your dealership, the services it offers, and the types of vehicles it sells.</string>
+    <string name="form_constancia_label">Tax status certificate (optional)</string>
+    <string name="form_constancia_help">Upload your SAT Constancia de Situación Fiscal to earn the Verified dealer badge. It must be no more than 3 months old and show an activity related to selling vehicles.</string>
+    <string name="form_constancia_pick">Tap to upload a PDF or image</string>
+    <string name="form_constancia_change">Change</string>
+    <string name="form_constancia_remove">Remove</string>
+    <string name="auth_constancia_upload_failed">Your account was created, but we couldn\'t upload your certificate. You can upload it later from your profile.</string>
     <string name="auth_section_profile_photo">Profile photo</string>
     <string name="auth_lote_logo_hint">Dealership logo or profile picture</string>
     <string name="auth_lote_logo">Dealership logo</string>
@@ -554,6 +563,16 @@
     <string name="profile_panel_seller">My dashboard</string>
     <string name="profile_badge_admin">Administrator</string>
     <string name="profile_badge_lot">Lot</string>
+    <string name="profile_verification_title">Verify your dealership</string>
+    <string name="profile_verification_field_label">Tax status certificate</string>
+    <string name="profile_verification_rejected_title">Your certificate was rejected</string>
+    <string name="profile_verification_reason">Reason: %1$s</string>
+    <string name="profile_verification_send">Submit certificate</string>
+    <string name="profile_verification_resend">Upload certificate again</string>
+    <string name="profile_verification_sending">Submitting…</string>
+    <string name="profile_verification_pending_title">Your certificate is under review</string>
+    <string name="profile_verification_pending_desc">Once we approve it, your dealership will show the Verified dealer badge.</string>
+    <string name="profile_verification_sent">We received your certificate. We\'ll review it soon.</string>
     <string name="profile_my_posts">My listings</string>
     <string name="profile_no_posts">You don\'t have any listings yet.</string>
     <string name="profile_hidden_posts">Hidden listings (%1$d)</string>
@@ -773,6 +792,7 @@
     <string name="admin2_section_vehicles">Vehicles</string>
     <string name="admin2_section_reports">Reports</string>
     <string name="admin2_section_featured">Featured</string>
+    <string name="admin2_section_verifications">Verification</string>
     <string name="admin2_administrator">Administrator</string>
     <string name="admin2_logout">Log out</string>
     <string name="admin2_last_days">Last %1$d days</string>
@@ -812,6 +832,27 @@
     <string name="admin2_msg_report_dismissed">Report dismissed.</string>
     <string name="admin2_msg_featured_approved">Listing featured for 1 month.</string>
     <string name="admin2_msg_featured_rejected">Request rejected.</string>
+    <string name="admin2_msg_verification_approved">User verified.</string>
+    <string name="admin2_msg_verification_rejected">Document rejected.</string>
+    <string name="admin2_verif_title">Verification</string>
+    <string name="admin2_verif_desc">Review the documents sent by users. The tax status certificate (Constancia de Situación Fiscal) must be no more than 3 months old and show an activity related to selling vehicles.</string>
+    <string name="admin2_verif_list_title">Documents</string>
+    <string name="admin2_verif_filter_pending">Pending</string>
+    <string name="admin2_verif_filter_verified">Verified</string>
+    <string name="admin2_verif_filter_rejected">Rejected</string>
+    <string name="admin2_verif_status_pending">Pending</string>
+    <string name="admin2_verif_status_verified">Verified</string>
+    <string name="admin2_verif_status_rejected">Rejected</string>
+    <string name="admin2_verif_empty">No documents in this list</string>
+    <string name="admin2_verif_open">View document</string>
+    <string name="admin2_verif_reason_label">Rejection reason</string>
+    <string name="admin2_verif_user_type">User type</string>
+    <string name="admin2_verif_document">Document</string>
+    <string name="admin2_verif_doc_constancia">Tax status certificate</string>
+    <string name="admin2_verif_sent_on">Submitted on</string>
+    <string name="admin2_verif_reviewed_on">Reviewed on</string>
+    <string name="admin2_verif_reviewed_by">Reviewed by</string>
+    <string name="admin2_verif_open_error">We could not find an app to open the document.</string>
     <string name="admin2_value_all">All</string>
     <string name="admin2_value_active">Active</string>
     <string name="admin2_value_suspended">Suspended</string>
@@ -894,6 +935,11 @@
     <string name="admin2_close_report_dialog_hint">E.g. The account was already suspended for a previous report.</string>
     <string name="admin2_close_report_confirm">Resolve report</string>
     <string name="admin2_close_report_dialog_working">Saving…</string>
+    <string name="admin2_reject_verification_dialog_title">Reject document</string>
+    <string name="admin2_reject_verification_dialog_desc">Tell the user why it was not approved. They will see it on their profile so they can upload it again.</string>
+    <string name="admin2_reject_verification_dialog_hint">E.g. The certificate is more than 3 months old.</string>
+    <string name="admin2_reject_verification_confirm">Reject</string>
+    <string name="admin2_reject_verification_dialog_working">Rejecting…</string>
     <plurals name="admin2_accounts_count">
         <item quantity="one">%d account</item>
         <item quantity="other">%d accounts</item>
@@ -905,6 +951,10 @@
     <plurals name="admin2_featured_count">
         <item quantity="one">%d request</item>
         <item quantity="other">%d requests</item>
+    </plurals>
+    <plurals name="admin2_verif_count">
+        <item quantity="one">%d document</item>
+        <item quantity="other">%d documents</item>
     </plurals>
     <string name="admin2_reports_empty_title">No reports</string>
     <string name="admin2_reports_empty_desc">There are no reports with this status.</string>
@@ -985,6 +1035,8 @@
     <string name="core_register_toast_subtitle">Create a free account to continue.</string>
     <string name="core_register_me">Sign up</string>
     <string name="core_close">Close</string>
+    <string name="core_verified_badge">Verified</string>
+    <string name="core_verified_badge_a11y">Verified user</string>
     <string name="core_terms_prefix">"I accept KARSY\'s "</string>
     <string name="core_terms_link">terms and conditions</string>
     <string name="core_terms_suffix">.</string>

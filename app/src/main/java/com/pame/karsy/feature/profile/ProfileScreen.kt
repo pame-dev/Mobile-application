@@ -61,12 +61,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.components.ConstanciaField
+import com.pame.karsy.core.components.PrimaryButton
+import com.pame.karsy.core.components.VerifiedBadge
+import com.pame.karsy.core.util.ArchivoConstancia
+import com.pame.karsy.core.util.Constancia
+import com.pame.karsy.core.theme.KarsyError
+import com.pame.karsy.core.theme.KarsyErrorLight
+import androidx.compose.material.icons.outlined.HourglassTop
 import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
@@ -172,6 +181,20 @@ fun ProfileScreen(
                     onOpenAvatar = { avatarOpen = true }
                 )
                 Spacer(Modifier.height(16.dp))
+                // Lote sin insignia: ofrece subir (o volver a subir) su constancia fiscal.
+                if (user.accountType == "lote" && !user.verificado && user.estadoVerificacion != Constancia.VERIFICADO) {
+                    LoteVerificationCard(
+                        estado = user.estadoVerificacion,
+                        motivoRechazo = user.motivoRechazoVerificacion,
+                        archivo = vm.constancia,
+                        error = vm.constanciaError,
+                        enviando = vm.enviandoConstancia,
+                        onPick = { vm.elegirConstancia(context, it) },
+                        onRemove = vm::quitarConstancia,
+                        onSend = { vm.enviarConstancia(context) }
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
             } else if (vm.loading) {
                 // Esqueleto: portada con avatar y nombre.
                 SkeletonBlock(230.dp, shape = RoundedCornerShape(20.dp))
@@ -347,8 +370,12 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = KarsyInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
+                    // "Verificado" justo a la derecha del nombre.
+                    if (user.accountType == "lote" && (user.verificado || user.estadoVerificacion == Constancia.VERIFICADO)) VerifiedBadge()
                     if (userMode == UserMode.LOTE) AccountBadge(stringResource(R.string.profile_badge_lot))
                     if (SessionManager.isAdmin) AccountBadge(stringResource(R.string.profile_badge_admin))
                 }
@@ -371,6 +398,91 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
             }
         }
       }
+    }
+}
+
+/**
+ * Verificación del lote con su Constancia de Situación Fiscal: en revisión, o el campo para
+ * subirla (la primera vez o después de un rechazo, con el motivo del admin).
+ */
+@Composable
+private fun LoteVerificationCard(
+    estado: String,
+    motivoRechazo: String?,
+    archivo: ArchivoConstancia?,
+    error: String?,
+    enviando: Boolean,
+    onPick: (Uri) -> Unit,
+    onRemove: () -> Unit,
+    onSend: () -> Unit,
+) {
+    ProfileCard(radius = 16.dp, elevation = 1.dp) {
+        Column(Modifier.padding(18.dp)) {
+            if (estado == Constancia.PENDIENTE) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Outlined.HourglassTop, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(22.dp))
+                    Text(
+                        stringResource(R.string.profile_verification_pending_title),
+                        fontFamily = Outfit,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = KarsyInk
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.profile_verification_pending_desc),
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                    color = KarsyTextSecondary
+                )
+            } else {
+                val rechazada = estado == Constancia.RECHAZADO
+                Text(
+                    stringResource(if (rechazada) R.string.profile_verification_rejected_title else R.string.profile_verification_title),
+                    fontFamily = Outfit,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = KarsyInk
+                )
+                if (rechazada && !motivoRechazo.isNullOrBlank()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.profile_verification_reason, rememberTraduccion(motivoRechazo)),
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        color = KarsyError,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(KarsyErrorLight)
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                ConstanciaField(
+                    archivo = archivo,
+                    error = error,
+                    onPick = onPick,
+                    onRemove = onRemove,
+                    label = stringResource(R.string.profile_verification_field_label),
+                    enabled = !enviando
+                )
+                PrimaryButton(
+                    text = stringResource(
+                        when {
+                            enviando -> R.string.profile_verification_sending
+                            rechazada -> R.string.profile_verification_resend
+                            else -> R.string.profile_verification_send
+                        }
+                    ),
+                    onClick = onSend,
+                    enabled = archivo != null && !enviando
+                )
+            }
+        }
     }
 }
 

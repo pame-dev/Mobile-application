@@ -211,3 +211,58 @@ export async function resolveReport(idReporte: number, estado: 'atendido' | 'des
 export async function resolveFeatured(idSolicitud: number, aprobar: boolean, motivo: string | null) {
   check(await supabase.rpc('admin_resolver_destacado', { p_id_solicitud: idSolicitud, p_aprobar: aprobar, p_motivo: motivo }))
 }
+
+// ── Verificación de usuarios (documentos de lotes y particulares) ──
+
+export interface VerificacionAdmin {
+  id: string
+  user_id: string
+  nombre_mostrar: string
+  correo: string
+  tipo_usuario: 'lote' | 'particular'
+  tipo_documento: string
+  archivo_path: string
+  estado: 'pendiente' | 'verificado' | 'rechazado'
+  motivo_rechazo: string | null
+  /** Nombre del admin que lo revisó. */
+  revisado_por: string | null
+  fecha_envio: string
+  fecha_revision: string | null
+}
+
+/** Documentos de verificación de todos los usuarios (pendientes primero). */
+export async function adminVerifications(): Promise<VerificacionAdmin[]> {
+  const { data, error } = await supabase.rpc('admin_listar_verificaciones_usuario')
+  if (error) throw error
+  // De paso se borran los archivos que ya nadie usa (sin esperar ni bloquear la lista).
+  void borrarDocumentosSinUso()
+  return (data ?? []) as VerificacionAdmin[]
+}
+
+/** Aprueba (estado verificado + insignia en la cuenta) o rechaza con motivo un documento pendiente. */
+export async function resolveVerification(id: string, aprobar: boolean, motivo: string | null) {
+  const { error } = await supabase.rpc('admin_resolver_verificacion_usuario', { p_id: id, p_aprobar: aprobar, p_motivo: motivo })
+  if (error) throw error
+  await borrarDocumentosSinUso()
+}
+
+/**
+ * Borra del bucket los documentos que ningún registro usa (reenvíos viejos, repetidos que se
+ * limpiaron). Si falla, la revisión ya quedó: se reintenta en la siguiente.
+ */
+async function borrarDocumentosSinUso() {
+  try {
+    const { data } = await supabase.rpc('admin_documentos_verificacion_sin_uso')
+    const rutas = (data ?? []) as string[]
+    if (rutas.length) await supabase.storage.from('constancias-fiscales').remove(rutas)
+  } catch {
+    // no bloquea la revisión
+  }
+}
+
+/** URL firmada de 10 minutos para ver un documento de verificación (el bucket es privado). */
+export async function constanciaUrl(ruta: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('constancias-fiscales').createSignedUrl(ruta, 600)
+  if (error) throw error
+  return data.signedUrl
+}

@@ -23,6 +23,7 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.locale.textoPlural
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.core.util.safeCall
@@ -31,6 +32,7 @@ import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.CuentaAdminDto
 import com.pame.karsy.data.remote.DestacadoAdminDto
 import com.pame.karsy.data.remote.ReporteAdminDto
+import com.pame.karsy.data.remote.VerificacionAdminDto
 import com.pame.karsy.data.repository.AdminRepository
 import com.pame.karsy.data.repository.AdminStats
 import com.pame.karsy.data.repository.StatsRepository
@@ -51,6 +53,7 @@ class AdminViewModel : ViewModel() {
     private var cars by mutableStateOf<List<Pair<Car, AnuncioDto>>>(emptyList())
     private var reportRows by mutableStateOf<List<ReporteAdminDto>>(emptyList())
     private var featuredRows by mutableStateOf<List<DestacadoAdminDto>>(emptyList())
+    private var verificationRows by mutableStateOf<List<VerificacionAdminDto>>(emptyList())
 
     var loading by mutableStateOf(true)
         private set
@@ -78,6 +81,9 @@ class AdminViewModel : ViewModel() {
             safeCall { AdminRepository.cars() }.onSuccess { cars = it }.onFailure { errores += it.mensajeUsuario() }
             safeCall { AdminRepository.reports() }.onSuccess { reportRows = it }.onFailure { errores += it.mensajeUsuario() }
             safeCall { AdminRepository.featuredRequests() }.onSuccess { featuredRows = it }.onFailure { errores += it.mensajeUsuario() }
+            safeCall { AdminRepository.verifications() }.onSuccess { verificationRows = it }.onFailure { errores += it.mensajeUsuario() }
+            // Aparte, para no retrasar la lista: borra los documentos que ya nadie usa.
+            viewModelScope.launch { AdminRepository.borrarDocumentosSinUso() }
             if (errores.isNotEmpty()) message = errores.first()
             loading = false
             onDone()
@@ -212,6 +218,33 @@ class AdminViewModel : ViewModel() {
             }
         }
 
+    val verifications: List<UserVerification>
+        get() = verificationRows.map { v ->
+            UserVerification(
+                id = v.id,
+                userId = v.userId,
+                name = v.nombre,
+                email = v.correo,
+                userType = v.tipoUsuario,
+                documentType = v.tipoDocumento,
+                documentPath = v.archivoPath,
+                status = when (v.estado) {
+                    Constancia.VERIFICADO -> VerificationStatus.Verificado
+                    Constancia.RECHAZADO -> VerificationStatus.Rechazado
+                    else -> VerificationStatus.Pendiente
+                },
+                rejectionReason = v.motivoRechazo,
+                reviewedBy = v.revisadoPor,
+                sentAgo = v.fechaEnvio?.let(Formato::haceCuanto).orEmpty(),
+                sentOn = Formato.fechaCorta(v.fechaEnvio),
+                reviewedOn = v.fechaRevision?.let(Formato::fechaCorta),
+            )
+        }
+
+    /** Documentos por revisar (contador del menú lateral). */
+    val pendingVerifications: Int
+        get() = verificationRows.count { it.estado == Constancia.PENDIENTE }
+
     /** Usuarios, lotes y publicados; el estado activas/deshabilitadas va en su propia tarjeta. */
     val kpis: List<AdminKpi>
         get() {
@@ -309,6 +342,23 @@ class AdminViewModel : ViewModel() {
         val yaSuspendida = accounts.firstOrNull { it.idCuenta == ownerId }?.estadoCuenta == "suspendida"
         if (!yaSuspendida) AdminRepository.setAccountSuspended(ownerId, true, reason.trim())
         AdminRepository.resolveReport(report.id, "atendido", reason.trim(), disableCar = false)
+    }
+
+    /** Al rechazar, [reason] es obligatorio: es lo que verá el usuario en su perfil. */
+    fun resolveVerification(verification: UserVerification, approve: Boolean, reason: String? = null, onSuccess: () -> Unit = {}) = perform(
+        texto(if (approve) R.string.admin2_msg_verification_approved else R.string.admin2_msg_verification_rejected),
+        onSuccess
+    ) {
+        AdminRepository.resolveVerification(verification.id, approve, if (approve) null else reason?.trim())
+    }
+
+    /** Crea una URL firmada (10 min) del documento y se la pasa a [onUrl] para abrirla. */
+    fun openDocument(verification: UserVerification, onUrl: (String) -> Unit) {
+        viewModelScope.launch {
+            safeCall { AdminRepository.constanciaSignedUrl(verification.documentPath) }
+                .onSuccess(onUrl)
+                .onFailure { message = it.mensajeUsuario() }
+        }
     }
 
     fun resolveFeatured(request: FeaturedRequest, approve: Boolean, reason: String? = null) = perform(

@@ -3,7 +3,7 @@
 import { publicUrl, supabase, BUCKET } from '../lib/supabase'
 import { traducir } from '../i18n/I18nContext'
 import { carsByIds, sigueDisponible, toCar, UserError } from './api'
-import type { AnuncioRow, Car } from './types'
+import type { AnuncioRow, Car, EstadoVerificacion } from './types'
 
 function check<T>(res: { data: T; error: { message: string; code?: string } | null }): T {
   if (res.error) {
@@ -265,6 +265,11 @@ export interface Perfil {
   numero: string
   colonia: string
   codigoPostal: string
+  /** Insignia de verificado (cuentas.verificado). */
+  verificado: boolean
+  /** Estado del último documento enviado (verificaciones_usuario) y motivo si se rechazó. */
+  verificacion: EstadoVerificacion
+  motivoVerificacion: string
 }
 
 interface TelefonoRow {
@@ -291,6 +296,9 @@ export async function currentProfile(): Promise<Perfil | null> {
     .sort((a, b) => Number(b.es_principal) - Number(a.es_principal))
   const telefono = tels.find((t) => t.permite_llamadas)
   const whatsapp = tels.find((t) => t.es_whatsapp)
+  // Último documento de verificación enviado (si la consulta falla, se muestra como sin enviar).
+  const { data: verif } = await supabase.from('verificaciones_usuario').select('estado,motivo_rechazo').eq('user_id', user.id).order('fecha_envio', { ascending: false }).limit(1)
+  const ultimaVerificacion = (verif?.[0] ?? null) as { estado: string; motivo_rechazo: string | null } | null
   let correo = user.email ?? ''
   if (!correo) correo = ((await supabase.rpc('mi_correo')).data as string | null) ?? ''
 
@@ -314,6 +322,9 @@ export async function currentProfile(): Promise<Perfil | null> {
     numero: lote?.numero ?? '',
     colonia: lote?.colonia ?? '',
     codigoPostal: lote?.codigo_postal ?? '',
+    verificado: String(cuenta.verificado) === 'true',
+    verificacion: (ultimaVerificacion?.estado as EstadoVerificacion | undefined) ?? 'sin_documento',
+    motivoVerificacion: ultimaVerificacion?.motivo_rechazo ?? '',
   }
 }
 

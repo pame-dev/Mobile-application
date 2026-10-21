@@ -65,6 +65,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.RegisterToast
+import com.pame.karsy.core.components.VerifiedBadge
 import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.components.SubHeader
@@ -469,8 +470,21 @@ private fun LotIdentityCard(
                 onOpen = onOpenAvatar,
                 modifier = Modifier.border(1.dp, LotOutline, CircleShape)
             )
-            Column(Modifier.padding(start = 16.dp)) {
-                Text(lot.name, fontFamily = Outfit, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+            Column(Modifier.weight(1f).padding(start = 16.dp)) {
+                // Nombre + "Verificado" (cuentas.verificado): el nombre se corta si es largo, la insignia no.
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        lot.name,
+                        fontFamily = Outfit,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = KarsyInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (lot.verificado) VerifiedBadge()
+                }
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(15.dp))
                     Text(lot.city, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(start = 4.dp))

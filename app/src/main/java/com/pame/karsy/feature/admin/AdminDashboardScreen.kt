@@ -114,11 +114,11 @@ fun AdminDashboardScreen(
                     scope.launch { drawerState.close() }
                 },
                 adminName = SessionManager.account?.nombre.orEmpty(),
-                badges = if (stats == null) emptyMap() else mapOf(
+                badges = (if (stats == null) emptyMap<AdminSection, Int>() else mapOf(
                     AdminSection.Vehiculos to stats.propuestasPendientes,
                     AdminSection.Reportes to stats.reportesPendientes,
                     AdminSection.Destacados to stats.destacadosPendientes,
-                ),
+                )) + (AdminSection.Verificaciones to vm.pendingVerifications),
                 onLogout = onLogout
             )
         }
@@ -180,6 +180,7 @@ fun AdminDashboardScreen(
                     AdminSection.Vehiculos -> AdminVehiclesSection(vm, onCarClick, filtro)
                     AdminSection.Reportes -> AdminReportsSection(vm, onCarClick, onReviewReport)
                     AdminSection.Destacados -> AdminFeaturedSection(vm)
+                    AdminSection.Verificaciones -> AdminVerificationsSection(vm)
                 }
             }
         }

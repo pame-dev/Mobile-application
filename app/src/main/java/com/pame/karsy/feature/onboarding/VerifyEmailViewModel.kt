@@ -55,7 +55,8 @@ class VerifyEmailViewModel : ViewModel() {
         }
     }
 
-    fun verify(email: String, onVerified: (SessionAccount) -> Unit) {
+    /** [onNotice]: aviso que no impide entrar (p. ej. la constancia del registro no se pudo subir). */
+    fun verify(email: String, onVerified: (SessionAccount) -> Unit, onNotice: (String) -> Unit = {}) {
         if (verifying) return
         val token = code.joinToString("")
         if (token.length < EMAIL_CODE_LENGTH) {
@@ -70,6 +71,9 @@ class VerifyEmailViewModel : ViewModel() {
                     // Ya hay sesión: se sube el logo que se eligió en el registro (si hubo).
                     SessionManager.login(cuenta)
                     safeCall { UserRepository.uploadPendingAvatar(email) }
+                    // Igual con la constancia fiscal del lote; si falla, la puede subir desde su perfil.
+                    safeCall { UserRepository.uploadPendingConstancia(email) }
+                        .onFailure { onNotice(texto(R.string.auth_constancia_upload_failed)) }
                     onVerified(cuenta)
                 }
                 .onFailure { error = it.mensajeUsuario() }

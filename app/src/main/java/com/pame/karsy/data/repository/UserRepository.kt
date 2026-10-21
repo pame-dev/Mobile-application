@@ -13,6 +13,7 @@ import com.pame.karsy.core.location.Lugar
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
+import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.data.model.User
@@ -21,12 +22,15 @@ import com.pame.karsy.data.remote.PerfilLoteDto
 import com.pame.karsy.data.remote.PortadaDto
 import com.pame.karsy.data.remote.TelefonoDto
 import com.pame.karsy.data.remote.TelefonoInsert
+import com.pame.karsy.data.remote.VerificacionUsuarioDto
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.storage
 import io.ktor.http.ContentType
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -44,6 +48,9 @@ object UserRepository {
 
     private val db get() = Supabase.client
 
+    /** Bucket privado de los documentos de verificación (solo el dueño y el admin los leen). */
+    const val BUCKET_CONSTANCIAS = "constancias-fiscales"
+
     suspend fun currentUser(): User? {
         val uid = SessionManager.userId ?: return null
         val cuenta = db.from("cuentas").select { filter { eq("id_cuenta", uid) } }
@@ -52,6 +59,8 @@ object UserRepository {
             db.from("perfiles_lote").select { filter { eq("id_cuenta", uid) } }
                 .decodeSingleOrNull<PerfilLoteDto>()
         } else null
+        // Último documento enviado (tarjeta de verificación); con la insignia ya no hace falta.
+        val verificacion = if (cuenta.verificado) null else ultimaVerificacion(uid)
         val telefonos = activePhones(uid)
         val telefono = telefonos.firstOrNull { it.permiteLlamadas }
         val whatsapp = telefonos.firstOrNull { it.esWhatsapp }
@@ -78,6 +87,10 @@ object UserRepository {
             numero = lote?.numero.orEmpty(),
             colonia = lote?.colonia.orEmpty(),
             codigoPostal = lote?.codigoPostal.orEmpty(),
+            verificado = cuenta.verificado,
+            estadoVerificacion = if (cuenta.verificado) Constancia.VERIFICADO
+                else verificacion?.estado ?: Constancia.SIN_DOCUMENTO,
+            motivoRechazoVerificacion = verificacion?.motivoRechazo,
             whatsapp = whatsapp?.numero.orEmpty(),
             medioPrincipal = when {
                 telefono == null -> WHATSAPP
@@ -86,6 +99,14 @@ object UserRepository {
             },
         )
     }
+
+    /** Fila más reciente de verificaciones_usuario del usuario (null si nunca envió un documento). */
+    private suspend fun ultimaVerificacion(uid: String): VerificacionUsuarioDto? =
+        db.from("verificaciones_usuario").select(Columns.list("estado", "motivo_rechazo")) {
+            filter { eq("user_id", uid) }
+            order("fecha_envio", Order.DESCENDING)
+            limit(1)
+        }.decodeSingleOrNull<VerificacionUsuarioDto>()
 
     /** Estado y municipio del perfil en sesión ("Cerca de mí"); null sin sesión o sin estado. */
     suspend fun miUbicacion(): Lugar? {
@@ -147,6 +168,49 @@ object UserRepository {
         val (correo, bytes) = pendingAvatar ?: return
         pendingAvatar = null
         if (correo == email.trim().lowercase()) uploadAvatar(bytes)
+    }
+
+    /** Constancia elegida en el registro (correo, bytes y tipo) que espera a que se verifique el correo. */
+    private var pendingConstancia: Triple<String, ByteArray, String>? = null
+
+    fun holdConstanciaUntilVerified(email: String, bytes: ByteArray, mime: String) {
+        pendingConstancia = Triple(email.trim().lowercase(), bytes, mime)
+    }
+
+    /** Sube la constancia guardada por [holdConstanciaUntilVerified] si es de este correo; lanza si falla. */
+    suspend fun uploadPendingConstancia(email: String) {
+        val (correo, bytes, mime) = pendingConstancia ?: return
+        pendingConstancia = null
+        if (correo == email.trim().lowercase()) enviarDocumentoVerificacion(bytes, mime, Constancia.TIPO_DOCUMENTO)
+    }
+
+    /**
+     * Sube un documento de verificación al bucket privado y lo manda a revisión con
+     * enviar_documento_verificacion (crea la fila 'pendiente' o reemplaza una 'rechazado').
+     * Cada envío es un archivo nuevo: {uid}/{tipoDocumento}_{timestamp}.{pdf|jpg|png}.
+     * Si la BD lo rechaza, el mensaje (P0001) ya viene listo para el usuario.
+     */
+    suspend fun enviarDocumentoVerificacion(bytes: ByteArray, mime: String, tipoDocumento: String) {
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_first))
+        val tipo = Constancia.mimeValido(mime) ?: throw UserFacingException(texto(R.string.form_error_constancia_format))
+        val ruta = "$uid/${tipoDocumento}_${System.currentTimeMillis()}.${Constancia.extension(tipo)}"
+        val bucket = db.storage.from(BUCKET_CONSTANCIAS)
+        bucket.upload(ruta, bytes) {
+            upsert = false
+            contentType = ContentType.parse(tipo)
+        }
+        val anterior = try {
+            db.postgrest.rpc("enviar_documento_verificacion", buildJsonObject {
+                put("p_tipo_documento", tipoDocumento)
+                put("p_archivo_path", ruta)
+            }).decodeAsOrNull<String>()
+        } catch (e: Exception) {
+            // Ninguna fila lo usa: se intenta borrar el archivo recién subido.
+            runCatching { bucket.delete(ruta) }
+            throw e
+        }
+        // El archivo del envío rechazado ya no lo usa nadie; si falla, lo limpia el admin después.
+        if (!anterior.isNullOrBlank()) runCatching { bucket.delete(anterior) }
     }
 
     /** Sube la foto de perfil (o logo del lote) y la guarda en la cuenta. Devuelve su URL. */
