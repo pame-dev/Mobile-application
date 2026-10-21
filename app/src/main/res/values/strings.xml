@@ -617,6 +617,12 @@
     <string name="publish_error_mileage">Escribe el kilometraje.</string>
     <string name="publish_error_cylinders">Los cilindros no pueden ser más de %1$d.</string>
     <string name="publish_error_liters">Escribe los litros del motor, por ejemplo 2.0.</string>
+    <string name="publish_error_owners">Elige cuántos dueños anteriores tuvo.</string>
+    <string name="publish_error_fuel">Elige el combustible.</string>
+    <string name="publish_error_cylinders_required">Elige los cilindros.</string>
+    <string name="publish_error_aspiration">Elige la aspiración del motor.</string>
+    <string name="publish_fill_in_order">Llena los campos en orden: cada uno se activa cuando completas los anteriores.</string>
+    <string name="publish_not_applicable">No aplica</string>
     <string name="publish_error_body_type">Elige el tipo de carro.</string>
     <string name="publish_error_color">Elige el color.</string>
     <string name="publish_error_required_photos">Falta subir: %1$s.</string>

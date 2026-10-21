@@ -49,6 +49,8 @@ const COMBUSTIBLES: { valor: string; label: Clave }[] = [
   { valor: 'Híbrido', label: 'publicar.fuelHibrido' },
   { valor: 'Eléctrico', label: 'publicar.fuelElectrico' },
 ]
+/** Valor de COMBUSTIBLES que no lleva cilindros ni litros. */
+const ELECTRICO = 'Eléctrico'
 const ANGULOS: Clave[] = ['publicar.photoFront', 'publicar.photoRear', 'publicar.photoLeft', 'publicar.photoRight', 'publicar.photoDashboard']
 const PASOS: Clave[] = ['publicar.stepData', 'publicar.stepPhotos', 'publicar.stepDetails', 'publicar.stepConfirm']
 /** Sufijo "Potencia: N hp" que se agrega a la descripción (no hay columna para los caballos). */
@@ -293,11 +295,42 @@ export function Publish() {
 
   const set = <K extends keyof Datos>(k: K, v: Datos[K]) => {
     setTocado(true)
-    setD((x) => ({ ...x, [k]: v, ...(k === 'idMarca' && v !== x.idMarca ? { idModelo: '', modeloOtro: '' } : {}) }))
+    setD((x) => ({
+      ...x,
+      [k]: v,
+      ...(k === 'idMarca' && v !== x.idMarca ? { idModelo: '', modeloOtro: '' } : {}),
+      // Un eléctrico no tiene cilindros, litros ni aspiración.
+      ...(k === 'combustible' && v === ELECTRICO ? { cilindros: '', litros: '', aspiracion: '' } : {}),
+    }))
   }
 
   const marcaSel = cat?.marcas.find((m) => String(m.id) === d.idMarca)
   const modeloSel = cat?.modelos.find((m) => String(m.id) === d.idModelo)
+  const esElectrico = d.combustible === ELECTRICO
+
+  /**
+   * Campos obligatorios del paso 1 en el orden en que aparecen. Cada campo se activa hasta
+   * que todos los anteriores están llenos, para contestar el formulario en orden.
+   */
+  const ordenCampos: { campo: keyof Datos; lleno: boolean; error: Clave }[] = [
+    { campo: 'idMarca', lleno: !!marcaSel && (!marcaSel.esOtro || !!d.marcaOtra.trim()), error: 'publicar.errBrand' },
+    { campo: 'idModelo', lleno: !!modeloSel && (!modeloSel.esOtro || !!d.modeloOtro.trim()), error: 'publicar.errModel' },
+    { campo: 'anio', lleno: !!d.anio, error: 'publicar.errYear' },
+    { campo: 'idTransmision', lleno: !!d.idTransmision, error: 'publicar.errTransmission' },
+    { campo: 'kilometraje', lleno: !!d.kilometraje, error: 'publicar.errMileage' },
+    { campo: 'idCarroceria', lleno: !!d.idCarroceria, error: 'publicar.errBodyType' },
+    { campo: 'idColor', lleno: !!d.idColor, error: 'publicar.errColor' },
+    { campo: 'duenos', lleno: d.duenos !== '', error: 'publicar.errOwners' },
+    { campo: 'combustible', lleno: !!d.combustible, error: 'publicar.errFuel' },
+    { campo: 'cilindros', lleno: esElectrico || !!d.cilindros, error: 'publicar.errCylindersRequired' },
+    { campo: 'litros', lleno: esElectrico || Number(d.litros) > 0, error: 'publicar.errLiters' },
+    { campo: 'aspiracion', lleno: esElectrico || !!d.aspiracion, error: 'publicar.errAspiration' },
+  ]
+  /** Falta llenar algún campo anterior a [campo] (los que no están en la lista van al final). */
+  const bloqueado = (campo: keyof Datos) => {
+    const i = ordenCampos.findIndex((o) => o.campo === campo)
+    return ordenCampos.slice(0, i < 0 ? ordenCampos.length : i).some((o) => !o.lleno)
+  }
   const nombre = (lista: { id: number; nombre: string }[] | undefined, v: string) => nombreCatalogo(lista?.find((x) => String(x.id) === v)?.nombre ?? '')
   const marcaNombre = marcaSel?.esOtro ? d.marcaOtra.trim() : marcaSel?.nombre ?? ''
   const modeloNombre = modeloSel?.esOtro ? d.modeloOtro.trim() : modeloSel?.nombre ?? ''
@@ -315,15 +348,11 @@ export function Publish() {
     if (paso === 0) {
       const anio = Number(d.anio)
       const max = new Date().getFullYear() + 1
-      if (!marcaSel || (marcaSel.esOtro && !d.marcaOtra.trim())) return t('publicar.errBrand')
-      if (!modeloSel || (modeloSel.esOtro && !d.modeloOtro.trim())) return t('publicar.errModel')
+      // El primer campo vacío, en el mismo orden del formulario.
+      const falta = ordenCampos.find((o) => !o.lleno)
+      if (falta) return t(falta.error)
       if (!Number.isInteger(anio) || anio < 1900 || anio > max) return t('publicar.errYear')
-      if (!d.idTransmision) return t('publicar.errTransmission')
-      if (!d.kilometraje) return t('publicar.errMileage')
       if (Number(d.cilindros || 0) > MAX_CILINDROS) return t('publicar.errCylinders', { n: MAX_CILINDROS })
-      if (d.litros && !(Number(d.litros) > 0)) return t('publicar.errLiters')
-      if (!d.idCarroceria) return t('publicar.errBodyType')
-      if (!d.idColor) return t('publicar.errColor')
       return null
     }
     if (paso === 1) {
@@ -572,8 +601,8 @@ export function Publish() {
         id_transmision: Number(d.idTransmision),
         id_carroceria: Number(d.idCarroceria),
         numero_propietarios_anteriores: Number(d.duenos || 0),
-        cilindros: d.cilindros ? Number(d.cilindros) : null,
-        cilindrada: unirMotor(d.litros, d.aspiracion),
+        cilindros: d.cilindros && !esElectrico ? Number(d.cilindros) : null,
+        cilindrada: esElectrico ? null : unirMotor(d.litros, d.aspiracion),
         tipo_combustible: d.combustible || null,
         descripcion_problemas: d.imperfecciones.trim(),
       }
@@ -627,7 +656,7 @@ export function Publish() {
     )
 
   const select = (k: keyof Datos, lista: { id: number; nombre: string }[] | undefined, placeholder: string, disabled = false) => (
-    <select className="input" id={k} value={d[k] as string} disabled={disabled} onChange={(e) => set(k, e.target.value as never)}>
+    <select className="input" id={k} value={d[k] as string} disabled={disabled || bloqueado(k)} onChange={(e) => set(k, e.target.value as never)}>
       <option value="">{placeholder}</option>
       {lista?.map((x) => (
         <option key={x.id} value={x.id}>
@@ -638,11 +667,11 @@ export function Publish() {
   )
 
   /** Menú de opciones fijas. Si el valor guardado no está en la lista (al editar), se agrega. */
-  const opciones = (k: keyof Datos, lista: { valor: string; texto: string }[], placeholder: string) => {
+  const opciones = (k: keyof Datos, lista: { valor: string; texto: string }[], placeholder: string, disabled = false) => {
     const actual = d[k] as string
     const todas = actual && !lista.some((o) => o.valor === actual) ? [{ valor: actual, texto: actual }, ...lista] : lista
     return (
-      <select className="input" id={k} value={actual} onChange={(e) => set(k, e.target.value as never)}>
+      <select className="input" id={k} value={actual} disabled={disabled || bloqueado(k)} onChange={(e) => set(k, e.target.value as never)}>
         <option value="">{placeholder}</option>
         {todas.map((o) => (
           <option key={o.valor} value={o.valor}>
@@ -751,15 +780,18 @@ export function Publish() {
         <>
           {step === 0 && (
             <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                {t('publicar.fillInOrder')}
+              </p>
               <div className="label">{t('publicar.sectionVehicleInfo')}</div>
               <div className="grid3">
                 <Campo id="idMarca" label={t('publicar.brand')}>
                   {select('idMarca', cat.marcas, t('publicar.selectBrand'))}
-                  {marcaSel?.esOtro && <input className="input" placeholder={t('publicar.enterBrand')} maxLength={60} value={d.marcaOtra} onChange={(e) => set('marcaOtra', e.target.value)} />}
+                  {marcaSel?.esOtro && <input className="input" disabled={bloqueado('idMarca')} placeholder={t('publicar.enterBrand')} maxLength={60} value={d.marcaOtra} onChange={(e) => set('marcaOtra', e.target.value)} />}
                 </Campo>
                 <Campo id="idModelo" label={t('publicar.model')}>
                   {select('idModelo', cat.modelos.filter((m) => String(m.idMarca) === d.idMarca), marcaSel ? t('publicar.selectModel') : t('publicar.chooseBrandFirst'), !marcaSel)}
-                  {modeloSel?.esOtro && <input className="input" placeholder={t('publicar.enterModel')} maxLength={60} value={d.modeloOtro} onChange={(e) => set('modeloOtro', e.target.value)} />}
+                  {modeloSel?.esOtro && <input className="input" disabled={bloqueado('idModelo')} placeholder={t('publicar.enterModel')} maxLength={60} value={d.modeloOtro} onChange={(e) => set('modeloOtro', e.target.value)} />}
                 </Campo>
                 <Campo id="anio" label={t('publicar.year')}>
                   {opciones('anio', anios.map((a) => ({ valor: String(a), texto: String(a) })), t('publicar.selectYear'))}
@@ -769,14 +801,14 @@ export function Publish() {
                 <Campo label={t('publicar.transmission')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {cat.transmisiones.map((t) => (
-                      <button type="button" key={t.id} className={d.idTransmision === String(t.id) ? 'on' : ''} onClick={() => set('idTransmision', String(t.id))}>
+                      <button type="button" key={t.id} disabled={bloqueado('idTransmision')} className={d.idTransmision === String(t.id) ? 'on' : ''} onClick={() => set('idTransmision', String(t.id))}>
                         {nombreCatalogo(t.nombre)}
                       </button>
                     ))}
                   </div>
                 </Campo>
                 <Campo id="kilometraje" label={t('publicar.mileage')}>
-                  <input className="input" id="kilometraje" inputMode="numeric" placeholder="45,000" value={d.kilometraje ? entero(Number(d.kilometraje)) : ''} onChange={(e) => set('kilometraje', digitos(e.target.value, 7))} />
+                  <input className="input" id="kilometraje" disabled={bloqueado('kilometraje')} inputMode="numeric" placeholder="45,000" value={d.kilometraje ? entero(Number(d.kilometraje)) : ''} onChange={(e) => set('kilometraje', digitos(e.target.value, 7))} />
                 </Campo>
               </div>
               <div className="label" style={{ marginTop: 8 }}>
@@ -801,36 +833,37 @@ export function Publish() {
                 {t('publicar.sectionAdditionalInfo')}
               </div>
               <div className="grid3">
+                <Campo id="combustible" label={t('publicar.fuel')}>
+                  {opciones('combustible', COMBUSTIBLES.map((c) => ({ valor: c.valor, texto: t(c.label) })), t('publicar.select'))}
+                </Campo>
                 <Campo id="cilindros" label={t('publicar.cylinders')}>
-                  {opciones('cilindros', CILINDROS.map((n) => ({ valor: String(n), texto: String(n) })), t('publicar.select'))}
+                  {opciones('cilindros', CILINDROS.map((n) => ({ valor: String(n), texto: String(n) })), esElectrico ? t('publicar.notApplicable') : t('publicar.select'), esElectrico)}
                 </Campo>
                 <Campo id="litros" label={t('publicar.engineLiters')}>
-                  <input className="input" id="litros" inputMode="decimal" placeholder="2.0" value={d.litros} onChange={(e) => set('litros', litrosAlEscribir(e.target.value))} />
-                </Campo>
-                <Campo id="aspiracion" label={t('publicar.aspiration')}>
-                  {opciones('aspiracion', ASPIRACIONES.map((a) => ({ valor: a.valor, texto: t(a.label) })), t('publicar.select'))}
+                  <input
+                    className="input"
+                    id="litros"
+                    inputMode="decimal"
+                    placeholder={esElectrico ? t('publicar.notApplicable') : '2.0'}
+                    disabled={esElectrico || bloqueado('litros')}
+                    value={d.litros}
+                    onChange={(e) => set('litros', litrosAlEscribir(e.target.value))}
+                  />
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo id="combustible" label={t('publicar.fuel')}>
-                  <select className="input" id="combustible" value={d.combustible} onChange={(e) => set('combustible', e.target.value)}>
-                    <option value="">{t('publicar.select')}</option>
-                    {COMBUSTIBLES.map((c) => (
-                      <option key={c.valor} value={c.valor}>
-                        {t(c.label)}
-                      </option>
-                    ))}
-                  </select>
+                <Campo id="aspiracion" label={t('publicar.aspiration')}>
+                  {opciones('aspiracion', ASPIRACIONES.map((a) => ({ valor: a.valor, texto: t(a.label) })), esElectrico ? t('publicar.notApplicable') : t('publicar.select'), esElectrico)}
                 </Campo>
                 <Campo id="caballos" label={t('publicar.horsepower')}>
-                  <input className="input" id="caballos" inputMode="numeric" placeholder="150" value={d.caballos} onChange={(e) => set('caballos', digitos(e.target.value, 4))} />
+                  <input className="input" id="caballos" inputMode="numeric" placeholder="150" disabled={bloqueado('caballos')} value={d.caballos} onChange={(e) => set('caballos', digitos(e.target.value, 4))} />
                 </Campo>
                 <Campo label={t('publicar.insuranceRecovered')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
-                    <button type="button" className={d.recuperado ? 'on' : ''} onClick={() => set('recuperado', true)}>
+                    <button type="button" disabled={bloqueado('recuperado')} className={d.recuperado ? 'on' : ''} onClick={() => set('recuperado', true)}>
                       {t('publicar.yes')}
                     </button>
-                    <button type="button" className={!d.recuperado ? 'on' : ''} onClick={() => set('recuperado', false)}>
+                    <button type="button" disabled={bloqueado('recuperado')} className={!d.recuperado ? 'on' : ''} onClick={() => set('recuperado', false)}>
                       {t('publicar.no')}
                     </button>
                   </div>

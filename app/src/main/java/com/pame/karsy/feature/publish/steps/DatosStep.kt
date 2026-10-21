@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -93,6 +94,17 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         form.error?.let { StepError(it) }
         form.rejectedReason?.let { RejectedNotice(it) }
 
+        // Cada campo se activa hasta que los anteriores están llenos (formulario en orden).
+        val activo = { campo: String -> !form.bloqueado(campo) }
+        val noAplica = stringResource(R.string.publish_not_applicable)
+
+        Text(
+            stringResource(R.string.publish_fill_in_order),
+            fontFamily = DmSans,
+            fontSize = 12.sp,
+            color = KarsyMid
+        )
+
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_vehicle_info))
 
@@ -115,10 +127,11 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     value = catalogs?.modelos?.firstOrNull { it.id == form.idModelo }?.nombre.orEmpty(),
                     placeholder = if (form.idMarca == null) stringResource(R.string.publish_choose_brand_first) else stringResource(R.string.publish_select_model),
                     options = catalogs?.modelosDe(form.idMarca).orEmpty().map { it.id to it.nombre },
-                    onSelect = { form.idModelo = it }
+                    onSelect = { form.idModelo = it },
+                    enabled = activo("modelo")
                 )
                 if (form.modeloEsOtro) {
-                    PublishTextInput(form.modeloOtro, { form.modeloOtro = it.take(60) }, stringResource(R.string.publish_enter_model))
+                    PublishTextInput(form.modeloOtro, { form.modeloOtro = it.take(60) }, stringResource(R.string.publish_enter_model), enabled = activo("modelo"))
                 }
             }
 
@@ -131,13 +144,15 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     value = form.anio,
                     placeholder = stringResource(R.string.publish_select_year),
                     options = (anioMax downTo PublishViewModel.ANIO_MIN).map { it.toLong() to it.toString() },
-                    onSelect = { form.anio = it.toString() }
+                    onSelect = { form.anio = it.toString() },
+                    enabled = activo("anio")
                 )
             }
 
             Column {
                 FieldLabel(stringResource(R.string.publish_label_transmission))
                 FlowRow(
+                    modifier = Modifier.alpha(if (activo("transmision")) 1f else 0.5f),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -148,7 +163,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(if (selected) KarsyNavy else KarsyBg)
                                 .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
-                                .clickable { form.idTransmision = t.id }
+                                .clickable(enabled = activo("transmision")) { form.idTransmision = t.id }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -166,82 +181,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
 
             Column {
                 FieldLabel(stringResource(R.string.publish_label_mileage))
-                PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18500", numeric = true, maxDigits = 7)
-            }
-
-            Column {
-                FieldLabel(stringResource(R.string.publish_label_insurance_recovered))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(
-                        true to stringResource(R.string.publish_yes),
-                        false to stringResource(R.string.publish_no),
-                    ).forEach { (valor, etiqueta) ->
-                        val selected = form.recuperadoPorSeguro == valor
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (selected) KarsyNavy else KarsyBg)
-                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
-                                .clickable { form.recuperadoPorSeguro = valor }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                etiqueta,
-                                fontFamily = DmSans,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (selected) KarsyWhite else KarsyMid
-                            )
-                        }
-                    }
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_cylinders))
-                    CatalogDropdown(
-                        value = form.cilindros,
-                        placeholder = stringResource(R.string.publish_select),
-                        options = PublishViewModel.CILINDROS.map { it.toLong() to it.toString() },
-                        onSelect = { form.cilindros = it.toString() }
-                    )
-                }
-                Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_horsepower))
-                    PublishTextInput(form.caballos, { form.caballos = it }, "184", numeric = true, maxDigits = 4)
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_engine_liters))
-                    PublishTextInput(form.litros, { form.litros = PublishViewModel.litrosAlEscribir(it) }, "2.0", numeric = true)
-                }
-                Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_aspiration))
-                    val aspiraciones = PublishViewModel.ASPIRACIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) }
-                    CatalogDropdown(
-                        value = aspiraciones.firstOrNull { it.first == form.aspiracion }?.second.orEmpty(),
-                        placeholder = stringResource(R.string.publish_select),
-                        options = aspiraciones.mapIndexed { i, (_, etiqueta) -> i.toLong() to etiqueta },
-                        onSelect = { form.aspiracion = aspiraciones[it.toInt()].first }
-                    )
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
-                    FieldLabel(stringResource(R.string.publish_label_fuel))
-                    val combustibles = PublishViewModel.COMBUSTIBLES
-                    CatalogDropdown(
-                        value = form.combustible,
-                        placeholder = stringResource(R.string.publish_select_fuel),
-                        options = combustibles.mapIndexed { i, c -> i.toLong() to c },
-                        onSelect = { form.combustible = combustibles[it.toInt()] }
-                    )
-                }
+                PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18500", numeric = true, maxDigits = 7, enabled = activo("kilometraje"))
             }
         }
 
@@ -251,6 +191,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             Column {
                 FieldLabel(stringResource(R.string.publish_label_body_type))
                 FlowRow(
+                    modifier = Modifier.alpha(if (activo("carroceria")) 1f else 0.5f),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -266,7 +207,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                                 .clip(RoundedCornerShape(50))
                                 .background(if (selected) KarsyNavy else KarsyBg)
                                 .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(50))
-                                .clickable { form.idCarroceria = t.id }
+                                .clickable(enabled = activo("carroceria")) { form.idCarroceria = t.id }
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
@@ -276,7 +217,9 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             Column {
                 FieldLabel(stringResource(R.string.publish_label_color))
                 FlowRow(
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .alpha(if (activo("color")) 1f else 0.5f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -285,15 +228,13 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                             name = c.nombre,
                             color = coloresHex[c.nombre] ?: KarsyBorderMuted,
                             selected = form.idColor == c.id,
-                            onClick = { form.idColor = c.id }
+                            onClick = { form.idColor = c.id },
+                            enabled = activo("color")
                         )
                     }
                 }
             }
-        }
 
-        SectionCard {
-            SectionTitle(stringResource(R.string.publish_section_additional_info))
             Column {
                 FieldLabel(stringResource(R.string.publish_label_previous_owners))
                 val max = PublishViewModel.DUENOS_MAX
@@ -302,8 +243,100 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     value = form.duenos.toIntOrNull()?.let { if (it >= max) masDe else it.toString() }.orEmpty(),
                     placeholder = stringResource(R.string.publish_select),
                     options = (0..max).map { it.toLong() to if (it == max) masDe else it.toString() },
-                    onSelect = { form.duenos = it.toString() }
+                    onSelect = { form.duenos = it.toString() },
+                    enabled = activo("duenos")
                 )
+            }
+        }
+
+        SectionCard {
+            SectionTitle(stringResource(R.string.publish_section_additional_info))
+
+            Column {
+                FieldLabel(stringResource(R.string.publish_label_fuel))
+                val combustibles = PublishViewModel.COMBUSTIBLES
+                CatalogDropdown(
+                    value = form.combustible,
+                    placeholder = stringResource(R.string.publish_select),
+                    options = combustibles.mapIndexed { i, c -> i.toLong() to c },
+                    onSelect = { form.selectCombustible(combustibles[it.toInt()]) },
+                    enabled = activo("combustible")
+                )
+            }
+
+            // Un eléctrico no lleva cilindros, litros ni aspiración.
+            val electrico = form.esElectrico
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    FieldLabel(stringResource(R.string.publish_label_cylinders))
+                    CatalogDropdown(
+                        value = form.cilindros,
+                        placeholder = if (electrico) noAplica else stringResource(R.string.publish_select),
+                        options = PublishViewModel.CILINDROS.map { it.toLong() to it.toString() },
+                        onSelect = { form.cilindros = it.toString() },
+                        enabled = !electrico && activo("cilindros")
+                    )
+                }
+                Column(Modifier.weight(1f)) {
+                    FieldLabel(stringResource(R.string.publish_label_engine_liters))
+                    PublishTextInput(
+                        form.litros,
+                        { form.litros = PublishViewModel.litrosAlEscribir(it) },
+                        if (electrico) noAplica else "2.0",
+                        numeric = true,
+                        enabled = !electrico && activo("litros")
+                    )
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    FieldLabel(stringResource(R.string.publish_label_aspiration))
+                    val aspiraciones = PublishViewModel.ASPIRACIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) }
+                    CatalogDropdown(
+                        value = aspiraciones.firstOrNull { it.first == form.aspiracion }?.second.orEmpty(),
+                        placeholder = if (electrico) noAplica else stringResource(R.string.publish_select),
+                        options = aspiraciones.mapIndexed { i, (_, etiqueta) -> i.toLong() to etiqueta },
+                        onSelect = { form.aspiracion = aspiraciones[it.toInt()].first },
+                        enabled = !electrico && activo("aspiracion")
+                    )
+                }
+                Column(Modifier.weight(1f)) {
+                    FieldLabel(stringResource(R.string.publish_label_horsepower))
+                    PublishTextInput(form.caballos, { form.caballos = it }, "184", numeric = true, maxDigits = 4, enabled = activo("caballos"))
+                }
+            }
+
+            Column {
+                FieldLabel(stringResource(R.string.publish_label_insurance_recovered))
+                Row(
+                    modifier = Modifier.alpha(if (activo("recuperado")) 1f else 0.5f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        true to stringResource(R.string.publish_yes),
+                        false to stringResource(R.string.publish_no),
+                    ).forEach { (valor, etiqueta) ->
+                        val selected = form.recuperadoPorSeguro == valor
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (selected) KarsyNavy else KarsyBg)
+                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
+                                .clickable(enabled = activo("recuperado")) { form.recuperadoPorSeguro = valor }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                etiqueta,
+                                fontFamily = DmSans,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (selected) KarsyWhite else KarsyMid
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -360,6 +393,8 @@ private fun CatalogDropdown(
     placeholder: String,
     options: List<Pair<Long, String>>,
     onSelect: (Long) -> Unit,
+    /** false: se ve atenuado y no se abre (formulario en orden). */
+    enabled: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
@@ -369,7 +404,8 @@ private fun CatalogDropdown(
                 .clip(RoundedCornerShape(12.dp))
                 .background(KarsyBg)
                 .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
-                .clickable(enabled = options.isNotEmpty()) { expanded = true }
+                .alpha(if (enabled) 1f else 0.5f)
+                .clickable(enabled = enabled && options.isNotEmpty()) { expanded = true }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -409,13 +445,13 @@ private fun CatalogDropdown(
 }
 
 @Composable
-private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: () -> Unit) {
+private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: () -> Unit, enabled: Boolean = true) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
     ) {
         Box(
             modifier = Modifier
@@ -445,4 +481,6 @@ private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: 
         )
     }
 }
+
+
 

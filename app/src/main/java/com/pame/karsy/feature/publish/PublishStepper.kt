@@ -213,6 +213,8 @@ fun PublishTextInput(
     /** Máximo de dígitos de un campo numérico (año = 4). */
     maxDigits: Int = Int.MAX_VALUE,
     background: Color = KarsySurface,
+    /** false: el campo se ve atenuado y no se puede escribir (formulario en orden). */
+    enabled: Boolean = true,
 ) {
     // Numérico: solo dígitos, también si pegan texto (sin desincronizar el teclado).
     val (fieldValue, onFieldChange) = rememberFilteredFieldValue(
@@ -227,7 +229,8 @@ fun PublishTextInput(
         keyboardOptions = KeyboardOptions(
             keyboardType = if (numeric) KeyboardType.Number else KeyboardType.Text
         ),
-        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth().alpha(if (enabled) 1f else 0.5f),
         decorationBox = { inner ->
             Box(
                 modifier = Modifier
