@@ -10,9 +10,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -132,6 +137,28 @@ fun VehicleCard(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 6.dp)
             )
+            // Ubicación de la publicación (municipio, estado), como en la tarjeta de la web. La fila
+            // siempre ocupa su lugar, aunque no haya ubicación, para que todas las tarjetas midan lo mismo.
+            val ubicacion = listOf(car.municipio, car.estado).filter { it.isNotBlank() }.joinToString(", ")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .heightIn(min = 16.dp)
+            ) {
+                if (ubicacion.isNotEmpty()) {
+                    Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        ubicacion,
+                        fontFamily = DmSans,
+                        fontSize = 12.sp,
+                        color = KarsyMid,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
         }
     }
 }

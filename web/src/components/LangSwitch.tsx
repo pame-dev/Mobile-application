@@ -1,12 +1,15 @@
 import { useI18n } from '../i18n/I18nContext'
-import { Icon } from './Icon'
+import { Bandera } from './Bandera'
 
-/** Switch de idioma ES / EN (barra superior y pie de página); la cápsula blanca se desliza al idioma elegido. */
+/**
+ * Switch de idioma ES / EN (barra superior y menú); la cápsula blanca se desliza al idioma elegido.
+ * A la izquierda, la bandera del idioma en uso (como en Configuración → Idioma).
+ */
 export function LangSwitch() {
   const { t, lang, setLang } = useI18n()
   return (
     <div className="langsw" role="group" aria-label={t('footer.language')}>
-      <Icon name="globe" size={15} />
+      <Bandera lang={lang} ancho={18} />
       <div className="langsw-opts" data-lang={lang}>
         <span className="thumb" aria-hidden="true" />
         {(['es', 'en'] as const).map((l) => (

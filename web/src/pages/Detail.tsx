@@ -361,6 +361,7 @@ export function Detail() {
       ['vehiculo.spec.bodyType', nombreCatalogo(detail.tipoCarro)],
       ['vehiculo.spec.color', nombreCatalogo(detail.color)],
       ['vehiculo.spec.owners', detail.duenos],
+      ['vehiculo.spec.location', c.city || '—'],
       // Se arma aquí (no en api.ts) para que cambie al cambiar el idioma.
       ['vehiculo.spec.insurance', seguro == null ? '—' : seguro ? t('vehiculo.yes') : t('vehiculo.no')],
     ]
