@@ -41,7 +41,7 @@ import { useSession } from '../../session/SessionContext'
 import { EVENTO_CAMBIOS, useRecargar, type Tabla } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
 import { Verificaciones } from './Verificaciones'
-import { AdminHead, Badge, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
+import { AdminHead, Badge, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
 
@@ -714,6 +714,7 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
           </div>
         ))}
       </div>
+      <DocumentoVehiculoAdmin idPublicacion={car.id} recargar={row.id_ultima_propuesta} />
       {car.description && (
         <p className="muted" style={{ whiteSpace: 'pre-line', maxHeight: 140, overflow: 'auto' }}>
           {car.description}

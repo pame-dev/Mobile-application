@@ -138,6 +138,18 @@ export type EstadoVerificacion = 'sin_documento' | 'pendiente' | 'verificado' | 
 /** Documentos de verificación (chk_verificaciones_usuario_tipo_documento). */
 export type TipoDocumento = 'constancia_situacion_fiscal' | 'curp'
 
+/** Documento del vehículo al publicar (propuestas_publicacion.tipo_documento_vehiculo). */
+export type TipoDocumentoVehiculo = 'vin' | 'placa' | 'tarjeta_circulacion' | 'baja'
+
+/**
+ * Documento del vehículo de una propuesta. Privado: solo lo leen el dueño y el admin (no está
+ * en v_anuncios). [valor] es el VIN o la placa, o la ruta de la foto en el bucket privado.
+ */
+export interface DocumentoVehiculo {
+  tipo: TipoDocumentoVehiculo
+  valor: string
+}
+
 /** Lote o agencia del directorio (cuentas tipo "lote" + perfiles_lote). */
 export interface Lot {
   id: string

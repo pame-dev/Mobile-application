@@ -12,6 +12,7 @@ import com.pame.karsy.data.remote.TraduccionDto
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
+import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.data.model.Car
@@ -20,6 +21,7 @@ import com.pame.karsy.data.model.SellerContact
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.ContactoDto
 import com.pame.karsy.data.remote.DestacadoFinDto
+import com.pame.karsy.data.remote.DocumentoVehiculoDto
 import com.pame.karsy.data.remote.FavoritoDto
 import com.pame.karsy.data.remote.FavoritosConteoDto
 import com.pame.karsy.data.remote.InteraccionDto
@@ -38,6 +40,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.util.Calendar
 import java.util.UUID
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Anuncios desde Supabase. Todas las lecturas usan la vista public.v_anuncios, que
@@ -255,6 +258,45 @@ object CarRepository {
         }
         return ruta
     }
+
+    /** Bucket privado de las fotos o PDF de tarjeta de circulación y documento de baja. */
+    const val BUCKET_DOCUMENTOS = "documentos-vehiculo"
+
+    /** Valores de propuestas_publicacion.tipo_documento_vehiculo. */
+    val TIPOS_DOCUMENTO = listOf("vin", "placa", "tarjeta_circulacion", "baja")
+
+    /**
+     * Sube la foto (JPG o PNG) o el PDF del documento del vehículo al bucket privado y devuelve su
+     * ruta (<id_cuenta>/<uuid>.<jpg|png|pdf>). [mime] ya viene revisado con Constancia.mimeValido.
+     */
+    suspend fun uploadDocumento(bytes: ByteArray, mime: String): String {
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_publish))
+        val ruta = "$uid/${UUID.randomUUID()}.${Constancia.extension(mime)}"
+        db.storage.from(BUCKET_DOCUMENTOS).upload(ruta, bytes) {
+            upsert = false
+            contentType = ContentType.parse(mime)
+        }
+        return ruta
+    }
+
+    /**
+     * Documento del vehículo de la propuesta más reciente que lo tenga; null si nunca se dio.
+     * Solo lo pueden leer el dueño y el admin (RLS de propuestas_publicacion).
+     */
+    suspend fun documentoVehiculo(idPublicacion: Long): DocumentoVehiculoDto? =
+        db.from("propuestas_publicacion").select(Columns.list("tipo_documento_vehiculo", "documento_vehiculo")) {
+            filter {
+                eq("id_publicacion", idPublicacion)
+                isIn("tipo_documento_vehiculo", TIPOS_DOCUMENTO)
+            }
+            order("fecha_envio_moderacion", Order.DESCENDING)
+            order("id_propuesta", Order.DESCENDING)
+            limit(1)
+        }.decodeList<DocumentoVehiculoDto>().firstOrNull()
+
+    /** URL firmada y temporal (10 min) de la foto o el PDF de un documento del vehículo. */
+    suspend fun documentoVehiculoUrl(ruta: String): String =
+        db.storage.from(BUCKET_DOCUMENTOS).createSignedUrl(ruta, 10.minutes)
 
     /** Datos de una publicación propia para precargar el formulario al corregirla. */
     suspend fun ownListing(id: Long): AnuncioDto? =

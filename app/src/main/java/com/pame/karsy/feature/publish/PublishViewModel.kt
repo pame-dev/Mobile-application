@@ -24,10 +24,13 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.navigation.Routes
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.ArchivoConstancia
+import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.Imagenes
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.remote.AnuncioDto
+import com.pame.karsy.data.remote.DocumentoVehiculoDto
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.CatalogRepository
 import com.pame.karsy.data.repository.Catalogs
@@ -143,6 +146,73 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var idCarroceria by mutableStateOf<Long?>(null)
     var idColor by mutableStateOf<Long?>(null)
     var duenos by mutableStateOf("")
+
+    // Paso 1: documento del vehículo. Privado: solo lo ven el dueño y el admin.
+    /** Uno de [CarRepository.TIPOS_DOCUMENTO] o vacío (columna tipo_documento_vehiculo). */
+    var tipoDocumento by mutableStateOf("")
+        private set
+    /** VIN o placa tal como se escribe (sin espacios y en mayúsculas). */
+    var documentoTexto by mutableStateOf("")
+        private set
+    /**
+     * Foto (JPG o PNG) o PDF de la tarjeta de circulación o de la baja: el archivo local, o la URL
+     * firmada de la foto ya guardada. Un PDF ya guardado no necesita URL: se muestra su nombre.
+     */
+    var documentoArchivo by mutableStateOf<Uri?>(null)
+        private set
+    /** El archivo es PDF: no tiene vista previa, se muestra [documentoNombre]. */
+    var documentoEsPdf by mutableStateOf(false)
+        private set
+    var documentoNombre by mutableStateOf("")
+        private set
+    /** Por qué no sirve el archivo elegido (tipo o tamaño); se muestra junto al campo. */
+    var documentoError by mutableStateOf<String?>(null)
+        private set
+    /** Archivo elegido en el teléfono, ya revisado (tipo y tamaño), que falta subir. */
+    private var documentoNuevo: ArchivoConstancia? = null
+    /** Ruta del archivo ya guardado en el bucket privado (al editar o tras subirlo). */
+    private var documentoRuta: String? = null
+
+    /** El documento elegido se da con archivo (tarjeta o baja), no escrito. */
+    val documentoEsFoto: Boolean get() = tipoDocumento in TIPOS_DOCUMENTO_FOTO
+
+    /** Cambiar de documento borra lo que se había puesto del anterior. */
+    fun selectTipoDocumento(tipo: String) {
+        if (tipo == tipoDocumento) return
+        tipoDocumento = tipo
+        documentoTexto = ""
+        quitarArchivoDocumento()
+    }
+
+    fun escribirDocumento(texto: String) {
+        documentoTexto = normalizarDocumento(texto).take(if (tipoDocumento == "vin") LARGO_VIN else MAX_PLACA)
+    }
+
+    /**
+     * Foto o PDF elegido para la tarjeta o la baja. Mismas reglas que los documentos de
+     * verificación (Constancia): JPG, PNG o PDF de máximo 5 MB; si no sirve se avisa en el campo.
+     */
+    fun elegirArchivoDocumento(context: Context, uri: Uri) {
+        runCatching { Constancia.revisar(context, uri) }
+            .onSuccess { archivo ->
+                documentoNuevo = archivo
+                documentoRuta = null
+                documentoArchivo = archivo.uri
+                documentoEsPdf = archivo.mime == PDF
+                documentoNombre = archivo.nombre
+                documentoError = null
+            }
+            .onFailure { documentoError = it.mensajeUsuario() }
+    }
+
+    private fun quitarArchivoDocumento() {
+        documentoNuevo = null
+        documentoRuta = null
+        documentoArchivo = null
+        documentoEsPdf = false
+        documentoNombre = ""
+        documentoError = null
+    }
 
     // Paso 2: una foto por ángulo (frontal, trasera, izquierda, derecha, tablero)
     // y hasta completar MAX_FOTOS con fotos adicionales.
@@ -370,6 +440,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 safeCall { CarRepository.ownListing(id) }
                     .onSuccess { a -> if (a != null) prefill(a) else error = texto(R.string.publish_edit_not_found) }
                     .onFailure { error = it.mensajeUsuario() }
+                    .getOrNull()
+                    // Documento: si no se puede leer (o es anterior a esta función), el dueño lo vuelve a poner.
+                    ?.let { safeCall { CarRepository.documentoVehiculo(id) }.getOrNull()?.let { prefillDocumento(it) } }
                 loadingEdit = false
             }
         }
@@ -407,6 +480,29 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             val uri = Supabase.publicUrl(ruta)?.toUri() ?: return@forEachIndexed
             rutasExistentes[uri] = ruta
             if (i < photos.size) photos[i] = uri else extraPhotos += uri
+        }
+    }
+
+    /**
+     * Documento que ya tenía la publicación. Un PDF se muestra con su nombre; una foto, con una URL
+     * firmada. Si no se puede firmar, la foto no se precarga (se pide otra) para no dar por puesta
+     * una que no se ve.
+     */
+    private suspend fun prefillDocumento(d: DocumentoVehiculoDto) {
+        tipoDocumento = d.tipo
+        if (d.tipo in TIPOS_DOCUMENTO_FOTO) {
+            if (d.valor.endsWith(".pdf")) {
+                documentoRuta = d.valor
+                documentoEsPdf = true
+                documentoNombre = texto(R.string.publish_document_saved_pdf)
+            } else {
+                safeCall { CarRepository.documentoVehiculoUrl(d.valor) }.getOrNull()?.let { url ->
+                    documentoRuta = d.valor
+                    documentoArchivo = url.toUri()
+                }
+            }
+        } else {
+            documentoTexto = d.valor
         }
     }
 
@@ -588,7 +684,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 falta != null -> texto(falta.third)
                 anioNum == null || anioNum !in 1900..(anioActual + 1) -> texto(R.string.publish_error_year)
                 (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
-                else -> null
+                else -> errorDocumento(tipoDocumento, documentoTexto, documentoNuevo != null || documentoRuta != null)?.let { texto(it) }
             }
         }
         2 -> photos.indices.filter { photos[it] == null }
@@ -633,6 +729,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 }
                 // Fotos listas: lo que sigue es guardar la publicación ("Publicando…").
                 uploadProgress = null
+                // La foto o el PDF del documento va tal cual al bucket privado (sin tapar placas). Se
+                // recuerda la ruta para no volver a subirlo si guardar falla y se reintenta.
+                val documento = if (!documentoEsFoto) normalizarDocumento(documentoTexto)
+                else documentoRuta ?: requireNotNull(documentoNuevo).let { archivo ->
+                    CarRepository.uploadDocumento(Constancia.bytes(appContext, archivo), archivo.mime)
+                }.also { documentoRuta = it }
                 // "Caballos de fuerza" no tiene columna en la BD: se agrega a la descripción.
                 val potencia = caballos.filter(Char::isDigit)
                 val descripcionFinal = descripcion.trim() +
@@ -658,6 +760,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     put("cilindrada", motor.trim().ifEmpty { null })
                     put("tipo_combustible", combustible.ifEmpty { null })
                     put("descripcion_problemas", imperfecciones.trim())
+                    put("tipo_documento_vehiculo", tipoDocumento)
+                    put("documento_vehiculo", documento)
                 }
                 val id = editId
                     ?.let { CarRepository.edit(it, datos, rutas); it }
@@ -739,6 +843,32 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             val asp = ASPIRACIONES.map { it.first }
                 .firstOrNull { it != "Natural" && cilindrada.contains(it, ignoreCase = true) }
             return litros to (asp ?: if (litros.isNotEmpty()) "Natural" else "")
+        }
+
+        /** Tipo normalizado de un documento en PDF (Constancia.mimeValido). */
+        private const val PDF = "application/pdf"
+
+        /** Documentos que se dan con foto (JPG o PNG) o PDF; el VIN y la placa se escriben. */
+        val TIPOS_DOCUMENTO_FOTO = listOf("tarjeta_circulacion", "baja")
+
+        /** Largo del VIN y máximo de la placa (chk_propuestas_publicacion_documento_vehiculo). */
+        const val LARGO_VIN = 17
+        const val MAX_PLACA = 10
+
+        /** VIN: 17 letras o números sin I, O ni Q. Placa: 4 a 10 letras, números o guiones. */
+        private val VIN = Regex("^[A-HJ-NPR-Z0-9]{17}$")
+        private val PLACA = Regex("^[A-Z0-9-]{4,10}$")
+
+        /** VIN o placa sin espacios y en mayúsculas (igual que documento_vehiculo_valido en la BD). */
+        fun normalizarDocumento(texto: String): String = texto.filterNot(Char::isWhitespace).uppercase()
+
+        /** Error (recurso de texto) del documento del vehículo, o null si está completo. */
+        fun errorDocumento(tipo: String, texto: String, tieneArchivo: Boolean): Int? = when {
+            tipo.isEmpty() -> R.string.publish_error_document_type
+            tipo == "vin" && !VIN.matches(normalizarDocumento(texto)) -> R.string.publish_error_vin
+            tipo == "placa" && !PLACA.matches(normalizarDocumento(texto)) -> R.string.publish_error_plate
+            tipo in TIPOS_DOCUMENTO_FOTO && !tieneArchivo -> R.string.publish_error_document_photo
+            else -> null
         }
 
         /** Sufijo "Potencia: N hp" que publish() agrega a la descripción. */

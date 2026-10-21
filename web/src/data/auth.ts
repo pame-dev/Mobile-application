@@ -171,11 +171,11 @@ export async function uploadAvatar(blob: Blob): Promise<void> {
 /** Bucket privado de los documentos de verificación (migración 20261021120000_verificaciones_usuario). */
 const BUCKET_CONSTANCIAS = 'constancias-fiscales'
 export const CONSTANCIA_MAX_BYTES = 5 * 1024 * 1024
-const EXT_CONSTANCIA: Record<string, string> = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }
+export const EXT_CONSTANCIA: Record<string, string> = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }
 const TIPO_POR_EXT: Record<string, string> = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' }
 
 /** Tipo MIME del archivo (si el navegador no lo da, se toma de la extensión). */
-const tipoConstancia = (f: File) => f.type || TIPO_POR_EXT[f.name.split('.').pop()?.toLowerCase() ?? ''] || ''
+export const tipoConstancia = (f: File) => f.type || TIPO_POR_EXT[f.name.split('.').pop()?.toLowerCase() ?? ''] || ''
 
 /** Error de la constancia elegida, o null si sirve: PDF, JPG o PNG de hasta 5 MB. */
 export function errorConstancia(f: File): Clave | null {
