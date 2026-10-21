@@ -585,9 +585,13 @@ table.t tr:hover td{background:var(--bg)}
 .filechip .nic{flex:none;background:var(--teal-light);color:var(--teal)}
 .filechip .ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* Insignia "Verificado": escudo + texto, sin fondo (ConstanciaField.tsx, VerifiedBadge) */
-.verified-badge{display:inline-flex;align-items:center;gap:4px;flex:none;color:#7FB2E5;font-size:13px;font-weight:600;line-height:1;white-space:nowrap}
-.verified-badge svg{width:17px;height:17px;flex:none}
-/* Nombre + insignia: un nombre largo se corta con "…" y la insignia siempre se ve completa. */
-.verified-name{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}
+/* Insignia "Verificado": píldora azul con escudo blanco (ConstanciaField.tsx, VerifiedBadge) */
+.verified-badge{display:inline-flex;align-items:center;gap:6px;flex:none;padding:5px 12px 5px 7px;border-radius:999px;background:#3D7FC4;color:#fff;font-size:14px;font-weight:700;line-height:1;white-space:nowrap}
+.verified-badge svg{width:16px;height:16px;flex:none}
+.verified-badge.compact{gap:4px;padding:3px 9px 3px 5px;font-size:12px}
+.verified-badge.compact svg{width:13px;height:13px}
+/* Nombre + insignia (+ etiqueta "Lote"): 10 px del nombre a la insignia y 8 de la insignia a la etiqueta.
+   Un nombre largo se corta con "…"; la insignia y la etiqueta siempre se ven completas. */
+.verified-name{display:flex;align-items:center;gap:10px;min-width:0;max-width:100%}
 .verified-name > :first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.verified-name > .verified-badge + *{margin-left:-2px;flex:none}

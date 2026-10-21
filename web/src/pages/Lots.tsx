@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
+import { VerifiedBadge } from '../components/ConstanciaField'
 import { Traducido } from '../components/Traducido'
 import { VolverButton } from '../components/VolverButton'
 import { lots as cargarLotes } from '../data/api'
@@ -103,7 +104,14 @@ export function Lots() {
             <button key={l.id} className="card lotcard" onClick={() => navigate(`/lotes/${l.id}`)}>
               <LotLogo lot={l} />
               <span className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-                <b style={{ fontFamily: 'var(--f-display)', fontSize: 17, color: 'var(--ink)' }}>{l.name}</b>
+                {l.verified ? (
+                  <span className="verified-name">
+                    <b style={{ fontFamily: 'var(--f-display)', fontSize: 17, color: 'var(--ink)' }}>{l.name}</b>
+                    <VerifiedBadge compact />
+                  </span>
+                ) : (
+                  <b style={{ fontFamily: 'var(--f-display)', fontSize: 17, color: 'var(--ink)' }}>{l.name}</b>
+                )}
                 {l.city && (
                   <span className="loc">
                     <Icon name="pin" />

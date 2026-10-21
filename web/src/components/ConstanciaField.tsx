@@ -93,17 +93,18 @@ export function ConstanciaField({ file, onChange, showLabel = true }: { file: Fi
 }
 
 /**
- * Insignia "Verificado" (escudo + texto, sin fondo) a la derecha del nombre de un usuario
- * verificado (cuentas.verificado). Sirve igual para lotes y particulares.
- * Para que un nombre largo se corte y la insignia siempre se vea, van juntos en .verified-name.
+ * Insignia "Verificado" (píldora azul con escudo blanco) a la derecha del nombre de un usuario
+ * verificado (cuentas.verificado). Sirve igual para lotes y particulares. [compact] = versión
+ * chica de las tarjetas de la lista de lotes. Para que un nombre largo se corte y la insignia
+ * siempre se vea, van juntos en .verified-name.
  */
-export function VerifiedBadge() {
+export function VerifiedBadge({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n()
   return (
-    <span className="verified-badge" aria-label={t('perfil.verifiedA11y')}>
-      <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M8 12l3 3 5-5.5" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+    <span className={`verified-badge ${compact ? 'compact' : ''}`} aria-label={t('perfil.verifiedA11y')}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="#FFFFFF" />
+        <path d="M8 12l3 3 5-5.5" fill="none" stroke="#3D7FC4" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       {t('perfil.verified')}
     </span>

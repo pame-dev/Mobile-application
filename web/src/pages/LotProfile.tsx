@@ -100,11 +100,14 @@ export function LotProfile() {
             <span className="verified-name">
               <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
               <VerifiedBadge />
+              <span className="badge b-info">{t('nav.lot')}</span>
             </span>
           ) : (
-            <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
+            <>
+              <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
+              <span className="badge b-info">{t('nav.lot')}</span>
+            </>
           )}
-          <span className="badge b-info">{t('nav.lot')}</span>
         </div>
         <p className="muted">
           {lote.city}
