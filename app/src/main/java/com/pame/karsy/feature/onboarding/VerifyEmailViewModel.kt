@@ -74,6 +74,9 @@ class VerifyEmailViewModel : ViewModel() {
                     // Igual con la constancia fiscal del lote; si falla, la puede subir desde su perfil.
                     safeCall { UserRepository.uploadPendingConstancia(email) }
                         .onFailure { onNotice(texto(R.string.auth_constancia_upload_failed)) }
+                    // Y la CURP del particular; si falla, la puede mandar desde su perfil.
+                    safeCall { UserRepository.uploadPendingCurp(email) }
+                        .onFailure { onNotice(texto(R.string.auth_curp_send_failed)) }
                     onVerified(cuenta)
                 }
                 .onFailure { error = it.mensajeUsuario() }

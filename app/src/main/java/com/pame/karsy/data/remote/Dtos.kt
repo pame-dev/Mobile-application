@@ -298,8 +298,10 @@ data class VerificacionAdminDto(
     @SerialName("tipo_usuario") val tipoUsuario: String,
     /** Hoy solo 'constancia_situacion_fiscal'. */
     @SerialName("tipo_documento") val tipoDocumento: String,
-    /** Ruta en el bucket privado constancias-fiscales (se abre con URL firmada). */
-    @SerialName("archivo_path") val archivoPath: String,
+    /** Ruta en el bucket privado constancias-fiscales (se abre con URL firmada); null en la CURP. */
+    @SerialName("archivo_path") val archivoPath: String? = null,
+    /** CURP del particular (tipo_documento 'curp'). */
+    val curp: String? = null,
     val estado: String,
     @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
     /** Nombre del admin que lo revisó. */

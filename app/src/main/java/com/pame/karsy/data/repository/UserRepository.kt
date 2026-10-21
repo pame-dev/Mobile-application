@@ -185,6 +185,29 @@ object UserRepository {
     }
 
     /**
+     * Manda la CURP del particular a revisión con enviar_curp_verificacion: crea la fila
+     * 'pendiente' o reemplaza una 'rechazado'. Si la BD la rechaza, el mensaje (P0001) ya viene
+     * listo para el usuario.
+     */
+    suspend fun enviarCurp(curp: String) {
+        db.postgrest.rpc("enviar_curp_verificacion", buildJsonObject { put("p_curp", curp) })
+    }
+
+    /** CURP escrita en el registro (correo y CURP) que espera a que se verifique el correo. */
+    private var pendingCurp: Pair<String, String>? = null
+
+    fun holdCurpUntilVerified(email: String, curp: String) {
+        pendingCurp = email.trim().lowercase() to curp
+    }
+
+    /** Envía la CURP guardada por [holdCurpUntilVerified] si es de este correo; lanza si falla. */
+    suspend fun uploadPendingCurp(email: String) {
+        val (correo, curp) = pendingCurp ?: return
+        pendingCurp = null
+        if (correo == email.trim().lowercase()) enviarCurp(curp)
+    }
+
+    /**
      * Sube un documento de verificación al bucket privado y lo manda a revisión con
      * enviar_documento_verificacion (crea la fila 'pendiente' o reemplaza una 'rechazado').
      * Cada envío es un archivo nuevo: {uid}/{tipoDocumento}_{timestamp}.{pdf|jpg|png}.

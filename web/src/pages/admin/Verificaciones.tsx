@@ -37,6 +37,7 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
   }
 
   const abrir = async (v: VerificacionAdmin) => {
+    if (!v.archivo_path) return
     // La pestaña se abre antes de pedir la URL para que el navegador no la bloquee.
     const w = window.open('', '_blank')
     try {
@@ -120,7 +121,15 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
                 <td>
                   <span className={`badge ${v.tipo_usuario === 'lote' ? 'b-info' : 'b-neu'}`}>{t(v.tipo_usuario === 'lote' ? 'admin.lot' : 'admin.individual')}</span>
                 </td>
-                <td>{documento(v.tipo_documento)}</td>
+                <td>
+                  {documento(v.tipo_documento)}
+                  {/* La CURP no tiene archivo: se muestra para compararla con el nombre del usuario. */}
+                  {v.curp && (
+                    <div style={{ fontFamily: 'monospace', fontSize: 13, marginTop: 2, userSelect: 'all' }}>
+                      {v.curp}
+                    </div>
+                  )}
+                </td>
                 <td>{haceCuanto(v.fecha_envio)}</td>
                 <td style={{ whiteSpace: 'normal', minWidth: 160 }}>
                   <span className={`badge ${ESTADO[v.estado][1]}`}>{t(ESTADO[v.estado][0])}</span>
@@ -137,10 +146,12 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
                 </td>
                 <td>
                   <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => void abrir(v)}>
-                      <Icon name="doc" size={14} />
-                      {t('admin.verifOpen')}
-                    </button>
+                    {v.archivo_path && (
+                      <button className="btn btn-ghost btn-sm" onClick={() => void abrir(v)}>
+                        <Icon name="doc" size={14} />
+                        {t('admin.verifOpen')}
+                      </button>
+                    )}
                     {v.estado === 'pendiente' && (
                       <>
                         <button className="btn btn-ghost btn-sm" disabled={busy === v.id} onClick={() => rechazar(v)}>

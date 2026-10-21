@@ -88,6 +88,7 @@
     <string name="form_error_max">Maximum %1$d characters.</string>
     <string name="form_error_street_number">Enter a valid number (e.g. 123, 123-A or S/N).</string>
     <string name="form_error_zip">The ZIP code must have 5 digits.</string>
+    <string name="form_error_curp">The CURP is not valid. Check that it has 18 characters, as shown on your document.</string>
     <string name="form_error_phone_10">The phone number must have 10 digits.</string>
     <string name="form_error_phone_fake">Enter a real phone number.</string>
     <string name="form_warning_zip_state">This ZIP code belongs to %1$s, not %2$s. Please check it.</string>
@@ -142,6 +143,9 @@
     <string name="form_constancia_change">Change</string>
     <string name="form_constancia_remove">Remove</string>
     <string name="auth_constancia_upload_failed">Your account was created, but we couldn\'t upload your certificate. You can upload it later from your profile.</string>
+    <string name="auth_curp_label">CURP (optional)</string>
+    <string name="auth_curp_hint">With your CURP the Karsy team can verify your account and you get the Verified badge.</string>
+    <string name="auth_curp_send_failed">Your account was created, but we couldn\'t send your CURP. You can send it later from your profile.</string>
     <string name="auth_section_profile_photo">Profile photo</string>
     <string name="auth_lote_logo_hint">Dealership logo or profile picture</string>
     <string name="auth_lote_logo">Dealership logo</string>
@@ -573,6 +577,14 @@
     <string name="profile_verification_pending_title">Your certificate is under review</string>
     <string name="profile_verification_pending_desc">Once we approve it, your dealership will show the Verified dealer badge.</string>
     <string name="profile_verification_sent">We received your certificate. We\'ll review it soon.</string>
+    <string name="profile_curp_title">Verify your account</string>
+    <string name="profile_curp_desc">Enter your CURP so the Karsy team can verify your account and you get the Verified badge.</string>
+    <string name="profile_curp_rejected_title">Your CURP was rejected</string>
+    <string name="profile_curp_send">Submit CURP</string>
+    <string name="profile_curp_resend">Submit CURP again</string>
+    <string name="profile_curp_pending_title">Your CURP is under review</string>
+    <string name="profile_curp_pending_desc">Once we approve it, your profile will show the Verified badge.</string>
+    <string name="profile_curp_sent">We received your CURP. We\'ll review it soon.</string>
     <string name="profile_my_posts">My listings</string>
     <string name="profile_no_posts">You don\'t have any listings yet.</string>
     <string name="profile_hidden_posts">Hidden listings (%1$d)</string>

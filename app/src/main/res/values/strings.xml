@@ -90,6 +90,7 @@
     <string name="form_error_max">Máximo %1$d caracteres.</string>
     <string name="form_error_street_number">Escribe un número válido (ej. 123, 123-A o S/N).</string>
     <string name="form_error_zip">El código postal debe tener 5 dígitos.</string>
+    <string name="form_error_curp">La CURP no es válida. Revisa que tenga 18 caracteres, como aparece en tu documento.</string>
     <string name="form_error_phone_10">El teléfono debe tener 10 dígitos.</string>
     <string name="form_error_phone_fake">Escribe un número de teléfono real.</string>
     <string name="form_warning_zip_state">Este código postal es de %1$s, no de %2$s. Revísalo.</string>
@@ -144,6 +145,9 @@
     <string name="form_constancia_change">Cambiar</string>
     <string name="form_constancia_remove">Quitar</string>
     <string name="auth_constancia_upload_failed">Tu cuenta se creó, pero no pudimos subir tu constancia. Puedes subirla después desde tu perfil.</string>
+    <string name="auth_curp_label">CURP (opcional)</string>
+    <string name="auth_curp_hint">Con tu CURP el equipo de Karsy puede verificar tu cuenta y te aparece la insignia de Verificado.</string>
+    <string name="auth_curp_send_failed">Tu cuenta se creó, pero no pudimos enviar tu CURP. Puedes enviarla después desde tu perfil.</string>
     <string name="auth_section_profile_photo">Foto de perfil</string>
     <string name="auth_lote_logo_hint">Logo del lote o imagen de perfil</string>
     <string name="auth_lote_logo">Logo del lote</string>
@@ -575,6 +579,14 @@
     <string name="profile_verification_pending_title">Tu constancia está en revisión</string>
     <string name="profile_verification_pending_desc">Cuando la aprobemos, tu lote mostrará la insignia de Lote verificado.</string>
     <string name="profile_verification_sent">Recibimos tu constancia. La revisaremos pronto.</string>
+    <string name="profile_curp_title">Verifica tu cuenta</string>
+    <string name="profile_curp_desc">Escribe tu CURP para que el equipo de Karsy verifique tu cuenta y obtengas la insignia de Verificado.</string>
+    <string name="profile_curp_rejected_title">Tu CURP fue rechazada</string>
+    <string name="profile_curp_send">Enviar CURP</string>
+    <string name="profile_curp_resend">Volver a enviar CURP</string>
+    <string name="profile_curp_pending_title">Tu CURP está en revisión</string>
+    <string name="profile_curp_pending_desc">Cuando la aprobemos, tu perfil mostrará la insignia de Verificado.</string>
+    <string name="profile_curp_sent">Recibimos tu CURP. La revisaremos pronto.</string>
     <string name="profile_my_posts">Mis publicaciones</string>
     <string name="profile_no_posts">Aún no tienes publicaciones.</string>
     <string name="profile_hidden_posts">Publicaciones ocultas (%1$d)</string>

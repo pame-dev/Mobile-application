@@ -228,6 +228,7 @@ class AdminViewModel : ViewModel() {
                 userType = v.tipoUsuario,
                 documentType = v.tipoDocumento,
                 documentPath = v.archivoPath,
+                curp = v.curp,
                 status = when (v.estado) {
                     Constancia.VERIFICADO -> VerificationStatus.Verificado
                     Constancia.RECHAZADO -> VerificationStatus.Rechazado
@@ -355,7 +356,8 @@ class AdminViewModel : ViewModel() {
     /** Crea una URL firmada (10 min) del documento y se la pasa a [onUrl] para abrirla. */
     fun openDocument(verification: UserVerification, onUrl: (String) -> Unit) {
         viewModelScope.launch {
-            safeCall { AdminRepository.constanciaSignedUrl(verification.documentPath) }
+            val ruta = verification.documentPath ?: return@launch
+            safeCall { AdminRepository.constanciaSignedUrl(ruta) }
                 .onSuccess(onUrl)
                 .onFailure { message = it.mensajeUsuario() }
         }

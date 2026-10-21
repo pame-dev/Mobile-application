@@ -11,6 +11,9 @@ export const es = {
   'auth.csf.tooBig': 'El archivo pesa más de 5 MB. Sube uno más ligero.',
   'auth.csf.empty': 'El archivo está vacío. Elige otro.',
   'auth.csf.uploadFailed': 'Tu cuenta se creó, pero no pudimos subir tu constancia. Puedes subirla después desde tu perfil.',
+  'auth.curp.label': 'CURP (opcional)',
+  'auth.curp.hint': 'Con tu CURP el equipo de Karsy puede verificar tu cuenta y te aparece la insignia de Verificado.',
+  'auth.curp.sendFailed': 'Tu cuenta se creó, pero no pudimos enviar tu CURP. Puedes enviarla después desde tu perfil.',
   'auth.reg.legalTitle': 'Documentos legales',
   'auth.reg.termsCard': 'Términos y condiciones',
   'auth.reg.termsCardDesc': 'Las reglas para usar Karsy, publicar vehículos y tratar con otros usuarios.',
@@ -69,6 +72,7 @@ export const es = {
 
   // Reglas de formularios (lib/formRules.ts)
   'auth.rules.email': 'Escribe un correo válido (ej. nombre@gmail.com).',
+  'auth.rules.curp': 'La CURP no es válida. Revisa que tenga 18 caracteres, como aparece en tu documento.',
   'auth.rules.lettersOnly': 'Usa solo letras (sin números ni símbolos).',
   'auth.rules.minChars': 'Escribe al menos {n} caracteres.',
   'auth.rules.maxChars': 'Máximo {n} caracteres.',
@@ -219,6 +223,9 @@ export const en: Record<keyof typeof es, string> = {
   'auth.csf.tooBig': 'The file is larger than 5 MB. Upload a smaller one.',
   'auth.csf.empty': 'The file is empty. Choose another one.',
   'auth.csf.uploadFailed': "Your account was created, but we couldn't upload your certificate. You can upload it later from your profile.",
+  'auth.curp.label': 'CURP (optional)',
+  'auth.curp.hint': 'With your CURP the Karsy team can verify your account and you get the Verified badge.',
+  'auth.curp.sendFailed': "Your account was created, but we couldn't send your CURP. You can send it later from your profile.",
   'auth.reg.legalTitle': 'Legal documents',
   'auth.reg.termsCard': 'Terms and conditions',
   'auth.reg.termsCardDesc': 'The rules for using Karsy, publishing vehicles and dealing with other users.',
@@ -273,6 +280,7 @@ export const en: Record<keyof typeof es, string> = {
   'auth.err.signInFirst': 'Sign in first.',
 
   'auth.rules.email': 'Enter a valid email (e.g. name@gmail.com).',
+  'auth.rules.curp': 'The CURP is not valid. Check that it has 18 characters, as shown on your document.',
   'auth.rules.lettersOnly': 'Use letters only (no numbers or symbols).',
   'auth.rules.minChars': 'Enter at least {n} characters.',
   'auth.rules.maxChars': 'Maximum {n} characters.',

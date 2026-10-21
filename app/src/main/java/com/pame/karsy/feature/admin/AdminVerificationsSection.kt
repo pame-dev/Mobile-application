@@ -140,6 +140,7 @@ private fun userTypeLabel(type: String): String = when (type) {
 @Composable
 private fun documentTypeLabel(type: String): String = when (type) {
     Constancia.TIPO_DOCUMENTO -> stringResource(R.string.admin2_verif_doc_constancia)
+    "curp" -> "CURP"
     else -> type
 }
 
@@ -174,6 +175,10 @@ private fun VerificationRow(
         AdminField(stringResource(R.string.admin2_verif_user_type), userTypeLabel(verification.userType), Modifier.weight(1f))
         AdminField(stringResource(R.string.admin2_verif_document), documentTypeLabel(verification.documentType), Modifier.weight(1f))
     }
+    // La CURP no tiene archivo: se muestra para compararla con el nombre del usuario.
+    if (!verification.curp.isNullOrBlank()) {
+        AdminField("CURP", verification.curp)
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
         AdminField(stringResource(R.string.admin2_verif_sent_on), verification.sentOn, Modifier.weight(1f))
         val reviewedOn = verification.reviewedOn
@@ -194,7 +199,7 @@ private fun VerificationRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        AdminActionButton(stringResource(R.string.admin2_verif_open), onClick = onOpen)
+        if (verification.documentPath != null) AdminActionButton(stringResource(R.string.admin2_verif_open), onClick = onOpen)
         Spacer(Modifier.weight(1f))
         if (verification.status == VerificationStatus.Pendiente) {
             AdminActionButton(stringResource(R.string.admin1_reject), tone = ActionTone.Danger, onClick = onReject)

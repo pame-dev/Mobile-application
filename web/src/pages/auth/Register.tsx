@@ -6,7 +6,7 @@ import { ConstanciaField } from '../../components/ConstanciaField'
 import { Icon, type IconName } from '../../components/Icon'
 import { Brand } from '../../components/TopNav'
 import { useUi } from '../../components/Ui'
-import { EmailNotVerifiedError, holdAvatarUntilVerified, holdConstanciaUntilVerified, mensajeUsuario, msgEmailExiste, signUp, subirConstancia, telefonoEnUso, uploadAvatar } from '../../data/auth'
+import { EmailNotVerifiedError, enviarCurp, holdAvatarUntilVerified, holdConstanciaUntilVerified, holdCurpUntilVerified, mensajeUsuario, msgEmailExiste, signUp, subirConstancia, telefonoEnUso, uploadAvatar } from '../../data/auth'
 import { docAceptado, limpiarAceptaciones, type DocLegal } from '../../data/legal'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
@@ -83,13 +83,15 @@ interface Form {
   colonia: string
   codigoPostal: string
   descripcion: string
+  /** CURP (opcional, solo particulares): con ella el admin puede verificar la cuenta. */
+  curp: string
   password: string
   confirm: string
 }
 
 const VACIO: Form = {
   nombre: '', apellido: '', correo: '', estado: '', ciudad: '', telefono: '', mismoWhatsapp: true, whatsapp: '',
-  medio: null, nombreLote: '', calle: '', numero: '', colonia: '', codigoPostal: '', descripcion: '', password: '',
+  medio: null, nombreLote: '', calle: '', numero: '', colonia: '', codigoPostal: '', descripcion: '', curp: '', password: '',
   confirm: '',
 }
 
@@ -104,7 +106,7 @@ let borrador: { tipo: Tipo; f: Form; logo: Blob | null; constancia: File | null 
 const requerido = () => traducir('auth.reg.required')
 
 /** Orden de los campos en pantalla (para llevar la vista al primer error). */
-const CAMPOS_PARTICULAR = ['nombre', 'apellido', 'correo', 'estado', 'ciudad', 'telefono', 'whatsapp', 'medio', 'password']
+const CAMPOS_PARTICULAR = ['nombre', 'apellido', 'correo', 'estado', 'ciudad', 'curp', 'telefono', 'whatsapp', 'medio', 'password']
 const CAMPOS_LOTE = ['nombre', 'apellido', 'correo', 'telefono', 'whatsapp', 'medio', 'nombreLote', 'calle', 'numero', 'colonia', 'codigoPostal', 'estado', 'ciudad', 'password']
 
 /** Error del campo con su valor actual, o null si está bien (validar() de RegisterViewModel). */
@@ -142,6 +144,9 @@ function validar(f: Form, campo: string, correoRegistrado: string | null): strin
       return obligatorio(f.colonia, R.textoDireccion)
     case 'codigoPostal':
       return obligatorio(f.codigoPostal, R.codigoPostal)
+    // Opcional: vacía no es error.
+    case 'curp':
+      return R.curp(f.curp)
   }
   return null
 }
@@ -329,8 +334,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
       if (logo) await uploadAvatar(logo.blob).catch(() => undefined)
       // La constancia también es opcional: si no se pudo subir, la cuenta queda 'sin_documento' y se avisa.
       const constanciaFallo = esLote && constancia ? await subirConstancia(constancia).then(() => false, () => true) : false
+      // La CURP del particular (opcional) va a revisión; si falla, la puede mandar desde su perfil.
+      const curpFallo = !esLote && limpio.curp ? await enviarCurp(limpio.curp).then(() => false, () => true) : false
       await reload()
-      toast(t(constanciaFallo ? 'auth.csf.uploadFailed' : 'auth.reg.created'))
+      toast(t(constanciaFallo ? 'auth.csf.uploadFailed' : curpFallo ? 'auth.curp.sendFailed' : 'auth.reg.created'))
       navigate('/', { replace: true })
     } catch (ex) {
       setLoading(false)
@@ -339,6 +346,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         // Cuenta creada, pero sin sesión hasta escribir el código: el logo se sube al verificarlo.
         if (logo) holdAvatarUntilVerified(ex.email, logo.blob)
         if (esLote && constancia) holdConstanciaUntilVerified(ex.email, constancia)
+        if (!esLote && limpio.curp) holdCurpUntilVerified(ex.email, limpio.curp)
         navigate('/verificar', { replace: true, state: { email: ex.email, sendCode: false } })
         return
       }
@@ -576,6 +584,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
             {datosPersona}
             {correoCampo}
             {ubicacion}
+            <Field id="curp" label={t('auth.curp.label')} error={err('curp')}>
+              {input('curp', { placeholder: 'GODE561231HDFRRN09', filtro: R.curpAlEscribir })}
+              {!err('curp') && <span className="muted" style={{ fontSize: 12 }}>{t('auth.curp.hint')}</span>}
+            </Field>
           </section>
         )}
 

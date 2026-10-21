@@ -221,7 +221,10 @@ export interface VerificacionAdmin {
   correo: string
   tipo_usuario: 'lote' | 'particular'
   tipo_documento: string
-  archivo_path: string
+  /** Ruta del archivo en el bucket; null en la CURP (no tiene archivo). */
+  archivo_path: string | null
+  /** CURP del particular (tipo_documento 'curp'). */
+  curp: string | null
   estado: 'pendiente' | 'verificado' | 'rechazado'
   motivo_rechazo: string | null
   /** Nombre del admin que lo revisó. */
