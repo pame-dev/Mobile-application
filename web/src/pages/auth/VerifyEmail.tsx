@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AlertBox, AuthShell, BackButton, OtpInput, ResendRow, useCountdown } from '../../components/AuthParts'
 import { Icon } from '../../components/Icon'
 import { useUi } from '../../components/Ui'
-import { EMAIL_CODE_LENGTH, mensajeUsuario, sendVerificationCode, uploadPendingAvatar, uploadPendingConstancia, verifyEmail } from '../../data/auth'
+import { EMAIL_CODE_LENGTH, mensajeUsuario, sendVerificationCode, uploadPendingAvatar, uploadPendingConstancia, uploadPendingCurp, verifyEmail } from '../../data/auth'
 import { useI18n } from '../../i18n/I18nContext'
 import { useSession } from '../../session/SessionContext'
 import { destinoDe } from './Login'
@@ -70,6 +70,8 @@ export function VerifyEmail() {
       await uploadPendingAvatar(email).catch(() => undefined)
       // Y la constancia fiscal del lote (opcional); si falla, la cuenta sigue y se avisa.
       const constanciaFallo = await uploadPendingConstancia(email).then(() => false, () => true)
+      // Y la CURP del particular (opcional); si falla, la puede mandar desde su perfil.
+      const curpFallo = await uploadPendingCurp(email).then(() => false, () => true)
       const r = await reload()
       if (!r.account) {
         clearNotice()
@@ -77,7 +79,7 @@ export function VerifyEmail() {
         setVerifying(false)
         return
       }
-      toast(t(constanciaFallo ? 'auth.csf.uploadFailed' : 'auth.verify.done'))
+      toast(t(constanciaFallo ? 'auth.csf.uploadFailed' : curpFallo ? 'auth.curp.sendFailed' : 'auth.verify.done'))
       navigate(destinoDe(state), { replace: true })
     } catch (e) {
       setError(mensajeUsuario(e))

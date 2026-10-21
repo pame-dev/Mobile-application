@@ -18,6 +18,8 @@ const CORREO = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}
 const NOMBRE = /^\p{L}[\p{L} .'-]*$/u
 /** El nombre de un lote puede llevar números y signos comunes ("Autos 4x4 & Cía."). */
 const NOMBRE_LOTE = /^[\p{L}\p{N}][\p{L}\p{N} .,'&()-]*$/u
+/** CURP de 18 caracteres con el formato oficial (igual que chk_verificaciones_usuario_curp en la BD). */
+const CURP = /^[A-Z][AEIOUX][A-Z]{2}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[HMX](AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$/
 /** "123", "123-A", "123 B", "S/N". */
 const NUMERO_EXT = /^([0-9]+[A-Za-z]?([ -]?[A-Za-z0-9]+)?|[Ss]\/?[Nn])$/
 
@@ -33,6 +35,9 @@ export function telefonoAlEscribir(t: string): string {
 
 /** Nombre o apellido al escribir: solo letras y máximo NOMBRE_MAX. */
 export const nombreAlEscribir = (t: string) => t.replace(/[^\p{L} .'-]/gu, '').slice(0, NOMBRE_MAX)
+
+/** CURP al escribir: mayúsculas, solo letras y números, máximo 18. */
+export const curpAlEscribir = (t: string) => t.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 18)
 
 // ── Limpieza ──
 
@@ -105,6 +110,12 @@ export function sugerenciaCorreo(valor: string): string | null {
 export function correo(v: string): string | null {
   const c = limpiarCorreo(v)
   return !c || CORREO.test(c) ? null : traducir('auth.rules.email')
+}
+
+/** CURP (opcional): si se escribe, debe tener el formato oficial. */
+export function curp(v: string): string | null {
+  const c = curpAlEscribir(v)
+  return !c || CURP.test(c) ? null : traducir('auth.rules.curp')
 }
 
 export function nombrePersona(valor: string): string | null {

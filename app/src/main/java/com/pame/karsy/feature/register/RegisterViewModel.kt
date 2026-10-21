@@ -58,6 +58,10 @@ class RegisterViewModel : ViewModel() {
     var descripcion by mutableStateOf("")
     var logo by mutableStateOf<Uri?>(null)
 
+    // Solo particular
+    /** CURP (opcional): con ella el admin puede verificar la cuenta (insignia "Verificado"). */
+    var curp by mutableStateOf("")
+
     var password by mutableStateOf("")
     var confirmPassword by mutableStateOf("")
     var acceptedTerms by mutableStateOf(false)
@@ -159,7 +163,7 @@ class RegisterViewModel : ViewModel() {
 
     private fun camposDe(esLote: Boolean) =
         listOf("nombre", "apellido", "correo", "telefono", "whatsapp", "medio", "estado", "ciudad", "password") +
-            if (esLote) listOf("nombreLote", "calle", "numero", "colonia", "codigoPostal") else emptyList()
+            if (esLote) listOf("nombreLote", "calle", "numero", "colonia", "codigoPostal") else listOf("curp")
 
     /** Corrección sugerida del correo ("gmil.com" → "gmail.com"), al salir del campo. */
     val correoSugerido: String?
@@ -193,6 +197,8 @@ class RegisterViewModel : ViewModel() {
             "numero" -> obligatorio(numero, FormRules::numeroExterior)
             "colonia" -> obligatorio(colonia, FormRules::textoDireccion)
             "codigoPostal" -> obligatorio(codigoPostal, FormRules::codigoPostal)
+            // Opcional: vacía no es error.
+            "curp" -> FormRules.curp(curp)
             else -> null
         }
     }
@@ -265,6 +271,11 @@ class RegisterViewModel : ViewModel() {
                         }
                             .onFailure { avisarConstanciaFallida(appContext) }
                     }
+                    // La CURP del particular (opcional) va a revisión; si falla, la manda después desde el perfil.
+                    if (!esLote && curp.isNotBlank()) {
+                        safeCall { UserRepository.enviarCurp(curp) }
+                            .onFailure { avisarCurpFallida(appContext) }
+                    }
                     loading = false
                     onCreated(cuenta)
                 }
@@ -282,6 +293,8 @@ class RegisterViewModel : ViewModel() {
                                 .onSuccess { UserRepository.holdConstanciaUntilVerified(e.email, it, archivo.mime) }
                                 .onFailure { avisarConstanciaFallida(appContext) }
                         }
+                        // La CURP se envía igual, al verificar el correo.
+                        if (!esLote && curp.isNotBlank()) UserRepository.holdCurpUntilVerified(e.email, curp)
                         loading = false
                         onVerifyEmail(e.email)
                     } else {
@@ -295,6 +308,11 @@ class RegisterViewModel : ViewModel() {
                     }
                 }
         }
+    }
+
+    /** "Tu cuenta se creó, pero no pudimos enviar tu CURP…" (la pantalla ya se cierra). */
+    private fun avisarCurpFallida(context: Context) {
+        Toast.makeText(context, texto(R.string.auth_curp_send_failed), Toast.LENGTH_LONG).show()
     }
 
     /** "Tu cuenta se creó, pero no pudimos subir tu constancia…" (la pantalla ya se cierra). */

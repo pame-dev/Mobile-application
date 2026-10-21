@@ -91,7 +91,9 @@ data class UserVerification(
     /** p. ej. 'constancia_situacion_fiscal'. */
     val documentType: String,
     /** Ruta en el bucket privado; se abre con una URL firmada. */
-    val documentPath: String,
+    val documentPath: String?,
+    /** CURP del particular (tipo 'curp'); no tiene archivo. */
+    val curp: String?,
     val status: VerificationStatus,
     val rejectionReason: String?,
     /** Nombre del admin que lo revisó. */

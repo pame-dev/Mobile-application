@@ -227,3 +227,30 @@ export async function uploadPendingConstancia(email: string): Promise<boolean> {
   await subirConstancia(p.file)
   return true
 }
+
+// ── CURP (verificación de particulares) ──
+
+/**
+ * Manda la CURP del particular a revisión con enviar_curp_verificacion: crea el registro
+ * 'pendiente' o, si se la rechazaron, lo reemplaza. Necesita sesión.
+ */
+export async function enviarCurp(curp: string): Promise<void> {
+  const { error } = await supabase.rpc('enviar_curp_verificacion', { p_curp: curp })
+  if (error) throw error
+}
+
+// Igual que la constancia: sin sesión (falta verificar el correo) se guarda hasta validar el código.
+let pendingCurp: { email: string; curp: string } | null = null
+
+export function holdCurpUntilVerified(email: string, curp: string) {
+  pendingCurp = { email: email.trim().toLowerCase(), curp }
+}
+
+/** Envía la CURP que se escribió en el registro. false si no había ninguna. */
+export async function uploadPendingCurp(email: string): Promise<boolean> {
+  const p = pendingCurp
+  pendingCurp = null
+  if (!p || p.email !== email.trim().toLowerCase()) return false
+  await enviarCurp(p.curp)
+  return true
+}

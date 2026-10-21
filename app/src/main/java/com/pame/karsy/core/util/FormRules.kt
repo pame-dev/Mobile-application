@@ -24,6 +24,8 @@ object FormRules {
     private val NOMBRE = Regex("^[\\p{L}][\\p{L} .'-]*$")
     /** El nombre de un lote puede llevar números y signos comunes ("Autos 4x4 & Cía."). */
     private val NOMBRE_LOTE = Regex("^[\\p{L}\\p{N}][\\p{L}\\p{N} .,'&()-]*$")
+    /** CURP de 18 caracteres con el formato oficial (igual que chk_verificaciones_usuario_curp en la BD). */
+    private val CURP = Regex("^[A-Z][AEIOUX][A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HMX](AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[A-Z0-9][0-9]$")
     /** "123", "123-A", "123 B", "S/N". */
     private val NUMERO_EXT = Regex("^([0-9]+[A-Za-z]?([ -]?[A-Za-z0-9]+)?|[Ss]/?[Nn])$")
 
@@ -46,6 +48,15 @@ object FormRules {
 
     /** Nombre o apellido al escribir: solo letras y máximo [NOMBRE_MAX]. */
     fun nombreAlEscribir(texto: String) = soloLetras(texto).take(NOMBRE_MAX)
+
+    /** CURP al escribir: mayúsculas, solo letras y números, máximo 18. */
+    fun curpAlEscribir(texto: String) = texto.uppercase().filter { it in 'A'..'Z' || it in '0'..'9' }.take(18)
+
+    /** CURP (opcional): si se escribe, debe tener el formato oficial. */
+    fun curp(valor: String): String? {
+        val c = curpAlEscribir(valor)
+        return if (c.isEmpty() || CURP.matches(c)) null else texto(R.string.form_error_curp)
+    }
 
     /** Recorta al escribir: el campo no deja pasar de [max] caracteres. */
     fun maximo(max: Int): (String) -> String = { it.take(max) }

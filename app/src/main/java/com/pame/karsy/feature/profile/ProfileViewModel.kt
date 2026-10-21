@@ -24,6 +24,7 @@ import com.pame.karsy.data.repository.AuthRepository
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.UserRepository
 import kotlinx.coroutines.launch
+import com.pame.karsy.core.util.FormRules
 
 /** Perfil de la cuenta en sesión y sus publicaciones. */
 class ProfileViewModel : ViewModel() {
@@ -159,6 +160,37 @@ class ProfileViewModel : ViewModel() {
     fun quitarConstancia() {
         constancia = null
         constanciaError = null
+    }
+
+    // ── CURP (solo particular) ──
+
+    var curp by mutableStateOf("")
+    var curpError by mutableStateOf<String?>(null)
+        private set
+    var enviandoCurp by mutableStateOf(false)
+        private set
+
+    fun cambiarCurp(valor: String) {
+        curp = FormRules.curpAlEscribir(valor)
+        // El formato se revisa ya completa (18): mientras escribe no se marca error.
+        curpError = if (curp.length == 18) FormRules.curp(curp) else null
+    }
+
+    /** Manda la CURP a revisión; el perfil queda "en revisión". */
+    fun enviarCurp() {
+        if (enviandoCurp || curp.length != 18 || FormRules.curp(curp) != null) return
+        enviandoCurp = true
+        curpError = null
+        viewModelScope.launch {
+            safeCall { UserRepository.enviarCurp(curp) }
+                .onSuccess {
+                    curp = ""
+                    user = user?.copy(estadoVerificacion = Constancia.PENDIENTE, motivoRechazoVerificacion = null)
+                    message = texto(R.string.profile_curp_sent)
+                }
+                .onFailure { curpError = it.mensajeUsuario() }
+            enviandoCurp = false
+        }
     }
 
     /** Sube la constancia elegida y la manda a revisión; el perfil queda "en revisión". */

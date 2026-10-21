@@ -94,6 +94,8 @@ import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.model.User
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import com.pame.karsy.core.components.FormInput
 
 /** Pantalla "Mi perfil" (WebProfileView del mockup). */
 @Composable
@@ -192,6 +194,21 @@ fun ProfileScreen(
                         onPick = { vm.elegirConstancia(context, it) },
                         onRemove = vm::quitarConstancia,
                         onSend = { vm.enviarConstancia(context) }
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+                // Particular sin insignia: ofrece mandar (o volver a mandar) su CURP.
+                if (user.accountType == "particular" && !SessionManager.isAdmin && !user.verificado &&
+                    user.estadoVerificacion != Constancia.VERIFICADO
+                ) {
+                    CurpVerificationCard(
+                        estado = user.estadoVerificacion,
+                        motivoRechazo = user.motivoRechazoVerificacion,
+                        curp = vm.curp,
+                        error = vm.curpError,
+                        enviando = vm.enviandoCurp,
+                        onChange = vm::cambiarCurp,
+                        onSend = vm::enviarCurp
                     )
                     Spacer(Modifier.height(16.dp))
                 }
@@ -376,7 +393,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                     )
                     // "Verificado" justo a la derecha del nombre.
                     // 10 dp del nombre (8 del Row + 2); a la etiqueta "Lote" quedan los 8 del Row.
-                    if (user.accountType == "lote" && (user.verificado || user.estadoVerificacion == Constancia.VERIFICADO)) VerifiedBadge(Modifier.padding(start = 2.dp))
+                    if (user.verificado || user.estadoVerificacion == Constancia.VERIFICADO) VerifiedBadge(Modifier.padding(start = 2.dp))
                     if (userMode == UserMode.LOTE) AccountBadge(stringResource(R.string.profile_badge_lot))
                     if (SessionManager.isAdmin) AccountBadge(stringResource(R.string.profile_badge_admin))
                 }
@@ -399,6 +416,99 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
             }
         }
       }
+    }
+}
+
+/**
+ * Verificación del particular con su CURP: en revisión, o el campo para mandarla (la primera
+ * vez o después de un rechazo, con el motivo del admin).
+ */
+@Composable
+private fun CurpVerificationCard(
+    estado: String,
+    motivoRechazo: String?,
+    curp: String,
+    error: String?,
+    enviando: Boolean,
+    onChange: (String) -> Unit,
+    onSend: () -> Unit,
+) {
+    ProfileCard(radius = 16.dp, elevation = 1.dp) {
+        Column(Modifier.padding(18.dp)) {
+            if (estado == Constancia.PENDIENTE) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Outlined.HourglassTop, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(22.dp))
+                    Text(
+                        stringResource(R.string.profile_curp_pending_title),
+                        fontFamily = Outfit,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = KarsyInk
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.profile_curp_pending_desc),
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                    color = KarsyTextSecondary
+                )
+            } else {
+                val rechazada = estado == Constancia.RECHAZADO
+                Text(
+                    stringResource(if (rechazada) R.string.profile_curp_rejected_title else R.string.profile_curp_title),
+                    fontFamily = Outfit,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = KarsyInk
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.profile_curp_desc),
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                    color = KarsyTextSecondary
+                )
+                if (rechazada && !motivoRechazo.isNullOrBlank()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.profile_verification_reason, rememberTraduccion(motivoRechazo)),
+                        fontFamily = DmSans,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        color = KarsyError,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(KarsyErrorLight)
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                FormInput(
+                    label = "CURP",
+                    placeholder = "GODE561231HDFRRN09",
+                    value = curp,
+                    onValueChange = onChange,
+                    error = error,
+                    enabled = !enviando,
+                    capitalization = KeyboardCapitalization.Characters
+                )
+                PrimaryButton(
+                    text = stringResource(
+                        when {
+                            enviando -> R.string.profile_verification_sending
+                            rechazada -> R.string.profile_curp_resend
+                            else -> R.string.profile_curp_send
+                        }
+                    ),
+                    onClick = onSend,
+                    enabled = curp.length == 18 && error == null && !enviando
+                )
+            }
+        }
     }
 }
 

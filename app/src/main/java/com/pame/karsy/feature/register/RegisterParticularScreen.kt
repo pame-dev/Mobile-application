@@ -31,6 +31,10 @@ import com.pame.karsy.core.components.SectionLabel
 import com.pame.karsy.core.components.TermsCheckbox
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.theme.KarsyBg
+import androidx.compose.ui.unit.sp
+import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.DmSans
+import androidx.compose.material3.Text
 
 /** Formulario de registro de una cuenta Particular. Crea el usuario en Supabase Auth. */
 @Composable
@@ -91,6 +95,21 @@ fun RegisterParticularScreen(
                 estadoError = vm.errorFor("estado"),
                 municipioError = vm.errorFor("ciudad"),
                 modifier = scroller.markModifier("estado", "ciudad")
+            )
+            // Opcional: con la CURP el admin puede darle la insignia "Verificado".
+            FormInput(
+                label = stringResource(R.string.auth_curp_label), placeholder = "GODE561231HDFRRN09",
+                value = vm.curp, onValueChange = { vm.curp = it }, inputFilter = FormRules::curpAlEscribir,
+                error = vm.errorFor("curp"), onFocusLost = { vm.touch("curp") },
+                capitalization = KeyboardCapitalization.Characters, onPositioned = scroller.mark("curp")
+            )
+            Text(
+                stringResource(R.string.auth_curp_hint),
+                fontFamily = DmSans,
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                color = KarsyMid,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
             SectionLabel(stringResource(R.string.auth_section_contact))

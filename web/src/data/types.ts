@@ -138,7 +138,7 @@ export interface Account {
 export type EstadoVerificacion = 'sin_documento' | 'pendiente' | 'verificado' | 'rechazado'
 
 /** Documentos de verificación (chk_verificaciones_usuario_tipo_documento). */
-export type TipoDocumento = 'constancia_situacion_fiscal'
+export type TipoDocumento = 'constancia_situacion_fiscal' | 'curp'
 
 /** Lote o agencia del directorio (cuentas tipo "lote" + perfiles_lote). */
 export interface Lot {
@@ -176,3 +176,4 @@ export interface SellerProfile {
   since: string
   active: boolean
 }
+
