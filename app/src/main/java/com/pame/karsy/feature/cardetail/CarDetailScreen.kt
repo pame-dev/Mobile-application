@@ -1033,7 +1033,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
             )
             Column(Modifier.weight(1f)) {
                 // Nombre + "Verificado": si el nombre es largo se corta; la insignia siempre se ve completa.
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         detail.contactoNombre,
                         fontFamily = DmSans,

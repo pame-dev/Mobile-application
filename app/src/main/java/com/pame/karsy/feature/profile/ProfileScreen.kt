@@ -375,7 +375,8 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                         modifier = Modifier.weight(1f, fill = false)
                     )
                     // "Verificado" justo a la derecha del nombre.
-                    if (user.accountType == "lote" && (user.verificado || user.estadoVerificacion == Constancia.VERIFICADO)) VerifiedBadge()
+                    // 10 dp del nombre (8 del Row + 2); a la etiqueta "Lote" quedan los 8 del Row.
+                    if (user.accountType == "lote" && (user.verificado || user.estadoVerificacion == Constancia.VERIFICADO)) VerifiedBadge(Modifier.padding(start = 2.dp))
                     if (userMode == UserMode.LOTE) AccountBadge(stringResource(R.string.profile_badge_lot))
                     if (SessionManager.isAdmin) AccountBadge(stringResource(R.string.profile_badge_admin))
                 }

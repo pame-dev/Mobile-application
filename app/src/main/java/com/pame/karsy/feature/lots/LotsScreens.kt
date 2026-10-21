@@ -239,15 +239,20 @@ private fun LotCard(lot: Lot, onClick: () -> Unit) {
             modifier = Modifier.border(1.dp, LotOutline, CircleShape)
         )
         Column(Modifier.padding(start = 14.dp).weight(1f)) {
-            Text(
-                lot.name,
-                fontFamily = Outfit,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            // Nombre + insignia compacta si el lote está verificado (cuentas.verificado).
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    lot.name,
+                    fontFamily = Outfit,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KarsyInk,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                if (lot.verificado) VerifiedBadge(compact = true)
+            }
             Text(
                 "${lot.city} · " + pluralStringResource(R.plurals.lots_vehicle_count, lot.vehicleCount, lot.vehicleCount),
                 fontFamily = DmSans,
@@ -472,7 +477,7 @@ private fun LotIdentityCard(
             )
             Column(Modifier.weight(1f).padding(start = 16.dp)) {
                 // Nombre + "Verificado" (cuentas.verificado): el nombre se corta si es largo, la insignia no.
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         lot.name,
                         fontFamily = Outfit,

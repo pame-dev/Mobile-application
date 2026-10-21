@@ -488,11 +488,14 @@ export function Profile() {
               <span className="verified-name">
                 <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
                 <VerifiedBadge />
+                <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
               </span>
             ) : (
-              <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
+              <>
+                <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
+                <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
+              </>
             )}
-            <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
           </div>
           <p className="muted">{datos}</p>
         </div>
