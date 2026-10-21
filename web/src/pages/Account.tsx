@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AlertBox, PasswordInput, PasswordRulesList } from '../components/AuthParts'
+import { Bandera } from '../components/Bandera'
 import { ConfirmModal } from '../components/Confirm'
 import { Icon, type IconName } from '../components/Icon'
 import { LogoutModal } from '../components/TopNav'
@@ -387,14 +388,11 @@ export function SavedSearches() {
 function LanguageModal() {
   const { closeModal } = useUi()
   const { t, lang, setLang } = useI18n()
-  const opciones: [Lang, string][] = [
-    ['es', '🇲🇽'],
-    ['en', '🇺🇸'],
-  ]
+  const opciones: Lang[] = ['es', 'en']
   return (
     <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <ModalHead title={t('lang.title')} sub={t('lang.sub')} />
-      {opciones.map(([l, bandera]) => (
+      {opciones.map((l) => (
         <button
           key={l}
           className={`langopt ${lang === l ? 'on' : ''}`}
@@ -405,7 +403,7 @@ function LanguageModal() {
             closeModal()
           }}
         >
-          <span style={{ fontSize: 22 }}>{bandera}</span>
+          <Bandera lang={l} ancho={28} />
           <b className="grow">{t(l === 'es' ? 'lang.es' : 'lang.en')}</b>
           <span className="badge b-neu">{l.toUpperCase()}</span>
           <span className="radio" />
