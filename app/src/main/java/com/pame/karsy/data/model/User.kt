@@ -35,4 +35,8 @@ data class User(
     val estadoVerificacion: String = "sin_documento",
     /** Comentario del admin si rechazó ese último documento. */
     val motivoRechazoVerificacion: String? = null,
+    /** verificaciones_usuario.fecha_envio de ese último documento (ISO); null si no hay. */
+    val fechaEnvioVerificacion: String? = null,
+    /** verificaciones_usuario.fecha_revision de ese último documento (ISO); null si no se ha revisado. */
+    val fechaRevisionVerificacion: String? = null,
 )

@@ -52,4 +52,21 @@ class ConstanciaTest {
     @Test fun formatoInvalido_tienePrioridadSobreTamano() {
         assertEquals(R.string.form_error_constancia_format, Constancia.errorDe("image/webp", 0))
     }
+
+    @Test fun estadoPerfil_usaElUltimoDocumentoAunqueTengaInsignia() {
+        assertEquals(Constancia.PENDIENTE, Constancia.estadoPerfil(true, Constancia.PENDIENTE))
+        assertEquals(Constancia.RECHAZADO, Constancia.estadoPerfil(true, Constancia.RECHAZADO))
+        assertEquals(Constancia.VERIFICADO, Constancia.estadoPerfil(true, Constancia.VERIFICADO))
+    }
+
+    @Test fun estadoPerfil_sinInsigniaUsaElUltimoDocumento() {
+        assertEquals(Constancia.PENDIENTE, Constancia.estadoPerfil(false, Constancia.PENDIENTE))
+        assertEquals(Constancia.RECHAZADO, Constancia.estadoPerfil(false, Constancia.RECHAZADO))
+        assertEquals(Constancia.VERIFICADO, Constancia.estadoPerfil(false, Constancia.VERIFICADO))
+    }
+
+    @Test fun estadoPerfil_sinDocumentoUsaLaInsigniaDeLaCuenta() {
+        assertEquals(Constancia.VERIFICADO, Constancia.estadoPerfil(true, null))
+        assertEquals(Constancia.SIN_DOCUMENTO, Constancia.estadoPerfil(false, null))
+    }
 }

@@ -13,14 +13,12 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.util.Formato
-import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.data.model.SellerContact
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.ContactoDto
-import com.pame.karsy.data.remote.CuentaVerificadaDto
 import com.pame.karsy.data.remote.DestacadoFinDto
 import com.pame.karsy.data.remote.FavoritoDto
 import com.pame.karsy.data.remote.FavoritosConteoDto
@@ -66,22 +64,13 @@ object CarRepository {
         }.decodeList<AnuncioDto>().map(::toCar)
 
     suspend fun detail(id: Long): CarDetail? {
-        val base = db.from(VISTA).select { filter { eq("id_publicacion", id) } }
+        val detail = db.from(VISTA).select { filter { eq("id_publicacion", id) } }
             .decodeSingleOrNull<AnuncioDto>()
             ?.let(::toDetail) ?: return null
-        // Insignia del vendedor: cuentas.verificado es de lectura pública.
-        val detail = base.copy(sellerVerificado = cuentaVerificada(base.sellerId))
         // El dueño ve hasta cuándo dura su destacado.
         if (!detail.car.featured || detail.car.ownerId != SessionManager.userId) return detail
         return detail.copy(car = withFeaturedUntil(listOf(detail.car)).first())
     }
-
-    /** cuentas.verificado del vendedor; si no se puede leer, sin insignia. */
-    private suspend fun cuentaVerificada(idCuenta: String): Boolean =
-        safeCall {
-            db.from("cuentas").select(Columns.list("verificado")) { filter { eq("id_cuenta", idCuenta) } }
-                .decodeSingleOrNull<CuentaVerificadaDto>()?.verificado == true
-        }.getOrDefault(false)
 
     suspend fun carsByIds(ids: List<Long>): List<Car> {
         if (ids.isEmpty()) return emptyList()

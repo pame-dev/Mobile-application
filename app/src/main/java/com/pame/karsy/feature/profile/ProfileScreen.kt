@@ -62,20 +62,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
-import com.pame.karsy.core.components.ConstanciaField
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.VerifiedBadge
-import com.pame.karsy.core.util.ArchivoConstancia
 import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyErrorLight
 import androidx.compose.material.icons.outlined.HourglassTop
+import com.pame.karsy.core.util.Formato
+import androidx.compose.material.icons.outlined.AssignmentTurnedIn
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.session.UserMode
@@ -183,17 +188,16 @@ fun ProfileScreen(
                     onOpenAvatar = { avatarOpen = true }
                 )
                 Spacer(Modifier.height(16.dp))
-                // Lote sin insignia: ofrece subir (o volver a subir) su constancia fiscal.
-                if (user.accountType == "lote" && !user.verificado && user.estadoVerificacion != Constancia.VERIFICADO) {
-                    LoteVerificationCard(
+                // Solo el propio lote: estado de su constancia fiscal y, si se puede, el botón para subirla.
+                if (user.accountType == "lote") {
+                    LoteConstanciaCard(
                         estado = user.estadoVerificacion,
                         motivoRechazo = user.motivoRechazoVerificacion,
-                        archivo = vm.constancia,
+                        fechaEnvio = user.fechaEnvioVerificacion,
+                        fechaRevision = user.fechaRevisionVerificacion,
                         error = vm.constanciaError,
                         enviando = vm.enviandoConstancia,
-                        onPick = { vm.elegirConstancia(context, it) },
-                        onRemove = vm::quitarConstancia,
-                        onSend = { vm.enviarConstancia(context) }
+                        onPick = { vm.subirConstancia(context, it) }
                     )
                     Spacer(Modifier.height(16.dp))
                 }
@@ -327,91 +331,90 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                 .fillMaxWidth()
                 .padding(start = 22.dp, end = 22.dp, top = 56.dp, bottom = 24.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Box {
-                    ZoomableProfileAvatar(
-                        name = user.displayName,
-                        avatarUrl = user.avatarUrl,
-                        size = 88.dp,
-                        initialsSize = 30.sp,
-                        onOpen = onOpenAvatar,
-                        modifier = Modifier
-                            .shadow(6.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
-                            .border(4.dp, KarsySurface, CircleShape)
-                    )
-                    // Indicador "en línea"
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .offset(x = (-3).dp, y = (-3).dp)
-                            .size(18.dp)
-                            .clip(CircleShape)
-                            .background(KarsySurface)
-                            .padding(3.dp)
-                            .clip(CircleShape)
-                            .background(KarsyTeal)
-                    )
-                }
-                OutlinedButton(
-                    onClick = onEdit,
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.5.dp, KarsyBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = KarsySurface,
-                        contentColor = KarsyInk
-                    ),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 9.dp),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                ) {
-                    Text(
-                        stringResource(R.string.profile_edit_profile),
-                        fontFamily = DmSans,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+            // Encima de la portada (la mitad de la foto queda sobre ella).
+            Box(Modifier.zIndex(1f)) {
+                ZoomableProfileAvatar(
+                    name = user.displayName,
+                    avatarUrl = user.avatarUrl,
+                    size = 88.dp,
+                    initialsSize = 30.sp,
+                    onOpen = onOpenAvatar,
+                    modifier = Modifier
+                        .shadow(6.dp, CircleShape, ambientColor = CardShadow, spotColor = CardShadow)
+                        .border(4.dp, KarsySurface, CircleShape)
+                )
+                // Indicador "en línea"
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset(x = (-3).dp, y = (-3).dp)
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(KarsySurface)
+                        .padding(3.dp)
+                        .clip(CircleShape)
+                        .background(KarsyTeal)
+                )
             }
             Spacer(Modifier.height(14.dp))
-            Column {
+            // Línea 1: solo el nombre; si es largo se corta con "…".
+            Text(
+                text = user.displayName,
+                fontFamily = Outfit,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = KarsyInk,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            // Línea 2: insignias en su propia fila (sin hueco si no hay ninguna).
+            val verificado = user.verificado || user.estadoVerificacion == Constancia.VERIFICADO
+            if (verificado || userMode == UserMode.LOTE || SessionManager.isAdmin) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 ) {
-                    Text(
-                        text = user.displayName,
-                        fontFamily = Outfit,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = KarsyInk,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    // "Verificado" justo a la derecha del nombre.
-                    // 10 dp del nombre (8 del Row + 2); a la etiqueta "Lote" quedan los 8 del Row.
-                    if (user.verificado || user.estadoVerificacion == Constancia.VERIFICADO) VerifiedBadge(Modifier.padding(start = 2.dp))
+                    if (verificado) VerifiedBadge()
                     if (userMode == UserMode.LOTE) AccountBadge(stringResource(R.string.profile_badge_lot))
                     if (SessionManager.isAdmin) AccountBadge(stringResource(R.string.profile_badge_admin))
                 }
+            } else {
                 Spacer(Modifier.height(2.dp))
+            }
+            // Línea 3: usuario y datos, en gris como antes.
+            Text(
+                text = "@" + user.email.substringBefore("@"),
+                fontFamily = DmSans,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = KarsyTeal
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = listOf(rememberTraduccion(user.bio), user.location).filter { it.isNotBlank() }.joinToString(" · "),
+                fontFamily = DmSans,
+                fontSize = 14.sp,
+                lineHeight = 21.sp,
+                color = KarsyTextSecondary
+            )
+            // Botones en su propia fila, debajo del texto (pantalla de celular).
+            Spacer(Modifier.height(14.dp))
+            OutlinedButton(
+                onClick = onEdit,
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.5.dp, KarsyBorder),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = KarsySurface,
+                    contentColor = KarsyInk
+                ),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 9.dp),
+            ) {
                 Text(
-                    text = "@" + user.email.substringBefore("@"),
+                    stringResource(R.string.profile_edit_profile),
                     fontFamily = DmSans,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = KarsyTeal
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = listOf(rememberTraduccion(user.bio), user.location).filter { it.isNotBlank() }.joinToString(" · "),
-                    fontFamily = DmSans,
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp,
-                    color = KarsyTextSecondary
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -512,85 +515,126 @@ private fun CurpVerificationCard(
     }
 }
 
+// Colores de la tarjeta de la constancia: gris del detalle y azul del botón.
+private val ConstanciaGris = Color(0xFF9AA7B3)
+private val ConstanciaAzul = Color(0xFF3D7FC4)
+
 /**
- * Verificación del lote con su Constancia de Situación Fiscal: en revisión, o el campo para
- * subirla (la primera vez o después de un rechazo, con el motivo del admin).
+ * Constancia de Situación Fiscal del propio lote, en una fila: ícono por estado, título, estado
+ * con su detalle y, solo sin documento o rechazada, el botón para subirla (debajo, a todo lo ancho).
+ * El botón abre el mismo selector que el registro; [onPick] la revisa (PDF/JPG/PNG, 5 MB) y la sube.
  */
 @Composable
-private fun LoteVerificationCard(
+private fun LoteConstanciaCard(
     estado: String,
     motivoRechazo: String?,
-    archivo: ArchivoConstancia?,
+    fechaEnvio: String?,
+    fechaRevision: String?,
     error: String?,
     enviando: Boolean,
     onPick: (Uri) -> Unit,
-    onRemove: () -> Unit,
-    onSend: () -> Unit,
 ) {
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) onPick(uri)
+    }
+    // Fondo y color del ícono, color del punto y del estado, textos y botón (null = sin botón).
+    val fondo: Color
+    val tinte: Color
+    val colorEstado: Color
+    val estadoTexto: String
+    val detalle: String?
+    val boton: Int?
+    when (estado) {
+        Constancia.PENDIENTE -> {
+            fondo = Color(0xFF3A3320); tinte = Color(0xFFE8C66A); colorEstado = tinte
+            estadoTexto = stringResource(R.string.profile_verification_state_pending)
+            detalle = Formato.fechaNumerica(fechaEnvio)?.let { stringResource(R.string.profile_verification_sent_on, it) }
+            boton = null
+        }
+        Constancia.VERIFICADO -> {
+            fondo = Color(0xFF1F3B2C); tinte = Color(0xFF7FD3A4); colorEstado = tinte
+            estadoTexto = stringResource(R.string.profile_verification_state_verified)
+            detalle = Formato.fechaNumerica(fechaRevision)?.let { stringResource(R.string.profile_verification_since, it) }
+            boton = null
+        }
+        Constancia.RECHAZADO -> {
+            fondo = Color(0xFF3D2224); tinte = Color(0xFFF08A8A); colorEstado = tinte
+            estadoTexto = stringResource(R.string.profile_verification_state_rejected)
+            val motivo = rememberTraduccion(motivoRechazo.orEmpty())
+            detalle = motivo.takeIf { it.isNotBlank() }?.let { stringResource(R.string.profile_verification_reason, it) }
+            boton = R.string.profile_verification_change
+        }
+        else -> {
+            fondo = Color(0xFF1D3550); tinte = Color(0xFF9CC3EA); colorEstado = ConstanciaGris
+            estadoTexto = stringResource(R.string.profile_verification_state_none)
+            detalle = stringResource(R.string.profile_verification_none_detail)
+            boton = R.string.profile_verification_upload
+        }
+    }
     ProfileCard(radius = 16.dp, elevation = 1.dp) {
         Column(Modifier.padding(18.dp)) {
-            if (estado == Constancia.PENDIENTE) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Icon(Icons.Outlined.HourglassTop, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(22.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(fondo),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Outlined.AssignmentTurnedIn, contentDescription = null, tint = tinte, modifier = Modifier.size(24.dp))
+                }
+                Column(Modifier.weight(1f)) {
                     Text(
-                        stringResource(R.string.profile_verification_pending_title),
+                        stringResource(R.string.profile_verification_field_label),
                         fontFamily = Outfit,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = KarsyInk
                     )
-                }
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    stringResource(R.string.profile_verification_pending_desc),
-                    fontFamily = DmSans,
-                    fontSize = 13.sp,
-                    lineHeight = 19.sp,
-                    color = KarsyTextSecondary
-                )
-            } else {
-                val rechazada = estado == Constancia.RECHAZADO
-                Text(
-                    stringResource(if (rechazada) R.string.profile_verification_rejected_title else R.string.profile_verification_title),
-                    fontFamily = Outfit,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = KarsyInk
-                )
-                if (rechazada && !motivoRechazo.isNullOrBlank()) {
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(2.dp))
                     Text(
-                        stringResource(R.string.profile_verification_reason, rememberTraduccion(motivoRechazo)),
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(color = colorEstado)) { append("● $estadoTexto") }
+                            if (detalle != null) append(" · $detalle")
+                        },
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
-                        lineHeight = 19.sp,
-                        color = KarsyError,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(KarsyErrorLight)
-                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        color = ConstanciaGris,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                Spacer(Modifier.height(12.dp))
-                ConstanciaField(
-                    archivo = archivo,
-                    error = error,
-                    onPick = onPick,
-                    onRemove = onRemove,
-                    label = stringResource(R.string.profile_verification_field_label),
-                    enabled = !enviando
-                )
-                PrimaryButton(
-                    text = stringResource(
-                        when {
-                            enviando -> R.string.profile_verification_sending
-                            rechazada -> R.string.profile_verification_resend
-                            else -> R.string.profile_verification_send
-                        }
+            }
+            if (boton != null) {
+                Spacer(Modifier.height(14.dp))
+                Button(
+                    onClick = { picker.launch(Constancia.TIPOS_SELECTOR) },
+                    enabled = !enviando,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ConstanciaAzul,
+                        contentColor = Color.White,
+                        disabledContainerColor = ConstanciaAzul.copy(alpha = 0.6f),
+                        disabledContentColor = Color.White
                     ),
-                    onClick = onSend,
-                    enabled = archivo != null && !enviando
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(if (enviando) R.string.profile_verification_sending else boton),
+                        fontFamily = DmSans,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+            if (error != null) {
+                Text(
+                    error,
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    color = KarsyError,
+                    modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                 )
             }
         }

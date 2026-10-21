@@ -34,6 +34,13 @@ object Constancia {
     const val VERIFICADO = "verificado"
     const val RECHAZADO = "rechazado"
 
+    /**
+     * Estado de verificación que muestra el perfil: el del último documento enviado; si nunca envió
+     * ninguno, 'verificado' si la cuenta ya tiene la insignia o [SIN_DOCUMENTO].
+     */
+    fun estadoPerfil(verificado: Boolean, ultimoEstado: String?): String =
+        ultimoEstado ?: if (verificado) VERIFICADO else SIN_DOCUMENTO
+
     const val MAX_MB = 5
     const val MAX_BYTES = MAX_MB * 1024L * 1024L
 

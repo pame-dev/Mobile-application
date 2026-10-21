@@ -596,3 +596,51 @@ table.t tr:hover td{background:var(--bg)}
 .verified-name{display:flex;align-items:center;gap:10px;min-width:0;max-width:100%}
 .verified-name > :first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .verified-name > .verified-badge + *{margin-left:-2px;flex:none}
+
+/* Encabezado de Mi perfil (Profile.tsx): la foto se monta sobre el borde de la portada y el texto
+   empieza debajo de la portada (16 px). Nombre, insignias y datos en tres líneas; botones a la derecha. */
+.ownhead{display:flex;align-items:flex-start;gap:20px;padding-inline:28px}
+.ownhead > .bigavatar{margin-top:-62px;position:relative;z-index:3}
+.ownhead-info{flex:1;min-width:0;padding-top:16px}
+.ownhead-info h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ownhead-badges{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}
+.ownhead-badges > *{flex:none}
+.ownhead-actions{flex:none;padding-top:16px}
+@media (max-width:640px){
+  .ownhead{flex-direction:column;gap:12px;padding-inline:12px}
+  .ownhead > .bigavatar{margin-top:-48px}
+  .ownhead-info{width:100%;padding-top:0}
+  .ownhead-actions{padding-top:0}
+}
+
+/* Fila de la Constancia de Situación Fiscal en el perfil del lote (Profile.tsx, ConstanciaLote) */
+.csfrow{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.csfrow-icon{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:none}
+.csfrow-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.csfrow-text b{font-size:16px;font-weight:700;color:var(--ink)}
+.csfrow-status{font-size:14px;color:#9AA7B3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.csfrow-btn{flex:none;background:#3D7FC4;color:#fff}
+@media (max-width:640px){
+  .csfrow{flex-wrap:wrap}
+  .csfrow-btn{width:100%}
+}
+
+/* Modal "Editar perfil" (Profile.tsx, EditProfileModal): encabezado y botones fijos, solo el cuerpo hace scroll.
+   La foto va en su propio bloque (sin márgenes negativos) para no encimarse sobre el título. */
+.modal.editmodal{max-width:560px;padding:0;gap:0;overflow:hidden;max-height:calc(100dvh - 40px)}
+.editmodal-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px 12px;background:var(--surface)}
+.editmodal-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:4px 24px 16px}
+.editmodal-foot{position:sticky;bottom:0;z-index:2;padding:12px 24px 20px;background:var(--surface);border-top:1px solid var(--border)}
+.editmodal-avatar{display:flex;justify-content:flex-start;padding-block:6px}
+.editmodal .bigavatar{width:112px;height:112px;font-size:36px}
+@media (max-width:640px){
+  .overlay:has(.editmodal){padding:12px}
+  .modal.editmodal{width:100%;max-height:calc(100dvh - 24px)}
+  .editmodal-head{padding:16px 16px 10px}
+  .editmodal-body{padding:4px 16px 14px}
+  .editmodal-foot{grid-template-columns:1fr;padding:12px 16px 16px}
+  .editmodal-avatar{justify-content:center}
+  .editmodal .bigavatar{width:96px;height:96px;font-size:32px}
+  /* En una sola columna, "Calle" (que ocupa 2 columnas en escritorio) no debe crear una columna extra. */
+  .editmodal .grid3 > *{grid-column:auto!important}
+}

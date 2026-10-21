@@ -59,8 +59,9 @@ object UserRepository {
             db.from("perfiles_lote").select { filter { eq("id_cuenta", uid) } }
                 .decodeSingleOrNull<PerfilLoteDto>()
         } else null
-        // Último documento enviado (tarjeta de verificación); con la insignia ya no hace falta.
-        val verificacion = if (cuenta.verificado) null else ultimaVerificacion(uid)
+        // Último documento enviado (tarjeta de verificación). También con la insignia: el lote
+        // verificado ve desde cuándo (fecha_revision).
+        val verificacion = ultimaVerificacion(uid)
         val telefonos = activePhones(uid)
         val telefono = telefonos.firstOrNull { it.permiteLlamadas }
         val whatsapp = telefonos.firstOrNull { it.esWhatsapp }
@@ -88,9 +89,10 @@ object UserRepository {
             colonia = lote?.colonia.orEmpty(),
             codigoPostal = lote?.codigoPostal.orEmpty(),
             verificado = cuenta.verificado,
-            estadoVerificacion = if (cuenta.verificado) Constancia.VERIFICADO
-                else verificacion?.estado ?: Constancia.SIN_DOCUMENTO,
+            estadoVerificacion = Constancia.estadoPerfil(cuenta.verificado, verificacion?.estado),
             motivoRechazoVerificacion = verificacion?.motivoRechazo,
+            fechaEnvioVerificacion = verificacion?.fechaEnvio,
+            fechaRevisionVerificacion = verificacion?.fechaRevision,
             whatsapp = whatsapp?.numero.orEmpty(),
             medioPrincipal = when {
                 telefono == null -> WHATSAPP
@@ -102,7 +104,7 @@ object UserRepository {
 
     /** Fila más reciente de verificaciones_usuario del usuario (null si nunca envió un documento). */
     private suspend fun ultimaVerificacion(uid: String): VerificacionUsuarioDto? =
-        db.from("verificaciones_usuario").select(Columns.list("estado", "motivo_rechazo")) {
+        db.from("verificaciones_usuario").select(Columns.list("estado", "motivo_rechazo", "fecha_envio", "fecha_revision")) {
             filter { eq("user_id", uid) }
             order("fecha_envio", Order.DESCENDING)
             limit(1)
@@ -209,7 +211,8 @@ object UserRepository {
 
     /**
      * Sube un documento de verificación al bucket privado y lo manda a revisión con
-     * enviar_documento_verificacion (crea la fila 'pendiente' o reemplaza una 'rechazado').
+     * enviar_documento_verificacion (crea la fila 'pendiente' o reemplaza una 'rechazado'; con una
+     * 'pendiente' o 'verificado' la BD lo rechaza).
      * Cada envío es un archivo nuevo: {uid}/{tipoDocumento}_{timestamp}.{pdf|jpg|png}.
      * Si la BD lo rechaza, el mensaje (P0001) ya viene listo para el usuario.
      */
