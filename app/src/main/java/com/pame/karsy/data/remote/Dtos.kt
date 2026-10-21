@@ -262,6 +262,7 @@ data class CuentaAdminDto(
     val responsable: String,
     val publicaciones: Int,
     val activas: Int,
+    @SerialName("foto_perfil") val fotoPerfil: String? = null,
 )
 
 @Serializable

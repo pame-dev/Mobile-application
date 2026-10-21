@@ -508,7 +508,7 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
     <div className="modal">
       <ModalHead title={t('admin.userDetail')} />
       <div className="row">
-        <Ini name={c.nombre_mostrar} />
+        <Ini name={c.nombre_mostrar} src={publicUrl(c.foto_perfil)} />
         <div>
           <b style={{ color: 'var(--ink)' }}>{c.nombre_mostrar}</b>
           <div className="muted" style={{ fontSize: 12.5 }}>
@@ -619,7 +619,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
               <tr key={x.id_cuenta}>
                 <td>
                   <div className="mini">
-                    <Ini name={x.nombre_mostrar} />
+                    <Ini name={x.nombre_mostrar} src={publicUrl(x.foto_perfil)} />
                     <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
                   </div>
                 </td>

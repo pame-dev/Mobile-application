@@ -90,6 +90,8 @@ import com.pame.karsy.feature.home.HomeFilters
 import com.pame.karsy.feature.home.VehicleCard
 import com.pame.karsy.feature.profile.AvatarViewer
 import com.pame.karsy.feature.profile.ProfileAvatar
+import com.pame.karsy.feature.profile.UnreadBadge
+import com.pame.karsy.feature.profile.rememberUnreadNotifications
 import com.pame.karsy.feature.profile.ZoomableProfileAvatar
 
 // Paleta del módulo de Lotes; en tema oscuro se usan equivalentes con el mismo contraste.
@@ -114,6 +116,7 @@ fun LotsScreen(
     // La lupa del encabezado muestra/oculta el buscador de lotes.
     var searchOpen by rememberSaveable { mutableStateOf(false) }
     val lots = vm.visibleLots
+    val sinLeer = rememberUnreadNotifications(enabled = userMode.isLoggedIn)
 
     Column(
         Modifier
@@ -133,11 +136,16 @@ fun LotsScreen(
             )
             // Los avisos son de la cuenta: un visitante no tiene.
             if (userMode.isLoggedIn) {
-                HeaderSquareButton(
-                    icon = Icons.Outlined.Notifications,
-                    description = stringResource(R.string.home_notifications),
-                    onClick = onNotifications
-                )
+                // Número de avisos sin leer, como en la web.
+                Box {
+                    HeaderSquareButton(
+                        icon = Icons.Outlined.Notifications,
+                        description = if (sinLeer > 0) pluralStringResource(R.plurals.admin2_notifications_unread, sinLeer, sinLeer)
+                        else stringResource(R.string.home_notifications),
+                        onClick = onNotifications
+                    )
+                    UnreadBadge(sinLeer)
+                }
             }
         }
         KarsyPullToRefresh(onRefresh = { done -> vm.load(done) }, modifier = Modifier.fillMaxSize()) {

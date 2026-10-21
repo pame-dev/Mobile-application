@@ -17,6 +17,7 @@ import com.pame.karsy.MainActivity
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.data.repository.AuthRepository
+import com.pame.karsy.feature.profile.AvisosNuevos
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -45,6 +46,8 @@ class KarsyMessagingService : FirebaseMessagingService() {
             scope.launch { runCatching { AuthRepository.onSessionClosedPush() } }
             return
         }
+        // Las campanas visibles vuelven a contar los avisos sin leer.
+        AvisosNuevos.avisar()
         show(
             context = this,
             id = data["id_notificacion"]?.toIntOrNull() ?: tipo.hashCode(),

@@ -92,6 +92,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.pluralStringResource
+import com.pame.karsy.feature.profile.UnreadBadge
+import com.pame.karsy.feature.profile.rememberUnreadNotifications
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -425,6 +427,7 @@ internal fun HomeHeader(
     onHeight: (Float) -> Unit,
 ) {
     val p = heroPalette()
+    val sinLeer = rememberUnreadNotifications(enabled = userMode.isLoggedIn)
     // Pinta la parte de arriba del degradado que sigue en el banner: sin línea ni corte entre ambos.
     Column(
         Modifier
@@ -462,8 +465,18 @@ internal fun HomeHeader(
                                 Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = p.headerContent, modifier = Modifier.size(18.dp))
                             }
                         }
-                        HeaderIconButton(p, onClick = onNotifications) {
-                            Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.home_notifications), tint = p.headerContent, modifier = Modifier.size(19.dp))
+                        // Número de avisos sin leer, como en la web.
+                        Box {
+                            HeaderIconButton(p, onClick = onNotifications) {
+                                Icon(
+                                    Icons.Outlined.Notifications,
+                                    contentDescription = if (sinLeer > 0) pluralStringResource(R.plurals.admin2_notifications_unread, sinLeer, sinLeer)
+                                    else stringResource(R.string.home_notifications),
+                                    tint = p.headerContent,
+                                    modifier = Modifier.size(19.dp)
+                                )
+                            }
+                            UnreadBadge(sinLeer)
                         }
                     }
                 }
