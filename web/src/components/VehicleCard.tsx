@@ -26,7 +26,8 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
       onClick={abrir}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), abrir())}
     >
-      <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`}>
+      {/* Tu publicación nueva en revisión: foto atenuada (todavía nadie más la ve). */}
+      <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`} className={showStatus && car.status === 'Pendiente' ? 'enrevision' : ''}>
         {/* Tus propias publicaciones no se guardan en favoritos, ni un auto vendido (no saldría ahí). */}
         {account?.id !== car.ownerId && car.status !== 'Vendido' && (
           <button

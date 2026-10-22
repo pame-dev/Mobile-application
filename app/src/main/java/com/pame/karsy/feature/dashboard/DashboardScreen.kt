@@ -91,6 +91,8 @@ import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.SellerStats
 import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
+import com.pame.karsy.feature.profile.FOTO_EN_REVISION_ALPHA
+import com.pame.karsy.feature.profile.FotoEnRevision
 import com.pame.karsy.feature.profile.carStatusLabel
 import com.pame.karsy.feature.profile.soldViaLabel
 
@@ -634,10 +636,14 @@ private fun ListingCard(
             .clickable { onCarClick(car.id) }
     ) {
         Box {
+            // Nueva en revisión: foto atenuada (todavía nadie más la ve).
+            val enRevision = car.status == EstadoAuto.PENDIENTE
             AsyncImage(
                 model = car.imageUrl,
                 contentDescription = car.title,
                 contentScale = ContentScale.Crop,
+                colorFilter = if (enRevision) FotoEnRevision else null,
+                alpha = if (enRevision) FOTO_EN_REVISION_ALPHA else 1f,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)

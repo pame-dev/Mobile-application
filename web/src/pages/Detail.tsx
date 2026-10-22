@@ -443,6 +443,18 @@ export function Detail() {
         />
       )}
 
+      {/* Solo el dueño: dejar claro si el público ya la ve. Nueva en revisión = nadie más la ve;
+          ya aprobada con cambios en revisión = el público sigue viendo la versión anterior. */}
+      {esDueno && (c.status === 'Pendiente' || (c.status === 'Activo' && propia?.inReview)) && (
+        <div className="revisionaviso" role="status">
+          <Icon name="lock" size={20} />
+          <div>
+            <b>{t(c.status === 'Pendiente' ? 'vehiculo.detail.notPublicTitle' : 'vehiculo.detail.changesReviewTitle')}</b>
+            <p>{t(c.status === 'Pendiente' ? 'vehiculo.detail.notPublicDesc' : 'vehiculo.detail.changesReviewDesc')}</p>
+          </div>
+        </div>
+      )}
+
       {esDueno && (
         <div className="card ownerbar">
           <div className="row" style={{ flexWrap: 'wrap' }}>

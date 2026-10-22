@@ -8,6 +8,7 @@ import { ModalHead, useUi } from '../../components/Ui'
 import { adminAccounts, adminReports, moderateProposal, resolveReport, setAccountSuspended, type CuentaAdmin, type ReporteAdmin } from '../../data/admin'
 import { mensajeUsuario } from '../../data/auth'
 import { documentoVehiculo, documentoVehiculoUrl } from '../../data/seller'
+import { RevisarRepuveModal } from './RevisarRepuve'
 import type { AnuncioRow, Car, DocumentoVehiculo } from '../../data/types'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
@@ -278,7 +279,7 @@ export function useModeracion() {
  * La BD vuelve a validar que sea admin (admin_moderar_propuesta → exigir_admin).
  */
 export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: AnuncioRow; onChanged: () => void }) {
-  const { toast } = useUi()
+  const { toast, openModal } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
@@ -290,16 +291,20 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
     toast(msg)
     onChanged()
   }
-  const aprobar = async () => {
-    if (propuesta == null) return
+  /** true si se aprobó (la ventana de REPUVE solo se cierra entonces). */
+  const aprobar = async (): Promise<boolean> => {
+    if (propuesta == null) return false
     setBusy(true)
     try {
       await moderateProposal(propuesta, true, null)
       listo(t('admin.msgApproved'))
+      return true
     } catch (e) {
       toast(mensajeUsuario(e))
+      return false
+    } finally {
+      setBusy(false)
     }
-    setBusy(false)
   }
   // Regresa al panel tal como estaba; si el detalle se abrió directo, a la sección de Vehículos.
   const volver = () => (location.key !== 'default' ? navigate(-1) : navigate('/admin/vehiculos'))
@@ -312,7 +317,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
         </span>
         <b style={{ color: 'var(--ink)' }}>{t('admin.reviewBar')}</b>
         <Badge s={estadoAdmin(row, car)} />
-        <span className="grow muted" style={{ fontSize: 13 }}>
+        <span className="barnota muted">
           {propuesta != null ? t('admin.reviewBarPending') : t('admin.reviewBarDone')}
         </span>
       </div>
@@ -325,9 +330,16 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
               <Icon name="x" size={14} />
               {t('admin.reject')}
             </button>
-            <button className="btn btn-success btn-sm" disabled={busy} onClick={() => void aprobar()}>
+            {/* Se aprueba desde la ventana con la guía para consultar el NIV o la placa en REPUVE. */}
+            <button
+              className="btn btn-success btn-sm"
+              disabled={busy}
+              onClick={() =>
+                openModal(<RevisarRepuveModal car={car} recargar={row.id_ultima_propuesta} onAprobar={aprobar} onRechazar={() => moderacion.rechazar(propuesta, listo)} />)
+              }
+            >
               <Icon name="check" size={14} />
-              {t('admin.approve')}
+              {t('admin.repuveReview')}
             </button>
           </>
         )}
@@ -501,7 +513,7 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
         </span>
         <b style={{ color: 'var(--ink)' }}>{t('admin.reportReviewBar', { id: idReporte })}</b>
         {r && <Badge s={r.estado_reporte.charAt(0).toUpperCase() + r.estado_reporte.slice(1)} />}
-        <span className="grow muted" style={{ fontSize: 13 }}>
+        <span className="barnota muted">
           {r === null ? t('admin.reportNotFound') : r ? <Traducido texto={r.motivo_reporte} /> : ''}
         </span>
       </div>

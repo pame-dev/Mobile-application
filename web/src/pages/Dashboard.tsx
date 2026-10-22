@@ -336,7 +336,8 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
 
   return (
     <div className="listing">
-      <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} onClick={() => navigate(`/vehiculo/${c.id}`)} />
+      {/* Publicación nueva en revisión: foto atenuada (todavía nadie más la ve). */}
+      <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} className={c.status === 'Pendiente' ? 'enrevision' : ''} onClick={() => navigate(`/vehiculo/${c.id}`)} />
       <div style={{ minWidth: 0 }}>
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <b style={{ color: 'var(--ink)', fontFamily: 'var(--f-display)' }}>

@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.cardetail
 
+import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.components.KarsyPullToRefresh
@@ -43,6 +44,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Sell
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
@@ -91,6 +93,7 @@ import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyImagePlaceholder
 import com.pame.karsy.core.theme.karsyTint
+import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
@@ -267,6 +270,13 @@ fun CarDetailScreen(
                 // Vendida: quien la tenga en favoritos (o la abra) ve que ya no está disponible.
                 if (detail.car.status == EstadoAuto.VENDIDO) {
                     SoldNotice(isOwner = isOwner, via = detail.car.soldVia)
+                }
+                // Solo el dueño: si el público ya la ve. Nueva en revisión = nadie más la ve;
+                // ya aprobada con cambios en revisión = el público sigue viendo la versión anterior.
+                if (isOwner && detail.car.status == EstadoAuto.PENDIENTE) {
+                    ReviewNotice(R.string.detail_not_public_title, R.string.detail_not_public_desc)
+                } else if (isOwner && detail.car.status == EstadoAuto.ACTIVO && detail.car.inReview) {
+                    ReviewNotice(R.string.detail_changes_review_title, R.string.detail_changes_review_desc)
                 }
                 // El dueño ve por qué administración deshabilitó su publicación.
                 if (isOwner && detail.car.status == EstadoAuto.DESHABILITADO) {
@@ -732,6 +742,31 @@ private fun SoldNotice(isOwner: Boolean, via: String?) {
                 color = SoldGreen,
                 modifier = Modifier.padding(top = 6.dp)
             )
+        }
+    }
+}
+
+/** Aviso ámbar para el dueño: su publicación (o sus cambios) aún no es pública. */
+@Composable
+private fun ReviewNotice(@StringRes title: Int, @StringRes desc: Int) {
+    // En oscuro, un ámbar claro para que el título y el candado se lean sobre el fondo oscuro.
+    val amber = if (Tema.oscuro) Color(0xFFFEC84B) else Color(0xFFB54708)
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        Modifier
+            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(karsyTint(amber, Color(0xFFFFFAEB)))
+            .border(1.dp, amber.copy(alpha = 0.3f), shape)
+            .padding(14.dp)
+    ) {
+        Icon(Icons.Rounded.Lock, contentDescription = null, tint = amber, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(10.dp))
+        Column {
+            Text(stringResource(title), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = amber)
+            Spacer(Modifier.height(4.dp))
+            Text(stringResource(desc), fontFamily = DmSans, fontSize = 13.sp, lineHeight = 18.sp, color = KarsyCharcoal)
         }
     }
 }

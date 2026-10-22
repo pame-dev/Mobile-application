@@ -824,10 +824,14 @@ private fun PostsGrid(cars: List<Car>, onCarClick: (Long) -> Unit) {
                             .background(ImagePlaceholder)
                             .clickable { onCarClick(car.id) }
                     ) {
+                        // Nueva en revisión: foto atenuada (todavía nadie más la ve).
+                        val enRevision = car.status == EstadoAuto.PENDIENTE
                         AsyncImage(
                             model = car.imageUrl,
                             contentDescription = "${car.title} ${car.year}",
                             contentScale = ContentScale.Crop,
+                            colorFilter = if (enRevision) FotoEnRevision else null,
+                            alpha = if (enRevision) FOTO_EN_REVISION_ALPHA else 1f,
                             modifier = Modifier.fillMaxSize()
                         )
                         // Estado de moderación / venta cuando no está activo.

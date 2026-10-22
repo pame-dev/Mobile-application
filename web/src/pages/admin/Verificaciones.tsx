@@ -4,9 +4,8 @@ import { Icon } from '../../components/Icon'
 import { ModalHead, useUi } from '../../components/Ui'
 import { constanciaUrl, resolveVerification, type VerificacionAdmin } from '../../data/admin'
 import { mensajeUsuario } from '../../data/auth'
-import { traducir, useI18n } from '../../i18n/I18nContext'
+import { useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
-import { ESTADOS_CURP, leerCurp } from '../../lib/curp'
 import { haceCuanto } from '../../lib/format'
 import { AdminHead, Ini, ReasonModal, Tabs } from './AdminParts'
 
@@ -17,7 +16,7 @@ const GOB_CURP = 'https://www.gob.mx/curp/'
 
 /**
  * Revisar la CURP de un particular: pasos para consultarla en gob.mx, la CURP para copiar,
- * el nombre del perfil y los datos que trae la CURP para comparar. Aprobar se activa hasta
+ * y el nombre con el que se registró para compararlo con el de gob.mx. Aprobar se activa hasta
  * marcar las dos casillas; Rechazar pide el motivo (como en los demás documentos).
  */
 function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; onAprobar: () => Promise<boolean>; onRechazar: () => void }) {
@@ -27,16 +26,12 @@ function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; 
   const [nombre, setNombre] = useState(false)
   const [aprobando, setAprobando] = useState(false)
   const curp = v.curp ?? ''
-  const datos = leerCurp(curp)
   const copiar = () => {
     void navigator.clipboard
       .writeText(curp)
       .then(() => toast(t('admin.curpCopied')))
       .catch(() => undefined)
   }
-  const fecha = datos
-    ? new Date(datos.anio, datos.mes - 1, datos.dia).toLocaleDateString(traducir('vehiculo.locale'), { day: 'numeric', month: 'long', year: 'numeric' })
-    : ''
   const fila = (etiqueta: string, valor: string) => (
     <p className="row" style={{ justifyContent: 'space-between', gap: 12, margin: 0 }}>
       <span className="muted">{etiqueta}</span>
@@ -64,22 +59,9 @@ function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; 
           {t('admin.curpOpenGob')}
         </a>
       </div>
+      {/* Solo lo que dio en el registro: el nombre (gob.mx lo muestra para compararlo). */}
       <div className="card" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {fila(t('admin.curpProfileName'), v.nombre_mostrar)}
-        <div className="label" style={{ marginTop: 6 }}>
-          {t('admin.curpFromCurp')}
-        </div>
-        {datos ? (
-          <>
-            {fila(t('admin.curpBirth'), fecha)}
-            {fila(t('admin.curpSex'), t(datos.sexo === 'H' ? 'admin.curpSexH' : datos.sexo === 'M' ? 'admin.curpSexM' : 'admin.curpSexX'))}
-            {fila(t('admin.curpBirthState'), datos.estado === 'NE' ? t('admin.curpAbroad') : ESTADOS_CURP[datos.estado])}
-          </>
-        ) : (
-          <p className="muted" style={{ margin: 0 }}>
-            {t('admin.curpUnreadable')}
-          </p>
-        )}
       </div>
       <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
         <input type="checkbox" checked={existe} onChange={(e) => setExiste(e.target.checked)} />
