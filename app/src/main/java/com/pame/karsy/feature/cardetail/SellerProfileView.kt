@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.pame.karsy.core.components.KarsyBackButton
+import com.pame.karsy.core.components.VerifiedBadge
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.EstadoAuto
@@ -47,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -82,8 +84,11 @@ internal fun SellerProfileView(
     BackHandler(onBack = onBack)
     // Portada del vendedor (opcional; si no tiene o falla, queda el degradado).
     var coverUrl by remember { mutableStateOf<String?>(null) }
+    // Insignia "Verificado" junto al nombre, igual que en el perfil de un lote.
+    var verificado by remember { mutableStateOf(false) }
     LaunchedEffect(detail.sellerId) {
         coverUrl = safeCall { UserRepository.coverOf(detail.sellerId) }.getOrNull()
+        verificado = safeCall { UserRepository.verifiedOf(detail.sellerId) }.getOrNull() == true
     }
     var avatarOpen by rememberSaveable { mutableStateOf(false) }
     val tipo = if (detail.sellerType == "lote") stringResource(R.string.detail_seller_dealer) else stringResource(R.string.detail_seller_private)
@@ -169,14 +174,24 @@ internal fun SellerProfileView(
                                 .background(KarsyTeal)
                         )
                     }
-                    Text(
-                        detail.contactoNombre,
-                        fontFamily = Outfit,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = KarsyInk,
+                    // Nombre + "Verificado": el nombre se corta si es largo, la insignia no.
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.padding(bottom = 2.dp)
-                    )
+                    ) {
+                        Text(
+                            detail.contactoNombre,
+                            fontFamily = Outfit,
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = KarsyInk,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        if (verificado) VerifiedBadge()
+                    }
                     Text(
                         pluralStringResource(R.plurals.detail_seller_listings, cars.size, tipo, cars.size),
                         fontFamily = DmSans,

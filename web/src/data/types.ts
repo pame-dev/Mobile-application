@@ -185,5 +185,7 @@ export interface SellerProfile {
   city: string
   since: string
   active: boolean
+  /** Insignia de verificado (cuentas.verificado), igual que la de los lotes. */
+  verified: boolean
 }
 

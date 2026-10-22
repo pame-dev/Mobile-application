@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { CarPhoto } from '../../components/CarPhoto'
+import { VerifiedShield } from '../../components/ConstanciaField'
 import { Icon, type IconName } from '../../components/Icon'
 import { Traducido } from '../../components/Traducido'
 import { Brand, LogoutModal } from '../../components/TopNav'
@@ -622,6 +623,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
                   <div className="mini">
                     <Ini name={x.nombre_mostrar} src={publicUrl(x.foto_perfil)} />
                     <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
+                    {x.verificado && <VerifiedShield />}
                   </div>
                 </td>
                 <td data-label={t('admin.email')}>{x.correo}</td>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { VerifiedShield } from '../components/ConstanciaField'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
 import { Icon } from '../components/Icon'
@@ -7,7 +8,7 @@ import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
-import { carDetail, registerView, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
+import { carDetail, cuentaVerificada, registerView, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
 import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
 import type { Car, CarDetail, SellerContact } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
@@ -274,6 +275,20 @@ export function Detail() {
   /** En inglés: descripción e imperfecciones traducidas automáticamente (lib/traductor.ts). */
   const [traduccion, setTraduccion] = useState<{ descripcion: string | null; problemas: string | null } | null>(null)
   const [verTraduccion, setVerTraduccion] = useState(true)
+  // Escudo de verificado junto al nombre del vendedor (lote o particular).
+  const [vendedorVerificado, setVendedorVerificado] = useState(false)
+  const idVendedor = detail?.car.ownerId
+  useEffect(() => {
+    setVendedorVerificado(false)
+    if (!idVendedor) return
+    let vivo = true
+    cuentaVerificada(idVendedor)
+      .then((v) => vivo && setVendedorVerificado(v))
+      .catch(() => {})
+    return () => {
+      vivo = false
+    }
+  }, [idVendedor])
   const { lang } = useI18n()
   const textoOriginal = detail ? `${detail.car.description}\n${detail.row.descripcion_problemas ?? ''}` : ''
   useEffect(() => {
@@ -606,8 +621,10 @@ export function Detail() {
               {detail.sellerAvatar ? <img src={detail.sellerAvatar} alt="" /> : iniciales(c.ownerName)}
             </span>
             <span className="grow">
-              <b style={{ color: 'var(--ink)' }}>{c.ownerName}</b>
-              <br />
+              <span className="verified-name" style={{ gap: 6 }}>
+                <b style={{ color: 'var(--ink)' }}>{c.ownerName}</b>
+                {vendedorVerificado && <VerifiedShield />}
+              </span>
               <span className="muted" style={{ fontSize: 12.5 }}>
                 {t('vehiculo.detail.viewProfile', { tipo: t(c.sellerType === 'lote' ? 'nav.lot' : 'nav.individual') })}
               </span>

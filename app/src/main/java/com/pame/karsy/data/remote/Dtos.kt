@@ -98,6 +98,10 @@ data class PerfilLoteDto(
 @Serializable
 data class PortadaDto(@SerialName("foto_portada") val fotoPortada: String? = null)
 
+/** Solo cuentas.verificado (insignia en el perfil público del vendedor, UserRepository.verifiedOf). */
+@Serializable
+data class VerificadoDto(val verificado: Boolean = false)
+
 /** Columnas públicas de public.cuentas que usa el directorio de lotes. */
 @Serializable
 data class LoteCuentaDto(
@@ -261,6 +265,8 @@ data class CuentaAdminDto(
     val publicaciones: Int,
     val activas: Int,
     @SerialName("foto_perfil") val fotoPerfil: String? = null,
+    /** cuentas.verificado: escudo azul junto al nombre en Usuarios. */
+    val verificado: Boolean = false,
 )
 
 @Serializable

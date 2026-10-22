@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SkeletonListRow
+import com.pame.karsy.core.components.VerifiedShield
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -169,7 +170,20 @@ fun AdminUserRowContent(user: AdminUser, action: (@Composable () -> Unit)? = nul
         ProfileAvatar(name = user.name, avatarUrl = user.avatar, size = 44.dp, initialsSize = 15.sp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(user.name, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+            // Nombre + escudo de verificado: el nombre se corta si es largo, el escudo no.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    user.name,
+                    fontFamily = DmSans,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KarsyInk,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                if (user.verified) VerifiedShield()
+            }
             Spacer(Modifier.height(2.dp))
             Text(
                 user.email,

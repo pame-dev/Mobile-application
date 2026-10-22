@@ -2,10 +2,12 @@ package com.pame.karsy.core.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Text
@@ -78,5 +80,19 @@ fun VerifiedBadge(modifier: Modifier = Modifier, compact: Boolean = false) {
             color = Color.White,
             maxLines = 1,
         )
+    }
+}
+
+/** Solo el escudo de la insignia, sin la palabra "Verificado": círculo azul (lista de Usuarios del admin). */
+@Composable
+fun VerifiedShield(modifier: Modifier = Modifier) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(22.dp)
+            .clip(CircleShape)
+            .background(VerifiedBlue),
+    ) {
+        Image(EscudoVerificado, contentDescription = stringResource(R.string.core_verified_badge_a11y), modifier = Modifier.size(14.dp))
     }
 }
