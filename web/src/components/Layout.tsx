@@ -21,19 +21,7 @@ export function Footer() {
           </div>
           <p style={{ marginTop: 12, maxWidth: 300 }}>{t('footer.tagline')}</p>
         </div>
-        <div>
-          <h4>{t('footer.explore')}</h4>
-          <button onClick={go('/')}>{t('footer.vehicles')}</button>
-          <button onClick={go('/lotes')}>{t('footer.lots')}</button>
-          <button onClick={go('/publicar')}>{t('footer.publish')}</button>
-        </div>
-        <div>
-          <h4>{t('footer.account')}</h4>
-          <button onClick={go('/perfil')}>{t('nav.myProfile')}</button>
-          <button onClick={go('/panel')}>{t('nav.myDashboard')}</button>
-          <button onClick={go('/favoritos')}>{t('nav.favorites')}</button>
-        </div>
-        <div>
+        <div className="footlegal">
           <h4>{t('footer.legal')}</h4>
           <button onClick={go('/terminos')}>{t('legal.terms')}</button>
           <button onClick={go('/privacidad/politicas')}>{t('legal.policy')}</button>

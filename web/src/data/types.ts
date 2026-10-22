@@ -77,6 +77,8 @@ export interface Car {
   /** Estado y municipio por separado (filtro "Cerca de mí"). */
   estado: string
   municipio: string
+  /** Condición de la ficha técnica: 'seminuevo', 'usado' o null. */
+  condition: string | null
 }
 
 /** Detalle completo de una publicación (equivale a data/model/CarDetail.kt). */

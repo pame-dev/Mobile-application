@@ -49,6 +49,7 @@ export function toCar(a: AnuncioRow): Car {
     city: [a.municipio_ubicacion, a.estado_ubicacion].filter(Boolean).join(', '),
     estado: a.estado_ubicacion ?? '',
     municipio: a.municipio_ubicacion ?? '',
+    condition: a.condicion_vehiculo ?? null,
   }
 }
 

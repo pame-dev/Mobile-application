@@ -108,11 +108,6 @@ export const CORE_ES = {
 
   // Pie de página
   'footer.tagline': 'Marketplace automotriz para comprar y vender autos nuevos y seminuevos en todo México.',
-  'footer.explore': 'Explorar',
-  'footer.vehicles': 'Vehículos',
-  'footer.lots': 'Lotes',
-  'footer.publish': 'Publicar vehículo',
-  'footer.account': 'Tu cuenta',
   'footer.legal': 'Legal',
   'footer.language': 'Idioma',
 

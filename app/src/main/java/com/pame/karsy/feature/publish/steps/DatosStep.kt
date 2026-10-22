@@ -1,5 +1,14 @@
 package com.pame.karsy.feature.publish.steps
 
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -23,7 +32,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -125,7 +133,8 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     value = catalogs?.marcas?.firstOrNull { it.id == form.idMarca }?.nombre.orEmpty(),
                     placeholder = if (catalogs == null) stringResource(R.string.publish_loading_brands) else stringResource(R.string.publish_select_brand),
                     options = catalogs?.marcas.orEmpty().map { it.id to it.nombre },
-                    onSelect = form::selectMarca
+                    onSelect = form::selectMarca,
+                    selectedId = form.idMarca
                 )
                 if (form.marcaEsOtro) {
                     PublishTextInput(form.marcaOtra, { form.marcaOtra = it.take(60) }, stringResource(R.string.publish_enter_brand))
@@ -139,7 +148,8 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     placeholder = if (form.idMarca == null) stringResource(R.string.publish_choose_brand_first) else stringResource(R.string.publish_select_model),
                     options = catalogs?.modelosDe(form.idMarca).orEmpty().map { it.id to it.nombre },
                     onSelect = { form.idModelo = it },
-                    enabled = activo("modelo")
+                    enabled = activo("modelo"),
+                    selectedId = form.idModelo
                 )
                 if (form.modeloEsOtro) {
                     PublishTextInput(form.modeloOtro, { form.modeloOtro = it.take(60) }, stringResource(R.string.publish_enter_model), enabled = activo("modelo"))
@@ -156,7 +166,8 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     placeholder = stringResource(R.string.publish_select_year),
                     options = (anioMax downTo PublishViewModel.ANIO_MIN).map { it.toLong() to it.toString() },
                     onSelect = { form.anio = it.toString() },
-                    enabled = activo("anio")
+                    enabled = activo("anio"),
+                    selectedId = form.anio.toLongOrNull()
                 )
             }
 
@@ -579,6 +590,12 @@ internal fun StepError(message: String) {
     )
 }
 
+/**
+ * Lista desplegable de catálogo (Marca, Modelo, Año). El menú queda anclado justo debajo del campo
+ * y de su mismo ancho (ExposedDropdownMenuBox), con scroll interno. Al abrirlo, el campo se desplaza
+ * a la vista con espacio para la lista, así no se abre encima del campo ni lo saca de la pantalla.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CatalogDropdown(
     value: String,
@@ -587,17 +604,29 @@ private fun CatalogDropdown(
     onSelect: (Long) -> Unit,
     /** false: se ve atenuado y no se abre (formulario en orden). */
     enabled: Boolean = true,
+    /** Opción elegida, que se marca en la lista. */
+    selectedId: Long? = null,
 ) {
+    val activo = enabled && options.isNotEmpty()
     var expanded by remember { mutableStateOf(false) }
-    Box {
+    val enVista = remember { BringIntoViewRequester() }
+    var alto by remember { mutableStateOf(0) }
+    val altoMenu = with(LocalDensity.current) { MenuMaxHeight.toPx() }
+    // Al abrir, trae a la vista el campo y el espacio de la lista debajo de él.
+    LaunchedEffect(expanded) {
+        if (expanded) enVista.bringIntoView(Rect(0f, 0f, 1f, alto + altoMenu))
+    }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { if (activo) expanded = it }) {
         Row(
             modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = activo)
+                .bringIntoViewRequester(enVista)
+                .onSizeChanged { alto = it.height }
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .background(KarsyBg)
                 .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
                 .alpha(if (enabled) 1f else 0.5f)
-                .clickable(enabled = enabled && options.isNotEmpty()) { expanded = true }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -615,26 +644,37 @@ private fun CatalogDropdown(
                 modifier = Modifier.size(20.dp)
             )
         }
-        DropdownMenu(
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             containerColor = KarsySurface,
-            modifier = Modifier.heightIn(max = 320.dp)
+            modifier = Modifier.heightIn(max = MenuMaxHeight)
         ) {
             options.forEach { (id, nombre) ->
+                val elegido = id == selectedId
                 DropdownMenuItem(
                     text = {
-                        Text(nombre, fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal)
+                        Text(
+                            nombre,
+                            fontFamily = DmSans,
+                            fontSize = 14.sp,
+                            fontWeight = if (elegido) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (elegido) KarsyTeal else KarsyCharcoal
+                        )
                     },
                     onClick = {
                         onSelect(id)
                         expanded = false
-                    }
+                    },
+                    modifier = if (elegido) Modifier.background(KarsyBg) else Modifier
                 )
             }
         }
     }
 }
+
+/** Alto máximo de las listas desplegables (con scroll interno). */
+private val MenuMaxHeight = 300.dp
 
 @Composable
 private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: () -> Unit, enabled: Boolean = true) {
