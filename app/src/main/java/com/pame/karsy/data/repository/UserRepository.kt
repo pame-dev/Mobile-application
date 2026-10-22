@@ -23,6 +23,7 @@ import com.pame.karsy.data.remote.PortadaDto
 import com.pame.karsy.data.remote.TelefonoDto
 import com.pame.karsy.data.remote.TelefonoInsert
 import com.pame.karsy.data.remote.VerificacionUsuarioDto
+import com.pame.karsy.data.remote.VerificadoDto
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
@@ -275,6 +276,11 @@ object UserRepository {
         db.from("cuentas").select(Columns.list("foto_portada")) { filter { eq("id_cuenta", accountId) } }
             .decodeSingleOrNull<PortadaDto>()?.fotoPortada
             ?.let(Supabase::publicUrl)
+
+    /** Si la cuenta [accountId] tiene la insignia de verificado (lote o particular). La ve cualquiera. */
+    suspend fun verifiedOf(accountId: String): Boolean =
+        db.from("cuentas").select(Columns.list("verificado")) { filter { eq("id_cuenta", accountId) } }
+            .decodeSingleOrNull<VerificadoDto>()?.verificado == true
 
     /**
      * Deja los teléfonos como los arma el registro (fn_auth_crear_cuenta): una fila si

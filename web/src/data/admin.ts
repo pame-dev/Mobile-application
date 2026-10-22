@@ -125,6 +125,8 @@ export interface CuentaAdmin {
   activas: number
   /** Ruta de la foto de perfil en el bucket público (null = iniciales). */
   foto_perfil: string | null
+  /** Cuenta verificada (cuentas.verificado): escudo azul junto al nombre en Usuarios. */
+  verificado: boolean
 }
 
 export interface ReporteAdmin {

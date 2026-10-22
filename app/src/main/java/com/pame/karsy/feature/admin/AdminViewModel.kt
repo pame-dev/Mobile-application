@@ -156,6 +156,7 @@ class AdminViewModel : ViewModel() {
                 location = listOf(c.municipio, c.estado).filter { it.isNotBlank() }.joinToString(", "),
                 activeVehicles = c.activas,
                 avatar = Supabase.publicUrl(c.fotoPerfil),
+                verified = c.verificado,
             )
         }
 

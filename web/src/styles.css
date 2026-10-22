@@ -599,6 +599,9 @@ table.t tr:hover td{background:var(--bg)}
 .verified-badge svg{width:16px;height:16px;flex:none}
 .verified-badge.compact{gap:4px;padding:3px 9px 3px 5px;font-size:12px}
 .verified-badge.compact svg{width:13px;height:13px}
+/* Solo el escudo (Usuarios del panel de admin): círculo azul con el escudo blanco. */
+.verified-badge.solo{padding:4px;gap:0}
+.verified-badge.solo svg{width:14px;height:14px}
 /* Nombre + insignia (+ etiqueta "Lote"): 10 px del nombre a la insignia y 8 de la insignia a la etiqueta.
    Un nombre largo se corta con "…"; la insignia y la etiqueta siempre se ven completas. */
 .verified-name{display:flex;align-items:center;gap:10px;min-width:0;max-width:100%}

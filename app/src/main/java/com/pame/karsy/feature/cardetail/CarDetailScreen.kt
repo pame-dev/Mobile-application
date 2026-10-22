@@ -4,14 +4,17 @@ import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.components.KarsyPullToRefresh
+import com.pame.karsy.core.components.VerifiedShield
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.rounded.Translate
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.CarRepository
+import com.pame.karsy.data.repository.UserRepository
 import com.pame.karsy.data.remote.TraduccionDto
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.util.Catalogo
+import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.BuildConfig
 import androidx.compose.material.icons.rounded.Share
 import android.content.Intent
@@ -967,6 +970,11 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
 @Composable
 private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
     val car = detail.car
+    // Escudo de verificado junto al nombre del vendedor (lote o particular).
+    var vendedorVerificado by remember { mutableStateOf(false) }
+    LaunchedEffect(detail.sellerId) {
+        vendedorVerificado = safeCall { UserRepository.verifiedOf(detail.sellerId) }.getOrNull() == true
+    }
     val fichaItems = listOf(
         stringResource(R.string.detail_spec_model) to car.model,
         stringResource(R.string.detail_spec_year) to car.year.toString(),
@@ -1066,13 +1074,20 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                     .clickable(onClick = onOpenSeller)
             )
             Column(Modifier.weight(1f)) {
-                Text(
-                    detail.contactoNombre,
-                    fontFamily = DmSans,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = KarsyInk
-                )
+                // Nombre + escudo: el nombre se corta si es largo, el escudo no.
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        detail.contactoNombre,
+                        fontFamily = DmSans,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = KarsyInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (vendedorVerificado) VerifiedShield()
+                }
                 Text(
                     if (detail.sellerType == "lote") stringResource(R.string.detail_dealer_view_profile) else stringResource(R.string.detail_private_view_profile),
                     fontFamily = DmSans,

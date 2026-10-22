@@ -189,6 +189,12 @@ export async function reportListing(id: number, userId: string, tipo: 'publicaci
 }
 
 /** Datos de contacto del vendedor (función contacto_vendedor); con sesión registra el contacto. */
+/** Si la cuenta tiene la insignia de verificado (cuentas.verificado); la ve cualquiera. */
+export async function cuentaVerificada(id: string): Promise<boolean> {
+  const c = check(await supabase.from('cuentas').select('verificado').eq('id_cuenta', id).maybeSingle()) as { verificado: boolean | null } | null
+  return c?.verificado === true
+}
+
 export async function sellerContact(id: number, userId: string | null): Promise<SellerContact | null> {
   const data = check(await supabase.rpc('contacto_vendedor', { p_id_publicacion: id })) as SellerContact | null
   if (data && userId) {
@@ -306,6 +312,7 @@ export async function sellerProfile(id: string): Promise<SellerProfile | null> {
     city: ciudadDe(c),
     since: c.fecha_creacion,
     active: c.estado_cuenta === 'activa',
+    verified: c.verificado === true,
   }
 }
 

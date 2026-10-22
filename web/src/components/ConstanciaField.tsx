@@ -110,3 +110,16 @@ export function VerifiedBadge({ compact = false }: { compact?: boolean }) {
     </span>
   )
 }
+
+/** Solo el escudo de la insignia, sin la palabra "Verificado" (lista de Usuarios del panel de admin). */
+export function VerifiedShield() {
+  const { t } = useI18n()
+  return (
+    <span className="verified-badge solo" title={t('perfil.verifiedA11y')} aria-label={t('perfil.verifiedA11y')}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="#FFFFFF" />
+        <path d="M8 12l3 3 5-5.5" fill="none" stroke="#3D7FC4" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  )
+}

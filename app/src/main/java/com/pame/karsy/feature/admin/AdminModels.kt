@@ -23,6 +23,8 @@ data class AdminUser(
     val activeVehicles: Int = 0,
     /** URL pública de la foto de perfil (null = iniciales). */
     val avatar: String? = null,
+    /** Cuenta verificada (cuentas.verificado): escudo azul junto al nombre. */
+    val verified: Boolean = false,
 )
 
 data class AdminVehicle(
