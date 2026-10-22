@@ -421,6 +421,8 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .adminbar{padding:14px 18px;margin-bottom:18px;display:flex;flex-direction:column;gap:12px;border-left:4px solid var(--teal)}
 .adminbar .nic{width:34px;height:34px;border-radius:10px;background:var(--teal-light);color:var(--teal)}
 .adminbar .acts{display:flex;flex-wrap:wrap;gap:8px}
+/* Texto de la barra (motivo del reporte / estado): si no cabe junto al título, baja a su propia línea. */
+.adminbar .barnota{flex:1 1 220px;min-width:0;font-size:13px;overflow-wrap:anywhere}
 
 /* Administración */
 .admin{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh;background:var(--bg)}

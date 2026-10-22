@@ -317,7 +317,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
         </span>
         <b style={{ color: 'var(--ink)' }}>{t('admin.reviewBar')}</b>
         <Badge s={estadoAdmin(row, car)} />
-        <span className="grow muted" style={{ fontSize: 13 }}>
+        <span className="barnota muted">
           {propuesta != null ? t('admin.reviewBarPending') : t('admin.reviewBarDone')}
         </span>
       </div>
@@ -513,7 +513,7 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
         </span>
         <b style={{ color: 'var(--ink)' }}>{t('admin.reportReviewBar', { id: idReporte })}</b>
         {r && <Badge s={r.estado_reporte.charAt(0).toUpperCase() + r.estado_reporte.slice(1)} />}
-        <span className="grow muted" style={{ fontSize: 13 }}>
+        <span className="barnota muted">
           {r === null ? t('admin.reportNotFound') : r ? <Traducido texto={r.motivo_reporte} /> : ''}
         </span>
       </div>
