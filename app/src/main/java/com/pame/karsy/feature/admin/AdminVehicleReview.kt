@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.theme.DmSans
@@ -58,6 +59,7 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
     var dialog by rememberSaveable { mutableStateOf<VehicleDecision?>(null) }
     // Solo se muestra el error de una acción lanzada desde esta pantalla.
     var acted by rememberSaveable { mutableStateOf(false) }
+    var reviewingRepuve by rememberSaveable { mutableStateOf(false) }
 
     Column(Modifier.background(KarsyBg)) {
         HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -114,7 +116,8 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
             if (actions.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 actions.forEach { decision ->
                     val (label, style) = when (decision) {
-                        VehicleDecision.Approve -> R.string.admin2_approve to AdminButtonStyle.Positive
+                        // Se aprueba desde la ventana con la guía para consultar el NIV o la placa en REPUVE.
+                        VehicleDecision.Approve -> R.string.admin2_repuve_review to AdminButtonStyle.Positive
                         VehicleDecision.Reject -> R.string.admin2_reject to AdminButtonStyle.Destructive
                         VehicleDecision.Disable -> R.string.admin2_review_disable to AdminButtonStyle.Destructive
                         VehicleDecision.Enable -> R.string.admin2_review_enable to AdminButtonStyle.Positive
@@ -124,8 +127,9 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
                         vm.dismissMessage()
                         when (decision) {
                             VehicleDecision.Approve -> {
-                                acted = true
-                                vm.moderate(vehicle, approve = true, onSuccess = onDone)
+                                // Si el documento no se pudo leer antes, se vuelve a intentar al abrir la ventana.
+                                if (vehicle.id !in vm.vehicleDocuments) vm.loadVehicleDocument(vehicle.id)
+                                reviewingRepuve = true
                             }
                             VehicleDecision.Enable -> {
                                 acted = true
@@ -137,6 +141,43 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
                 }
             }
         }
+    }
+
+    if (reviewingRepuve && vehicle.pendingProposalId != null) {
+        RevisarRepuveDialog(
+            vehicle = vehicle,
+            loaded = vehicle.id in vm.vehicleDocuments,
+            document = vm.vehicleDocuments[vehicle.id],
+            working = vm.working,
+            // Si falla (o no se pudo leer el documento), el error se ve dentro de la ventana.
+            error = vm.message.takeIf { acted || vehicle.id !in vm.vehicleDocuments },
+            onOpenFile = { ruta ->
+                acted = true
+                vm.dismissMessage()
+                // Se abre con el visor o navegador del teléfono (URL firmada de 10 min).
+                vm.openVehicleDocument(ruta) { url ->
+                    try {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+                    } catch (e: ActivityNotFoundException) {
+                        vm.message = texto(R.string.admin2_verif_open_error)
+                    }
+                }
+            },
+            onApprove = {
+                acted = true
+                vm.dismissMessage()
+                vm.moderate(vehicle, approve = true, onSuccess = {
+                    reviewingRepuve = false
+                    onDone()
+                })
+            },
+            onReject = {
+                reviewingRepuve = false
+                vm.dismissMessage()
+                dialog = VehicleDecision.Reject
+            },
+            onDismiss = { if (!vm.working) reviewingRepuve = false }
+        )
     }
 
     dialog?.let { decision ->

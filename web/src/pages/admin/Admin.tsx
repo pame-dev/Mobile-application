@@ -41,6 +41,7 @@ import { useSession } from '../../session/SessionContext'
 import { EVENTO_CAMBIOS, useRecargar, type Tabla } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
 import { Verificaciones } from './Verificaciones'
+import { RevisarRepuveModal } from './RevisarRepuve'
 import { AdminHead, Badge, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
@@ -739,8 +740,31 @@ function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: 
             >
               {t('admin.viewListing')}
             </button>
-            <button className="btn btn-primary" disabled={busy} onClick={() => correr(() => moderateProposal(propuesta, true, null), t('admin.msgApproved'))}>
-              {t('admin.approve')}
+            {/* Se aprueba desde la ventana con la guía para consultar el NIV o la placa en REPUVE. */}
+            <button
+              className="btn btn-primary"
+              disabled={busy}
+              onClick={() =>
+                openModal(
+                  <RevisarRepuveModal
+                    car={car}
+                    recargar={row.id_ultima_propuesta}
+                    onAprobar={async () => {
+                      try {
+                        await moderateProposal(propuesta, true, null)
+                        listo(t('admin.msgApproved'))
+                        return true
+                      } catch (e) {
+                        toast(mensajeUsuario(e))
+                        return false
+                      }
+                    }}
+                    onRechazar={() => moderacion.rechazar(propuesta, listo)}
+                  />,
+                )
+              }
+            >
+              {t('admin.repuveReview')}
             </button>
           </>
         ) : (

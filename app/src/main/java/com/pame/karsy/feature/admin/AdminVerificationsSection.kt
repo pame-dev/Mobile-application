@@ -474,7 +474,7 @@ private fun RevisarConstanciaDialog(
 
 /** Casilla con texto; toda la fila se puede tocar. */
 @Composable
-private fun CasillaRevision(marcada: Boolean, texto: String, onCambio: (Boolean) -> Unit) {
+internal fun CasillaRevision(marcada: Boolean, texto: String, onCambio: (Boolean) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
