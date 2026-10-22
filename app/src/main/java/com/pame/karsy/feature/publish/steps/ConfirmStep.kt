@@ -94,6 +94,14 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
         stringResource(R.string.publish_spec_body_type) to form.carroceriaNombre,
         stringResource(R.string.publish_spec_color) to form.colorNombre,
         stringResource(R.string.publish_spec_previous_owners) to form.duenos.ifBlank { "0" },
+        // Privado: solo aquí y para el admin; no sale en el anuncio.
+        stringResource(R.string.publish_spec_document) to when (form.tipoDocumento) {
+            "vin" -> "${stringResource(R.string.publish_label_vin)} ${form.documentoTexto}"
+            "placa" -> "${stringResource(R.string.publish_doc_plate)} ${form.documentoTexto}"
+            "tarjeta_circulacion" -> stringResource(R.string.publish_doc_card)
+            "baja" -> stringResource(R.string.publish_doc_baja)
+            else -> "—"
+        },
     )
 
     Box(Modifier.fillMaxSize()) {

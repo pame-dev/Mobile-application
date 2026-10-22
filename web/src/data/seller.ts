@@ -2,8 +2,9 @@
 // StatsRepository y UserRepository de la app (mismas tablas y funciones de la BD).
 import { publicUrl, supabase, BUCKET } from '../lib/supabase'
 import { traducir } from '../i18n/I18nContext'
+import { EXT_CONSTANCIA, tipoConstancia } from './auth'
 import { carsByIds, sigueDisponible, toCar, UserError } from './api'
-import type { AnuncioRow, Car, EstadoVerificacion } from './types'
+import type { AnuncioRow, Car, DocumentoVehiculo, EstadoVerificacion } from './types'
 
 function check<T>(res: { data: T; error: { message: string; code?: string } | null }): T {
   if (res.error) {
@@ -91,6 +92,48 @@ export async function uploadPhoto(blob: Blob): Promise<string> {
   const { error } = await supabase.storage.from(BUCKET).upload(ruta, blob, { upsert: false, contentType: 'image/jpeg' })
   if (error) throw new Error(error.message)
   return ruta
+}
+
+/** Bucket privado de las fotos o PDF de tarjeta de circulación y documento de baja. */
+const BUCKET_DOCUMENTOS = 'documentos-vehiculo'
+
+/**
+ * Sube la foto (JPG o PNG) o el PDF del documento del vehículo, tal cual, al bucket privado y devuelve
+ * su ruta (<id_cuenta>/<uuid>.<jpg|png|pdf>). El archivo ya se revisó con errorConstancia.
+ */
+export async function uploadDocumento(f: File): Promise<string> {
+  const tipo = tipoConstancia(f)
+  const ruta = `${await uid()}/${crypto.randomUUID()}.${EXT_CONSTANCIA[tipo]}`
+  const { error } = await supabase.storage.from(BUCKET_DOCUMENTOS).upload(ruta, f, { upsert: false, contentType: tipo })
+  if (error) throw new Error(error.message)
+  return ruta
+}
+
+/**
+ * Documento del vehículo de la propuesta más reciente que lo tenga; null si nunca se dio.
+ * Solo lo pueden leer el dueño y el admin (RLS de propuestas_publicacion). Igual que
+ * CarRepository.documentoVehiculo en la app.
+ */
+export async function documentoVehiculo(idPublicacion: number): Promise<DocumentoVehiculo | null> {
+  const rows = check(
+    await supabase
+      .from('propuestas_publicacion')
+      .select('tipo_documento_vehiculo, documento_vehiculo')
+      .eq('id_publicacion', idPublicacion)
+      .not('tipo_documento_vehiculo', 'is', null)
+      .order('fecha_envio_moderacion', { ascending: false })
+      .order('id_propuesta', { ascending: false })
+      .limit(1),
+  ) as { tipo_documento_vehiculo: DocumentoVehiculo['tipo']; documento_vehiculo: string }[] | null
+  const r = rows?.[0]
+  return r ? { tipo: r.tipo_documento_vehiculo, valor: r.documento_vehiculo } : null
+}
+
+/** URL firmada de 10 minutos de la foto o el PDF de un documento del vehículo (el bucket es privado). */
+export async function documentoVehiculoUrl(ruta: string): Promise<string> {
+  const { data, error } = await supabase.storage.from(BUCKET_DOCUMENTOS).createSignedUrl(ruta, 600)
+  if (error) throw new Error(error.message)
+  return data.signedUrl
 }
 
 /**

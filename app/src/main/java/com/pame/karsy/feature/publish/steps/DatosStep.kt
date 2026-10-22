@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.publish.steps
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,13 +11,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -31,14 +37,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
@@ -337,6 +348,136 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                         }
                     }
                 }
+            }
+        }
+
+        DocumentoSection(form, enabled = activo("documento"))
+    }
+}
+
+/**
+ * Documento del vehículo: se elige uno; el VIN y la placa se escriben, la tarjeta de
+ * circulación y la baja van con foto (JPG o PNG) o PDF (bucket privado, sin tapar placas).
+ */
+@Composable
+private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
+    val context = LocalContext.current
+    // Selector de archivos: ofrece fotos y PDF; el tipo real lo revisa el ViewModel.
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { form.elegirArchivoDocumento(context, it) }
+    }
+    val tipos = listOf(
+        "vin" to R.string.publish_doc_vin,
+        "placa" to R.string.publish_doc_plate,
+        "tarjeta_circulacion" to R.string.publish_doc_card,
+        "baja" to R.string.publish_doc_baja,
+    ).map { (valor, etiqueta) -> valor to stringResource(etiqueta) }
+
+    SectionCard {
+        SectionTitle(stringResource(R.string.publish_section_document))
+        Text(
+            stringResource(R.string.publish_document_hint),
+            fontFamily = DmSans,
+            fontSize = 12.sp,
+            lineHeight = 17.sp,
+            color = KarsyMid
+        )
+
+        Column {
+            FieldLabel(stringResource(R.string.publish_label_document_type))
+            CatalogDropdown(
+                value = tipos.firstOrNull { it.first == form.tipoDocumento }?.second.orEmpty(),
+                placeholder = stringResource(R.string.publish_select),
+                options = tipos.mapIndexed { i, (_, etiqueta) -> i.toLong() to etiqueta },
+                onSelect = { form.selectTipoDocumento(tipos[it.toInt()].first) },
+                enabled = enabled
+            )
+        }
+
+        when {
+            form.tipoDocumento == "vin" || form.tipoDocumento == "placa" -> Column {
+                val esVin = form.tipoDocumento == "vin"
+                FieldLabel(stringResource(if (esVin) R.string.publish_label_vin else R.string.publish_label_plate))
+                PublishTextInput(
+                    form.documentoTexto,
+                    form::escribirDocumento,
+                    if (esVin) "3VWFE21C04M000001" else "ABC-123-D",
+                    enabled = enabled
+                )
+            }
+            form.documentoEsFoto -> Column {
+                FieldLabel(stringResource(R.string.publish_label_document_photo))
+                val shape = RoundedCornerShape(12.dp)
+                // Foto con vista previa; PDF con su nombre. Sin archivo: invita a elegir uno.
+                val imagen = form.documentoArchivo.takeIf { !form.documentoEsPdf }
+                val conArchivo = imagen != null || form.documentoEsPdf
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(170.dp)
+                        .clip(shape)
+                        .background(KarsyBg)
+                        .border(1.5.dp, if (form.documentoError != null) KarsyError else KarsyBorderMuted, shape)
+                        .alpha(if (enabled) 1f else 0.5f)
+                        .clickable(enabled = enabled) { picker.launch(Constancia.TIPOS_SELECTOR) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (imagen != null) {
+                        AsyncImage(
+                            model = imagen,
+                            contentDescription = stringResource(R.string.publish_label_document_photo),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else if (form.documentoEsPdf) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 40.dp)
+                        ) {
+                            Icon(Icons.Outlined.Description, contentDescription = null, tint = KarsyNavy, modifier = Modifier.size(36.dp))
+                            Text(
+                                form.documentoNombre,
+                                fontFamily = DmSans,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = KarsyCharcoal,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .then(if (conArchivo) Modifier.align(Alignment.BottomCenter).padding(10.dp) else Modifier)
+                            .clip(RoundedCornerShape(50))
+                            .background(if (conArchivo) KarsyNavy else Color.Transparent)
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Image,
+                            contentDescription = null,
+                            tint = if (conArchivo) KarsyWhite else KarsyMid,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            stringResource(if (conArchivo) R.string.publish_change_document_photo else R.string.publish_add_document_photo),
+                            fontFamily = DmSans,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (conArchivo) KarsyWhite else KarsyMid
+                        )
+                    }
+                }
+                Text(
+                    form.documentoError ?: stringResource(R.string.publish_document_file_hint, Constancia.MAX_MB),
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    color = if (form.documentoError != null) KarsyError else KarsyMid,
+                    modifier = Modifier.padding(top = 6.dp, start = 4.dp)
+                )
             }
         }
     }

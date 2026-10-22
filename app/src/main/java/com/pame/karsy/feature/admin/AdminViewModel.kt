@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
@@ -33,10 +34,12 @@ import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.CuentaAdminDto
 import com.pame.karsy.data.remote.DestacadoAdminDto
+import com.pame.karsy.data.remote.DocumentoVehiculoDto
 import com.pame.karsy.data.remote.ReporteAdminDto
 import com.pame.karsy.data.remote.VerificacionAdminDto
 import com.pame.karsy.data.repository.AdminRepository
 import com.pame.karsy.data.repository.AdminStats
+import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.NotificationRepository
 import com.pame.karsy.data.repository.StatsRepository
 import kotlinx.coroutines.launch
@@ -363,6 +366,30 @@ class AdminViewModel : ViewModel() {
         onSuccess
     ) {
         AdminRepository.resolveVerification(verification.id, approve, if (approve) null else reason?.trim())
+    }
+
+    /**
+     * Documento del vehículo por publicación (privado: VIN, placa o foto de tarjeta/baja).
+     * Sin entrada: aún no se carga; null: el vendedor no dio documento.
+     */
+    val vehicleDocuments = mutableStateMapOf<Long, DocumentoVehiculoDto?>()
+
+    /** Carga (o recarga, tras una edición) el documento de la propuesta más reciente. */
+    fun loadVehicleDocument(idPublicacion: Long) {
+        viewModelScope.launch {
+            safeCall { CarRepository.documentoVehiculo(idPublicacion) }
+                .onSuccess { vehicleDocuments[idPublicacion] = it }
+                .onFailure { message = it.mensajeUsuario() }
+        }
+    }
+
+    /** URL firmada (10 min) de la foto del documento del vehículo, para abrirla. */
+    fun openVehicleDocument(ruta: String, onUrl: (String) -> Unit) {
+        viewModelScope.launch {
+            safeCall { CarRepository.documentoVehiculoUrl(ruta) }
+                .onSuccess(onUrl)
+                .onFailure { message = it.mensajeUsuario() }
+        }
     }
 
     /** Crea una URL firmada (10 min) del documento y se la pasa a [onUrl] para abrirla. */

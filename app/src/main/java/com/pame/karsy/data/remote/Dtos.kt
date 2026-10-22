@@ -369,3 +369,15 @@ data class TraduccionDto(
 /** Solo el precio de una publicación (precio sugerido al publicar). */
 @Serializable
 data class PrecioDto(val precio: Double? = null)
+
+/**
+ * Documento del vehículo de una propuesta (propuestas_publicacion). Privado: solo lo leen el
+ * dueño y el admin (RLS propuestas_leer); no está en v_anuncios.
+ */
+@Serializable
+data class DocumentoVehiculoDto(
+    /** 'vin' | 'placa' | 'tarjeta_circulacion' | 'baja'. */
+    @SerialName("tipo_documento_vehiculo") val tipo: String,
+    /** VIN o placa; en tarjeta y baja, la ruta en el bucket privado documentos-vehiculo. */
+    @SerialName("documento_vehiculo") val valor: String,
+)

@@ -7,7 +7,8 @@ import { Traducido } from '../../components/Traducido'
 import { ModalHead, useUi } from '../../components/Ui'
 import { adminAccounts, adminReports, moderateProposal, resolveReport, setAccountSuspended, type CuentaAdmin, type ReporteAdmin } from '../../data/admin'
 import { mensajeUsuario } from '../../data/auth'
-import type { AnuncioRow, Car } from '../../data/types'
+import { documentoVehiculo, documentoVehiculoUrl } from '../../data/seller'
+import type { AnuncioRow, Car, DocumentoVehiculo } from '../../data/types'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
 import { iniciales } from '../../lib/format'
@@ -315,6 +316,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
           {propuesta != null ? t('admin.reviewBarPending') : t('admin.reviewBarDone')}
         </span>
       </div>
+      <DocumentoVehiculoAdmin idPublicacion={car.id} recargar={row.id_ultima_propuesta} />
       <div className="acts">
         <VolverButton onClick={volver} label={t('admin.backToReview')} />
         {propuesta != null && (
@@ -330,6 +332,68 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * Documento del vehículo que dio el vendedor (VIN, placa o foto de tarjeta/baja). Es privado: se
+ * lee de la propuesta más reciente (RLS: dueño y admin) y la foto se abre con una URL firmada.
+ * [recargar] cambia cuando el dueño manda otra edición.
+ */
+export function DocumentoVehiculoAdmin({ idPublicacion, recargar }: { idPublicacion: number; recargar?: number | null }) {
+  const { toast } = useUi()
+  const { t } = useI18n()
+  // undefined: cargando o no se pudo leer; null: el vendedor no dio documento.
+  const [doc, setDoc] = useState<DocumentoVehiculo | null | undefined>(undefined)
+
+  useEffect(() => {
+    let vivo = true
+    documentoVehiculo(idPublicacion)
+      .then((d) => vivo && setDoc(d))
+      .catch(() => vivo && setDoc(undefined))
+    return () => {
+      vivo = false
+    }
+  }, [idPublicacion, recargar])
+
+  if (doc === undefined) return null
+  const esFoto = doc?.tipo === 'tarjeta_circulacion' || doc?.tipo === 'baja'
+  const valor = !doc
+    ? t('admin.vehicleDocumentNone')
+    : doc.tipo === 'vin'
+      ? `${t('publicar.vin')} ${doc.valor}`
+      : doc.tipo === 'placa'
+        ? `${t('publicar.docPlate')} ${doc.valor}`
+        : t(doc.tipo === 'baja' ? 'publicar.docBaja' : 'publicar.docCard')
+
+  const abrir = async (ruta: string) => {
+    // La pestaña se abre antes de pedir la URL para que el navegador no la bloquee.
+    const w = window.open('', '_blank')
+    try {
+      const url = await documentoVehiculoUrl(ruta)
+      if (w) {
+        w.opener = null
+        w.location.href = url
+      } else window.location.href = url
+    } catch {
+      w?.close()
+      toast(t('admin.verifOpenError'))
+    }
+  }
+
+  return (
+    <div className="row" style={{ gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+      <span className="muted" style={{ fontSize: 13 }}>
+        {t('admin.vehicleDocument')}
+      </span>
+      <b style={{ color: 'var(--ink)', wordBreak: 'break-all' }}>{valor}</b>
+      {doc && esFoto && (
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => void abrir(doc.valor)}>
+          <Icon name="eye" size={14} />
+          {t('admin.viewDocumentPhoto')}
+        </button>
+      )}
     </div>
   )
 }

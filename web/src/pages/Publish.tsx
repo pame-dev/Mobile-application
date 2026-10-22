@@ -6,10 +6,20 @@ import { ConfirmModal } from '../components/Confirm'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
 import { useTraduccion } from '../components/Traducido'
-import { mensajeUsuario } from '../data/auth'
+import { CONSTANCIA_MAX_BYTES, errorConstancia, mensajeUsuario, tipoConstancia } from '../data/auth'
 import { catalogs as cargarCatalogos, preciosSimilares } from '../data/api'
-import { crearPublicacion, editarPublicacion, fotosYaUsadas, ownListing, registrarHuellas, uploadPhoto } from '../data/seller'
-import type { Catalogs } from '../data/types'
+import {
+  crearPublicacion,
+  documentoVehiculo,
+  documentoVehiculoUrl,
+  editarPublicacion,
+  fotosYaUsadas,
+  ownListing,
+  registrarHuellas,
+  uploadDocumento,
+  uploadPhoto,
+} from '../data/seller'
+import type { Catalogs, TipoDocumentoVehiculo } from '../data/types'
 import { entero, precio as formatoPrecio } from '../lib/format'
 import { calcularRango, compararPrecio, type Rango } from '../lib/precioSugerido'
 import { huellaVisual, mismaFoto } from '../lib/huellaVisual'
@@ -55,6 +65,31 @@ const ANGULOS: Clave[] = ['publicar.photoFront', 'publicar.photoRear', 'publicar
 const PASOS: Clave[] = ['publicar.stepData', 'publicar.stepPhotos', 'publicar.stepDetails', 'publicar.stepConfirm']
 /** Sufijo "Potencia: N hp" que se agrega a la descripción (no hay columna para los caballos). */
 const POTENCIA = /\n\nPotencia: (\d+) hp$/
+/** Documento del vehículo: el VIN y la placa se escriben; la tarjeta y la baja van con foto. */
+const DOCUMENTOS: { valor: TipoDocumentoVehiculo; label: Clave }[] = [
+  { valor: 'vin', label: 'publicar.docVin' },
+  { valor: 'placa', label: 'publicar.docPlate' },
+  { valor: 'tarjeta_circulacion', label: 'publicar.docCard' },
+  { valor: 'baja', label: 'publicar.docBaja' },
+]
+const esDocumentoFoto = (tipo: string) => tipo === 'tarjeta_circulacion' || tipo === 'baja'
+/** Largo del VIN y máximo de la placa (chk_propuestas_publicacion_documento_vehiculo). */
+const LARGO_VIN = 17
+const MAX_PLACA = 10
+
+/** VIN o placa sin espacios y en mayúsculas (igual que documento_vehiculo_valido en la BD). */
+function normalizarDocumento(v: string): string {
+  return v.replace(/\s/g, '').toUpperCase()
+}
+
+/** Error del documento del vehículo, o null si está completo (PublishViewModel.errorDocumento). */
+function errorDocumento(tipo: string, texto: string, tieneFoto: boolean): Clave | null {
+  if (!tipo) return 'publicar.errDocumentType'
+  if (tipo === 'vin' && !/^[A-HJ-NPR-Z0-9]{17}$/.test(normalizarDocumento(texto))) return 'publicar.errVin'
+  if (tipo === 'placa' && !/^[A-Z0-9-]{4,10}$/.test(normalizarDocumento(texto))) return 'publicar.errPlate'
+  if (esDocumentoFoto(tipo) && !tieneFoto) return 'publicar.errDocumentPhoto'
+  return null
+}
 
 /** Una foto del formulario: nueva (archivo) o la que ya estaba en Storage (al editar). */
 interface Foto {
@@ -86,12 +121,16 @@ interface Datos {
   duenos: string
   descripcion: string
   imperfecciones: string
+  /** Documento del vehículo (privado: solo dueño y admin). */
+  tipoDocumento: TipoDocumentoVehiculo | ''
+  /** VIN o placa, sin espacios y en mayúsculas. */
+  documentoTexto: string
 }
 
 const VACIO: Datos = {
   idMarca: '', marcaOtra: '', idModelo: '', modeloOtro: '', anio: '', precio: '', idTransmision: '', kilometraje: '',
   recuperado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', idColor: '', duenos: '',
-  descripcion: '', imperfecciones: '',
+  descripcion: '', imperfecciones: '', tipoDocumento: '', documentoTexto: '',
 }
 
 const digitos = (v: string, max = 12) => v.replace(/\D/g, '').slice(0, max)
@@ -153,6 +192,14 @@ export function Publish() {
   const [extras, setExtras] = useState<Foto[]>([])
   /** Foto del motor: recomendada, no obligatoria. Se sube después de los 5 ángulos. */
   const [motor, setMotor] = useState<Foto | null>(null)
+  /**
+   * Foto (JPG o PNG) o PDF de la tarjeta de circulación o de la baja (bucket privado, sin tapar
+   * placas). Un PDF no tiene vista previa (url vacía): se muestra su nombre.
+   */
+  const [docFoto, setDocFoto] = useState<Foto | null>(null)
+  /** Por qué no sirve el archivo elegido (tipo o tamaño); se muestra junto al campo. */
+  const [docError, setDocError] = useState<Clave | null>(null)
+  const docInput = useRef<HTMLInputElement>(null)
   /** Fotos del tablero en las que el detector ve el exterior de un auto (solo avisa). */
   const [tableroExterior, setTableroExterior] = useState<Set<string>>(new Set())
   const [step, setStep] = useState(0)
@@ -203,7 +250,11 @@ export function Publish() {
         if (!vivo) return
         setCat(c)
         if (editId == null) return
-        const a = await ownListing(editId)
+        // Si el documento no se puede leer (o es anterior a esta función), el dueño lo vuelve a poner.
+        const [a, doc] = await Promise.all([ownListing(editId), documentoVehiculo(editId).catch(() => null)])
+        // Un PDF ya guardado se muestra con su nombre; una foto, con una URL firmada.
+        const pdfGuardado = !!doc?.valor.endsWith('.pdf')
+        const docUrl = doc && esDocumentoFoto(doc.tipo) && !pdfGuardado ? await documentoVehiculoUrl(doc.valor).catch(() => '') : ''
         if (!vivo) return
         if (!a) {
           setError(traducir('publicar.notFound'))
@@ -232,7 +283,11 @@ export function Publish() {
             duenos: a.numero_propietarios_anteriores != null ? String(a.numero_propietarios_anteriores) : '',
             descripcion: pot ? desc.slice(0, pot.index) : desc,
             imperfecciones: a.descripcion_problemas ?? '',
+            tipoDocumento: doc?.tipo ?? '',
+            documentoTexto: doc && !esDocumentoFoto(doc.tipo) ? doc.valor : '',
           })
+          // Si la foto no se pudo firmar no se precarga (se pide otra), para no dar por puesta una que no se ve.
+          if (doc && esDocumentoFoto(doc.tipo) && (pdfGuardado || docUrl)) setDocFoto({ key: 'r:' + doc.valor, url: docUrl, ruta: doc.valor })
           // Las primeras van a los ángulos y el resto a fotos adicionales.
           const fotos: Foto[] = (a.fotos ?? []).slice(0, MAX_FOTOS).flatMap((ruta) => {
             const url = publicUrl(ruta)
@@ -353,7 +408,8 @@ export function Publish() {
       if (falta) return t(falta.error)
       if (!Number.isInteger(anio) || anio < 1900 || anio > max) return t('publicar.errYear')
       if (Number(d.cilindros || 0) > MAX_CILINDROS) return t('publicar.errCylinders', { n: MAX_CILINDROS })
-      return null
+      const errDoc = errorDocumento(d.tipoDocumento, d.documentoTexto, !!docFoto)
+      return errDoc ? t(errDoc) : null
     }
     if (paso === 1) {
       const faltan = angulos.flatMap((f, i) => (f ? [] : [i]))
@@ -543,6 +599,25 @@ export function Publish() {
     else revisarTablero(foto)
     setAngulos((a) => a.map((f, i) => (i === anguloElegido.current ? foto : f)))
   }
+  /** Cambiar de documento borra lo que se había puesto del anterior. */
+  const elegirDocumento = (tipo: Datos['tipoDocumento']) => {
+    if (tipo === d.tipoDocumento) return
+    set('tipoDocumento', tipo)
+    set('documentoTexto', '')
+    setDocFoto(null)
+    setDocError(null)
+  }
+  /** Mismas reglas que los documentos de verificación: JPG, PNG o PDF de máximo 5 MB. */
+  const ponerArchivoDocumento = (file?: File) => {
+    if (!file) return
+    const err = errorConstancia(file)
+    setDocError(err)
+    if (err) return
+    setTocado(true)
+    const esPdf = tipoConstancia(file) === 'application/pdf'
+    setDocFoto({ key: crypto.randomUUID(), url: esPdf ? '' : URL.createObjectURL(file), file })
+  }
+  const docEsPdf = !!docFoto && (docFoto.file ? tipoConstancia(docFoto.file) === 'application/pdf' : !!docFoto.ruta?.endsWith('.pdf'))
   const agregarExtras = (files: File[]) => {
     const validas = files.filter(esImagen).slice(0, lugaresExtra)
     if (!validas.length) return
@@ -583,6 +658,13 @@ export function Publish() {
       }
       // Fotos listas: lo que sigue es guardar la publicación ("Publicando…").
       setSubida(null)
+      // La foto del documento va al bucket privado. Se recuerda la ruta para no volver a
+      // subirla si guardar falla y se reintenta.
+      let documento = normalizarDocumento(d.documentoTexto)
+      if (esDocumentoFoto(d.tipoDocumento) && docFoto) {
+        documento = docFoto.ruta ?? (await uploadDocumento(docFoto.file!))
+        if (!docFoto.ruta) setDocFoto({ ...docFoto, ruta: documento })
+      }
       // "Caballos de fuerza" no tiene columna en la BD: se agrega a la descripción.
       const descripcionFinal = d.descripcion.trim() + (d.caballos ? `\n\nPotencia: ${d.caballos} hp` : '')
       const datos = {
@@ -605,6 +687,8 @@ export function Publish() {
         cilindrada: esElectrico ? null : unirMotor(d.litros, d.aspiracion),
         tipo_combustible: d.combustible || null,
         descripcion_problemas: d.imperfecciones.trim(),
+        tipo_documento_vehiculo: d.tipoDocumento,
+        documento_vehiculo: documento,
       }
       let id = editId
       if (id != null) await editarPublicacion(id, datos, rutas)
@@ -736,6 +820,15 @@ export function Publish() {
     ['publicar.bodyType', nombre(cat?.carrocerias, d.idCarroceria)],
     ['publicar.color', nombre(cat?.colores, d.idColor)],
     ['publicar.previousOwners', d.duenos || '0'],
+    // Privado: solo aquí y para el admin; no sale en el anuncio.
+    [
+      'publicar.document',
+      d.tipoDocumento === 'vin' || d.tipoDocumento === 'placa'
+        ? `${t(d.tipoDocumento === 'vin' ? 'publicar.vin' : 'publicar.docPlate')} ${d.documentoTexto}`
+        : d.tipoDocumento
+          ? t(DOCUMENTOS.find((o) => o.valor === d.tipoDocumento)!.label)
+          : '—',
+    ],
   ]
 
   return (
@@ -868,6 +961,80 @@ export function Publish() {
                     </button>
                   </div>
                 </Campo>
+              </div>
+              <div className="label" style={{ marginTop: 8 }}>
+                {t('publicar.sectionDocument')}
+              </div>
+              <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                {t('publicar.documentHint')}
+              </p>
+              <div className="grid3">
+                <Campo id="tipoDocumento" label={t('publicar.documentType')}>
+                  <select
+                    className="input"
+                    id="tipoDocumento"
+                    value={d.tipoDocumento}
+                    disabled={bloqueado('tipoDocumento')}
+                    onChange={(e) => elegirDocumento(e.target.value as Datos['tipoDocumento'])}
+                  >
+                    <option value="">{t('publicar.select')}</option>
+                    {DOCUMENTOS.map((o) => (
+                      <option key={o.valor} value={o.valor}>
+                        {t(o.label)}
+                      </option>
+                    ))}
+                  </select>
+                </Campo>
+                {(d.tipoDocumento === 'vin' || d.tipoDocumento === 'placa') && (
+                  <Campo id="documentoTexto" label={t(d.tipoDocumento === 'vin' ? 'publicar.vin' : 'publicar.docPlate')}>
+                    <input
+                      className="input"
+                      id="documentoTexto"
+                      disabled={bloqueado('documentoTexto')}
+                      placeholder={d.tipoDocumento === 'vin' ? '3VWFE21C04M000001' : 'ABC-123-D'}
+                      value={d.documentoTexto}
+                      onChange={(e) => set('documentoTexto', normalizarDocumento(e.target.value).slice(0, d.tipoDocumento === 'vin' ? LARGO_VIN : MAX_PLACA))}
+                    />
+                  </Campo>
+                )}
+                {esDocumentoFoto(d.tipoDocumento) && (
+                  <Campo label={t('publicar.documentPhoto')}>
+                    {docFoto ? (
+                      <div
+                        className="photoslot filled"
+                        onClick={() => docInput.current?.click()}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={t('publicar.changeDocumentPhoto')}
+                      >
+                        {docEsPdf ? (
+                          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '12px 12px 36px', color: 'var(--ink)', wordBreak: 'break-all' }}>
+                            <Icon name="doc" size={28} />
+                            <b style={{ fontSize: 13 }}>{docFoto.file?.name ?? t('publicar.documentSavedPdf')}</b>
+                          </span>
+                        ) : (
+                          <img src={docFoto.url} alt={t('publicar.documentPhoto')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        )}
+                        <span className="tag">{t('publicar.changeDocumentPhoto')}</span>
+                      </div>
+                    ) : (
+                      <button type="button" className={`photoslot ${docError ? 'bad' : ''}`} disabled={bloqueado('documentoTexto')} onClick={() => docInput.current?.click()}>
+                        <Icon name="upload" size={24} />
+                        {t('publicar.addDocumentPhoto')}
+                      </button>
+                    )}
+                    <span className={docError ? 'ferr' : 'muted'} style={{ fontSize: 12 }}>
+                      {docError ? t(docError) : t('publicar.documentFileHint', { n: CONSTANCIA_MAX_BYTES / (1024 * 1024) })}
+                    </span>
+                    <input
+                      ref={docInput}
+                      type="file"
+                      accept="image/jpeg,image/png,application/pdf"
+                      hidden
+                      onChange={(e) => (ponerArchivoDocumento(e.target.files?.[0]), (e.target.value = ''))}
+                    />
+                  </Campo>
+                )}
               </div>
             </section>
           )}
