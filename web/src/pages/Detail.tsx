@@ -309,7 +309,7 @@ export function Detail() {
     let vivo = true
     setDetail(undefined)
     setFoto(0)
-    carDetail(carId)
+    carDetail(carId, desdeRevision)
       .then((d) => {
         if (!vivo) return
         setDetail(d)
@@ -344,16 +344,16 @@ export function Detail() {
 
   // Cambios hechos en otro lado (la app, el admin): se vuelve a leer sin mostrar "cargando".
   const recargarDetalle = useCallback(() => {
-    carDetail(carId)
+    carDetail(carId, desdeRevision)
       .then((d) => d && setDetail(d))
       .catch(() => undefined)
     cargarPropia()
-  }, [carId, cargarPropia])
+  }, [carId, desdeRevision, cargarPropia])
   useRecargar(recargarDetalle, ['publicaciones', 'propuestas_publicacion', 'fotos_publicacion', 'solicitudes_destacado', 'publicaciones_ocultas'])
 
   // Tras una acción del dueño se recargan el estado del detalle y los botones.
   const accionesDueno = useOwnerActions(() => {
-    carDetail(carId)
+    carDetail(carId, desdeRevision)
       .then((d) => d && setDetail(d))
       .catch(() => undefined)
     cargarPropia()
@@ -363,12 +363,15 @@ export function Detail() {
     if (!detail) return []
     const c = detail.car
     const seguro = detail.row.recuperado_por_seguro
+    const siNo = (v: boolean | null) => (v == null ? '—' : v ? t('vehiculo.yes') : t('vehiculo.no'))
+    const condicion = detail.row.condicion_vehiculo
     const filas: [Clave, string | number][] = [
       ['vehiculo.spec.brand', c.brand],
       ['vehiculo.spec.model', c.model || '—'],
       ['vehiculo.spec.year', c.year || '—'],
       ['vehiculo.spec.transmission', nombreCatalogo(detail.transmision)],
       ['vehiculo.spec.mileage', km(c.km)],
+      ['vehiculo.spec.condition', condicion === 'seminuevo' ? t('vehiculo.conditionSeminuevo') : condicion === 'usado' ? t('vehiculo.conditionUsado') : '—'],
       ['vehiculo.spec.fuel', nombreCatalogo(detail.combustible)],
       ['vehiculo.spec.engine', detail.motor],
       ['vehiculo.spec.cylinders', detail.cilindros],
@@ -378,6 +381,8 @@ export function Detail() {
       ['vehiculo.spec.location', c.city || '—'],
       // Se arma aquí (no en api.ts) para que cambie al cambiar el idioma.
       ['vehiculo.spec.insurance', seguro == null ? '—' : seguro ? t('vehiculo.yes') : t('vehiculo.no')],
+      ['vehiculo.spec.originalInvoice', siNo(detail.row.factura_original)],
+      ['vehiculo.spec.airConditioning', siNo(detail.row.aire_acondicionado)],
     ]
     return filas
   }, [detail, t])
@@ -440,7 +445,7 @@ export function Detail() {
           idReporte={desdeReporte}
           ownerId={c.ownerId}
           onChanged={() =>
-            carDetail(carId)
+            carDetail(carId, desdeRevision)
               .then((d) => d && setDetail(d))
               .catch(() => undefined)
           }
@@ -451,7 +456,7 @@ export function Detail() {
           car={c}
           row={detail.row}
           onChanged={() =>
-            carDetail(carId)
+            carDetail(carId, desdeRevision)
               .then((d) => d && setDetail(d))
               .catch(() => undefined)
           }

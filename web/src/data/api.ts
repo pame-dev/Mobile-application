@@ -82,9 +82,67 @@ export async function visibleCars(): Promise<Car[]> {
   return rows.map(toCar)
 }
 
-export async function carDetail(id: number): Promise<CarDetail | null> {
+/** Con [cambiosPendientes] (el admin al revisar) muestra los cambios en revisión, no lo aprobado. */
+export async function carDetail(id: number, cambiosPendientes = false): Promise<CarDetail | null> {
   const row = check(await supabase.from(VISTA).select('*').eq('id_publicacion', id).maybeSingle()) as AnuncioRow | null
-  return row ? toDetail(row) : null
+  if (!row) return null
+  return toDetail(cambiosPendientes ? await conPropuesta(row, ['pendiente']) : row)
+}
+
+/** Columnas de propuestas_publicacion que lee conPropuesta, con los nombres del catálogo. */
+const COLUMNAS_PROPUESTA =
+  'titulo, descripcion, precio, id_marca, marca_otra, id_modelo, modelo_otro, anio, kilometraje, ' +
+  'id_color, color_otro, id_transmision, transmision_otra, id_carroceria, carroceria_otra, ' +
+  'numero_propietarios_anteriores, tiene_problemas, descripcion_problemas, recuperado_por_seguro, ' +
+  'factura_original, aire_acondicionado, condicion_vehiculo, tipo_combustible, cilindros, cilindrada, ' +
+  'marcas(nombre_marca), modelos(nombre_modelo), colores(nombre_color), ' +
+  'transmisiones(nombre_transmision), carrocerias(nombre_carroceria)'
+
+type FilaPropuesta = Pick<
+  AnuncioRow,
+  | 'titulo' | 'descripcion' | 'precio' | 'id_marca' | 'id_modelo' | 'anio' | 'kilometraje' | 'id_color'
+  | 'id_transmision' | 'id_carroceria' | 'numero_propietarios_anteriores' | 'tiene_problemas'
+  | 'descripcion_problemas' | 'recuperado_por_seguro' | 'factura_original' | 'aire_acondicionado'
+  | 'condicion_vehiculo' | 'tipo_combustible' | 'cilindros' | 'cilindrada'
+> & {
+  marca_otra: string | null
+  modelo_otro: string | null
+  color_otro: string | null
+  transmision_otra: string | null
+  carroceria_otra: string | null
+  marcas: { nombre_marca: string } | null
+  modelos: { nombre_modelo: string } | null
+  colores: { nombre_color: string } | null
+  transmisiones: { nombre_transmision: string } | null
+  carrocerias: { nombre_carroceria: string } | null
+}
+
+/**
+ * [a] con los datos del vehículo y las fotos de su última propuesta, si está en uno de
+ * [estados]; si no, [a] tal cual. Solo el dueño y el admin pueden leer la propuesta (RLS).
+ * Igual que CarRepository.conPropuesta en la app.
+ */
+export async function conPropuesta(a: AnuncioRow, estados: string[]): Promise<AnuncioRow> {
+  const idPropuesta = a.id_ultima_propuesta
+  if (idPropuesta == null || !estados.includes(a.estado_ultima_propuesta ?? '')) return a
+  const [res, resFotos] = await Promise.all([
+    supabase.from('propuestas_publicacion').select(COLUMNAS_PROPUESTA).eq('id_propuesta', idPropuesta).maybeSingle(),
+    supabase.from('fotos_propuesta_publicacion').select('ruta_storage').eq('id_propuesta', idPropuesta).order('orden_foto'),
+  ])
+  const p = check(res) as unknown as FilaPropuesta | null
+  if (!p) return a
+  const fotos = ((check(resFotos) as { ruta_storage: string }[] | null) ?? []).map((f) => f.ruta_storage)
+  const { marca_otra, modelo_otro, color_otro, transmision_otra, carroceria_otra, marcas, modelos, colores, transmisiones, carrocerias, ...datos } = p
+  return {
+    ...a,
+    ...datos,
+    marca: marca_otra ?? marcas?.nombre_marca ?? null,
+    modelo: modelo_otro ?? modelos?.nombre_modelo ?? null,
+    color: color_otro ?? colores?.nombre_color ?? null,
+    transmision: transmision_otra ?? transmisiones?.nombre_transmision ?? null,
+    carroceria: carroceria_otra ?? carrocerias?.nombre_carroceria ?? null,
+    fotos: fotos.length ? fotos : a.fotos,
+  }
 }
 
 export async function carsByIds(ids: number[]): Promise<Car[]> {

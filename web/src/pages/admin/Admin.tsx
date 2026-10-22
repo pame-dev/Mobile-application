@@ -29,7 +29,7 @@ import {
   registrarHuellasAdmin,
 } from '../../data/admin'
 import { unreadCount } from '../../data/account'
-import { toCar } from '../../data/api'
+import { conPropuesta, toCar } from '../../data/api'
 import { mensajeUsuario } from '../../data/auth'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import { nombreCatalogo } from '../../lib/catalogo'
@@ -655,12 +655,24 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
 
 // ── Vehículos ──────────────────────────────────────────────────────────────
 
-function VehicleReview({ car, row, listo }: { car: Car; row: AnuncioRow; listo: (m: string) => void }) {
+function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; row: AnuncioRow; listo: (m: string) => void }) {
   const { openModal, closeModal, toast } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
-  const propuesta = propuestaPendiente(row)
+  const propuesta = propuestaPendiente(filaAprobada)
+  // Con cambios en revisión se muestran esos cambios, no la versión aprobada (CarRepository.detail en la app).
+  const [{ car, row }, setDatos] = useState({ car: aprobado, row: filaAprobada })
+  useEffect(() => {
+    if (propuesta == null) return
+    let vivo = true
+    conPropuesta(filaAprobada, ['pendiente'])
+      .then((r) => vivo && setDatos({ car: toCar(r), row: r }))
+      .catch(() => undefined)
+    return () => {
+      vivo = false
+    }
+  }, [propuesta, filaAprobada])
   const habilitada = row.estado_administrativo === 'habilitada'
   const estado = estadoAdmin(row, car)
   const moderacion = useModeracion()

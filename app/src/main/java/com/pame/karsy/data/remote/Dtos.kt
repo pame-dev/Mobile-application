@@ -360,6 +360,12 @@ data class NombreModeloDto(@SerialName("nombre_modelo") val nombre: String)
 @Serializable
 data class NombreCarroceriaDto(@SerialName("nombre_carroceria") val nombre: String)
 
+@Serializable
+data class NombreColorDto(@SerialName("nombre_color") val nombre: String)
+
+@Serializable
+data class NombreTransmisionDto(@SerialName("nombre_transmision") val nombre: String)
+
 /** Fila de preferencias_notificacion (sin fila = todo activo). */
 @Serializable
 data class PreferenciasAvisosDto(
@@ -391,3 +397,45 @@ data class DocumentoVehiculoDto(
     /** VIN o placa; en tarjeta y baja, la ruta en el bucket privado documentos-vehiculo. */
     @SerialName("documento_vehiculo") val valor: String,
 )
+
+/**
+ * Datos del vehículo de una fila de propuestas_publicacion (cambios en revisión o rechazados),
+ * con los nombres del catálogo. Solo los lee el dueño y el admin (RLS propuestas_leer).
+ */
+@Serializable
+data class PropuestaDto(
+    val titulo: String? = null,
+    val descripcion: String? = null,
+    val precio: Double? = null,
+    @SerialName("id_marca") val idMarca: Long? = null,
+    @SerialName("marca_otra") val marcaOtra: String? = null,
+    @SerialName("id_modelo") val idModelo: Long? = null,
+    @SerialName("modelo_otro") val modeloOtro: String? = null,
+    val anio: Int? = null,
+    val kilometraje: Int? = null,
+    @SerialName("id_color") val idColor: Long? = null,
+    @SerialName("color_otro") val colorOtro: String? = null,
+    @SerialName("id_transmision") val idTransmision: Long? = null,
+    @SerialName("transmision_otra") val transmisionOtra: String? = null,
+    @SerialName("id_carroceria") val idCarroceria: Long? = null,
+    @SerialName("carroceria_otra") val carroceriaOtra: String? = null,
+    @SerialName("numero_propietarios_anteriores") val propietariosAnteriores: Int? = null,
+    @SerialName("tiene_problemas") val tieneProblemas: Boolean? = null,
+    @SerialName("descripcion_problemas") val descripcionProblemas: String? = null,
+    @SerialName("recuperado_por_seguro") val recuperadoPorSeguro: Boolean? = null,
+    @SerialName("factura_original") val facturaOriginal: Boolean? = null,
+    @SerialName("aire_acondicionado") val aireAcondicionado: Boolean? = null,
+    @SerialName("condicion_vehiculo") val condicionVehiculo: String? = null,
+    @SerialName("tipo_combustible") val combustible: String? = null,
+    val cilindros: Int? = null,
+    val cilindrada: String? = null,
+    val marcas: NombreMarcaDto? = null,
+    val modelos: NombreModeloDto? = null,
+    val colores: NombreColorDto? = null,
+    val transmisiones: NombreTransmisionDto? = null,
+    val carrocerias: NombreCarroceriaDto? = null,
+)
+
+/** Fila de fotos_propuesta_publicacion. */
+@Serializable
+data class FotoPropuestaDto(@SerialName("ruta_storage") val ruta: String)

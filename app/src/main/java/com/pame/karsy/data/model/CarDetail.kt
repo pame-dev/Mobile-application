@@ -12,6 +12,12 @@ data class CarDetail(
     val kilometraje: String,
     /** "Sí", "No" o "—" si no se indicó. */
     val recuperadoPorSeguro: String,
+    /** "Sí", "No" o "—" si no se indicó. */
+    val facturaOriginal: String,
+    /** "Sí", "No" o "—" si no se indicó. */
+    val aireAcondicionado: String,
+    /** "Seminuevo", "Usado" o "—" si no se indicó. */
+    val condicion: String,
     val cilindros: String,
     val motor: String,
     val tipoCarro: String,

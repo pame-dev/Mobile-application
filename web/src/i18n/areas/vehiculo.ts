@@ -143,6 +143,11 @@ export const es = {
   'vehiculo.spec.owners': 'Dueños anteriores',
   'vehiculo.spec.location': 'Ubicación',
   'vehiculo.spec.insurance': 'Recuperado por el seguro',
+  'vehiculo.spec.originalInvoice': 'Factura original',
+  'vehiculo.spec.airConditioning': 'Aire acondicionado',
+  'vehiculo.spec.condition': 'Condición',
+  'vehiculo.conditionSeminuevo': 'Seminuevo',
+  'vehiculo.conditionUsado': 'Usado',
 
   // Acciones del dueño
   'vehiculo.soldVia.title': '¿Dónde lo vendiste?',
@@ -307,6 +312,11 @@ export const en: Record<keyof typeof es, string> = {
   'vehiculo.spec.owners': 'Previous owners',
   'vehiculo.spec.location': 'Location',
   'vehiculo.spec.insurance': 'Recovered by insurance',
+  'vehiculo.spec.originalInvoice': 'Original invoice',
+  'vehiculo.spec.airConditioning': 'Air conditioning',
+  'vehiculo.spec.condition': 'Condition',
+  'vehiculo.conditionSeminuevo': 'Pre-owned',
+  'vehiculo.conditionUsado': 'Used',
 
   'vehiculo.soldVia.title': 'Where did you sell it?',
   'vehiculo.soldVia.sub': 'Tell us whether the sale closed through Karsy or somewhere else.',
