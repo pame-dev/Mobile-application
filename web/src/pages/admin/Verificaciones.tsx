@@ -4,7 +4,7 @@ import { Icon } from '../../components/Icon'
 import { ModalHead, useUi } from '../../components/Ui'
 import { constanciaUrl, resolveVerification, type VerificacionAdmin } from '../../data/admin'
 import { mensajeUsuario } from '../../data/auth'
-import { traducir, useI18n } from '../../i18n/I18nContext'
+import { useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
 import { ESTADOS_CURP, leerCurp } from '../../lib/curp'
 import { haceCuanto } from '../../lib/format'
@@ -34,9 +34,6 @@ function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; 
       .then(() => toast(t('admin.curpCopied')))
       .catch(() => undefined)
   }
-  const fecha = datos
-    ? new Date(datos.anio, datos.mes - 1, datos.dia).toLocaleDateString(traducir('vehiculo.locale'), { day: 'numeric', month: 'long', year: 'numeric' })
-    : ''
   const fila = (etiqueta: string, valor: string) => (
     <p className="row" style={{ justifyContent: 'space-between', gap: 12, margin: 0 }}>
       <span className="muted">{etiqueta}</span>
@@ -71,7 +68,6 @@ function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; 
         </div>
         {datos ? (
           <>
-            {fila(t('admin.curpBirth'), fecha)}
             {fila(t('admin.curpSex'), t(datos.sexo === 'H' ? 'admin.curpSexH' : datos.sexo === 'M' ? 'admin.curpSexM' : 'admin.curpSexX'))}
             {fila(t('admin.curpBirthState'), datos.estado === 'NE' ? t('admin.curpAbroad') : ESTADOS_CURP[datos.estado])}
           </>

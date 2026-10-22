@@ -915,7 +915,6 @@
     <string name="admin2_curp_open_gob">Abrir gob.mx/curp</string>
     <string name="admin2_curp_profile_name">Nombre en el perfil</string>
     <string name="admin2_curp_from_curp">Datos que trae la CURP</string>
-    <string name="admin2_curp_birth">Fecha de nacimiento</string>
     <string name="admin2_curp_sex">Sexo</string>
     <string name="admin2_curp_birth_state">Estado de nacimiento</string>
     <string name="admin2_curp_sex_h">Hombre</string>

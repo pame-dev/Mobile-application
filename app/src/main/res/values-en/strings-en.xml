@@ -913,7 +913,6 @@
     <string name="admin2_curp_open_gob">Open gob.mx/curp</string>
     <string name="admin2_curp_profile_name">Name on the profile</string>
     <string name="admin2_curp_from_curp">Data inside the CURP</string>
-    <string name="admin2_curp_birth">Date of birth</string>
     <string name="admin2_curp_sex">Sex</string>
     <string name="admin2_curp_birth_state">State of birth</string>
     <string name="admin2_curp_sex_h">Male</string>

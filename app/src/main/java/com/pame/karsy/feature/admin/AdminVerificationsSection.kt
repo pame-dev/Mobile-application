@@ -36,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -56,8 +55,6 @@ import com.pame.karsy.core.theme.KarsyTealSoft
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Curp
-import java.text.DateFormat
-import java.util.GregorianCalendar
 
 /**
  * "Verificación de usuarios": documentos que enviaron los usuarios (lotes y particulares).
@@ -357,9 +354,6 @@ private fun RevisarCurpDialog(
                 AdminField(stringResource(R.string.admin2_curp_profile_name), verification.name)
                 Text(stringResource(R.string.admin2_curp_from_curp), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AdminColors.Muted)
                 if (datos != null) {
-                    val fecha = DateFormat.getDateInstance(DateFormat.LONG, LocalConfiguration.current.locales[0])
-                        .format(GregorianCalendar(datos.anio, datos.mes - 1, datos.dia).time)
-                    AdminField(stringResource(R.string.admin2_curp_birth), fecha)
                     AdminField(
                         stringResource(R.string.admin2_curp_sex),
                         stringResource(
