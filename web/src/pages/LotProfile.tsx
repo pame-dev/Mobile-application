@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
-import { VerifiedBadge } from '../components/ConstanciaField'
 import { Inventory, ProfileHeader } from '../components/ProfileParts'
 import { Traducido } from '../components/Traducido'
 import { useUi } from '../components/Ui'
@@ -94,27 +93,15 @@ export function LotProfile() {
         <VolverButton fallback="/lotes" />
       </div>
 
-      <ProfileHeader name={lote.name} avatarUrl={lote.logoUrl} coverUrl={lote.coverUrl} square>
-        <div className="row" style={{ flexWrap: 'wrap' }}>
-          {lote.verified ? (
-            <span className="verified-name">
-              <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
-              <VerifiedBadge />
-              <span className="badge b-info">{t('nav.lot')}</span>
-            </span>
-          ) : (
-            <>
-              <h1 style={{ fontSize: 28 }}>{lote.name}</h1>
-              <span className="badge b-info">{t('nav.lot')}</span>
-            </>
-          )}
-        </div>
-        <p className="muted">
-          {lote.city}
-          {lote.city && ' · '}
-          {t(lote.vehicleCount === 1 ? 'perfil.forSaleOne' : 'perfil.forSaleMany', { n: lote.vehicleCount })}
-        </p>
-      </ProfileHeader>
+      <ProfileHeader
+        name={lote.name}
+        avatarUrl={lote.logoUrl}
+        coverUrl={lote.coverUrl}
+        lote
+        verified={lote.verified}
+        typeLabel={t('nav.lot')}
+        info={[lote.city, t(lote.vehicleCount === 1 ? 'perfil.forSaleOne' : 'perfil.forSaleMany', { n: lote.vehicleCount })].filter(Boolean).join(' · ')}
+      />
 
       <div className="twocol" style={{ marginTop: 24 }}>
         <aside className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>

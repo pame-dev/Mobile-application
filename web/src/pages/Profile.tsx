@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox } from '../components/AuthParts'
 import { Icon } from '../components/Icon'
 import { ModalHead, useUi } from '../components/Ui'
-import { VerifiedBadge } from '../components/ConstanciaField'
+import { ProfileHeader } from '../components/ProfileParts'
 import { VehicleCard } from '../components/VehicleCard'
 import { VolverButton } from '../components/VolverButton'
 import { Traducido } from '../components/Traducido'
@@ -559,59 +559,47 @@ export function Profile() {
       <div style={{ marginBottom: 14 }}>
         <VolverButton fallback="/" />
       </div>
-      <div className="cover">
-        {perfil.coverUrl && <img src={perfil.coverUrl} alt="" />}
-        <button className="btn btn-sm coverbtn" onClick={() => portadaInput.current?.click()} disabled={subiendoPortada}>
-          <Icon name="camera" size={16} />
-          {subiendoPortada ? t('perfil.coverUploading') : t('perfil.editCover')}
-        </button>
-        <input
-          ref={portadaInput}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          hidden
-          onChange={(ev) => (void cambiarPortada(ev.target.files?.[0]), (ev.target.value = ''))}
-        />
-      </div>
-      {/* Foto montada sobre el borde de la portada; nombre, insignias y datos a su derecha, debajo de la portada. */}
-      <div className="ownhead">
-        {perfil.avatarUrl ? (
-          <button
-            className="bigavatar"
-            style={esLote ? { borderRadius: 28, background: 'var(--navy)' } : undefined}
-            aria-label={t('perfil.viewProfilePhoto')}
-            onClick={() => openModal(<img className="lightbox" src={perfil.avatarUrl!} alt={perfil.displayName} onClick={closeModal} />)}
-          >
-            <img src={perfil.avatarUrl} alt="" />
-          </button>
-        ) : (
-          <div className="bigavatar" style={esLote ? { borderRadius: 28, background: 'var(--navy)' } : undefined}>
-            {iniciales(perfil.displayName)}
-          </div>
-        )}
-        <div className="ownhead-info">
-          <h1 style={{ fontSize: 28 }}>{perfil.displayName}</h1>
-          <div className="ownhead-badges">
-            {perfil.verificado && <VerifiedBadge />}
-            <span className="badge b-info">{mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}</span>
-          </div>
-          <p className="muted">{datos}</p>
-        </div>
-        <div className="row ownhead-actions">
-          <button className="iconbtn" aria-label={t('nav.history')} onClick={() => navigate('/historial')}>
-            <Icon name="history" size={18} />
-          </button>
-          <button className="iconbtn" aria-label={t('nav.settings')} onClick={() => navigate('/configuracion')}>
-            <Icon name="settings" size={18} />
-          </button>
-          <button className="btn btn-primary" onClick={editar}>
-            <Icon name="edit" size={16} />
-            {t('perfil.editProfile')}
-          </button>
-        </div>
-      </div>
+      <ProfileHeader
+        name={perfil.displayName}
+        avatarUrl={perfil.avatarUrl}
+        coverUrl={perfil.coverUrl}
+        lote={esLote}
+        verified={perfil.verificado}
+        typeLabel={mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}
+        info={datos}
+        coverAction={
+          <>
+            <button className="btn btn-sm coverbtn" onClick={() => portadaInput.current?.click()} disabled={subiendoPortada}>
+              <Icon name="camera" size={16} />
+              {subiendoPortada ? t('perfil.coverUploading') : t('perfil.editCover')}
+            </button>
+            <input
+              ref={portadaInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              onChange={(ev) => (void cambiarPortada(ev.target.files?.[0]), (ev.target.value = ''))}
+            />
+          </>
+        }
+        actions={
+          <>
+            <button className="iconbtn" aria-label={t('nav.history')} onClick={() => navigate('/historial')}>
+              <Icon name="history" size={18} />
+            </button>
+            <button className="iconbtn" aria-label={t('nav.settings')} onClick={() => navigate('/configuracion')}>
+              <Icon name="settings" size={18} />
+            </button>
+            <button className="btn btn-primary" onClick={editar}>
+              <Icon name="edit" size={16} />
+              {t('perfil.editProfile')}
+            </button>
+          </>
+        }
+      />
 
-      {esLote && <ConstanciaLote perfil={perfil} onSent={cargar} />}
+      {/* Solo el propio lote (no el admin) ve y sube su constancia. */}
+      {esLote && mode !== 'admin' && <ConstanciaLote perfil={perfil} onSent={cargar} />}
       {!esLote && mode !== 'admin' && !perfil.verificado && <VerificarParticular perfil={perfil} onSent={cargar} />}
 
       <div className="twocol" style={{ margin: '26px 0 40px' }}>

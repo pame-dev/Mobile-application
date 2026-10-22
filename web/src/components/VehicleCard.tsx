@@ -5,6 +5,7 @@ import { km, precio } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
 import { CarPhoto } from './CarPhoto'
+import { ConditionTag } from './ConditionTag'
 import { Icon } from './Icon'
 import { Traducido } from './Traducido'
 import { STATUS_BADGE, statusLabel } from './OwnerActions'
@@ -48,8 +49,11 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
         {showStatus && <span className={`badge ${STATUS_BADGE[car.status]}`} style={{ alignSelf: 'flex-start' }}>{t(statusLabel(car.status))}</span>}
         <div className="row" style={{ alignItems: 'flex-start', gap: 8 }}>
           <div className="grow">
-            <div className="vtitle">
-              {car.brand} {car.model}
+            <div className="vtitle-row">
+              <div className="vtitle">
+                {car.brand} {car.model}
+              </div>
+              <ConditionTag condicion={car.condition} compact />
             </div>
             <div className="mid" style={{ fontSize: 12 }}>
               {car.year} · {km(car.km)}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VerifiedShield } from '../components/ConstanciaField'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
+import { ConditionTag } from '../components/ConditionTag'
 import { Icon } from '../components/Icon'
 import { PhotoViewer } from '../components/PhotoViewer'
 import { VolverButton } from '../components/VolverButton'
@@ -597,9 +598,12 @@ export function Detail() {
             </div>
           </div>
           <div>
-            <h1 style={{ fontSize: 28 }}>
-              {c.brand} {c.model}
-            </h1>
+            <div className="detail-title">
+              <h1 style={{ fontSize: 28 }}>
+                {c.brand} {c.model}
+              </h1>
+              <ConditionTag condicion={detail.row.condicion_vehiculo} />
+            </div>
             <div className="loc" style={{ marginTop: 6 }}>
               <Icon name="pin" />
               {[c.city, c.year, km(c.km)].filter(Boolean).join(' · ')}

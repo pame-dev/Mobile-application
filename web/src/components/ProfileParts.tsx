@@ -6,37 +6,53 @@ import { ORDEN, SIN_FILTROS, filtrarCars, hayFiltros, type Filtros } from '../li
 import { iniciales } from '../lib/format'
 import { FiltersButton, aniosDe } from './Filters'
 import { Icon } from './Icon'
+import { VerifiedBadge } from './ConstanciaField'
 import { useUi } from './Ui'
 import { VehicleCard } from './VehicleCard'
 
-/** Portada, foto (se amplía al hacer clic) y nombre de un perfil público. */
+/**
+ * Encabezado de todos los perfiles (propio y público; particular, lote o admin): portada arriba,
+ * foto cuadrada montada sobre su borde y, debajo de la portada, nombre / insignias / datos en
+ * tres líneas y los botones a la derecha. [coverAction]: "Editar portada" (solo el perfil propio).
+ */
 export function ProfileHeader({
   name,
   avatarUrl,
   coverUrl,
-  square = false,
-  children,
+  lote = false,
+  verified = false,
+  typeLabel,
+  info,
   actions,
+  coverAction,
 }: {
   name: string
   avatarUrl: string | null
   coverUrl: string | null
-  /** Los lotes usan logo cuadrado. */
-  square?: boolean
-  children?: ReactNode
+  /** Los lotes llevan fondo azul marino detrás del logo. */
+  lote?: boolean
+  verified?: boolean
+  /** Etiqueta del tipo de usuario: "Particular", "Lote" o "Administrador". */
+  typeLabel: string
+  /** Línea gris: ubicación y correo o "En Karsy desde …". */
+  info?: ReactNode
   actions?: ReactNode
+  coverAction?: ReactNode
 }) {
   const { openModal, closeModal } = useUi()
   const { t } = useI18n()
   const [portadaFallo, setPortadaFallo] = useState(false)
   const [fotoFallo, setFotoFallo] = useState(false)
   const foto = avatarUrl && !fotoFallo ? avatarUrl : null
-  const estilo = square ? { borderRadius: 28, background: 'var(--navy)' } : undefined
+  const estilo = lote ? { background: 'var(--navy)' } : undefined
 
   return (
     <>
-      <div className="cover">{coverUrl && !portadaFallo && <img src={coverUrl} alt="" onError={() => setPortadaFallo(true)} />}</div>
-      <div className="profilehead">
+      <div className="cover">
+        {coverUrl && !portadaFallo && <img src={coverUrl} alt="" onError={() => setPortadaFallo(true)} />}
+        {coverAction}
+      </div>
+      <div className="ownhead">
         {foto ? (
           <button
             className="bigavatar"
@@ -51,14 +67,15 @@ export function ProfileHeader({
             {iniciales(name)}
           </div>
         )}
-        <div className="grow" style={{ paddingBottom: 10, minWidth: 220 }}>
-          {children}
-        </div>
-        {actions && (
-          <div className="row" style={{ paddingBottom: 12, flexWrap: 'wrap' }}>
-            {actions}
+        <div className="ownhead-info">
+          <h1 style={{ fontSize: 28 }}>{name}</h1>
+          <div className="ownhead-badges">
+            {verified && <VerifiedBadge />}
+            <span className="badge b-info">{typeLabel}</span>
           </div>
-        )}
+          {info && <p className="muted">{info}</p>}
+        </div>
+        {actions && <div className="row ownhead-actions">{actions}</div>}
       </div>
     </>
   )

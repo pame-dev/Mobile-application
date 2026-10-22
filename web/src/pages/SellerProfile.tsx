@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { VerifiedBadge } from '../components/ConstanciaField'
 import { Inventory, ProfileHeader } from '../components/ProfileParts'
 import { Traducido } from '../components/Traducido'
 import { VolverButton } from '../components/VolverButton'
@@ -70,24 +69,21 @@ export function SellerProfile() {
   // Los lotes tienen su propio perfil, con dirección y contacto.
   if (perfil.type === 'lote') return <Navigate to={`/lotes/${perfil.id}`} replace />
 
-  const datos = [t('nav.individual'), perfil.city, perfil.since ? t('perfil.since', { fecha: desde(perfil.since) }) : ''].filter(Boolean).join(' · ')
+  const datos = [perfil.city, perfil.since ? t('perfil.since', { fecha: desde(perfil.since) }) : ''].filter(Boolean).join(' · ')
 
   return (
     <div className="wrap" style={{ paddingTop: 24 }}>
       <div style={{ marginBottom: 14 }}>
         <VolverButton fallback="/" />
       </div>
-      <ProfileHeader name={perfil.name} avatarUrl={perfil.avatarUrl} coverUrl={perfil.coverUrl}>
-        {perfil.verified ? (
-          <span className="verified-name">
-            <h1 style={{ fontSize: 28 }}>{perfil.name}</h1>
-            <VerifiedBadge />
-          </span>
-        ) : (
-          <h1 style={{ fontSize: 28 }}>{perfil.name}</h1>
-        )}
-        <p className="muted">{datos}</p>
-      </ProfileHeader>
+      <ProfileHeader
+        name={perfil.name}
+        avatarUrl={perfil.avatarUrl}
+        coverUrl={perfil.coverUrl}
+        verified={perfil.verified}
+        typeLabel={t('nav.individual')}
+        info={datos}
+      />
       {perfil.description && (
         <p className="muted" style={{ marginTop: 18, maxWidth: 720 }}>
           <Traducido texto={perfil.description} />

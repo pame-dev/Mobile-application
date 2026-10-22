@@ -102,11 +102,6 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'home.noMatch': 'No vehicles match your search.',
 
   'footer.tagline': 'Car marketplace to buy and sell new and used cars all across Mexico.',
-  'footer.explore': 'Explore',
-  'footer.vehicles': 'Vehicles',
-  'footer.lots': 'Dealers',
-  'footer.publish': 'Publish a vehicle',
-  'footer.account': 'Your account',
   'footer.legal': 'Legal',
   'footer.language': 'Language',
 
