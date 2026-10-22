@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -105,6 +107,13 @@ internal fun carStatusLabel(status: String): String = when (status) {
     EstadoAuto.PAUSADO -> stringResource(R.string.profile_status_paused)
     else -> status
 }
+
+/**
+ * Foto atenuada (casi en gris) de una publicación propia nueva en revisión: todavía nadie
+ * más la ve. Se usa con alpha [FOTO_EN_REVISION_ALPHA] en Mi perfil y Mi panel.
+ */
+internal val FotoEnRevision = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.3f) })
+internal const val FOTO_EN_REVISION_ALPHA = 0.55f
 
 /** "Vendido dentro / fuera de la app"; null si no se registró dónde se vendió. */
 @Composable

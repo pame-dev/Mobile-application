@@ -357,6 +357,10 @@
     <string name="detail_report_account_desc">Comportamiento sospechoso, suplantación o acoso por parte del vendedor.</string>
     <string name="detail_cancel">Cancelar</string>
     <string name="detail_disabled_title">Tu publicación fue deshabilitada</string>
+    <string name="detail_not_public_title">Esta publicación aún no es pública</string>
+    <string name="detail_not_public_desc">Solo tú y el equipo de Karsy pueden verla. Te avisaremos cuando la aprobemos.</string>
+    <string name="detail_changes_review_title">Tus cambios están en revisión</string>
+    <string name="detail_changes_review_desc">Los compradores siguen viendo la versión anterior hasta que aprobemos los cambios.</string>
     <string name="detail_rejected_title">Tu publicación fue rechazada</string>
     <string name="detail_changes_rejected_title">Administración rechazó tus cambios</string>
     <string name="detail_owner_edit">Editar</string>

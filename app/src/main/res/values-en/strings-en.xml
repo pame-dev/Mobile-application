@@ -355,6 +355,10 @@
     <string name="detail_report_account_desc">Suspicious behavior, impersonation or harassment by the seller.</string>
     <string name="detail_cancel">Cancel</string>
     <string name="detail_disabled_title">Your listing was disabled</string>
+    <string name="detail_not_public_title">This listing is not public yet</string>
+    <string name="detail_not_public_desc">Only you and the Karsy team can see it. We’ll let you know when we approve it.</string>
+    <string name="detail_changes_review_title">Your changes are under review</string>
+    <string name="detail_changes_review_desc">Buyers still see the previous version until we approve the changes.</string>
     <string name="detail_rejected_title">Your listing was rejected</string>
     <string name="detail_changes_rejected_title">An admin rejected your changes</string>
     <string name="detail_owner_edit">Edit</string>
