@@ -3,7 +3,7 @@
 import { publicUrl, supabase, BUCKET } from '../lib/supabase'
 import { traducir } from '../i18n/I18nContext'
 import { EXT_CONSTANCIA, tipoConstancia } from './auth'
-import { carsByIds, sigueDisponible, toCar, UserError } from './api'
+import { carsByIds, conPropuesta, sigueDisponible, toCar, UserError } from './api'
 import type { AnuncioRow, Car, DocumentoVehiculo, EstadoVerificacion } from './types'
 
 function check<T>(res: { data: T; error: { message: string; code?: string } | null }): T {
@@ -83,7 +83,11 @@ async function conFinDestacado(cars: OwnCar[]): Promise<OwnCar[]> {
 
 /** Datos de una publicación propia para precargar el formulario al editarla. */
 export async function ownListing(id: number): Promise<AnuncioRow | null> {
-  return check(await supabase.from('v_anuncios').select('*').eq('id_publicacion', id).maybeSingle()) as AnuncioRow | null
+  const a = check(await supabase.from('v_anuncios').select('*').eq('id_publicacion', id).maybeSingle()) as AnuncioRow | null
+  // Con cambios en revisión o rechazados, el formulario parte de esa propuesta (la que
+  // editar_publicacion vuelve a actualizar): en una ya aprobada, v_anuncios sigue
+  // mostrando la versión aprobada. Igual que CarRepository.ownListing en la app.
+  return a && conPropuesta(a, ['pendiente', 'rechazada'])
 }
 
 /** Sube una foto al bucket y devuelve su ruta (publicaciones/<id_cuenta>/<archivo>). */

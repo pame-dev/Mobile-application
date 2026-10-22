@@ -547,7 +547,8 @@ fun KarsyNavGraph(
                         onBack = ::back,
                         onRegister = ::goRegister,
                         onCarClick = ::openAdminCar,
-                        bottomBar = { vehicle?.let { AdminVehicleReviewBar(adminVm, it, onDone = ::back) } }
+                        bottomBar = { vehicle?.let { AdminVehicleReviewBar(adminVm, it, onDone = ::back) } },
+                        cambiosPendientes = true
                     )
                 }
                 // Comparte el AdminViewModel del panel: al resolver, la lista de reportes se recarga sola.

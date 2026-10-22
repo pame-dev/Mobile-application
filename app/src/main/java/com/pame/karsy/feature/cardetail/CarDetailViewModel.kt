@@ -35,17 +35,20 @@ class CarDetailViewModel : ViewModel() {
         private set
 
     private var loadedId: Long? = null
+    /** El admin revisa la publicación: se muestran los cambios en revisión (CarRepository.detail). */
+    private var cambiosPendientes = false
 
     /** Mientras se pausa o reactiva una publicación propia. */
     var updatingStatus by mutableStateOf(false)
         private set
 
-    fun load(id: Long) {
+    fun load(id: Long, cambiosPendientes: Boolean = false) {
         if (loadedId == id) return
         loadedId = id
+        this.cambiosPendientes = cambiosPendientes
         viewModelScope.launch {
             loading = true
-            safeCall { CarRepository.detail(id) }
+            safeCall { CarRepository.detail(id, cambiosPendientes) }
                 .onSuccess { detail = it; error = null }
                 .onFailure { error = it.mensajeUsuario() }
             loading = false
@@ -66,7 +69,7 @@ class CarDetailViewModel : ViewModel() {
         viewModelScope.launch {
             safeCall {
                 CarRepository.setPaused(id, paused)
-                CarRepository.detail(id)
+                CarRepository.detail(id, cambiosPendientes)
             }
                 .onSuccess { detail = it ?: detail; onDone(null) }
                 .onFailure { onDone(it.mensajeUsuario()) }
@@ -85,7 +88,7 @@ class CarDetailViewModel : ViewModel() {
         viewModelScope.launch {
             safeCall {
                 CarRepository.setSold(id, sold, via)
-                CarRepository.detail(id)
+                CarRepository.detail(id, cambiosPendientes)
             }
                 .onSuccess { detail = it ?: detail; onDone(null) }
                 .onFailure { onDone(it.mensajeUsuario()) }
@@ -117,7 +120,7 @@ class CarDetailViewModel : ViewModel() {
     fun refresh(onDone: () -> Unit) {
         val id = loadedId ?: return onDone()
         viewModelScope.launch {
-            safeCall { CarRepository.detail(id) }
+            safeCall { CarRepository.detail(id, cambiosPendientes) }
                 .onSuccess { if (it != null) detail = it; error = null }
             if (SessionManager.userId != null) {
                 favorite = id in safeCall { CarRepository.favoriteIds() }.getOrDefault(emptySet())
@@ -132,7 +135,7 @@ class CarDetailViewModel : ViewModel() {
     }
 
     fun retry() {
-        loadedId?.let { loadedId = null; load(it) }
+        loadedId?.let { loadedId = null; load(it, cambiosPendientes) }
     }
 
     fun toggleFavorite(onError: (String) -> Unit) {

@@ -2,6 +2,7 @@ package com.pame.karsy.data.repository
 
 import com.pame.karsy.R
 import com.pame.karsy.data.remote.PrecioDto
+import com.pame.karsy.data.remote.PropuestaDto
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.async
@@ -24,6 +25,7 @@ import com.pame.karsy.data.remote.DestacadoFinDto
 import com.pame.karsy.data.remote.DocumentoVehiculoDto
 import com.pame.karsy.data.remote.FavoritoDto
 import com.pame.karsy.data.remote.FavoritosConteoDto
+import com.pame.karsy.data.remote.FotoPropuestaDto
 import com.pame.karsy.data.remote.InteraccionDto
 import com.pame.karsy.data.remote.InteraccionInsert
 import com.pame.karsy.data.remote.ReporteInsert
@@ -66,9 +68,11 @@ object CarRepository {
             order("fecha_primera_publicacion", Order.DESCENDING)
         }.decodeList<AnuncioDto>().map(::toCar)
 
-    suspend fun detail(id: Long): CarDetail? {
+    /** Con [cambiosPendientes] (el admin al revisar) muestra los cambios en revisión, no lo aprobado. */
+    suspend fun detail(id: Long, cambiosPendientes: Boolean = false): CarDetail? {
         val detail = db.from(VISTA).select { filter { eq("id_publicacion", id) } }
             .decodeSingleOrNull<AnuncioDto>()
+            ?.let { if (cambiosPendientes) conPropuesta(it, setOf("pendiente")) else it }
             ?.let(::toDetail) ?: return null
         // El dueño ve hasta cuándo dura su destacado.
         if (!detail.car.featured || detail.car.ownerId != SessionManager.userId) return detail
@@ -298,9 +302,66 @@ object CarRepository {
     suspend fun documentoVehiculoUrl(ruta: String): String =
         db.storage.from(BUCKET_DOCUMENTOS).createSignedUrl(ruta, 10.minutes)
 
-    /** Datos de una publicación propia para precargar el formulario al corregirla. */
+    /**
+     * Datos de una publicación propia para precargar el formulario al corregirla. Si tiene
+     * cambios en revisión o rechazados, se toman de esa propuesta (la que editar_publicacion
+     * vuelve a actualizar): en una ya aprobada, v_anuncios sigue mostrando la versión aprobada.
+     */
     suspend fun ownListing(id: Long): AnuncioDto? =
         db.from(VISTA).select { filter { eq("id_publicacion", id) } }.decodeSingleOrNull<AnuncioDto>()
+            ?.let { conPropuesta(it, setOf("pendiente", "rechazada")) }
+
+    /**
+     * [a] con los datos del vehículo y las fotos de su última propuesta, si está en uno de
+     * [estados]; si no, [a] tal cual. Solo el dueño y el admin pueden leer la propuesta (RLS).
+     */
+    private suspend fun conPropuesta(a: AnuncioDto, estados: Set<String>): AnuncioDto {
+        val idPropuesta = a.idUltimaPropuesta?.takeIf { a.estadoUltimaPropuesta in estados } ?: return a
+        val p = db.from("propuestas_publicacion").select(Columns.raw(COLUMNAS_PROPUESTA)) {
+            filter { eq("id_propuesta", idPropuesta) }
+        }.decodeSingleOrNull<PropuestaDto>() ?: return a
+        val fotos = db.from("fotos_propuesta_publicacion").select(Columns.list("ruta_storage")) {
+            filter { eq("id_propuesta", idPropuesta) }
+            order("orden_foto", Order.ASCENDING)
+        }.decodeList<FotoPropuestaDto>().map { it.ruta }
+        return a.copy(
+            titulo = p.titulo,
+            descripcion = p.descripcion,
+            precio = p.precio,
+            idMarca = p.idMarca,
+            marca = p.marcaOtra ?: p.marcas?.nombre,
+            idModelo = p.idModelo,
+            modelo = p.modeloOtro ?: p.modelos?.nombre,
+            anio = p.anio,
+            kilometraje = p.kilometraje,
+            idColor = p.idColor,
+            color = p.colorOtro ?: p.colores?.nombre,
+            idTransmision = p.idTransmision,
+            transmision = p.transmisionOtra ?: p.transmisiones?.nombre,
+            idCarroceria = p.idCarroceria,
+            carroceria = p.carroceriaOtra ?: p.carrocerias?.nombre,
+            propietariosAnteriores = p.propietariosAnteriores,
+            tieneProblemas = p.tieneProblemas,
+            descripcionProblemas = p.descripcionProblemas,
+            recuperadoPorSeguro = p.recuperadoPorSeguro,
+            facturaOriginal = p.facturaOriginal,
+            aireAcondicionado = p.aireAcondicionado,
+            condicionVehiculo = p.condicionVehiculo,
+            combustible = p.combustible,
+            cilindros = p.cilindros,
+            cilindrada = p.cilindrada,
+            fotos = fotos.ifEmpty { a.fotos },
+        )
+    }
+
+    /** Columnas de propuestas_publicacion que lee [conPropuesta] (las de [PropuestaDto]). */
+    private const val COLUMNAS_PROPUESTA =
+        "titulo, descripcion, precio, id_marca, marca_otra, id_modelo, modelo_otro, anio, kilometraje, " +
+            "id_color, color_otro, id_transmision, transmision_otra, id_carroceria, carroceria_otra, " +
+            "numero_propietarios_anteriores, tiene_problemas, descripcion_problemas, recuperado_por_seguro, " +
+            "factura_original, aire_acondicionado, condicion_vehiculo, tipo_combustible, cilindros, cilindrada, " +
+            "marcas(nombre_marca), modelos(nombre_modelo), colores(nombre_color), " +
+            "transmisiones(nombre_transmision), carrocerias(nombre_carroceria)"
 
     /**
      * Edita una publicación propia (o corrige una rechazada): los cambios quedan
@@ -421,6 +482,13 @@ object CarRepository {
             transmision = a.transmision ?: "—",
             kilometraje = Formato.km(a.kilometraje),
             recuperadoPorSeguro = a.recuperadoPorSeguro?.let { texto(if (it) R.string.publish_yes else R.string.publish_no) } ?: "—",
+            facturaOriginal = a.facturaOriginal?.let { texto(if (it) R.string.publish_yes else R.string.publish_no) } ?: "—",
+            aireAcondicionado = a.aireAcondicionado?.let { texto(if (it) R.string.publish_yes else R.string.publish_no) } ?: "—",
+            condicion = when (a.condicionVehiculo) {
+                "seminuevo" -> texto(R.string.publish_condition_seminuevo)
+                "usado" -> texto(R.string.publish_condition_usado)
+                else -> "—"
+            },
             cilindros = a.cilindros?.toString() ?: "—",
             motor = a.cilindrada ?: "—",
             tipoCarro = a.carroceria ?: "—",

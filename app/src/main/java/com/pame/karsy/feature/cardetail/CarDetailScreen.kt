@@ -131,6 +131,8 @@ fun CarDetailScreen(
     bottomBar: (@Composable () -> Unit)? = null,
     /** Abre el formulario para corregir y reenviar una publicación rechazada propia. */
     onEditPublication: (Long) -> Unit = {},
+    /** El admin revisa la publicación: muestra los cambios en revisión en vez de lo aprobado. */
+    cambiosPendientes: Boolean = false,
     vm: CarDetailViewModel = viewModel(),
 ) {
     // Al volver de corregirla se recarga para mostrar que ya está en revisión.
@@ -139,7 +141,7 @@ fun CarDetailScreen(
         if (returningFromEdit) {
             returningFromEdit = false
             vm.retry()
-        } else vm.load(carId)
+        } else vm.load(carId, cambiosPendientes)
     }
 
     val detail = vm.detail
@@ -981,7 +983,10 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
         stringResource(R.string.detail_spec_brand) to car.brand,
         stringResource(R.string.detail_spec_transmission) to Catalogo.nombre(detail.transmision),
         stringResource(R.string.detail_spec_mileage) to detail.kilometraje,
+        stringResource(R.string.detail_spec_condition) to detail.condicion,
         stringResource(R.string.detail_spec_insurance_recovered) to detail.recuperadoPorSeguro,
+        stringResource(R.string.detail_spec_original_invoice) to detail.facturaOriginal,
+        stringResource(R.string.detail_spec_air_conditioning) to detail.aireAcondicionado,
         stringResource(R.string.detail_spec_cylinders) to detail.cilindros,
         stringResource(R.string.detail_spec_engine) to detail.motor,
         stringResource(R.string.detail_spec_body_type) to Catalogo.nombre(detail.tipoCarro),
