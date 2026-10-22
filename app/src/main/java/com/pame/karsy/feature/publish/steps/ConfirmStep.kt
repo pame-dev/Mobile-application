@@ -87,6 +87,8 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
         stringResource(R.string.publish_spec_transmission) to form.transmisionNombre,
         stringResource(R.string.publish_spec_mileage) to form.kilometraje.filter(Char::isDigit).toIntOrNull().let { Formato.km(it) },
         stringResource(R.string.publish_spec_insurance_recovered) to stringResource(if (form.recuperadoPorSeguro) R.string.publish_yes else R.string.publish_no),
+        stringResource(R.string.publish_spec_original_invoice) to stringResource(if (form.facturaOriginal) R.string.publish_yes else R.string.publish_no),
+        stringResource(R.string.publish_spec_air_conditioning) to stringResource(if (form.aireAcondicionado) R.string.publish_yes else R.string.publish_no),
         stringResource(R.string.publish_spec_cylinders) to form.cilindros.ifBlank { "—" },
         stringResource(R.string.publish_spec_horsepower) to form.caballos.filter(Char::isDigit).let { if (it.isEmpty()) "—" else "$it hp" },
         stringResource(R.string.publish_spec_engine) to form.motor.trim().ifEmpty { "—" },
@@ -94,6 +96,8 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
         stringResource(R.string.publish_spec_body_type) to form.carroceriaNombre,
         stringResource(R.string.publish_spec_color) to form.colorNombre,
         stringResource(R.string.publish_spec_previous_owners) to form.duenos.ifBlank { "0" },
+        stringResource(R.string.publish_spec_condition) to (PublishViewModel.CONDICIONES
+            .firstOrNull { it.first == form.condicion }?.let { stringResource(it.second) } ?: "—"),
         // Privado: solo aquí y para el admin; no sale en el anuncio.
         stringResource(R.string.publish_spec_document) to when (form.tipoDocumento) {
             "vin" -> "${stringResource(R.string.publish_label_vin)} ${form.documentoTexto}"

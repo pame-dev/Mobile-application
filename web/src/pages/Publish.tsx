@@ -61,6 +61,11 @@ const COMBUSTIBLES: { valor: string; label: Clave }[] = [
 ]
 /** Valor de COMBUSTIBLES que no lleva cilindros ni litros. */
 const ELECTRICO = 'Eléctrico'
+/** Valores de condicion_vehiculo (chk_publicaciones_condicion_vehiculo). */
+const CONDICIONES: { valor: string; label: Clave }[] = [
+  { valor: 'seminuevo', label: 'publicar.conditionSeminuevo' },
+  { valor: 'usado', label: 'publicar.conditionUsado' },
+]
 const ANGULOS: Clave[] = ['publicar.photoFront', 'publicar.photoRear', 'publicar.photoLeft', 'publicar.photoRight', 'publicar.photoDashboard']
 const PASOS: Clave[] = ['publicar.stepData', 'publicar.stepPhotos', 'publicar.stepDetails', 'publicar.stepConfirm']
 /** Sufijo "Potencia: N hp" que se agrega a la descripción (no hay columna para los caballos). */
@@ -109,6 +114,8 @@ interface Datos {
   idTransmision: string
   kilometraje: string
   recuperado: boolean
+  facturaOriginal: boolean
+  aireAcondicionado: boolean
   cilindros: string
   caballos: string
   /** Litros del motor con un entero y un decimal ("2.0"). */
@@ -119,6 +126,8 @@ interface Datos {
   idCarroceria: string
   idColor: string
   duenos: string
+  /** Uno de CONDICIONES o vacío (columna condicion_vehiculo). */
+  condicion: string
   descripcion: string
   imperfecciones: string
   /** Documento del vehículo (privado: solo dueño y admin). */
@@ -129,7 +138,7 @@ interface Datos {
 
 const VACIO: Datos = {
   idMarca: '', marcaOtra: '', idModelo: '', modeloOtro: '', anio: '', precio: '', idTransmision: '', kilometraje: '',
-  recuperado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', idColor: '', duenos: '',
+  recuperado: false, facturaOriginal: false, aireAcondicionado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', idColor: '', duenos: '', condicion: '',
   descripcion: '', imperfecciones: '', tipoDocumento: '', documentoTexto: '',
 }
 
@@ -274,6 +283,8 @@ export function Publish() {
             idTransmision: a.id_transmision ? String(a.id_transmision) : '',
             kilometraje: a.kilometraje != null ? String(a.kilometraje) : '',
             recuperado: a.recuperado_por_seguro === true,
+            facturaOriginal: a.factura_original === true,
+            aireAcondicionado: a.aire_acondicionado === true,
             cilindros: a.cilindros != null ? String(a.cilindros) : '',
             caballos: pot?.[1] ?? '',
             ...separarMotor(a.cilindrada),
@@ -281,6 +292,7 @@ export function Publish() {
             idCarroceria: a.id_carroceria ? String(a.id_carroceria) : '',
             idColor: a.id_color ? String(a.id_color) : '',
             duenos: a.numero_propietarios_anteriores != null ? String(a.numero_propietarios_anteriores) : '',
+            condicion: a.condicion_vehiculo ?? '',
             descripcion: pot ? desc.slice(0, pot.index) : desc,
             imperfecciones: a.descripcion_problemas ?? '',
             tipoDocumento: doc?.tipo ?? '',
@@ -376,6 +388,7 @@ export function Publish() {
     { campo: 'idCarroceria', lleno: !!d.idCarroceria, error: 'publicar.errBodyType' },
     { campo: 'idColor', lleno: !!d.idColor, error: 'publicar.errColor' },
     { campo: 'duenos', lleno: d.duenos !== '', error: 'publicar.errOwners' },
+    { campo: 'condicion', lleno: !!d.condicion, error: 'publicar.errCondition' },
     { campo: 'combustible', lleno: !!d.combustible, error: 'publicar.errFuel' },
     { campo: 'cilindros', lleno: esElectrico || !!d.cilindros, error: 'publicar.errCylindersRequired' },
     { campo: 'litros', lleno: esElectrico || Number(d.litros) > 0, error: 'publicar.errLiters' },
@@ -679,6 +692,9 @@ export function Publish() {
         anio: Number(d.anio),
         kilometraje: Number(d.kilometraje),
         recuperado_por_seguro: d.recuperado,
+        factura_original: d.facturaOriginal,
+        aire_acondicionado: d.aireAcondicionado,
+        condicion_vehiculo: d.condicion,
         id_color: Number(d.idColor),
         id_transmision: Number(d.idTransmision),
         id_carroceria: Number(d.idCarroceria),
@@ -806,6 +822,7 @@ export function Publish() {
   }
 
   const combustible = COMBUSTIBLES.find((c) => c.valor === d.combustible)
+  const condicion = CONDICIONES.find((c) => c.valor === d.condicion)
   const specs: [Clave, string][] = [
     ['publicar.brand', marcaNombre],
     ['publicar.model', modeloNombre],
@@ -813,6 +830,8 @@ export function Publish() {
     ['publicar.transmission', nombre(cat?.transmisiones, d.idTransmision)],
     ['publicar.mileage', d.kilometraje ? `${entero(Number(d.kilometraje))} km` : '—'],
     ['publicar.insuranceRecovered', d.recuperado ? t('publicar.yes') : t('publicar.no')],
+    ['publicar.originalInvoice', d.facturaOriginal ? t('publicar.yes') : t('publicar.no')],
+    ['publicar.airConditioning', d.aireAcondicionado ? t('publicar.yes') : t('publicar.no')],
     ['publicar.cylinders', d.cilindros || '—'],
     ['publicar.horsepower', d.caballos || '—'],
     ['publicar.engine', unirMotor(d.litros, d.aspiracion) ?? '—'],
@@ -820,6 +839,7 @@ export function Publish() {
     ['publicar.bodyType', nombre(cat?.carrocerias, d.idCarroceria)],
     ['publicar.color', nombre(cat?.colores, d.idColor)],
     ['publicar.previousOwners', d.duenos || '0'],
+    ['publicar.condition', condicion ? t(condicion.label) : '—'],
     // Privado: solo aquí y para el admin; no sale en el anuncio.
     [
       'publicar.document',
@@ -922,6 +942,17 @@ export function Publish() {
                   )}
                 </Campo>
               </div>
+              <div className="grid3">
+                <Campo label={t('publicar.condition')}>
+                  <div className="seg" style={{ alignSelf: 'flex-start' }}>
+                    {CONDICIONES.map((c) => (
+                      <button type="button" key={c.valor} disabled={bloqueado('condicion')} className={d.condicion === c.valor ? 'on' : ''} onClick={() => set('condicion', c.valor)}>
+                        {t(c.label)}
+                      </button>
+                    ))}
+                  </div>
+                </Campo>
+              </div>
               <div className="label" style={{ marginTop: 8 }}>
                 {t('publicar.sectionAdditionalInfo')}
               </div>
@@ -948,7 +979,7 @@ export function Publish() {
                 <Campo id="aspiracion" label={t('publicar.aspiration')}>
                   {opciones('aspiracion', ASPIRACIONES.map((a) => ({ valor: a.valor, texto: t(a.label) })), esElectrico ? t('publicar.notApplicable') : t('publicar.select'), esElectrico)}
                 </Campo>
-                <Campo id="caballos" label={t('publicar.horsepower')}>
+                <Campo id="caballos" label={t('publicar.horsepowerOptional')}>
                   <input className="input" id="caballos" inputMode="numeric" placeholder="150" disabled={bloqueado('caballos')} value={d.caballos} onChange={(e) => set('caballos', digitos(e.target.value, 4))} />
                 </Campo>
                 <Campo label={t('publicar.insuranceRecovered')}>
@@ -957,6 +988,28 @@ export function Publish() {
                       {t('publicar.yes')}
                     </button>
                     <button type="button" disabled={bloqueado('recuperado')} className={!d.recuperado ? 'on' : ''} onClick={() => set('recuperado', false)}>
+                      {t('publicar.no')}
+                    </button>
+                  </div>
+                </Campo>
+              </div>
+              <div className="grid3">
+                <Campo label={t('publicar.originalInvoice')}>
+                  <div className="seg" style={{ alignSelf: 'flex-start' }}>
+                    <button type="button" disabled={bloqueado('facturaOriginal')} className={d.facturaOriginal ? 'on' : ''} onClick={() => set('facturaOriginal', true)}>
+                      {t('publicar.yes')}
+                    </button>
+                    <button type="button" disabled={bloqueado('facturaOriginal')} className={!d.facturaOriginal ? 'on' : ''} onClick={() => set('facturaOriginal', false)}>
+                      {t('publicar.no')}
+                    </button>
+                  </div>
+                </Campo>
+                <Campo label={t('publicar.airConditioning')}>
+                  <div className="seg" style={{ alignSelf: 'flex-start' }}>
+                    <button type="button" disabled={bloqueado('aireAcondicionado')} className={d.aireAcondicionado ? 'on' : ''} onClick={() => set('aireAcondicionado', true)}>
+                      {t('publicar.yes')}
+                    </button>
+                    <button type="button" disabled={bloqueado('aireAcondicionado')} className={!d.aireAcondicionado ? 'on' : ''} onClick={() => set('aireAcondicionado', false)}>
                       {t('publicar.no')}
                     </button>
                   </div>
