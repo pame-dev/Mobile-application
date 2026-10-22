@@ -93,6 +93,10 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var kilometraje by mutableStateOf("")
     /** Columna recuperado_por_seguro. */
     var recuperadoPorSeguro by mutableStateOf(false)
+    /** Columna factura_original. */
+    var facturaOriginal by mutableStateOf(false)
+    /** Columna aire_acondicionado. */
+    var aireAcondicionado by mutableStateOf(false)
     var cilindros by mutableStateOf("")
     var caballos by mutableStateOf("")
     /** Litros del motor con un entero y un decimal ("2.0"); ver [litrosAlEscribir]. */
@@ -129,6 +133,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             Triple("carroceria", idCarroceria != null, R.string.publish_error_body_type),
             Triple("color", idColor != null, R.string.publish_error_color),
             Triple("duenos", duenos.isNotBlank(), R.string.publish_error_owners),
+            Triple("condicion", condicion.isNotBlank(), R.string.publish_error_condition),
             Triple("combustible", combustible.isNotBlank(), R.string.publish_error_fuel),
             Triple("cilindros", esElectrico || cilindros.isNotBlank(), R.string.publish_error_cylinders_required),
             Triple("litros", esElectrico || (litros.toDoubleOrNull() ?: 0.0) > 0.0, R.string.publish_error_liters),
@@ -146,6 +151,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var idCarroceria by mutableStateOf<Long?>(null)
     var idColor by mutableStateOf<Long?>(null)
     var duenos by mutableStateOf("")
+    /** Uno de [CONDICIONES] o vacío (columna condicion_vehiculo). */
+    var condicion by mutableStateOf("")
 
     // Paso 1: documento del vehículo. Privado: solo lo ven el dueño y el admin.
     /** Uno de [CarRepository.TIPOS_DOCUMENTO] o vacío (columna tipo_documento_vehiculo). */
@@ -461,12 +468,15 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         idTransmision = a.idTransmision
         kilometraje = a.kilometraje?.toString().orEmpty()
         recuperadoPorSeguro = a.recuperadoPorSeguro == true
+        facturaOriginal = a.facturaOriginal == true
+        aireAcondicionado = a.aireAcondicionado == true
         cilindros = a.cilindros?.toString().orEmpty()
         separarMotor(a.cilindrada.orEmpty()).let { (l, asp) -> litros = l; aspiracion = asp }
         combustible = a.combustible.orEmpty()
         idCarroceria = a.idCarroceria
         idColor = a.idColor
         duenos = a.propietariosAnteriores?.toString().orEmpty()
+        condicion = a.condicionVehiculo.orEmpty()
 
         // Al publicar, los caballos de fuerza se agregaron al final de la descripción.
         val desc = a.descripcion.orEmpty()
@@ -752,6 +762,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     put("anio", anio.trim().toInt())
                     put("kilometraje", kilometraje.filter(Char::isDigit).toLong())
                     put("recuperado_por_seguro", recuperadoPorSeguro)
+                    put("factura_original", facturaOriginal)
+                    put("aire_acondicionado", aireAcondicionado)
+                    put("condicion_vehiculo", condicion)
                     put("id_color", idColor)
                     put("id_transmision", idTransmision)
                     put("id_carroceria", idCarroceria)
@@ -795,6 +808,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
         /** Máximo de publicaciones.cilindros (chk_publicaciones_cilindros). */
         const val MAX_CILINDROS = 16
+
+        /** Valores de condicion_vehiculo (chk_publicaciones_condicion_vehiculo) y su etiqueta. */
+        val CONDICIONES = listOf(
+            "seminuevo" to R.string.publish_condition_seminuevo,
+            "usado" to R.string.publish_condition_usado,
+        )
 
         /** Opciones de combustible; se guardan tal cual en tipo_combustible (catálogo tipos_combustible). */
         val COMBUSTIBLES = listOf("Gasolina", "Diésel", "Híbrido", "Eléctrico")

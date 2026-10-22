@@ -650,6 +650,7 @@
     <string name="publish_error_cylinders">Cylinders can\'t be more than %1$d.</string>
     <string name="publish_error_liters">Enter the engine size in liters, for example 2.0.</string>
     <string name="publish_error_owners">Choose how many previous owners it had.</string>
+    <string name="publish_error_condition">Choose whether the vehicle is pre-owned or used.</string>
     <string name="publish_error_fuel">Choose the fuel type.</string>
     <string name="publish_error_cylinders_required">Choose the cylinders.</string>
     <string name="publish_error_aspiration">Choose the engine aspiration.</string>
@@ -707,10 +708,12 @@
     <string name="publish_label_transmission">TRANSMISSION</string>
     <string name="publish_label_mileage">MILEAGE</string>
     <string name="publish_label_insurance_recovered">RECOVERED BY INSURANCE</string>
+    <string name="publish_label_original_invoice">ORIGINAL INVOICE?</string>
+    <string name="publish_label_air_conditioning">AIR CONDITIONING</string>
     <string name="publish_yes">Yes</string>
     <string name="publish_no">No</string>
     <string name="publish_label_cylinders">CYLINDERS</string>
-    <string name="publish_label_horsepower">HORSEPOWER</string>
+    <string name="publish_label_horsepower">HORSEPOWER (OPTIONAL)</string>
     <string name="publish_label_engine">ENGINE</string>
     <string name="publish_label_engine_liters">ENGINE (LITERS)</string>
     <string name="publish_label_aspiration">ASPIRATION</string>
@@ -726,6 +729,9 @@
     <string name="publish_label_body_type">BODY TYPE</string>
     <string name="publish_label_color">COLOR</string>
     <string name="publish_label_previous_owners">PREVIOUS OWNERS</string>
+    <string name="publish_label_condition">CONDITION</string>
+    <string name="publish_condition_seminuevo">Pre-owned</string>
+    <string name="publish_condition_usado">Used</string>
     <string name="publish_loading_brands">Loading makes…</string>
     <string name="publish_select_brand">Select a make</string>
     <string name="publish_enter_brand">Enter the make</string>
@@ -756,6 +762,8 @@
     <string name="publish_spec_transmission">Transmission</string>
     <string name="publish_spec_mileage">Mileage</string>
     <string name="publish_spec_insurance_recovered">Recovered by insurance</string>
+    <string name="publish_spec_original_invoice">Original invoice</string>
+    <string name="publish_spec_air_conditioning">Air conditioning</string>
     <string name="publish_spec_cylinders">Cylinders</string>
     <string name="publish_spec_horsepower">Horsepower</string>
     <string name="publish_spec_engine">Engine</string>
@@ -763,6 +771,7 @@
     <string name="publish_spec_body_type">Body type</string>
     <string name="publish_spec_color">Color</string>
     <string name="publish_spec_previous_owners">Previous owners</string>
+    <string name="publish_spec_condition">Condition</string>
     <string name="publish_publishing">Publishing…</string>
     <string name="publish_publish">Publish</string>
     <string name="publish_resubmitting">Resubmitting…</string>

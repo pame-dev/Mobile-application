@@ -45,7 +45,7 @@ SELECT jsonb_build_object(
   'id_color',  (SELECT id_color FROM public.colores WHERE nombre_color = 'ColorTest'),
   'id_transmision', (SELECT id_transmision FROM public.transmisiones WHERE nombre_transmision = 'TransmisionTest'),
   'id_carroceria',  (SELECT id_carroceria FROM public.carrocerias WHERE nombre_carroceria = 'CarroceriaTest'),
-  'anio', 2020, 'kilometraje', 30000
+  'anio', 2020, 'kilometraje', 30000, 'condicion_vehiculo', 'usado'
 ) AS j;
 GRANT SELECT ON base_datos TO authenticated;
 

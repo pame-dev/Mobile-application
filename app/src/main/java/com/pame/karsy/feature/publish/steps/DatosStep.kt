@@ -258,6 +258,16 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     enabled = activo("duenos")
                 )
             }
+
+            Column {
+                FieldLabel(stringResource(R.string.publish_label_condition))
+                OpcionesSeleccion(
+                    opciones = PublishViewModel.CONDICIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) },
+                    seleccionado = form.condicion,
+                    enabled = activo("condicion"),
+                    onSelect = { form.condicion = it }
+                )
+            }
         }
 
         SectionCard {
@@ -349,9 +359,50 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     }
                 }
             }
+
+            val siNo = listOf(true to stringResource(R.string.publish_yes), false to stringResource(R.string.publish_no))
+            Column {
+                FieldLabel(stringResource(R.string.publish_label_original_invoice))
+                OpcionesSeleccion(siNo, form.facturaOriginal, activo("factura")) { form.facturaOriginal = it }
+            }
+
+            Column {
+                FieldLabel(stringResource(R.string.publish_label_air_conditioning))
+                OpcionesSeleccion(siNo, form.aireAcondicionado, activo("aire")) { form.aireAcondicionado = it }
+            }
         }
 
         DocumentoSection(form, enabled = activo("documento"))
+    }
+}
+
+/** Botones de opción única (Sí / No, Seminuevo / Usado), con el mismo estilo que "Recuperado por el seguro". */
+@Composable
+private fun <T> OpcionesSeleccion(opciones: List<Pair<T, String>>, seleccionado: T, enabled: Boolean, onSelect: (T) -> Unit) {
+    Row(
+        modifier = Modifier.alpha(if (enabled) 1f else 0.5f),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        opciones.forEach { (valor, etiqueta) ->
+            val selected = seleccionado == valor
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (selected) KarsyNavy else KarsyBg)
+                    .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
+                    .clickable(enabled = enabled) { onSelect(valor) }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    etiqueta,
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (selected) KarsyWhite else KarsyMid
+                )
+            }
+        }
     }
 }
 

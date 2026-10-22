@@ -36,6 +36,10 @@ data class AnuncioDto(
     @SerialName("tiene_problemas") val tieneProblemas: Boolean? = null,
     @SerialName("descripcion_problemas") val descripcionProblemas: String? = null,
     @SerialName("recuperado_por_seguro") val recuperadoPorSeguro: Boolean? = null,
+    @SerialName("factura_original") val facturaOriginal: Boolean? = null,
+    @SerialName("aire_acondicionado") val aireAcondicionado: Boolean? = null,
+    /** "seminuevo" o "usado"; null en publicaciones anteriores a este dato. */
+    @SerialName("condicion_vehiculo") val condicionVehiculo: String? = null,
     @SerialName("tipo_combustible") val combustible: String? = null,
     val cilindros: Int? = null,
     val cilindrada: String? = null,

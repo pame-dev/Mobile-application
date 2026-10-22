@@ -29,6 +29,10 @@ export interface AnuncioRow {
   tiene_problemas: boolean | null
   descripcion_problemas: string | null
   recuperado_por_seguro: boolean | null
+  factura_original: boolean | null
+  aire_acondicionado: boolean | null
+  /** 'seminuevo' o 'usado'; null en publicaciones anteriores a este dato. */
+  condicion_vehiculo: string | null
   tipo_combustible: string | null
   cilindros: number | null
   cilindrada: string | null
