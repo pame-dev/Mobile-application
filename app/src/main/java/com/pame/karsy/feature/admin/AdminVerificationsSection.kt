@@ -54,7 +54,6 @@ import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTealSoft
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.Constancia
-import com.pame.karsy.core.util.Curp
 
 /**
  * "Verificación de usuarios": documentos que enviaron los usuarios (lotes y particulares).
@@ -283,7 +282,7 @@ private const val TIPO_CURP = "curp"
 
 /**
  * Revisar la CURP de un particular: pasos para consultarla en gob.mx, la CURP para copiar,
- * el nombre del perfil y los datos que trae la CURP para comparar. Aprobar se activa hasta
+ * y el nombre con el que se registró para compararlo con el de gob.mx. Aprobar se activa hasta
  * marcar las dos casillas; Rechazar pide el motivo (como en los demás documentos).
  */
 @Composable
@@ -297,7 +296,6 @@ private fun RevisarCurpDialog(
 ) {
     val context = LocalContext.current
     val curp = verification.curp.orEmpty()
-    val datos = Curp.leer(curp)
     var existe by rememberSaveable { mutableStateOf(false) }
     var nombre by rememberSaveable { mutableStateOf(false) }
     val copiada = stringResource(R.string.admin2_curp_copied)
@@ -351,26 +349,8 @@ private fun RevisarCurpDialog(
                         }
                     }
                 }
+                // Solo lo que dio en el registro: el nombre (gob.mx lo muestra para compararlo).
                 AdminField(stringResource(R.string.admin2_curp_profile_name), verification.name)
-                Text(stringResource(R.string.admin2_curp_from_curp), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AdminColors.Muted)
-                if (datos != null) {
-                    AdminField(
-                        stringResource(R.string.admin2_curp_sex),
-                        stringResource(
-                            when (datos.sexo) {
-                                'H' -> R.string.admin2_curp_sex_h
-                                'M' -> R.string.admin2_curp_sex_m
-                                else -> R.string.admin2_curp_sex_x
-                            }
-                        )
-                    )
-                    AdminField(
-                        stringResource(R.string.admin2_curp_birth_state),
-                        if (datos.estado == "NE") stringResource(R.string.admin2_curp_abroad) else Curp.ESTADOS.getValue(datos.estado)
-                    )
-                } else {
-                    Text(stringResource(R.string.admin2_curp_unreadable), fontFamily = DmSans, fontSize = 13.sp, color = AdminColors.NeutralText)
-                }
                 CasillaRevision(existe, stringResource(R.string.admin2_curp_check_exists)) { existe = it }
                 CasillaRevision(nombre, stringResource(R.string.admin2_curp_check_name)) { nombre = it }
                 error?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg) }
