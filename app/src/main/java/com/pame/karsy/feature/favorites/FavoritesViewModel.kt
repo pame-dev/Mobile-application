@@ -73,15 +73,32 @@ class FavoritesViewModel : ViewModel() {
         }
     }
 
-    /** Quita el favorito de la lista al instante; si la BD falla, lo regresa a su lugar. */
-    fun remove(id: Long, onError: (String) -> Unit) {
+    /**
+     * Quita el favorito de la lista al instante; si la BD falla, lo regresa a su lugar.
+     * [onRemoved] recibe cómo deshacerlo (lo vuelve a guardar en el mismo lugar).
+     */
+    fun remove(id: Long, onError: (String) -> Unit, onRemoved: (deshacer: () -> Unit) -> Unit = {}) {
         val index = cars.indexOfFirst { it.id == id }
         if (index < 0) return
         val car = cars[index]
         cars = cars - car
         viewModelScope.launch {
-            safeCall { CarRepository.setFavorite(id, false) }.onFailure {
-                cars = cars.toMutableList().apply { add(index.coerceAtMost(size), car) }
+            safeCall { CarRepository.setFavorite(id, false) }
+                .onSuccess { onRemoved { restore(car, index, onError) } }
+                .onFailure {
+                    cars = cars.toMutableList().apply { add(index.coerceAtMost(size), car) }
+                    onError(it.mensajeUsuario())
+                }
+        }
+    }
+
+    /** "Deshacer": vuelve a guardar el favorito y lo pone donde estaba. */
+    private fun restore(car: Car, index: Int, onError: (String) -> Unit) {
+        if (cars.any { it.id == car.id }) return
+        cars = cars.toMutableList().apply { add(index.coerceAtMost(size), car) }
+        viewModelScope.launch {
+            safeCall { CarRepository.setFavorite(car.id, true) }.onFailure {
+                cars = cars - car
                 onError(it.mensajeUsuario())
             }
         }

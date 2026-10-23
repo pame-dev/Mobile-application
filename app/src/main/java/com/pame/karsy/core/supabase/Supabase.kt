@@ -89,6 +89,13 @@ fun Throwable.mensajeUsuario(): String = when (this) {
     else -> generico()
 }
 
+/**
+ * El registro ya existía (23505, índice único): p. ej. ya hay una solicitud de destacado
+ * pendiente o ya se reportó esa publicación. mensajeUsuario() lo convierte en el genérico,
+ * así que quien lo espera pregunta esto antes.
+ */
+fun Throwable.esDuplicado(): Boolean = this is PostgrestRestException && code == "23505"
+
 private fun Throwable.generico(): String {
     Log.w("Karsy", "Error sin mensaje para el usuario", this)
     return ERROR_GENERICO

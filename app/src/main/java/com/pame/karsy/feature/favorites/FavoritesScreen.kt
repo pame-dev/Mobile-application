@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import com.pame.karsy.core.components.RegisterToast
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -101,6 +102,8 @@ fun FavoritesScreen(
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     HideBottomBarWhile(filtersOpen)
     var errorMsg by remember { mutableStateOf<String?>(null) }
+    /** Aviso con "Deshacer" tras quitar un favorito. */
+    var quitado by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     val displayed = vm.visibleCars
 
@@ -174,7 +177,7 @@ fun FavoritesScreen(
                         FavoriteCard(
                             car = car,
                             onClick = { onCarClick(car.id) },
-                            onRemove = { vm.remove(car.id) { errorMsg = it } },
+                            onRemove = { vm.remove(car.id, onError = { errorMsg = it }, onRemoved = { quitado = it }) },
                             // Al quitar un favorito la tarjeta se desvanece y las demás se reacomodan.
                             modifier = Modifier.animateItem(
                                 fadeInSpec = tween(200),
@@ -200,6 +203,22 @@ fun FavoritesScreen(
                     }
                 }
             }
+        }
+
+        quitado?.let { deshacer ->
+            RegisterToast(
+                message = stringResource(R.string.core_favorite_removed),
+                onClose = { quitado = null },
+                onRegister = {},
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = LocalBottomBarSpace.current),
+                showRegister = false,
+                actionLabel = stringResource(R.string.core_undo),
+                onAction = deshacer,
+                // Otro favorito quitado (mismo texto) reinicia el tiempo con su propio "Deshacer".
+                key = deshacer
+            )
         }
 
         FilterSheet(

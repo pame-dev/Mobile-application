@@ -22,6 +22,9 @@ import com.pame.karsy.core.location.Lugares
 import com.pame.karsy.core.location.Lugar
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import com.pame.karsy.core.util.Catalogo
+import com.pame.karsy.core.util.Formato
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -145,6 +148,11 @@ fun HomeScreen(
 ) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var toastMsg by remember { mutableStateOf<String?>(null) }
+    /**
+     * "Deshacer" del aviso: el texto al que pertenece y qué hace. Solo se ofrece si el aviso
+     * visible es ese mismo (otro aviso no hereda el botón).
+     */
+    var toastDeshacer by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
     LightStatusBarIcons()
     // Encabezado y banner comparten un solo degradado diagonal; cada uno pinta su parte.
     var headerHeightPx by remember { mutableFloatStateOf(0f) }
@@ -169,8 +177,13 @@ fun HomeScreen(
     val gridState = rememberLazyGridState()
     val keyboard = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+    // Búsquedas recientes de este teléfono; se muestran como sugerencias bajo el buscador.
+    val cuenta = SessionManager.userId
+    var recientes by remember(cuenta) { mutableStateOf(BusquedasRecientes.leer(ctx, cuenta)) }
     // Al presionar "Buscar" baja a los resultados (después del encabezado y el aviso de visitante).
     val showResults = {
+        if (vm.query.isNotBlank()) recientes = BusquedasRecientes.guardar(ctx, cuenta, vm.query)
         keyboard?.hide()
         scope.launch { gridState.animateScrollToItem(if (!userMode.isLoggedIn) 2 else 1) }
         Unit
@@ -179,13 +192,22 @@ fun HomeScreen(
 
     val isVisitor = !userMode.isLoggedIn
     val favoritesToast = stringResource(R.string.home_toast_register_favorites)
+    val favoriteRemoved = stringResource(R.string.core_favorite_removed)
     val filterLabel = rememberFilterLabel()
 
     val toggleFavorite: (Long) -> Unit = { id ->
         if (isVisitor) {
+            toastDeshacer = null
             toastMsg = favoritesToast
         } else {
-            vm.toggleFavorite(id) { toastMsg = it }
+            vm.toggleFavorite(
+                id,
+                onError = { toastDeshacer = null; toastMsg = it },
+                onRemoved = {
+                    toastMsg = favoriteRemoved
+                    toastDeshacer = favoriteRemoved to { vm.restoreFavorite(id) { toastDeshacer = null; toastMsg = it } }
+                }
+            )
         }
     }
     val goRegister = {
@@ -227,11 +249,24 @@ fun HomeScreen(
                         .navigationBarsPadding()
                 ) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
+                        // Sin texto: las recientes. Escribiendo: recientes y marcas que coinciden.
+                        val q = vm.query.trim()
+                        val sugerencias = if (q.isEmpty()) recientes else
+                            (recientes.filter { it.contains(q, ignoreCase = true) } +
+                                vm.catalogs?.marcas.orEmpty().filter { !it.esOtro && it.nombre.contains(q, ignoreCase = true) }.map { it.nombre })
+                                .distinctBy { it.lowercase() }
+                                .filterNot { it.equals(q, ignoreCase = true) }
+                                .take(6)
                         HeroSection(
                             stats = vm.heroStats,
                             query = vm.query,
                             onQueryChange = { vm.query = it },
                             onSearch = showResults,
+                            sugerencias = sugerencias,
+                            onSugerencia = {
+                                vm.query = it
+                                showResults()
+                            },
                             headerHeightPx = headerHeightPx,
                             onHeight = { heroHeightPx = it }
                         )
@@ -319,6 +354,21 @@ fun HomeScreen(
                                 onActivar = { vm.activarCercaDeMi(elegirLugar = { eligiendoLugar = true }) },
                                 onQuitar = { vm.cercaDe = null }
                             )
+                            // Filtros aplicados como etiquetas: la X quita solo ese filtro.
+                            val f = vm.filters
+                            val activos = buildList<Pair<String, () -> Unit>> {
+                                if (f.marca != TODAS) add(f.marca to { vm.filters = f.copy(marca = TODAS, modelo = TODOS) })
+                                if (f.modelo != TODOS) add(f.modelo to { vm.filters = f.copy(modelo = TODOS) })
+                                if (f.tipo != TODOS) add(Catalogo.nombre(f.tipo) to { vm.filters = f.copy(tipo = TODOS) })
+                                if (f.anio != CUALQUIERA) add(f.anio to { vm.filters = f.copy(anio = CUALQUIERA) })
+                                f.precioMin.toDoubleOrNull()?.let { add(stringResource(R.string.home_filter_from, Formato.precio(it)) to { vm.filters = f.copy(precioMin = "") }) }
+                                f.precioMax.toDoubleOrNull()?.let { add(stringResource(R.string.home_filter_to, Formato.precio(it)) to { vm.filters = f.copy(precioMax = "") }) }
+                            }
+                            activos.forEach { (texto, quitar) -> ActiveFilterChip(texto, onQuitar = quitar) }
+                            val limpiar = stringResource(R.string.home_clear_filters)
+                            if (activos.size > 1) ActiveFilterChip(limpiar, destacado = false, accion = limpiar) {
+                                vm.filters = HomeFilters(orden = f.orden)
+                            }
                             // Con filtros activos (y sesión): guardarlos para recibir alertas de autos nuevos.
                             if (userMode.isLoggedIn && vm.busquedaParaGuardar != null) {
                                 SaveSearchChip(guardando = vm.guardandoBusqueda) {
@@ -365,11 +415,16 @@ fun HomeScreen(
         toastMsg?.let { msg ->
             RegisterToast(
                 message = msg,
-                onClose = { toastMsg = null },
+                onClose = { toastMsg = null; toastDeshacer = null },
                 onRegister = goRegister,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = bottomBarSpace)
+                    .padding(bottom = bottomBarSpace),
+                // Solo al visitante se le invita a registrarse; con sesión es un aviso normal.
+                showRegister = isVisitor,
+                actionLabel = toastDeshacer?.takeIf { it.first == msg }?.let { stringResource(R.string.core_undo) },
+                onAction = { toastDeshacer?.second?.invoke() },
+                key = toastDeshacer
             )
         }
 
@@ -513,6 +568,8 @@ private fun HeroSection(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
+    sugerencias: List<String>,
+    onSugerencia: (String) -> Unit,
     /** Alto del encabezado de arriba: el degradado empieza en él. */
     headerHeightPx: Float,
     onHeight: (Float) -> Unit,
@@ -567,6 +624,31 @@ private fun HeroSection(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
             HeroSearch(query = query, onQueryChange = onQueryChange, onSearch = onSearch, p = p)
+            if (sugerencias.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                ) {
+                    sugerencias.forEach { texto ->
+                        Text(
+                            texto,
+                            fontFamily = DmSans,
+                            fontSize = 13.sp,
+                            color = p.searchText,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(p.searchBg)
+                                .border(1.dp, p.searchBorder, RoundedCornerShape(50))
+                                .clickable(role = Role.Button) { onSugerencia(texto) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
                 modifier = Modifier.padding(top = 24.dp)
@@ -923,6 +1005,35 @@ private fun ElegirLugarSheet(onElegir: (Lugar) -> Unit, onDismiss: () -> Unit) {
                 modifier = Modifier.alpha(if (estado.isNotBlank()) 1f else 0.5f)
             )
         }
+    }
+}
+
+/**
+ * Filtro aplicado (o "Limpiar filtros" con [destacado] = false), con una X para quitarlo.
+ * [accion]: lo que anuncia el lector de pantalla al tocarlo (por defecto "Quitar filtro …").
+ */
+@Composable
+private fun ActiveFilterChip(texto: String, destacado: Boolean = true, accion: String? = null, onQuitar: () -> Unit) {
+    val shape = RoundedCornerShape(999.dp)
+    val quitar = accion ?: stringResource(R.string.home_remove_filter, texto)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clip(shape)
+            .background(if (destacado) KarsyNavy else KarsySurface)
+            .border(1.dp, if (destacado) KarsyNavy else KarsyBorder, shape)
+            .clickable(onClickLabel = quitar, role = Role.Button, onClick = onQuitar)
+            .padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
+    ) {
+        Text(
+            texto,
+            fontFamily = DmSans,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (destacado) KarsyWhite else KarsyInk,
+            maxLines = 1
+        )
+        Icon(Icons.Rounded.Close, contentDescription = null, tint = if (destacado) KarsyWhite else KarsyInk, modifier = Modifier.padding(start = 6.dp).size(14.dp))
     }
 }
 

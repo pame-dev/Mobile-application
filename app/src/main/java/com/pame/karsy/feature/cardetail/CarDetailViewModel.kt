@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.supabase.esDuplicado
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
@@ -106,8 +107,7 @@ class CarDetailViewModel : ViewModel() {
                     onDone(null)
                 }
                 .onFailure {
-                    val msg = it.mensajeUsuario()
-                    onDone(if (msg.contains("uq_solicitudes_pendiente")) texto(R.string.profile_dashboard_request_already_pending) else msg)
+                    onDone(if (it.esDuplicado()) texto(R.string.profile_dashboard_request_already_pending) else it.mensajeUsuario())
                 }
         }
     }
@@ -138,15 +138,23 @@ class CarDetailViewModel : ViewModel() {
         loadedId?.let { loadedId = null; load(it, cambiosPendientes) }
     }
 
-    fun toggleFavorite(onError: (String) -> Unit) {
+    /** "Deshacer" de quitar: lo vuelve a guardar (aunque mientras tanto se haya tocado el corazón). */
+    fun restoreFavorite(onError: (String) -> Unit) {
+        if (!favorite) toggleFavorite(onError)
+    }
+
+    /** [onRemoved]: se quitó de favoritos (para ofrecer "Deshacer"). */
+    fun toggleFavorite(onError: (String) -> Unit, onRemoved: () -> Unit = {}) {
         val id = detail?.car?.id ?: return
         val nuevo = !favorite
         favorite = nuevo
         viewModelScope.launch {
-            safeCall { CarRepository.setFavorite(id, nuevo) }.onFailure {
-                favorite = !nuevo
-                onError(it.mensajeUsuario())
-            }
+            safeCall { CarRepository.setFavorite(id, nuevo) }
+                .onSuccess { if (!nuevo) onRemoved() }
+                .onFailure {
+                    favorite = !nuevo
+                    onError(it.mensajeUsuario())
+                }
         }
     }
 
@@ -176,8 +184,7 @@ class CarDetailViewModel : ViewModel() {
             safeCall { CarRepository.report(id, motivo) }
                 .onSuccess { onDone(null) }
                 .onFailure {
-                    val msg = it.mensajeUsuario()
-                    onDone(if (msg.contains("uq_reportes")) texto(R.string.detail_already_reported) else msg)
+                    onDone(if (it.esDuplicado()) texto(R.string.detail_already_reported) else it.mensajeUsuario())
                 }
         }
     }

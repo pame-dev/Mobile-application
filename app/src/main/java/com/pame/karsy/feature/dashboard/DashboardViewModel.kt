@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.supabase.esDuplicado
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
@@ -85,8 +86,7 @@ class DashboardViewModel : ViewModel() {
                     myListings = myListings.map { if (it.id == car.id) it.copy(featuredPending = true) else it }
                 }
                 .onFailure {
-                    val msg = it.mensajeUsuario()
-                    error = if (msg.contains("uq_solicitudes_pendiente")) texto(R.string.profile_dashboard_request_already_pending) else msg
+                    error = if (it.esDuplicado()) texto(R.string.profile_dashboard_request_already_pending) else it.mensajeUsuario()
                 }
         }
     }

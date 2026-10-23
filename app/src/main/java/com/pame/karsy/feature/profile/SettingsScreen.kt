@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
@@ -73,6 +74,7 @@ private data class SettingsItem(
     val isNotifications: Boolean = false,
     val isPrivacy: Boolean = false,
     val isSavedSearches: Boolean = false,
+    val isHelp: Boolean = false,
 )
 
 private val settingsItems = listOf(
@@ -84,6 +86,7 @@ private val settingsItems = listOf(
     // La descripción del tema se arma con themeSummary (tema elegido).
     SettingsItem(Icons.Outlined.DarkMode, R.string.settings_theme, R.string.settings_theme, isTheme = true),
     SettingsItem(Icons.Outlined.Description, R.string.settings_terms, R.string.settings_terms_desc, isTerms = true),
+    SettingsItem(Icons.AutoMirrored.Outlined.HelpOutline, R.string.help_title, R.string.help_settings_desc, isHelp = true),
 )
 
 /** Colores de la tarjeta de "Cerrar sesión" del mockup. */
@@ -99,6 +102,7 @@ fun SettingsScreen(
     onNotifications: () -> Unit,
     onPrivacy: () -> Unit,
     onSavedSearches: () -> Unit,
+    onHelp: () -> Unit,
 ) {
     val context = LocalContext.current
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
@@ -135,6 +139,7 @@ fun SettingsScreen(
                                     if (item.isNotifications) onNotifications()
                                     if (item.isPrivacy) onPrivacy()
                                     if (item.isSavedSearches) onSavedSearches()
+                                    if (item.isHelp) onHelp()
                                 }
                                 .padding(horizontal = 18.dp, vertical = 18.dp),
                             verticalAlignment = Alignment.CenterVertically,

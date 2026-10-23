@@ -487,6 +487,7 @@ export function Settings() {
           onClick={() => openModal(<ThemeModal tema={tema} onElegir={elegirTema} />)}
         />
         <SetRow icon="doc" title={t('settings.terms')} desc={t('settings.termsDesc')} onClick={() => navigate('/terminos')} />
+        <SetRow icon="help" title={t('help.title')} desc={t('help.settingsDesc')} onClick={() => navigate('/ayuda')} />
       </div>
       <button className="btn btn-ghost btn-block" style={{ marginTop: 18, color: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => openModal(<LogoutModal />)}>
         <Icon name="logout" size={18} />

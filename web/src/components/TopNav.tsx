@@ -9,6 +9,7 @@ import { useSession } from '../session/SessionContext'
 import { FilterFields } from './Filters'
 import { Icon, type IconName } from './Icon'
 import { LangSwitch } from './LangSwitch'
+import { recordarBusqueda, SugerenciasBusqueda } from './SugerenciasBusqueda'
 import { EVENTO_CAMBIOS, type Tabla } from '../lib/tiempoReal'
 import { ModalHead, useUi } from './Ui'
 
@@ -165,6 +166,7 @@ export function TopNav() {
     const next = new URLSearchParams(location.pathname === '/' ? params : undefined)
     if (q.trim()) next.set('q', q.trim())
     else next.delete('q')
+    recordarBusqueda(q, account?.id)
     navigate({ pathname: '/', search: next.toString() })
   }
 
@@ -214,7 +216,9 @@ export function TopNav() {
             }}
           >
             <Icon name="search" size={18} />
-            <input className="input" id="navq" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
+            {/* Sugerencias: búsquedas recientes y marcas. */}
+            <input className="input" id="navq" list="navq-sugerencias" autoComplete="off" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
+            <SugerenciasBusqueda id="navq-sugerencias" />
           </form>
           <button
             className={`btn filterbtn ${filtersOpen ? 'on' : ''}`}
@@ -384,6 +388,7 @@ function MenuMovil({
     const next = new URLSearchParams(location.pathname === '/' ? params : undefined)
     if (q.trim()) next.set('q', q.trim())
     else next.delete('q')
+    recordarBusqueda(q, account?.id)
     navigate({ pathname: '/', search: next.toString() })
     onCerrar()
   }
@@ -441,7 +446,8 @@ function MenuMovil({
             }}
           >
             <Icon name="search" size={18} />
-            <input className="input" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
+            <input className="input" list="drawerq-sugerencias" autoComplete="off" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
+            <SugerenciasBusqueda id="drawerq-sugerencias" />
           </form>
           <button className={`btn filterbtn ${filtros ? 'on' : ''}`} aria-expanded={filtros} onClick={() => setFiltros((v) => !v)}>
             <Icon name="filter" size={18} />

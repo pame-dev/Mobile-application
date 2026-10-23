@@ -63,6 +63,7 @@ import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
+import com.pame.karsy.core.theme.KarsyTealSoft
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyErrorLight
 import com.pame.karsy.core.theme.KarsyMid
@@ -112,6 +113,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     ) {
         form.error?.let { StepError(it) }
         form.rejectedReason?.let { RejectedNotice(it) }
+        if (form.copyFrom != null) DuplicateNotice()
 
         // Cada campo se activa hasta que los anteriores están llenos (formulario en orden).
         val activo = { campo: String -> !form.bloqueado(campo) }
@@ -572,6 +574,23 @@ private fun RejectedNotice(reason: String) {
             modifier = Modifier.padding(top = 4.dp)
         )
     }
+}
+
+/** Duplicar: los datos vienen de otra publicación; las fotos y el documento se eligen de nuevo. */
+@Composable
+private fun DuplicateNotice() {
+    Text(
+        stringResource(R.string.publish_duplicating),
+        fontFamily = DmSans,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        color = KarsyCharcoal,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(KarsyTealSoft)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+    )
 }
 
 @Composable

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { favoriteIds, setFavorite } from '../data/api'
 import { useUi } from '../components/Ui'
@@ -36,13 +36,9 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     if (account) void favoriteIds(account.id).then(setIds).catch(() => undefined)
   }, ['favoritos'])
 
-  const toggle = useCallback(
-    (id: number) => {
-      if (!account) {
-        toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
-        return
-      }
-      const agregar = !ids.has(id)
+  /** Guarda o quita [id]. Al quitarlo se ofrece "Deshacer" (lo vuelve a guardar). */
+  const cambiar = useCallback(
+    (userId: string, id: number, agregar: boolean) => {
       // Cambio inmediato; si la BD falla se revierte (igual que la app).
       setIds((s) => {
         const n = new Set(s)
@@ -50,17 +46,35 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         else n.delete(id)
         return n
       })
-      setFavorite(account.id, id, agregar).catch(() => {
-        setIds((s) => {
-          const n = new Set(s)
-          if (agregar) n.delete(id)
-          else n.add(id)
-          return n
+      setFavorite(userId, id, agregar)
+        .then(() => {
+          if (!agregar) toast(t('vehiculo.fav.removed'), { label: t('common.undo'), onClick: () => cambiarRef.current(userId, id, true) })
         })
-        toast(t('vehiculo.fav.error'))
-      })
+        .catch(() => {
+          setIds((s) => {
+            const n = new Set(s)
+            if (agregar) n.delete(id)
+            else n.add(id)
+            return n
+          })
+          toast(t('vehiculo.fav.error'))
+        })
     },
-    [account, ids, navigate, toast, t],
+    [toast, t],
+  )
+  // "Deshacer" llama a la versión más reciente de cambiar.
+  const cambiarRef = useRef(cambiar)
+  cambiarRef.current = cambiar
+
+  const toggle = useCallback(
+    (id: number) => {
+      if (!account) {
+        toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
+        return
+      }
+      cambiar(account.id, id, !ids.has(id))
+    },
+    [account, ids, navigate, toast, t, cambiar],
   )
 
   return (

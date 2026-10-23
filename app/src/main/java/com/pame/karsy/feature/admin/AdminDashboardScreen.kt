@@ -23,9 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
@@ -62,15 +59,15 @@ import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.feature.profile.UnreadBadge
+import com.pame.karsy.feature.profile.rememberUnreadNotifications
 import com.pame.karsy.core.theme.KarsyInk
-import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
-import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import kotlinx.coroutines.launch
 
@@ -150,7 +147,8 @@ fun AdminDashboardScreen(
         ) {
             AdminTopBar(
                 onMenu = { scope.launch { drawerState.open() } },
-                unread = vm.unreadNotifications,
+                // Misma campana que Inicio y Lotes: se actualiza sola y al llegar un push.
+                unread = rememberUnreadNotifications(enabled = true),
                 onNotifications = onNotifications
             )
             // Aviso del resultado de la última acción: se oculta solo a los MESSAGE_MS.
@@ -243,27 +241,7 @@ private fun AdminTopBar(onMenu: () -> Unit, unread: Int, onNotifications: () -> 
                     else stringResource(R.string.home_notifications),
                     onNotifications
                 )
-                if (unread > 0) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 6.dp, y = (-6).dp)
-                            .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
-                            .clip(CircleShape)
-                            .background(KarsyError)
-                            .border(2.dp, KarsySurface, CircleShape)
-                            .padding(horizontal = 5.dp)
-                    ) {
-                        Text(
-                            if (unread > 99) "99+" else unread.toString(),
-                            fontFamily = DmSans,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = KarsyWhite
-                        )
-                    }
-                }
+                UnreadBadge(unread)
             }
         }
         HorizontalDivider(thickness = 1.dp, color = KarsyBorder)

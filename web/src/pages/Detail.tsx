@@ -437,9 +437,14 @@ export function Detail() {
 
   return (
     <div className="wrap">
-      <div style={{ paddingBlock: 20 }}>
-        <VolverButton fallback="/" />
-      </div>
+      {/* Desde la revisión del admin, la barra de abajo ya trae su propio botón de regresar. */}
+      {desdeReporte == null && !desdeRevision ? (
+        <div style={{ paddingBlock: 20 }}>
+          <VolverButton fallback="/" />
+        </div>
+      ) : (
+        <div style={{ height: 20 }} />
+      )}
 
       {desdeReporte != null && (
         <AdminReportBar
@@ -490,9 +495,12 @@ export function Detail() {
                 c={propia}
                 acciones={accionesDueno}
                 oculta={oculta}
-                onOcultar={(v) => {
+                onOcultar={function ocultar(v: boolean) {
                   setOcultaState(v)
-                  setOculta(account!.id, c.id, v).catch(() => setOcultaState(!v))
+                  setOculta(account!.id, c.id, v)
+                    // Al ocultar se ofrece "Deshacer" (la vuelve a mostrar en el perfil).
+                    .then(() => v && toast(t('perfil.hidden'), { label: t('common.undo'), onClick: () => ocultar(false) }))
+                    .catch(() => setOcultaState(!v))
                 }}
               />
             )}

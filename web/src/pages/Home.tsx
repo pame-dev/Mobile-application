@@ -9,7 +9,9 @@ import { busquedaVacia, guardarBusqueda, type FiltrosBusqueda } from '../data/bu
 import type { Car } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
-import { FILTER_KEYS, ORDEN, filtrarCars, filtrosDeUrl } from '../lib/filtros'
+import { FILTER_KEYS, ORDEN, filtrarCars, filtrosDeUrl, type FilterKey } from '../lib/filtros'
+import { nombreCatalogo } from '../lib/catalogo'
+import type { Catalogs } from '../data/types'
 import { entero, km, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
@@ -97,6 +99,32 @@ export function Home() {
    * guarda: la alerta usa solo los filtros). El tipo viene por nombre en la URL.
    */
   const filtrosActivos = filtrosDeUrl(params)
+
+  // Filtros aplicados como etiquetas con X (marca y modelo vienen como id: se buscan sus nombres).
+  const [cat, setCat] = useState<Catalogs | null>(null)
+  const necesitaNombres = !!(filtrosActivos.marca || filtrosActivos.modelo)
+  useEffect(() => {
+    if (necesitaNombres && !cat) catalogs().then(setCat).catch(() => undefined)
+  }, [necesitaNombres, cat])
+  const quitarFiltro = (k: FilterKey | 'q') => {
+    const next = new URLSearchParams(params)
+    next.delete(k)
+    // Sin marca, el modelo ya no aplica.
+    if (k === 'marca') next.delete('modelo')
+    setParams(next, { replace: true })
+  }
+  const nombreDe = (lista: { id: number; nombre: string }[] | undefined, id: string) => lista?.find((x) => String(x.id) === id)?.nombre ?? '…'
+  const etiquetas: [FilterKey | 'q', string][] = (
+    [
+      ['q', params.get('q') ? `"${params.get('q')}"` : ''],
+      ['marca', filtrosActivos.marca && nombreDe(cat?.marcas, filtrosActivos.marca)],
+      ['modelo', filtrosActivos.modelo && nombreDe(cat?.modelos, filtrosActivos.modelo)],
+      ['tipo', filtrosActivos.tipo && nombreCatalogo(filtrosActivos.tipo)],
+      ['anio', filtrosActivos.anio],
+      ['min', filtrosActivos.min && t('home.filterFrom', { precio: precio(Number(filtrosActivos.min)) })],
+      ['max', filtrosActivos.max && t('home.filterTo', { precio: precio(Number(filtrosActivos.max)) })],
+    ] as [FilterKey | 'q', string][]
+  ).filter(([, texto]) => texto)
   const hayFiltrosGuardables = !!estadoCerca || FILTER_KEYS.some((k) => filtrosActivos[k])
   const avisarme = async () => {
     if (!account || guardando) return
@@ -206,6 +234,12 @@ export function Home() {
                 {guardando ? t('saved.saving') : t('saved.save')}
               </button>
             )}
+            {etiquetas.map(([k, texto]) => (
+              <button key={k} className="chip on" onClick={() => quitarFiltro(k)} aria-label={t('home.removeFilter', { filtro: texto })}>
+                {texto}
+                <Icon name="x" size={14} />
+              </button>
+            ))}
             {hayFiltros && (
               <button className="chip" onClick={() => setParams(new URLSearchParams(), { replace: true })}>
                 <Icon name="x" size={14} />

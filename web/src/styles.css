@@ -116,6 +116,13 @@ textarea.input{height:auto;min-height:96px;padding:12px 14px;resize:vertical}
 .drawerlinks button:hover{background:var(--bg)}
 .drawerlinks button.on{background:var(--pill);font-weight:600}
 .drawer .ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Ayuda: preguntas frecuentes que se abren al tocarlas. */
+.faq{border-bottom:1px solid var(--border)}
+.faq:last-child{border-bottom:0}
+.faq summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;cursor:pointer;list-style:none;font-weight:600;color:var(--ink)}
+.faq summary::-webkit-details-marker{display:none}
+.faq[open] summary > .i{transform:rotate(180deg)}
+.faq p{margin:0;padding:0 18px 16px;color:var(--text2);line-height:1.6}
 .drawerlang{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;background:var(--bg);color:var(--ink);font-weight:600}
 .navlang{display:none}
 @media (max-width:1000px){
@@ -412,6 +419,8 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .revisionaviso p{margin:4px 0 0;font-size:13.5px;color:var(--text2)}
 .enrevision img{opacity:.55;filter:grayscale(.7)}
 .ownerbar .acts{display:flex;flex-wrap:wrap;gap:8px}
+/* Celular: los botones del dueño en dos columnas parejas, no en filas de ancho desigual. */
+@media (max-width:640px){ .ownerbar .acts{display:grid;grid-template-columns:1fr 1fr} .ownerbar .acts > .btn{width:100%;justify-content:center} }
 .adminbar{padding:14px 18px;margin-bottom:18px;display:flex;flex-direction:column;gap:12px;border-left:4px solid var(--teal)}
 .adminbar .nic{width:34px;height:34px;border-radius:10px;background:var(--teal-light);color:var(--teal)}
 .adminbar .acts{display:flex;flex-wrap:wrap;gap:8px}

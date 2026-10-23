@@ -13,7 +13,6 @@ import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -40,7 +39,6 @@ import com.pame.karsy.data.remote.VerificacionAdminDto
 import com.pame.karsy.data.repository.AdminRepository
 import com.pame.karsy.data.repository.AdminStats
 import com.pame.karsy.data.repository.CarRepository
-import com.pame.karsy.data.repository.NotificationRepository
 import com.pame.karsy.data.repository.StatsRepository
 import kotlinx.coroutines.launch
 
@@ -61,9 +59,6 @@ class AdminViewModel : ViewModel() {
     private var featuredRows by mutableStateOf<List<DestacadoAdminDto>>(emptyList())
     private var verificationRows by mutableStateOf<List<VerificacionAdminDto>>(emptyList())
 
-    /** Avisos sin leer del admin (número en la campana de la barra superior). */
-    var unreadNotifications by mutableIntStateOf(0)
-        private set
 
     var loading by mutableStateOf(true)
         private set
@@ -92,8 +87,6 @@ class AdminViewModel : ViewModel() {
             safeCall { AdminRepository.reports() }.onSuccess { reportRows = it }.onFailure { errores += it.mensajeUsuario() }
             safeCall { AdminRepository.featuredRequests() }.onSuccess { featuredRows = it }.onFailure { errores += it.mensajeUsuario() }
             safeCall { AdminRepository.verifications() }.onSuccess { verificationRows = it }.onFailure { errores += it.mensajeUsuario() }
-            // Sin mensaje de error: si falla, la campana se queda con el número anterior.
-            safeCall { NotificationRepository.unreadCount() }.onSuccess { unreadNotifications = it }
             // Aparte, para no retrasar la lista: borra los documentos que ya nadie usa.
             viewModelScope.launch { AdminRepository.borrarDocumentosSinUso() }
             if (errores.isNotEmpty()) message = errores.first()
