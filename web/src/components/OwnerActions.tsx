@@ -174,6 +174,7 @@ export function useOwnerActions(onChanged: () => void) {
  */
 export function OwnerButtons({ c, acciones, oculta, onOcultar }: { c: OwnCar; acciones: ReturnType<typeof useOwnerActions>; oculta: boolean; onOcultar: (v: boolean) => void }) {
   const { t } = useI18n()
+  const navigate = useNavigate()
   return (
     <>
       {c.status === 'Rechazado' && (
@@ -187,7 +188,7 @@ export function OwnerButtons({ c, acciones, oculta, onOcultar }: { c: OwnCar; ac
             {t('perfil.requestSent')}
           </button>
         ) : !c.featured || c.featuredEndsSoon ? (
-          <button className="btn btn-soft btn-sm" onClick={() => acciones.destacar(c)}>
+          <button className="btn btn-soft btn-sm" title={t('perfil.featureHint')} onClick={() => acciones.destacar(c)}>
             <Icon name="star" size={14} />
             {c.featured ? t('perfil.renewFeatured') : t('perfil.feature')}
           </button>
@@ -226,6 +227,11 @@ export function OwnerButtons({ c, acciones, oculta, onOcultar }: { c: OwnCar; ac
           {oculta ? t('perfil.showOnProfile') : t('perfil.hide')}
         </button>
       )}
+      {/* Publicación nueva con los mismos datos (útil para lotes con autos parecidos). */}
+      <button className="btn btn-ghost btn-sm" title={t('perfil.duplicateHint')} onClick={() => navigate(`/publicar?duplicar=${c.id}`)}>
+        <Icon name="copy" size={14} />
+        {t('perfil.duplicate')}
+      </button>
     </>
   )
 }

@@ -21,6 +21,10 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.RegisterToast
 import com.pame.karsy.data.repository.UserRepository
 import com.pame.karsy.feature.home.AccountMenu
+import com.pame.karsy.feature.profile.LanguageSheet
+import com.pame.karsy.feature.profile.HelpScreen
+import com.pame.karsy.core.locale.Idioma
+import android.app.Activity
 import com.pame.karsy.feature.home.LogoutConfirmDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -281,6 +285,7 @@ fun KarsyNavGraph(
     val showBottomBar = currentTab != null && BottomBarOverlays.count == 0
     var accountMenuOpen by rememberSaveable { mutableStateOf(false) }
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
+    var languageOpen by rememberSaveable { mutableStateOf(false) }
     var barToast by remember { mutableStateOf<String?>(null) }
     var avatarUrl by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(currentRoute) {
@@ -411,7 +416,8 @@ fun KarsyNavGraph(
                         onBack = ::back,
                         onRegister = ::goRegister,
                         onCarClick = ::openCar,
-                        onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) }
+                        onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) },
+                        onDuplicatePublication = { navController.navigate(Routes.PublishFlow.duplicateRoute(it)) }
                     )
                 }
                 composable(Routes.Favorites.route) {
@@ -443,8 +449,12 @@ fun KarsyNavGraph(
                         onTerms = { navController.navigate(Routes.Terms.route) },
                         onNotifications = { navController.navigate(Routes.Notifications.route) },
                         onPrivacy = { navController.navigate(Routes.Privacy.route) },
-                        onSavedSearches = { navController.navigate(Routes.SavedSearches.route) }
+                        onSavedSearches = { navController.navigate(Routes.SavedSearches.route) },
+                        onHelp = { navController.navigate(Routes.Help.route) }
                     )
+                }
+                composable(Routes.Help.route) {
+                    HelpScreen(onBack = ::back)
                 }
                 composable(Routes.Privacy.route) {
                     PrivacyScreen(
@@ -489,7 +499,10 @@ fun KarsyNavGraph(
                 // ── Publicar y panel del vendedor ────────────────────────────
                 composable(
                     Routes.PublishFlow.route,
-                    arguments = listOf(navArgument(Routes.PublishFlow.ARG_EDIT) { type = NavType.LongType; defaultValue = -1L })
+                    arguments = listOf(
+                        navArgument(Routes.PublishFlow.ARG_EDIT) { type = NavType.LongType; defaultValue = -1L },
+                        navArgument(Routes.PublishFlow.ARG_COPY) { type = NavType.LongType; defaultValue = -1L },
+                    )
                 ) { entry ->
                     val editId = (entry.arguments?.getLong(Routes.PublishFlow.ARG_EDIT) ?: -1L).takeIf { it > 0 }
                     PublishFlowScreen(
@@ -627,6 +640,7 @@ fun KarsyNavGraph(
                         avatarUrl = avatarUrl,
                         onDismiss = { accountMenuOpen = false },
                         onProfile = { goSection(Routes.Profile.route) },
+                        onLanguage = { languageOpen = true },
                         onLogout = { confirmLogout = true }
                     )
                 }
@@ -644,6 +658,18 @@ fun KarsyNavGraph(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = BOTTOM_BAR_SPACE)
+            )
+        }
+
+        if (languageOpen) {
+            LanguageSheet(
+                selected = Idioma.elegido(context),
+                onSelect = { codigo ->
+                    languageOpen = false
+                    // Si cambia el idioma en uso, la app se recrea con los textos nuevos.
+                    (context as? Activity)?.let { Idioma.cambiar(it, codigo) }
+                },
+                onDismiss = { languageOpen = false }
             )
         }
 

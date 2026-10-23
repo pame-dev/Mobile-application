@@ -25,6 +25,7 @@ export function Footer() {
           <h4>{t('footer.legal')}</h4>
           <button onClick={go('/terminos')}>{t('legal.terms')}</button>
           <button onClick={go('/privacidad/politicas')}>{t('legal.policy')}</button>
+          <button onClick={go('/ayuda')}>{t('help.title')}</button>
         </div>
       </div>
       <div className="wrap legal">© {new Date().getFullYear()} Karsy</div>

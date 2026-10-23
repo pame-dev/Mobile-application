@@ -58,8 +58,11 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val editId: Long? = savedStateHandle.get<Long>(Routes.PublishFlow.ARG_EDIT)?.takeIf { it > 0 }
     val isEditing: Boolean get() = editId != null
 
-    /** Mientras se cargan los datos de la publicación a editar. */
-    var loadingEdit by mutableStateOf(editId != null)
+    /** Duplicar: publicación propia de la que se copian los datos (sin fotos ni documento). */
+    val copyFrom: Long? = savedStateHandle.get<Long>(Routes.PublishFlow.ARG_COPY)?.takeIf { it > 0 && editId == null }
+
+    /** Mientras se cargan los datos de la publicación a editar (o a duplicar). */
+    var loadingEdit by mutableStateOf(editId != null || copyFrom != null)
         private set
     /** Motivo con el que administración rechazó la publicación que se corrige. */
     var rejectedReason by mutableStateOf<String?>(null)
@@ -452,13 +455,24 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     ?.let { safeCall { CarRepository.documentoVehiculo(id) }.getOrNull()?.let { prefillDocumento(it) } }
                 loadingEdit = false
             }
+            copyFrom?.let { id ->
+                safeCall { CarRepository.ownListing(id) }
+                    .onSuccess { a -> if (a != null) prefill(a, copia = true) else error = texto(R.string.publish_edit_not_found) }
+                    .onFailure { error = it.mensajeUsuario() }
+                loadingEdit = false
+            }
         }
     }
 
-    /** Llena el formulario con los datos que tenía la publicación. */
-    private fun prefill(a: AnuncioDto) {
-        rejectedReason = a.motivoRechazo?.takeIf { a.estadoUltimaPropuesta == "rechazada" }
-        editingApproved = a.aprobada
+    /**
+     * Llena el formulario con los datos que tenía la publicación. Con [copia] (Duplicar) es una
+     * publicación nueva: sin el motivo de rechazo, el estado ni las fotos de la original.
+     */
+    private fun prefill(a: AnuncioDto, copia: Boolean = false) {
+        if (!copia) {
+            rejectedReason = a.motivoRechazo?.takeIf { a.estadoUltimaPropuesta == "rechazada" }
+            editingApproved = a.aprobada
+        }
         idMarca = a.idMarca
         idModelo = a.idModelo
         if (marcaEsOtro) marcaOtra = a.marca.orEmpty()
@@ -485,6 +499,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         descripcion = potencia?.let { desc.removeRange(it.range) } ?: desc
         imperfecciones = a.descripcionProblemas.orEmpty()
 
+        // Las fotos son de ese auto en particular: al duplicar se eligen de nuevo.
+        if (copia) return
         // Las primeras van a los ángulos y el resto a fotos adicionales.
         a.fotos.take(MAX_FOTOS).forEachIndexed { i, ruta ->
             val uri = Supabase.publicUrl(ruta)?.toUri() ?: return@forEachIndexed

@@ -323,9 +323,11 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
         : c.soldVia === 'dentro_app'
           ? t('perfil.soldInside')
           : t(statusLabel('Vendido'))
-      : c.status === 'Pendiente' || c.inReview
-        ? t('perfil.inReview')
-        : c.featured && c.featuredUntil
+      : c.status === 'Pendiente'
+        ? '' // La etiqueta ya dice "En revisión".
+        : c.inReview
+          ? t('perfil.changesInReview')
+          : c.featured && c.featuredUntil
           ? t('perfil.featuredUntil', { fecha: fechaCorta(c.featuredUntil) })
           : c.featured
             ? t('perfil.featured')
@@ -370,7 +372,7 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
 export function Dashboard() {
   const navigate = useNavigate()
   const { account, loading: cargandoSesion } = useSession()
-  const { openModal } = useUi()
+  const { openModal, toast } = useUi()
   const [imprimir, setImprimir] = useState(false)
   const [extra, setExtra] = useState<ReporteExtra | null>(null)
   const [stats, setStats] = useState<SellerStats | null>(null)
@@ -466,7 +468,10 @@ export function Dashboard() {
       return n
     }
     setOcultasIds((s) => cambiar(s, v))
-    setOculta(account.id, id, v).catch(() => setOcultasIds((s) => cambiar(s, !v)))
+    setOculta(account.id, id, v)
+      // Al ocultar se ofrece "Deshacer" (la vuelve a mostrar en el perfil).
+      .then(() => v && toast(t('perfil.hidden'), { label: t('common.undo'), onClick: () => ocultar(id, false) }))
+      .catch(() => setOcultasIds((s) => cambiar(s, !v)))
   }
 
   return (

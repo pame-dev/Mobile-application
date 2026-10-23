@@ -42,6 +42,8 @@ import kotlinx.coroutines.delay
 /**
  * Aviso flotante que invita al visitante a registrarse. Se cierra solo a los 3.5 s.
  * Con [showRegister] = false es solo un aviso (p. ej. para un usuario con sesión).
+ * Con [actionLabel] el botón hace otra cosa (p. ej. "Deshacer") y el aviso dura 5 s.
+ * [key] reinicia el tiempo aunque el texto sea el mismo (p. ej. dos favoritos quitados seguidos).
  * Colócalo dentro de un Box con Modifier.align(Alignment.BottomCenter).
  */
 @Composable
@@ -51,9 +53,12 @@ fun RegisterToast(
     onRegister: () -> Unit,
     modifier: Modifier = Modifier,
     showRegister: Boolean = true,
+    actionLabel: String? = null,
+    onAction: () -> Unit = {},
+    key: Any? = null,
 ) {
-    LaunchedEffect(message) {
-        delay(3500)
+    LaunchedEffect(message, key) {
+        delay(if (actionLabel != null) 5000 else 3500)
         onClose()
     }
     val shape = RoundedCornerShape(16.dp)
@@ -87,7 +92,17 @@ fun RegisterToast(
                 fontSize = 12.sp
             )
         }
-        if (showRegister) Button(
+        if (actionLabel != null) Button(
+            onClick = {
+                onAction()
+                onClose()
+            },
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Text(actionLabel, fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        } else if (showRegister) Button(
             onClick = onRegister,
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),

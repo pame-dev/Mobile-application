@@ -14,6 +14,7 @@ import { Login } from './pages/auth/Login'
 import { Recover } from './pages/auth/Recover'
 import { VerifyEmail } from './pages/auth/VerifyEmail'
 import { NotFound } from './pages/Placeholder'
+import { Ayuda } from './pages/Ayuda'
 
 // Pantallas pesadas que no se usan al entrar: se descargan hasta que se abren, para que
 // Inicio cargue más rápido (sobre todo en celular).
@@ -59,6 +60,7 @@ export function App() {
           <Route path="privacidad" element={<Privacy />} />
           <Route path="privacidad/politicas" element={<PrivacyPolicy />} />
           <Route path="terminos" element={<Terms />} />
+          <Route path="ayuda" element={<Ayuda />} />
 
           <Route path="*" element={<NotFound />} />
         </Route>

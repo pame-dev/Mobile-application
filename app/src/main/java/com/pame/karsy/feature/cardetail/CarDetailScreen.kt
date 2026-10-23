@@ -133,6 +133,8 @@ fun CarDetailScreen(
     bottomBar: (@Composable () -> Unit)? = null,
     /** Abre el formulario para corregir y reenviar una publicación rechazada propia. */
     onEditPublication: (Long) -> Unit = {},
+    /** Duplicar: publicación nueva con los datos de esta (sin fotos ni documento). */
+    onDuplicatePublication: (Long) -> Unit = {},
     /** El admin revisa la publicación: muestra los cambios en revisión en vez de lo aprobado. */
     cambiosPendientes: Boolean = false,
     vm: CarDetailViewModel = viewModel(),
@@ -190,6 +192,11 @@ fun CarDetailScreen(
     var confirmAvailable by rememberSaveable { mutableStateOf(false) }
     var confirmHide by rememberSaveable { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
+    /**
+     * "Deshacer" (al quitar de favoritos o al ocultar): el texto al que pertenece y qué hace.
+     * Solo se ofrece si el aviso visible es ese mismo (otro aviso no hereda el botón).
+     */
+    var toastUndo by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
     val msgHidden = stringResource(R.string.detail_owner_hidden)
     val msgUnhidden = stringResource(R.string.detail_owner_unhidden)
     val msgPaused = stringResource(R.string.detail_owner_paused)
@@ -217,6 +224,7 @@ fun CarDetailScreen(
         onEditPublication(detail.car.id)
     }
     val msgRegisterFav = stringResource(R.string.detail_toast_register_fav)
+    val msgFavRemoved = stringResource(R.string.core_favorite_removed)
     val msgRegisterContact = stringResource(R.string.detail_toast_register_contact)
     val msgRegisterReport = stringResource(R.string.detail_toast_register_report)
 
@@ -225,7 +233,13 @@ fun CarDetailScreen(
             toastMessage = msgRegisterFav
             return
         }
-        vm.toggleFavorite { toastMessage = it }
+        vm.toggleFavorite(
+            onError = { toastUndo = null; toastMessage = it },
+            onRemoved = {
+                toastMessage = msgFavRemoved
+                toastUndo = msgFavRemoved to { vm.restoreFavorite { toastUndo = null; toastMessage = it } }
+            }
+        )
     }
 
     fun handleContact() {
@@ -329,8 +343,10 @@ fun CarDetailScreen(
                 onHide = { confirmHide = true },
                 onUnhide = {
                     PublicacionesOcultas.mostrar(detail.car.id)
+                    toastUndo = null
                     toastMessage = msgUnhidden
                 },
+                onDuplicate = { onDuplicatePublication(detail.car.id) },
             )
             else Column(Modifier.background(KarsyBg)) {
                 HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -475,6 +491,8 @@ fun CarDetailScreen(
                         confirmHide = false
                         PublicacionesOcultas.ocultar(detail.car.id)
                         toastMessage = msgHidden
+                        // "Deshacer": la vuelve a mostrar en el perfil.
+                        toastUndo = msgHidden to { PublicacionesOcultas.mostrar(detail.car.id) }
                     }) {
                         Text(stringResource(R.string.detail_owner_hide), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyNavy)
                     }
@@ -518,7 +536,7 @@ fun CarDetailScreen(
         toastMessage?.let { msg ->
             RegisterToast(
                 message = msg,
-                onClose = { toastMessage = null },
+                onClose = { toastMessage = null; toastUndo = null },
                 onRegister = {
                     toastMessage = null
                     onRegister()
@@ -526,6 +544,9 @@ fun CarDetailScreen(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 // Solo al visitante se le invita a registrarse; con sesión es un aviso normal.
                 showRegister = isVisitor,
+                actionLabel = toastUndo?.takeIf { it.first == msg }?.let { stringResource(R.string.core_undo) },
+                onAction = { toastUndo?.second?.invoke() },
+                key = toastUndo,
             )
         }
     }
@@ -565,6 +586,7 @@ private fun OwnerActionsBar(
     onMarkAvailable: () -> Unit,
     onHide: () -> Unit,
     onUnhide: () -> Unit,
+    onDuplicate: () -> Unit,
 ) {
     // Pausar, destacar y marcar como vendida solo aplican a una publicación aprobada que el dueño controla.
     // Marcar como vendida, además, solo cuando está activa.
@@ -573,9 +595,9 @@ private fun OwnerActionsBar(
     // Una rechazada se corrige desde el aviso de arriba.
     val canEdit = car.status != EstadoAuto.VENDIDO && car.rejectedReason == null
     val isSold = car.status == EstadoAuto.VENDIDO
-    // Rechazada o deshabilitada: el dueño puede quitarla de su perfil (solo en este teléfono).
+    // Rechazada o deshabilitada: el dueño puede quitarla de su perfil (se guarda en su cuenta).
     val canHide = PublicacionesOcultas.sePuedeOcultar(car)
-    if (!canToggle && !showFeature && !canEdit && !isSold && !canHide) return
+    // Duplicar siempre está disponible, así que la barra siempre se muestra al dueño.
 
     Column(Modifier.background(KarsyBg)) {
         HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -649,6 +671,13 @@ private fun OwnerActionsBar(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            // Publicación nueva con estos mismos datos (útil para lotes con autos parecidos).
+            OwnerButton(
+                text = stringResource(R.string.detail_owner_duplicate),
+                onClick = onDuplicate,
+                color = KarsyMid,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

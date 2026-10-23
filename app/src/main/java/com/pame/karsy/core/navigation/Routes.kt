@@ -37,16 +37,22 @@ sealed class Routes(val route: String) {
     object History : Routes("history")
     object Settings : Routes("settings")
     object Terms : Routes("terms")
+    object Help : Routes("help")
     object Privacy : Routes("privacy")
     object PrivacyNotice : Routes("privacy_notice")
     object Notifications : Routes("notifications")
     object SavedSearches : Routes("saved_searches")
     object NotificationPreferences : Routes("notification_preferences")
 
-    /** Publicar; con editId corrige y reenvía una publicación rechazada. */
-    object PublishFlow : Routes("publish_flow?editId={editId}") {
+    /**
+     * Publicar; con editId corrige y reenvía una publicación propia. Con copyFrom es una
+     * publicación NUEVA con los datos de otra propia (Duplicar), sin fotos ni documento.
+     */
+    object PublishFlow : Routes("publish_flow?editId={editId}&copyFrom={copyFrom}") {
         const val ARG_EDIT = "editId"
+        const val ARG_COPY = "copyFrom"
         fun createRoute(editId: Long? = null) = if (editId == null) "publish_flow" else "publish_flow?editId=$editId"
+        fun duplicateRoute(copyFrom: Long) = "publish_flow?copyFrom=$copyFrom"
     }
     object Dashboard : Routes("dashboard")
     object AdminDashboard : Routes("admin_dashboard")

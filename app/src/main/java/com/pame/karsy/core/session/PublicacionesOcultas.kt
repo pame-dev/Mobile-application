@@ -14,6 +14,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
@@ -35,6 +37,8 @@ object PublicacionesOcultas {
 
     private var prefs: SharedPreferences? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    /** Ocultar y "Deshacer" seguidos: las escrituras van en orden (si no, el borrado podía llegar antes). */
+    private val escrituras = Mutex()
 
     /** Ids ocultos de la cuenta en sesión; al cambiar, las pantallas que leen [estaOculta] se recomponen. */
     private var ids by mutableStateOf<Set<Long>>(emptySet())
@@ -104,15 +108,17 @@ object PublicacionesOcultas {
         val antes = ids
         ids = if (ocultar) ids + id else ids - id
         scope.launch {
-            runCatching {
-                if (ocultar) insertar(uid, id)
-                else Supabase.client.from("publicaciones_ocultas").delete {
-                    filter {
-                        eq("id_cuenta", uid)
-                        eq("id_publicacion", id)
+            escrituras.withLock {
+                runCatching {
+                    if (ocultar) insertar(uid, id)
+                    else Supabase.client.from("publicaciones_ocultas").delete {
+                        filter {
+                            eq("id_cuenta", uid)
+                            eq("id_publicacion", id)
+                        }
                     }
-                }
-            }.onFailure { ids = antes }
+                }.onFailure { ids = antes }
+            }
         }
     }
 

@@ -34,6 +34,31 @@
     <string name="settings_theme_sheet_desc">Elige cómo quieres ver Karsy.</string>
     <string name="settings_terms">Términos y condiciones</string>
     <string name="settings_terms_desc">Políticas de privacidad y uso</string>
+    <string name="help_title">Ayuda</string>
+    <string name="help_sub">Respuestas rápidas a las dudas más comunes sobre Karsy.</string>
+    <string name="help_settings_desc">Preguntas frecuentes y contacto</string>
+    <string name="help_q_publish">¿Cómo publico mi auto?</string>
+    <string name="help_a_publish">Toca el botón “+” de la barra de abajo. Llena los datos del auto, sube las fotos que se piden y agrega el NIV, la placa o un documento del vehículo. Antes de que aparezca, el equipo de Karsy revisa tu publicación.</string>
+    <string name="help_q_review">¿Cuánto tarda la revisión?</string>
+    <string name="help_a_review">El equipo de Karsy revisa las publicaciones lo antes posible. Te avisaremos con una notificación cuando la aprobemos o, si hay algo que corregir, con el motivo para que la edites y la reenvíes.</string>
+    <string name="help_q_rejected">¿Por qué rechazaron mi publicación?</string>
+    <string name="help_a_rejected">En Mi panel verás el motivo. Toca “Corregir y reenviar”, cambia lo que se indica y vuelve a enviarla.</string>
+    <string name="help_q_featured">¿Qué es un destacado?</string>
+    <string name="help_a_featured">Un destacado hace que tu auto aparezca en la sección Destacados, al inicio de Karsy, durante 1 mes. Se solicita desde Mi panel o desde tu publicación, y el equipo de Karsy lo aprueba.</string>
+    <string name="help_q_verify">¿Cómo verifico mi cuenta?</string>
+    <string name="help_a_verify">Los particulares envían su CURP y los lotes su Constancia de Situación Fiscal desde su perfil. Cuando el equipo la revise, aparecerá la insignia de cuenta verificada.</string>
+    <string name="help_q_contact">¿Cómo contacto a un vendedor?</string>
+    <string name="help_a_contact">Karsy no tiene chat ni pagos: en la publicación toca “Contactar vendedor” para llamar, escribir por WhatsApp o mandar un correo al vendedor.</string>
+    <string name="help_q_safe">¿Cómo compro de forma segura?</string>
+    <string name="help_a_safe">Revisa el auto en persona en un lugar público, como el estacionamiento de un centro comercial, y no pagues nada por adelantado. Al tocar “Contactar vendedor” verás una guía con más consejos.</string>
+    <string name="help_q_report">¿Cómo reporto una publicación?</string>
+    <string name="help_a_report">En la publicación toca el ícono de la bandera y elige el motivo. El equipo de Karsy revisará el reporte.</string>
+    <string name="help_q_language">¿Cómo cambio el idioma o el tema?</string>
+    <string name="help_a_language">En Ajustes, en Idioma y en Tema. El idioma también lo puedes cambiar desde el menú de tu cuenta (toca tu perfil en la barra de abajo).</string>
+    <string name="help_contact_title">¿No encontraste tu respuesta?</string>
+    <string name="help_contact_desc">Escríbenos y el equipo de Karsy te responderá por correo.</string>
+    <string name="help_show_answer">Ver respuesta</string>
+    <string name="help_hide_answer">Ocultar respuesta</string>
     <string name="settings_logout">Cerrar sesión</string>
 
     <!-- Inicio de sesión y registro -->
@@ -221,6 +246,9 @@
     <string name="home_empty_no_vehicles">Todavía no hay vehículos publicados.</string>
     <string name="home_empty_no_match">Ningún vehículo coincide con tu búsqueda.</string>
     <string name="home_clear_filters">Quitar filtros</string>
+    <string name="home_filter_from">Desde %1$s</string>
+    <string name="home_filter_to">Hasta %1$s</string>
+    <string name="home_remove_filter">Quitar filtro %1$s</string>
     <string name="home_fab_login_to_add">Inicia sesión para agregar un vehículo</string>
     <string name="home_fab_add_vehicle">Agregar vehículo</string>
     <string name="home_register">Regístrate</string>
@@ -368,12 +396,12 @@
     <string name="detail_changes_rejected_title">Administración rechazó tus cambios</string>
     <string name="detail_owner_edit">Editar</string>
     <string name="detail_owner_in_review">En revisión</string>
-    <string name="detail_owner_pause">Deshabilitar</string>
-    <string name="detail_owner_resume">Habilitar</string>
-    <string name="detail_owner_pause_title">¿Deshabilitar publicación?</string>
-    <string name="detail_owner_pause_desc">Dejará de aparecer para los compradores. Puedes volver a habilitarla cuando quieras.</string>
-    <string name="detail_owner_paused">Publicación deshabilitada: ya no aparece para los compradores.</string>
-    <string name="detail_owner_resumed">Publicación habilitada de nuevo.</string>
+    <string name="detail_owner_pause">Pausar</string>
+    <string name="detail_owner_resume">Reanudar</string>
+    <string name="detail_owner_pause_title">¿Pausar publicación?</string>
+    <string name="detail_owner_pause_desc">Dejará de aparecer para los compradores. Puedes reanudarla cuando quieras.</string>
+    <string name="detail_owner_paused">Publicación pausada: ya no aparece para los compradores.</string>
+    <string name="detail_owner_resumed">Publicación reanudada: los compradores ya la ven de nuevo.</string>
     <string name="detail_owner_mark_sold">Marcar como vendido</string>
     <string name="detail_owner_hide">Ocultar</string>
     <string name="detail_owner_unhide">Mostrar en mi perfil</string>
@@ -382,7 +410,7 @@
     <string name="detail_owner_hidden">Publicación oculta.</string>
     <string name="detail_owner_unhidden">La publicación vuelve a aparecer en Mis publicaciones.</string>
     <string name="profile_dashboard_hidden_listings">Publicaciones ocultas</string>
-    <string name="profile_dashboard_hidden_desc">No aparecen en Mis publicaciones de tu perfil. Solo se ocultan en este teléfono.</string>
+    <string name="profile_dashboard_hidden_desc">No aparecen en Mis publicaciones de tu perfil. Puedes volver a mostrarlas cuando quieras.</string>
     <string name="profile_dashboard_unhide">Mostrar en perfil</string>
     <string name="detail_owner_sold_title">¿Marcar como vendido?</string>
     <string name="detail_owner_sold_desc">Dejará de aparecer para los compradores y quienes lo tengan en favoritos verán que ya se vendió. Puedes volver a marcarlo como disponible cuando quieras.</string>
@@ -530,7 +558,7 @@
     <string name="profile_dashboard_request_already_pending">Ya hay una solicitud pendiente para este vehículo.</string>
     <!-- Diálogo destacar -->
     <string name="profile_feature_dialog_title">¿Quieres destacar tu vehículo?</string>
-    <string name="profile_feature_dialog_body">Haz que tu publicación tenga mayor visibilidad y aparezca en una sección destacada de la plataforma.</string>
+    <string name="profile_feature_dialog_body">Tu auto aparecerá en la sección Destacados, al inicio de Karsy y antes que los demás, durante 1 mes, para que más compradores lo vean.</string>
     <string name="profile_feature_dialog_note">Antes de destacarla, un administrador deberá revisar y aprobar tu solicitud. Una vez aprobada, tu vehículo aparecerá como publicación destacada durante 1 mes; después vuelve a mostrarse como una publicación normal y puedes solicitarlo de nuevo.</string>
     <string name="profile_feature_dialog_confirm">Solicitar destacar</string>
     <string name="profile_cancel">Cancelar</string>
@@ -623,9 +651,9 @@
     <string name="profile_photo_updated">Foto actualizada.</string>
     <!-- Estado de la publicación (solo etiqueta visible) -->
     <string name="profile_status_active">Activo</string>
-    <string name="profile_status_pending">Pendiente</string>
+    <string name="profile_status_pending">En revisión</string>
     <string name="profile_status_rejected">Rechazado</string>
-    <string name="profile_status_disabled">Deshabilitado</string>
+    <string name="profile_status_disabled">Deshabilitado por Karsy</string>
     <string name="profile_status_sold">Vendido</string>
     <string name="profile_status_paused">Pausado</string>
 
@@ -643,6 +671,8 @@
     <string name="publish_edit_title">Editar publicación</string>
     <string name="publish_edit_rejected_title">Administración rechazó tu publicación</string>
     <string name="publish_edit_not_found">No encontramos la publicación que quieres corregir.</string>
+    <string name="publish_duplicating">Copiamos los datos de tu otra publicación. Revisa que todo coincida con este auto y agrega sus fotos y su documento.</string>
+    <string name="detail_owner_duplicate">Duplicar</string>
     <string name="publish_resubmit_success_title">¡Reenviada!</string>
     <string name="publish_resubmit_success_message">Tu %1$s se envió de nuevo a revisión. Aparecerá para los compradores en cuanto un administrador la apruebe.</string>
     <string name="publish_edit_success_message">Los cambios de tu %1$s se enviaron a revisión. Mientras tanto, los compradores siguen viendo la versión anterior.</string>
@@ -1151,6 +1181,8 @@
     <string name="core_add_favorite">Agregar a favoritos</string>
     <string name="core_register_toast_subtitle">Crea una cuenta gratis para continuar.</string>
     <string name="core_register_me">Registrarme</string>
+    <string name="core_undo">Deshacer</string>
+    <string name="core_favorite_removed">Se quitó de tus favoritos.</string>
     <string name="core_close">Cerrar</string>
     <string name="core_verified_badge">Verificado</string>
     <string name="core_verified_badge_a11y">Usuario verificado</string>

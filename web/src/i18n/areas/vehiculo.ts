@@ -16,9 +16,9 @@ export const es = {
 
   // Estado de una publicación
   'vehiculo.status.Activo': 'Activo',
-  'vehiculo.status.Pendiente': 'Pendiente',
+  'vehiculo.status.Pendiente': 'En revisión',
   'vehiculo.status.Rechazado': 'Rechazado',
-  'vehiculo.status.Deshabilitado': 'Deshabilitado',
+  'vehiculo.status.Deshabilitado': 'Deshabilitado por Karsy',
   'vehiculo.status.Vendido': 'Vendido',
   'vehiculo.status.Pausado': 'Pausado',
 
@@ -33,6 +33,7 @@ export const es = {
   'vehiculo.fav.add': 'Guardar en favoritos',
   'vehiculo.fav.remove': 'Quitar de favoritos',
   'vehiculo.fav.error': 'No se pudo guardar el favorito. Intenta de nuevo.',
+  'vehiculo.fav.removed': 'Se quitó de tus favoritos.',
 
   // Sesión
   'vehiculo.session.noProfile': 'Esta cuenta no tiene un perfil de Karsy.',
@@ -155,18 +156,18 @@ export const es = {
   'vehiculo.soldVia.inside': 'Dentro de la app',
   'vehiculo.soldVia.outside': 'Fuera de la app',
   'vehiculo.feature.title': '¿Quieres destacar tu vehículo?',
-  'vehiculo.feature.sub': 'Haz que tu publicación tenga mayor visibilidad y aparezca en una sección destacada de la plataforma.',
+  'vehiculo.feature.sub': 'Tu auto aparecerá en la sección Destacados, al inicio de Karsy y antes que los demás, durante 1 mes, para que más compradores lo vean.',
   'vehiculo.feature.note':
     'Antes de destacarla, un administrador deberá revisar y aprobar tu solicitud. Una vez aprobada, tu vehículo aparecerá como publicación destacada durante 1 mes.',
   'vehiculo.feature.confirm': 'Solicitar destacar',
   'vehiculo.feature.sentTitle': 'Solicitud enviada',
   'vehiculo.feature.sentSub':
     'Tu solicitud para destacar {v} fue enviada correctamente. Si se aprueba, estará destacada durante 1 mes. El equipo de Karsy la revisará pronto.',
-  'vehiculo.pause.title': '¿Deshabilitar publicación?',
-  'vehiculo.pause.msg': 'Dejará de aparecer para los compradores. Puedes volver a habilitarla cuando quieras.',
-  'vehiculo.pause.confirm': 'Deshabilitar',
-  'vehiculo.pause.done': 'Publicación deshabilitada: ya no aparece para los compradores.',
-  'vehiculo.enable.done': 'Publicación habilitada de nuevo.',
+  'vehiculo.pause.title': '¿Pausar publicación?',
+  'vehiculo.pause.msg': 'Dejará de aparecer para los compradores. Puedes reanudarla cuando quieras.',
+  'vehiculo.pause.confirm': 'Pausar',
+  'vehiculo.pause.done': 'Publicación pausada: ya no aparece para los compradores.',
+  'vehiculo.enable.done': 'Publicación reanudada: los compradores ya la ven de nuevo.',
   'vehiculo.sold.title': '¿Marcar como vendido?',
   'vehiculo.sold.msg':
     'Dejará de aparecer para los compradores y quienes lo tengan en favoritos verán que ya se vendió. Puedes volver a marcarlo como disponible cuando quieras.',
@@ -191,9 +192,9 @@ export const en: Record<keyof typeof es, string> = {
   'vehiculo.time.weeks': '{n} weeks ago',
 
   'vehiculo.status.Activo': 'Active',
-  'vehiculo.status.Pendiente': 'Pending',
+  'vehiculo.status.Pendiente': 'Under review',
   'vehiculo.status.Rechazado': 'Rejected',
-  'vehiculo.status.Deshabilitado': 'Disabled',
+  'vehiculo.status.Deshabilitado': 'Disabled by Karsy',
   'vehiculo.status.Vendido': 'Sold',
   'vehiculo.status.Pausado': 'Paused',
 
@@ -206,6 +207,7 @@ export const en: Record<keyof typeof es, string> = {
   'vehiculo.fav.add': 'Add to favorites',
   'vehiculo.fav.remove': 'Remove from favorites',
   'vehiculo.fav.error': "Couldn't save the favorite. Please try again.",
+  'vehiculo.fav.removed': 'Removed from your favorites.',
 
   'vehiculo.session.noProfile': "This account doesn't have a Karsy profile.",
   'vehiculo.session.suspended': 'Your account is suspended. Contact us if you think this is a mistake.',
@@ -323,18 +325,18 @@ export const en: Record<keyof typeof es, string> = {
   'vehiculo.soldVia.inside': 'Inside the app',
   'vehiculo.soldVia.outside': 'Outside the app',
   'vehiculo.feature.title': 'Want to feature your vehicle?',
-  'vehiculo.feature.sub': 'Give your listing more visibility and have it appear in a featured section of the platform.',
+  'vehiculo.feature.sub': 'Your car will appear in the Featured section, at the top of Karsy and before the others, for 1 month, so more buyers see it.',
   'vehiculo.feature.note':
     'Before it can be featured, an administrator must review and approve your request. Once approved, your vehicle will appear as a featured listing for 1 month.',
   'vehiculo.feature.confirm': 'Request feature',
   'vehiculo.feature.sentTitle': 'Request sent',
   'vehiculo.feature.sentSub':
     'Your request to feature {v} was sent successfully. If approved, it will be featured for 1 month. The Karsy team will review it soon.',
-  'vehiculo.pause.title': 'Disable listing?',
-  'vehiculo.pause.msg': "Buyers won't see it anymore. You can enable it again whenever you want.",
-  'vehiculo.pause.confirm': 'Disable',
-  'vehiculo.pause.done': 'Listing disabled: buyers no longer see it.',
-  'vehiculo.enable.done': 'Listing enabled again.',
+  'vehiculo.pause.title': 'Pause listing?',
+  'vehiculo.pause.msg': "Buyers won't see it anymore. You can resume it whenever you want.",
+  'vehiculo.pause.confirm': 'Pause',
+  'vehiculo.pause.done': 'Listing paused: buyers no longer see it.',
+  'vehiculo.enable.done': 'Listing resumed: buyers can see it again.',
   'vehiculo.sold.title': 'Mark as sold?',
   'vehiculo.sold.msg':
     "Buyers won't see it anymore and anyone who saved it to favorites will see it was sold. You can mark it as available again whenever you want.",

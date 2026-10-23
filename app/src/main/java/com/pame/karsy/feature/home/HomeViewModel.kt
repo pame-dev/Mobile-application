@@ -216,15 +216,22 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    /** Guarda o quita el favorito en la BD; si falla se revierte. */
-    fun toggleFavorite(id: Long, onError: (String) -> Unit) {
+    /** "Deshacer" de quitar: lo vuelve a guardar (aunque mientras tanto se haya tocado el corazón). */
+    fun restoreFavorite(id: Long, onError: (String) -> Unit) {
+        if (id !in favoriteIds) toggleFavorite(id, onError)
+    }
+
+    /** Guarda o quita el favorito en la BD; si falla se revierte. [onRemoved]: se quitó (para "Deshacer"). */
+    fun toggleFavorite(id: Long, onError: (String) -> Unit, onRemoved: () -> Unit = {}) {
         val agregar = id !in favoriteIds
         favoriteIds = if (agregar) favoriteIds + id else favoriteIds - id
         viewModelScope.launch {
-            safeCall { CarRepository.setFavorite(id, agregar) }.onFailure {
-                favoriteIds = if (agregar) favoriteIds - id else favoriteIds + id
-                onError(it.mensajeUsuario())
-            }
+            safeCall { CarRepository.setFavorite(id, agregar) }
+                .onSuccess { if (!agregar) onRemoved() }
+                .onFailure {
+                    favoriteIds = if (agregar) favoriteIds - id else favoriteIds + id
+                    onError(it.mensajeUsuario())
+                }
         }
     }
 }

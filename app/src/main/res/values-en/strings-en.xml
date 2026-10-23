@@ -32,6 +32,31 @@
     <string name="settings_theme_sheet_desc">Choose how you want to see Karsy.</string>
     <string name="settings_terms">Terms and conditions</string>
     <string name="settings_terms_desc">Privacy and usage policies</string>
+    <string name="help_title">Help</string>
+    <string name="help_sub">Quick answers to the most common questions about Karsy.</string>
+    <string name="help_settings_desc">FAQ and contact</string>
+    <string name="help_q_publish">How do I list my car?</string>
+    <string name="help_a_publish">Tap the “+” button in the bottom bar. Fill in the car details, upload the requested photos and add the VIN, the plate or a vehicle document. Before it appears, the Karsy team reviews your listing.</string>
+    <string name="help_q_review">How long does the review take?</string>
+    <string name="help_a_review">The Karsy team reviews listings as soon as possible. We will notify you when we approve it or, if something needs fixing, with the reason so you can edit and resubmit it.</string>
+    <string name="help_q_rejected">Why was my listing rejected?</string>
+    <string name="help_a_rejected">You will see the reason in My dashboard. Tap “Fix and resubmit”, change what is indicated and send it again.</string>
+    <string name="help_q_featured">What is a featured listing?</string>
+    <string name="help_a_featured">Featuring makes your car appear in the Featured section, at the top of Karsy, for 1 month. You request it from My dashboard or from your listing, and the Karsy team approves it.</string>
+    <string name="help_q_verify">How do I verify my account?</string>
+    <string name="help_a_verify">Private sellers send their CURP and dealerships their tax status certificate from their profile. Once the team reviews it, the verified account badge will appear.</string>
+    <string name="help_q_contact">How do I contact a seller?</string>
+    <string name="help_a_contact">Karsy has no chat or payments: on the listing tap “Contact seller” to call, message on WhatsApp or email the seller.</string>
+    <string name="help_q_safe">How do I buy safely?</string>
+    <string name="help_a_safe">Check the car in person in a public place, such as a shopping mall parking lot, and do not pay anything in advance. When you tap “Contact seller” you will see a guide with more tips.</string>
+    <string name="help_q_report">How do I report a listing?</string>
+    <string name="help_a_report">On the listing tap the flag icon and choose the reason. The Karsy team will review the report.</string>
+    <string name="help_q_language">How do I change the language or theme?</string>
+    <string name="help_a_language">In Settings, under Language and Theme. You can also change the language from your account menu (tap your profile in the bottom bar).</string>
+    <string name="help_contact_title">Didn\'t find your answer?</string>
+    <string name="help_contact_desc">Write to us and the Karsy team will reply by email.</string>
+    <string name="help_show_answer">Show answer</string>
+    <string name="help_hide_answer">Hide answer</string>
     <string name="settings_logout">Log out</string>
 
     <!-- Inicio de sesión y registro -->
@@ -219,6 +244,9 @@
     <string name="home_empty_no_vehicles">No vehicles have been listed yet.</string>
     <string name="home_empty_no_match">No vehicles match your search.</string>
     <string name="home_clear_filters">Clear filters</string>
+    <string name="home_filter_from">From %1$s</string>
+    <string name="home_filter_to">Up to %1$s</string>
+    <string name="home_remove_filter">Remove filter %1$s</string>
     <string name="home_fab_login_to_add">Log in to add a vehicle</string>
     <string name="home_fab_add_vehicle">Add vehicle</string>
     <string name="home_register">Sign up</string>
@@ -366,12 +394,12 @@
     <string name="detail_changes_rejected_title">An admin rejected your changes</string>
     <string name="detail_owner_edit">Edit</string>
     <string name="detail_owner_in_review">In review</string>
-    <string name="detail_owner_pause">Disable</string>
-    <string name="detail_owner_resume">Enable</string>
-    <string name="detail_owner_pause_title">Disable listing?</string>
-    <string name="detail_owner_pause_desc">Buyers won\'t see it anymore. You can enable it again whenever you want.</string>
-    <string name="detail_owner_paused">Listing disabled: buyers no longer see it.</string>
-    <string name="detail_owner_resumed">Listing enabled again.</string>
+    <string name="detail_owner_pause">Pause</string>
+    <string name="detail_owner_resume">Resume</string>
+    <string name="detail_owner_pause_title">Pause listing?</string>
+    <string name="detail_owner_pause_desc">Buyers won\'t see it anymore. You can resume it whenever you want.</string>
+    <string name="detail_owner_paused">Listing paused: buyers no longer see it.</string>
+    <string name="detail_owner_resumed">Listing resumed: buyers can see it again.</string>
     <string name="detail_owner_mark_sold">Mark as sold</string>
     <string name="detail_owner_hide">Hide</string>
     <string name="detail_owner_unhide">Show on my profile</string>
@@ -380,7 +408,7 @@
     <string name="detail_owner_hidden">Listing hidden.</string>
     <string name="detail_owner_unhidden">The listing appears in My listings again.</string>
     <string name="profile_dashboard_hidden_listings">Hidden listings</string>
-    <string name="profile_dashboard_hidden_desc">They don\'t appear in My listings on your profile. They\'re only hidden on this phone.</string>
+    <string name="profile_dashboard_hidden_desc">They don\'t appear in My listings on your profile. You can show them again whenever you want.</string>
     <string name="profile_dashboard_unhide">Show on profile</string>
     <string name="detail_owner_sold_title">Mark as sold?</string>
     <string name="detail_owner_sold_desc">Buyers won\'t see it anymore and anyone who saved it to favorites will see it was sold. You can mark it as available again whenever you want.</string>
@@ -528,7 +556,7 @@
     <string name="profile_dashboard_request_already_pending">There\'s already a pending request for this vehicle.</string>
     <!-- Feature dialog -->
     <string name="profile_feature_dialog_title">Want to feature your vehicle?</string>
-    <string name="profile_feature_dialog_body">Give your listing more visibility and have it appear in a featured section of the platform.</string>
+    <string name="profile_feature_dialog_body">Your car will appear in the Featured section, at the top of Karsy and before the others, for 1 month, so more buyers see it.</string>
     <string name="profile_feature_dialog_note">Before it can be featured, an administrator must review and approve your request. Once approved, your vehicle will appear as a featured listing for 1 month; after that it goes back to a regular listing and you can request it again.</string>
     <string name="profile_feature_dialog_confirm">Request feature</string>
     <string name="profile_cancel">Cancel</string>
@@ -621,9 +649,9 @@
     <string name="profile_photo_updated">Photo updated.</string>
     <!-- Listing status (display label only) -->
     <string name="profile_status_active">Active</string>
-    <string name="profile_status_pending">Pending</string>
+    <string name="profile_status_pending">Under review</string>
     <string name="profile_status_rejected">Rejected</string>
-    <string name="profile_status_disabled">Disabled</string>
+    <string name="profile_status_disabled">Disabled by Karsy</string>
     <string name="profile_status_sold">Sold</string>
     <string name="profile_status_paused">Paused</string>
 
@@ -641,6 +669,8 @@
     <string name="publish_edit_title">Edit listing</string>
     <string name="publish_edit_rejected_title">An admin rejected your listing</string>
     <string name="publish_edit_not_found">We couldn\'t find the listing you want to fix.</string>
+    <string name="publish_duplicating">We copied the details from your other listing. Check that everything matches this car and add its photos and document.</string>
+    <string name="detail_owner_duplicate">Duplicate</string>
     <string name="publish_resubmit_success_title">Resubmitted!</string>
     <string name="publish_resubmit_success_message">Your %1$s was sent back for review. It\'ll be visible to buyers as soon as an admin approves it.</string>
     <string name="publish_edit_success_message">The changes to your %1$s were sent for review. Meanwhile, buyers still see the previous version.</string>
@@ -1149,6 +1179,8 @@
     <string name="core_add_favorite">Add to favorites</string>
     <string name="core_register_toast_subtitle">Create a free account to continue.</string>
     <string name="core_register_me">Sign up</string>
+    <string name="core_undo">Undo</string>
+    <string name="core_favorite_removed">Removed from your favorites.</string>
     <string name="core_close">Close</string>
     <string name="core_verified_badge">Verified</string>
     <string name="core_verified_badge_a11y">Verified user</string>

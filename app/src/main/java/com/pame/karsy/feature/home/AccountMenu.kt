@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
@@ -43,7 +44,7 @@ private val LogoutCoral = Color(0xFFE65B5B)
 
 /**
  * Menú flotante del ícono de perfil (solo con sesión): datos de la cuenta,
- * "Mi perfil" y "Cerrar sesión". Se ancla debajo del ícono y se cierra al tocar fuera.
+ * "Mi perfil", "Idioma" y "Cerrar sesión". Se ancla debajo del ícono y se cierra al tocar fuera.
  */
 @Composable
 internal fun AccountMenu(
@@ -53,6 +54,7 @@ internal fun AccountMenu(
     avatarUrl: String?,
     onDismiss: () -> Unit,
     onProfile: () -> Unit,
+    onLanguage: () -> Unit,
     onLogout: () -> Unit,
 ) {
     DropdownMenu(
@@ -94,6 +96,11 @@ internal fun AccountMenu(
         MenuOption(Icons.Outlined.Person, stringResource(R.string.home_my_profile), KarsyInk) {
             onDismiss()
             onProfile()
+        }
+        // A la vista (antes solo estaba en Ajustes): los usuarios no lo encontraban.
+        MenuOption(Icons.Outlined.Language, stringResource(R.string.settings_language), KarsyInk) {
+            onDismiss()
+            onLanguage()
         }
         HorizontalDivider(color = KarsyBorder)
         MenuOption(Icons.AutoMirrored.Rounded.Logout, stringResource(R.string.settings_logout), LogoutCoral) {
