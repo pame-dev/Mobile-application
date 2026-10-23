@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -85,6 +86,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.HeartIcon
+import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.RegisterToast
@@ -997,14 +999,22 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
     )
 
     Column(Modifier.padding(horizontal = 20.dp)) {
-        Text(
-            "${car.brand} ${car.model} ${car.year}",
-            fontFamily = Outfit,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = KarsyCharcoal,
+        // Si no cabe, la etiqueta de condición baja a la siguiente línea en lugar de encogerse.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 4.dp)
-        )
+        ) {
+            Text(
+                "${car.brand} ${car.model} ${car.year}",
+                fontFamily = Outfit,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = KarsyCharcoal
+            )
+            ConditionTag(car.condicion)
+        }
         Text(
             buildAnnotatedString {
                 append(car.price)

@@ -441,6 +441,7 @@ object CarRepository {
             imageUrl = Supabase.publicUrl(a.fotos.firstOrNull()),
             badge = if (a.destacado) texto(R.string.core_car_badge_featured) else null,
             condition = if (anio >= anioActual - 3) texto(R.string.core_car_condition_like_new) else texto(R.string.core_car_condition_used),
+            condicion = a.condicionVehiculo,
             kilometraje = Formato.km(a.kilometraje),
             ownerId = a.idPropietario,
             ownerName = a.propietarioNombre,

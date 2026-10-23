@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
@@ -96,15 +97,20 @@ fun VehicleCard(
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 18.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
-                    Text(
-                        car.title,
-                        fontFamily = Outfit,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = KarsyInk,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    // El nombre se corta con "…"; la etiqueta de condición siempre se ve completa.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            car.title,
+                            fontFamily = Outfit,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = KarsyInk,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
+                    }
                     Text(
                         "${car.year} · ${car.kilometraje}",
                         fontFamily = DmSans,

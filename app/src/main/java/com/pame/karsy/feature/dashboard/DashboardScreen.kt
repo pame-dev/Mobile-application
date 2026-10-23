@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.SkeletonBlock
 import com.pame.karsy.core.session.PublicacionesOcultas
@@ -667,14 +668,21 @@ private fun ListingCard(
                 .weight(1f)
                 .padding(12.dp)
         ) {
-            Text(
-                "${car.title} ${car.year}",
-                fontFamily = DmSans,
-                fontSize = 12.sp,
-                lineHeight = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = KarsyCharcoal
-            )
+            // El nombre se corta con "…"; la etiqueta de condición siempre se ve completa.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "${car.title} ${car.year}",
+                    fontFamily = DmSans,
+                    fontSize = 12.sp,
+                    lineHeight = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KarsyCharcoal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
+            }
             Text(
                 car.price,
                 fontFamily = DmSans,

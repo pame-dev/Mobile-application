@@ -36,6 +36,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.style.TextOverflow
+import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.components.SkeletonListRow
@@ -119,13 +121,20 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                                     .background(ImagePlaceholder)
                             )
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "${car.title} ${car.year}",
-                                    fontFamily = DmSans,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 15.sp,
-                                    color = KarsyInk
-                                )
+                                // El nombre se corta con "…"; la etiqueta de condición siempre se ve completa.
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        "${car.title} ${car.year}",
+                                        fontFamily = DmSans,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 15.sp,
+                                        color = KarsyInk,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                    ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
+                                }
                                 Spacer(Modifier.height(2.dp))
                                 Text(
                                     "${car.price} ${car.currency}",

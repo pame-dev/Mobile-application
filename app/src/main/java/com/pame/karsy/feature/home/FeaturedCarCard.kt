@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.components.StarBadge
@@ -96,16 +97,21 @@ fun FeaturedCarCard(
         Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 20.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
-                    Text(
-                        car.title,
-                        fontFamily = Outfit,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = KarsyInk,
-                        lineHeight = 20.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    // El nombre se corta con "…"; la etiqueta de condición siempre se ve completa.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            car.title,
+                            fontFamily = Outfit,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = KarsyInk,
+                            lineHeight = 20.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
+                    }
                     Text(
                         car.year.toString(),
                         fontFamily = DmSans,
