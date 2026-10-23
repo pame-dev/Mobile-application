@@ -12,6 +12,7 @@ import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
@@ -201,9 +202,14 @@ object AuthRepository {
      * true si Supabase ya no reconoce la sesión de este teléfono: se cerró en todos los
      * dispositivos desde otro lado (o la cuenta ya no existe). Si no hay sesión guardada
      * también es true (Supabase la borra al fallar la renovación). Los errores de red se
-     * lanzan: sin poder comprobarla no se cierra la sesión.
+     * lanzan: sin poder comprobarla no se cierra la sesión (si falló la renovación, es false).
      */
     suspend fun sessionRevoked(): Boolean {
+        // Al volver de segundo plano Supabase recarga la sesión (estado Initializing):
+        // hay que esperarla, si no parece cerrada.
+        auth.awaitInitialization()
+        // Falló la renovación (sin internet): no se puede comprobar, no se cierra.
+        if (auth.sessionStatus.value is SessionStatus.RefreshFailure) return false
         if (auth.currentSessionOrNull() == null) return true
         return try {
             auth.retrieveUserForCurrentSession()
