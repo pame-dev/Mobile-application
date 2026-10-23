@@ -3,6 +3,7 @@ package com.pame.karsy.feature.favorites
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.components.HeartCoral
 import com.pame.karsy.core.components.HeartToggle
+import com.pame.karsy.core.components.ConditionTag
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import com.pame.karsy.core.navigation.HideBottomBarWhile
@@ -316,16 +317,20 @@ private fun FavoriteCard(
             )
         }
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp)) {
-            Text(
-                car.title,
-                fontFamily = Outfit,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = KarsyCharcoal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
+            // El nombre se corta con "…"; la etiqueta de condición siempre se ve completa.
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
+                Text(
+                    car.title,
+                    fontFamily = Outfit,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KarsyCharcoal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
+            }
             Text(
                 "${car.year} · ${car.kilometraje}",
                 fontFamily = DmSans,

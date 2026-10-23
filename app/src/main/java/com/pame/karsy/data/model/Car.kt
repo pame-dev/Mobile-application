@@ -19,6 +19,8 @@ data class Car(
     val imageUrl: String?,
     val badge: String? = null,
     val condition: String = "Seminuevo",
+    /** Condición de la ficha técnica (condicion_vehiculo): "seminuevo", "usado" o null. */
+    val condicion: String? = null,
     val kilometraje: String = "",
     val ownerId: String = "",
     val ownerName: String = "",
