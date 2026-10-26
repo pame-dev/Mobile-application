@@ -57,8 +57,8 @@ internal fun languageName(code: String): String =
     stringResource(if (code == Idioma.EN) R.string.settings_language_en else R.string.settings_language_es)
 
 /**
- * Selector de idioma de Configuración: español, inglés o seguir el idioma del teléfono.
- * [selected] es lo que eligió el usuario (Idioma.ES / EN / SISTEMA); al tocar una opción
+ * Selector de idioma de Configuración: español o inglés.
+ * [selected] es el idioma en uso (Idioma.ES / EN); al tocar una opción
  * se llama [onSelect] y la app se recrea en el idioma nuevo si cambia.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,12 +94,6 @@ fun LanguageSheet(selected: String, onSelect: (String) -> Unit, onDismiss: () ->
             // Mismas banderas que el selector de la bienvenida.
             LanguageOption("🇪🇸", languageName(Idioma.ES), null, selected == Idioma.ES) { onSelect(Idioma.ES) }
             LanguageOption("🇬🇧", languageName(Idioma.EN), null, selected == Idioma.EN) { onSelect(Idioma.EN) }
-            LanguageOption(
-                flag = "📱",
-                label = stringResource(R.string.settings_language_system),
-                description = stringResource(R.string.settings_language_system_desc, languageName(Idioma.delTelefono())),
-                selected = selected == Idioma.SISTEMA,
-            ) { onSelect(Idioma.SISTEMA) }
         }
     }
 }

@@ -22,9 +22,7 @@
     <string name="settings_language">Idioma</string>
     <string name="settings_language_es">Español</string>
     <string name="settings_language_en">English</string>
-    <string name="settings_language_system">Usar el idioma del teléfono</string>
     <string name="settings_language_system_desc">Ahora: %1$s</string>
-    <string name="settings_language_system_current">Idioma del teléfono (%1$s)</string>
     <string name="settings_language_sheet_desc">Elige el idioma en que quieres ver Karsy.</string>
     <string name="settings_theme">Tema</string>
     <string name="settings_theme_light">Claro</string>
