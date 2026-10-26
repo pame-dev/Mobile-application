@@ -235,7 +235,7 @@ fun SettingsScreen(
     }
     if (languageOpen) {
         LanguageSheet(
-            selected = Idioma.elegido(context),
+            selected = Idioma.actual(context),
             onSelect = { codigo ->
                 languageOpen = false
                 // Si cambia el idioma en uso, la app se recrea con los textos nuevos.
@@ -246,12 +246,9 @@ fun SettingsScreen(
     }
 }
 
-/** Lo que se muestra bajo "Idioma": el elegido o "Idioma del teléfono (Español)". */
+/** Lo que se muestra bajo "Idioma": el idioma en uso ("Español" / "English"). */
 @Composable
-private fun languageSummary(context: Context): String =
-    if (Idioma.elegido(context) == Idioma.SISTEMA)
-        stringResource(R.string.settings_language_system_current, languageName(Idioma.actual(context)))
-    else languageName(Idioma.actual(context))
+private fun languageSummary(context: Context): String = languageName(Idioma.actual(context))
 
 /** Lo que se muestra bajo "Tema": el elegido o "Tema del teléfono (Oscuro)". */
 @Composable

@@ -663,7 +663,7 @@ fun KarsyNavGraph(
 
         if (languageOpen) {
             LanguageSheet(
-                selected = Idioma.elegido(context),
+                selected = Idioma.actual(context),
                 onSelect = { codigo ->
                     languageOpen = false
                     // Si cambia el idioma en uso, la app se recrea con los textos nuevos.
