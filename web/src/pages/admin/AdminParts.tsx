@@ -56,7 +56,7 @@ export function Badge({ s }: { s: string }) {
   return <span className={`badge ${BADGE[s] ?? 'b-neu'}`}>{ESTADO_CLAVE[s] ? t(ESTADO_CLAVE[s]) : s}</span>
 }
 
-const COLORES = ['#52A3AA', '#8B5CF6', '#3B82F6', '#E65B5B', '#1A4A6E', '#F59E0B', '#0D2B45', '#22C55E']
+const COLORES = ['#2F7A80', '#7C3AED', '#2563EB', '#C53030', '#1A4A6E', '#B45309', '#0D2B45', '#15803D']
 /** Círculo con iniciales; el color sale del nombre para que siempre sea el mismo. */
 export function Ini({ name, src, square = false }: { name: string; src?: string | null; square?: boolean }) {
   const color = COLORES[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORES.length]
