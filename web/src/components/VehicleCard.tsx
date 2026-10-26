@@ -28,7 +28,7 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), abrir())}
     >
       {/* Tu publicación nueva en revisión: foto atenuada (todavía nadie más la ve). */}
-      <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`} className={showStatus && car.status === 'Pendiente' ? 'enrevision' : ''}>
+      <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model} ${car.year || ''}`} className={showStatus && car.status === 'Pendiente' ? 'enrevision' : ''}>
         {/* Tus propias publicaciones no se guardan en favoritos, ni un auto vendido (no saldría ahí). */}
         {account?.id !== car.ownerId && car.status !== 'Vendido' && (
           <button
@@ -61,7 +61,7 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
           </div>
           <div>
             <div className="vprice num">{precio(car.priceValue)}</div>
-            <div className="mid" style={{ fontSize: 10, textAlign: 'right' }}>
+            <div className="mid" style={{ fontSize: 12, textAlign: 'right' }}>
               {car.currency}
             </div>
           </div>
@@ -70,7 +70,7 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
           <Traducido texto={car.description} corto />
         </div>
         {note && (
-          <div className="mid" style={{ fontSize: 11.5 }}>
+          <div className="mid" style={{ fontSize: 12 }}>
             {note}
           </div>
         )}

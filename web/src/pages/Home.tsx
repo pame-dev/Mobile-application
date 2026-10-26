@@ -535,7 +535,7 @@ function CarruselDestacados({ cars, onOpen }: { cars: Car[]; onOpen: (id: number
                 aria-hidden={copia || undefined}
                 tabIndex={copia ? -1 : undefined}
               >
-                <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} />
+                <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model} ${c.year || ''}`} />
                 <div className="shade" />
                 <span className="badge b-star" style={{ position: 'absolute', left: 14, top: 14 }}>
                   {t('home.featuredBadge')}

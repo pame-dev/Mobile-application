@@ -22,7 +22,7 @@ export function Footer() {
           <p style={{ marginTop: 12, maxWidth: 300 }}>{t('footer.tagline')}</p>
         </div>
         <div className="footlegal">
-          <h4>{t('footer.legal')}</h4>
+          <h3>{t('footer.legal')}</h3>
           <button onClick={go('/terminos')}>{t('legal.terms')}</button>
           <button onClick={go('/privacidad/politicas')}>{t('legal.policy')}</button>
           <button onClick={go('/ayuda')}>{t('help.title')}</button>
