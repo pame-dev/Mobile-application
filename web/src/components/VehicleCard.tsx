@@ -61,7 +61,7 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
           </div>
           <div>
             <div className="vprice num">{precio(car.priceValue)}</div>
-            <div className="mid" style={{ fontSize: 10, textAlign: 'right' }}>
+            <div className="mid" style={{ fontSize: 12, textAlign: 'right' }}>
               {car.currency}
             </div>
           </div>
@@ -70,7 +70,7 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
           <Traducido texto={car.description} corto />
         </div>
         {note && (
-          <div className="mid" style={{ fontSize: 11.5 }}>
+          <div className="mid" style={{ fontSize: 12 }}>
             {note}
           </div>
         )}
