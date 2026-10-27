@@ -47,7 +47,7 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
     return (
       <div className="filterpop">
         <h3>{t('filters.title')}</h3>
-        <div style={{ padding: 14, borderRadius: 12, background: 'var(--teal-light)', fontSize: 13 }}>
+        <div className="note info">
           {t('filters.guest')}
           <br />
           <a
@@ -69,7 +69,7 @@ function FilterPanel({ onClose }: { onClose: () => void }) {
     <div className="filterpop">
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <h3>{t('filters.title')}</h3>
-        <button style={{ background: 'none', border: 0, color: 'var(--teal)', fontWeight: 600 }} onClick={() => aplicar(SIN_FILTROS)}>
+        <button style={{ background: 'none', border: 0, color: 'var(--teal-text)', fontWeight: 600 }} onClick={() => aplicar(SIN_FILTROS)}>
           {t('filters.clear')}
         </button>
       </div>
@@ -233,7 +233,7 @@ export function TopNav() {
           </button>
           {filtersOpen && <FilterPanel onClose={() => setFiltersOpen(false)} />}
         </div>
-        <div className="row" style={{ marginLeft: 'auto', gap: 10 }}>
+        <div className="row" style={{ marginLeft: 'auto' }}>
           {mode === 'guest' ? (
             <>
               <button className="btn btn-ghost btn-sm navdesk" onClick={() => navigate('/login', { state: { from: location.pathname + location.search } })}>
@@ -249,8 +249,8 @@ export function TopNav() {
             </>
           ) : (
             <>
-              <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
-                <Icon name="bell" size={19} />
+              <button className="iconbtn" aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
+                <Icon name="bell" size={18} />
                 {sinLeer > 0 && <span className="dot">{sinLeer > 99 ? '99+' : sinLeer}</span>}
               </button>
               <div className="navdesk" style={{ position: 'relative' }} ref={menuRef}>
@@ -267,9 +267,9 @@ export function TopNav() {
                 </button>
                 {menuOpen && (
                   <div className="menu">
-                    <div style={{ padding: '10px 12px 8px' }}>
-                      <b style={{ color: 'var(--ink)' }}>{account!.nombre}</b>
-                      <div className="muted" style={{ fontSize: 12 }}>
+                    <div style={{ padding: 'var(--s-3) var(--s-3) var(--s-2)' }}>
+                      <b className="ink">{account!.nombre}</b>
+                      <div className="muted text-xs">
                         {account!.correo} · {mode === 'admin' ? t('nav.admin') : account!.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
                       </div>
                     </div>
@@ -296,14 +296,16 @@ export function TopNav() {
               </div>
             </>
           )}
+          {/* Computadora: el idioma al final, dentro del mismo contenedor centrado que la página. */}
+          <span className="navdesk navlangdesk">
+            <LangSwitch />
+          </span>
           {/* Pantallas chicas: todo lo demás del encabezado va en el menú (la campana se queda afuera). */}
           <button className="iconbtn navburger" aria-label={t('nav.openMenu')} aria-expanded={menuMovil} onClick={() => setMenuMovil(true)}>
             <Icon name="menu" size={20} />
           </button>
         </div>
       </div>
-      {/* Fuera del contenido centrado: queda en el extremo derecho del encabezado. */}
-      <LangSwitch />
       {menuMovil && (
         <MenuMovil
           links={links}
@@ -406,21 +408,21 @@ function MenuMovil({
       <aside ref={panelRef} className="drawer" role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
         <div className="row" style={{ justifyContent: 'space-between' }}>
           {account ? (
-            <div className="row" style={{ gap: 10, minWidth: 0 }}>
+            <div className="row" style={{ minWidth: 0 }}>
               <span className="avatar" aria-hidden>
                 {foto ? <img src={foto} alt="" /> : iniciales(account.nombre)}
               </span>
               <div style={{ minWidth: 0 }}>
-                <b style={{ color: 'var(--ink)', display: 'block' }} className="ellipsis">
+                <b style={{ display: 'block' }} className="ellipsis ink">
                   {account.nombre}
                 </b>
-                <span className="muted ellipsis" style={{ fontSize: 12, display: 'block' }}>
+                <span className="muted ellipsis text-xs" style={{ display: 'block' }}>
                   {mode === 'admin' ? t('nav.admin') : account.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
                 </span>
               </div>
             </div>
           ) : (
-            <b style={{ color: 'var(--ink)' }}>{t('nav.menu')}</b>
+            <b className="ink">{t('nav.menu')}</b>
           )}
           <button ref={cerrarRef} className="iconbtn" aria-label={t('nav.closeMenu')} onClick={onCerrar}>
             <Icon name="x" size={18} />
@@ -479,7 +481,7 @@ function MenuMovil({
         </nav>
 
         {mode === 'guest' && (
-          <div className="col" style={{ gap: 10 }}>
+          <div className="col gap-3">
             <button
               className="btn btn-ghost btn-block"
               onClick={() => {

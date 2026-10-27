@@ -54,11 +54,11 @@ function FeatureModal({ onConfirm }: { onConfirm: () => Promise<void> }) {
   const [busy, setBusy] = useState(false)
   return (
     <div className="modal">
-      <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--warning-l)', color: 'var(--star)' }}>
+      <span className="nic empty-icon warn">
         <Icon name="star" size={26} />
       </span>
       <ModalHead title={t('vehiculo.feature.title')} sub={t('vehiculo.feature.sub')} />
-      <div className="note" style={{ background: 'var(--teal-light)' }}>
+      <div className="note info">
         {t('vehiculo.feature.note')}
       </div>
       <div className="grid2">
@@ -85,7 +85,7 @@ function SentModal({ titulo }: { titulo: string }) {
   const { t } = useI18n()
   return (
     <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
-      <span className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--success-l)', color: 'var(--success)' }}>
+      <span className="nic done-icon">
         <Icon name="check" size={30} />
       </span>
       <ModalHead title={t('vehiculo.feature.sentTitle')} sub={t('vehiculo.feature.sentSub', { v: titulo })} />

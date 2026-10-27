@@ -31,7 +31,7 @@ export function RegisterType() {
   return (
     <AuthShell title={t('auth.type.artTitle')} sub={t('auth.type.artSub')} photo={11}>
       <BackButton onClick={() => navigate('/')} />
-      <h2>{t('auth.type.title')}</h2>
+      <h1>{t('auth.type.title')}</h1>
       <p className="muted">{t('auth.type.sub')}</p>
       {opciones.map(([v, titulo, d, i, bg]) => (
         <button key={v} className={`typecard ${tipo === v ? 'on' : ''}`} aria-pressed={tipo === v} onClick={() => setTipo(v)}>
@@ -39,17 +39,17 @@ export function RegisterType() {
             <Icon name={i} size={26} />
           </span>
           <span className="grow">
-            <b style={{ fontFamily: 'var(--f-display)', fontSize: 18, color: 'var(--ink)' }}>{t(titulo)}</b>
+            <b className="ink" style={{ fontFamily: 'var(--f-display)', fontSize: 'var(--fs-lg)' }}>{t(titulo)}</b>
             <br />
             <span className="muted">{t(d)}</span>
           </span>
           <Icon name="chev" />
         </button>
       ))}
-      <button className="btn btn-primary btn-block" style={{ height: 50 }} onClick={() => navigate(`/registro/${tipo}`)}>
+      <button className="btn btn-primary btn-block btn-lg" onClick={() => navigate(`/registro/${tipo}`)}>
         {t('auth.type.continue')}
       </button>
-      <p className="muted" style={{ textAlign: 'center', fontSize: 13 }}>
+      <p className="muted text-sm" style={{ textAlign: 'center' }}>
         {t('auth.type.later')}
       </p>
       <p className="muted" style={{ textAlign: 'center' }}>
@@ -427,10 +427,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
 
   const contacto = (
     <section className="card">
-      <h3>
+      <h2>
         <Icon name="phone" size={18} />
         {t('auth.reg.contact')}
-      </h3>
+      </h2>
       <div className="grid2">
         <Field id="telefono" label={esLote ? t('auth.reg.businessPhone') : t('auth.reg.phone')} error={err('telefono')}>
           {input('telefono', { placeholder: t('auth.reg.phonePlaceholder'), type: 'tel', autoComplete: 'tel-national', inputMode: 'tel', filtro: R.telefonoAlEscribir })}
@@ -439,10 +439,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         <div className="field">
           <label>{t('auth.reg.sameWhatsapp')}</label>
           <div className="seg" style={{ alignSelf: 'flex-start' }}>
-            <button type="button" className={f.mismoWhatsapp ? 'on' : ''} onClick={() => set('mismoWhatsapp', true)}>
+            <button type="button" className={f.mismoWhatsapp ? 'on' : ''} aria-pressed={f.mismoWhatsapp} onClick={() => set('mismoWhatsapp', true)}>
               {t('auth.reg.yes')}
             </button>
-            <button type="button" className={!f.mismoWhatsapp ? 'on' : ''} onClick={() => set('mismoWhatsapp', false)}>
+            <button type="button" className={!f.mismoWhatsapp ? 'on' : ''} aria-pressed={!f.mismoWhatsapp} onClick={() => set('mismoWhatsapp', false)}>
               {t('auth.reg.no')}
             </button>
           </div>
@@ -456,7 +456,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         )}
       </Field>
       <Field id="medio" label={t('auth.reg.mainMethod')} error={err('medio')}>
-        <div className="row" style={{ gap: 8 }}>
+        <div className="row gap-2">
           {(
             [
               [WHATSAPP, 'auth.reg.whatsapp', 'chat'],
@@ -515,20 +515,19 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         }}
       >
         <VolverButton to="/registro" label={t('auth.back')} />
-        <h1 style={{ fontSize: 32, marginTop: 18 }}>{esLote ? t('auth.reg.lotTitle') : t('auth.reg.title')}</h1>
+        <h1 className="h1-page" style={{ marginTop: 'var(--s-4)' }}>{esLote ? t('auth.reg.lotTitle') : t('auth.reg.title')}</h1>
         <p className="muted">{esLote ? t('auth.reg.lotSub') : t('auth.reg.sub')}</p>
 
         {esLote && (
           <section className="card">
-            <h3>
+            <h2>
               <Icon name="camera" size={18} />
               {t('auth.reg.photo')}
-            </h3>
-            <div className="row" style={{ gap: 18 }}>
+            </h2>
+            <div className="row gap-4">
               <button
                 type="button"
-                className={`photoslot ${logo ? 'filled' : ''}`}
-                style={{ width: 110, height: 110, borderRadius: 24, flex: 'none' }}
+                className={`photoslot ${logo ? 'filled' : ''}`} style={{ width: 110, height: 110, borderRadius: 'var(--r-xl)', flex: 'none' }}
                 onClick={() => logoInput.current?.click()}
                 aria-label={logo ? t('auth.reg.changeLogo') : t('auth.reg.addLogo')}
               >
@@ -536,7 +535,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
                   <img src={logo.url} alt={t('auth.reg.logoAlt')} />
                 ) : (
                   <>
-                    <Icon name="camera" size={22} />
+                    <Icon name="camera" size={24} />
                     {t('auth.reg.addPhoto')}
                   </>
                 )}
@@ -546,7 +545,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
                   {t('auth.reg.logoHint', { n: R.LOGO_MIN_PX })}
                 </p>
                 {logo && (
-                  <button type="button" className="linkbtn" style={{ color: 'var(--error)', marginTop: 6 }} onClick={() => setLogo(null)}>
+                  <button type="button" className="linkbtn" style={{ color: 'var(--error)', marginTop: 'var(--s-2)' }} onClick={() => setLogo(null)}>
                     {t('auth.reg.removeLogo')}
                   </button>
                 )}
@@ -568,25 +567,25 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
 
         {esLote ? (
           <section className="card">
-            <h3>
+            <h2>
               <Icon name="user" size={18} />
               {t('auth.reg.managerData')}
-            </h3>
+            </h2>
             {datosPersona}
             {correoCampo}
           </section>
         ) : (
           <section className="card">
-            <h3>
+            <h2>
               <Icon name="user" size={18} />
               {t('auth.reg.personal')}
-            </h3>
+            </h2>
             {datosPersona}
             {correoCampo}
             {ubicacion}
             <Field id="curp" label={t('auth.curp.label')} error={err('curp')}>
               {input('curp', { placeholder: 'GODE561231HDFRRN09', filtro: R.curpAlEscribir })}
-              {!err('curp') && <span className="muted" style={{ fontSize: 12 }}>{t('auth.curp.hint')}</span>}
+              {!err('curp') && <span className="muted text-xs">{t('auth.curp.hint')}</span>}
             </Field>
           </section>
         )}
@@ -595,10 +594,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
 
         {esLote && (
           <section className="card">
-            <h3>
+            <h2>
               <Icon name="building" size={18} />
               {t('auth.reg.lotInfo')}
-            </h3>
+            </h2>
             <Field id="nombreLote" label={t('auth.reg.lotName')} error={err('nombreLote')}>
               {input('nombreLote', { placeholder: t('auth.reg.lotNamePlaceholder'), filtro: (v) => v.slice(0, R.LOTE_MAX) })}
             </Field>
@@ -630,7 +629,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
                 maxLength={R.DESCRIPCION_MAX}
                 onChange={(e) => set('descripcion', e.target.value)}
               />
-              <span className="muted" style={{ fontSize: 12, alignSelf: 'flex-end' }}>
+              <span className="muted text-xs" style={{ alignSelf: 'flex-end' }}>
                 {f.descripcion.length}/{R.DESCRIPCION_MAX}
               </span>
             </Field>
@@ -638,10 +637,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         )}
 
         <section className="card">
-          <h3>
+          <h2>
             <Icon name="lock" size={18} />
             {t('auth.reg.security')}
-          </h3>
+          </h2>
           <div className="grid2">
             <Field id="password" label={t('auth.reg.password')} error={err('password')}>
               <PasswordInput
@@ -662,10 +661,10 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         </section>
 
         <section className="card" data-field="legales">
-          <h3>
+          <h2>
             <Icon name="doc" size={18} />
             {t('auth.reg.legalTitle')}
-          </h3>
+          </h2>
           {(
             [
               ['terminos', 'doc', 'auth.reg.termsCard', 'auth.reg.termsCardDesc', terminosOk],
@@ -677,14 +676,14 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
                 <Icon name={icono} size={20} />
               </span>
               <div className="grow" style={{ minWidth: 0 }}>
-                <b style={{ color: 'var(--ink)' }}>{t(titulo)}</b>
+                <b className="ink">{t(titulo)}</b>
                 {ok && (
-                  <span className="badge b-succ" style={{ marginLeft: 8 }}>
-                    <Icon name="check" size={12} />
+                  <span className="badge b-succ" style={{ marginLeft: 'var(--s-2)' }}>
+                    <Icon name="check" size={14} />
                     {t('auth.reg.accepted')}
                   </span>
                 )}
-                <p className="muted" style={{ fontSize: 13 }}>
+                <p className="muted text-sm">
                   {t(desc)}
                 </p>
               </div>
@@ -695,7 +694,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           ))}
         </section>
 
-        <div style={{ marginTop: 18 }}>
+        <div style={{ marginTop: 'var(--s-4)' }}>
           <AlertBox message={error}>
             {correoYaRegistrado && (
               <>
@@ -708,11 +707,11 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           </AlertBox>
         </div>
 
-        <button type="submit" className="btn btn-primary btn-block" style={{ height: 52, marginTop: 18 }} disabled={loading || !listoParaCrear}>
+        <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 'var(--s-4)' }} disabled={loading || !listoParaCrear}>
           {loading ? t('auth.reg.creating') : t('auth.reg.create')}
         </button>
         {!loading && !listoParaCrear && (
-          <p className="muted" style={{ textAlign: 'center', fontSize: 13, marginTop: 10 }}>
+          <p className="muted text-sm" style={{ textAlign: 'center', marginTop: 'var(--s-3)' }}>
             {!terminosOk || !privacidadOk ? (
               t('auth.reg.docsPending')
             ) : (

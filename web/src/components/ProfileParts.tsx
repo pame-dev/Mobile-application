@@ -68,7 +68,7 @@ export function ProfileHeader({
           </div>
         )}
         <div className="ownhead-info">
-          <h1 style={{ fontSize: 28 }}>{name}</h1>
+          <h1 className="h1-page">{name}</h1>
           <div className="ownhead-badges">
             {verified && <VerifiedBadge />}
             <span className="badge b-info">{typeLabel}</span>
@@ -92,9 +92,9 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
 
   return (
     <div>
-      <div className="row" style={{ justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+      <div className="row" style={{ justifyContent: 'space-between', marginBottom: 'var(--s-4)', flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ fontSize: 22 }}>{title}</h2>
+          <h2 className="h2-section">{title}</h2>
           <p className="muted">
             {filtrando
               ? t('perfil.ofTotal', { n: lista.length, total: t(cars.length === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: cars.length }) })
@@ -102,8 +102,8 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
           </p>
         </div>
         {cars.length > 0 && (
-          <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
-            <div className="inputicon" style={{ width: 240, maxWidth: '100%' }}>
+          <div className="row invtools gap-2" style={{ flexWrap: 'wrap' }}>
+            <div className="inputicon invsearch">
               <Icon name="search" size={18} />
               <input className="input" placeholder={t('perfil.inventorySearchPlaceholder')} aria-label={t('perfil.inventorySearchLabel')} value={q} onChange={(e) => setQ(e.target.value)} />
             </div>

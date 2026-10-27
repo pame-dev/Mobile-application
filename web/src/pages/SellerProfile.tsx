@@ -36,8 +36,8 @@ export function SellerProfile() {
 
   if (error) {
     return (
-      <div className="wrap" style={{ maxWidth: 820 }}>
-        <div className="card empty" style={{ marginTop: 40 }}>
+      <div className="wrap wrap-narrow">
+        <div className="card empty empty-page">
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
             {t('common.retry')}
@@ -48,17 +48,17 @@ export function SellerProfile() {
   }
   if (perfil === undefined) {
     return (
-      <div className="wrap" style={{ paddingTop: 24 }}>
-        <div className="skeleton" style={{ height: 210, borderRadius: 22 }} />
-        <div className="skeleton" style={{ height: 300, marginTop: 24 }} />
+      <div className="wrap page-top">
+        <div className="skeleton" style={{ height: 210, borderRadius: 'var(--r-xl)' }} />
+        <div className="skeleton" style={{ height: 300, marginTop: 'var(--s-6)' }} />
       </div>
     )
   }
   if (perfil === null) {
     return (
-      <div className="wrap" style={{ maxWidth: 820 }}>
-        <div className="card empty" style={{ marginTop: 40 }}>
-          <h2>{t('perfil.sellerNotFound')}</h2>
+      <div className="wrap wrap-narrow">
+        <div className="card empty empty-page">
+          <h1 className="empty-title">{t('perfil.sellerNotFound')}</h1>
           <button className="btn btn-primary" onClick={() => navigate('/')}>
             {t('common.goHome')}
           </button>
@@ -72,8 +72,8 @@ export function SellerProfile() {
   const datos = [perfil.city, perfil.since ? t('perfil.since', { fecha: desde(perfil.since) }) : ''].filter(Boolean).join(' · ')
 
   return (
-    <div className="wrap" style={{ paddingTop: 24 }}>
-      <div style={{ marginBottom: 14 }}>
+    <div className="wrap page-top">
+      <div style={{ marginBottom: 'var(--s-4)' }}>
         <VolverButton fallback="/" />
       </div>
       <ProfileHeader
@@ -85,11 +85,11 @@ export function SellerProfile() {
         info={datos}
       />
       {perfil.description && (
-        <p className="muted" style={{ marginTop: 18, maxWidth: 720 }}>
+        <p className="muted" style={{ marginTop: 'var(--s-4)', maxWidth: 720 }}>
           <Traducido texto={perfil.description} />
         </p>
       )}
-      <div style={{ marginTop: 28 }}>
+      <div style={{ marginTop: 'var(--s-6)' }}>
         <Inventory cars={cars} title={t('perfil.listings')} emptyText={t('perfil.sellerInventoryEmpty')} />
       </div>
     </div>

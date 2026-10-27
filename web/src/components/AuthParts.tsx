@@ -40,8 +40,9 @@ export function AuthShell({ title, sub, photo = 0, children }: { title: string; 
         <div>
           <Brand light />
         </div>
-        <div className="col" style={{ gap: 12, display: 'flex', flexDirection: 'column' }}>
-          <h1>{title}</h1>
+        <div className="col gap-3">
+          {/* Eslogan: se ve como título, pero el h1 de la pantalla es el del formulario. */}
+          <p className="authslogan">{title}</p>
           <p style={{ color: '#C9D6E2', maxWidth: 420 }}>{sub}</p>
           <div className="authdots">
             {CARRUSEL.map((src, i) => (
@@ -225,7 +226,7 @@ export function useCountdown() {
 export function ResendRow({ sending, seconds, onResend }: { sending: boolean; seconds: number; onResend: () => void }) {
   const { t } = useI18n()
   return (
-    <p className="muted" style={{ fontSize: 13, textAlign: 'center' }}>
+    <p className="muted text-sm" style={{ textAlign: 'center' }}>
       {sending ? (
         t('auth.sendingCode')
       ) : seconds > 0 ? (

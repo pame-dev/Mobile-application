@@ -7,12 +7,12 @@ export function Placeholder({ title, message }: { title: string; message?: strin
   const navigate = useNavigate()
   const { t } = useI18n()
   return (
-    <div className="wrap" style={{ maxWidth: 820 }}>
-      <div className="card empty" style={{ marginTop: 40 }}>
-        <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
+    <div className="wrap wrap-narrow">
+      <div className="card empty empty-page">
+        <span className="nic empty-icon">
           <Icon name="car" size={26} />
         </span>
-        <h2>{title}</h2>
+        <h1 className="empty-title">{title}</h1>
         <p className="muted">{message ?? t('placeholder.message')}</p>
         <button className="btn btn-primary" onClick={() => navigate('/')}>
           {t('common.goHome')}

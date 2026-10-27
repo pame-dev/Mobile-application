@@ -934,14 +934,14 @@ export function Publish() {
       </div>
 
       {rechazo && (
-        <div className="note" style={{ background: 'var(--error-l)', color: 'var(--error)', marginBottom: 16 }}>
+        <div className="note error" style={{ color: 'var(--error)', marginBottom: 'var(--s-4)' }}>
           <b>{t('publicar.rejectedTitle')}</b>
           <br />
           {t('publicar.rejectedReason', { motivo: rechazoTraducido })}
         </div>
       )}
       {conBorrador && (
-        <div className="note" style={{ background: 'var(--teal-light)', color: 'var(--ink)', marginBottom: 16, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="note info ink" style={{ marginBottom: 'var(--s-4)', display: 'flex', gap: 'var(--s-3)', alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="grow" style={{ minWidth: 200 }}>
             {t('publicar.draftRestored')}
           </span>
@@ -951,7 +951,7 @@ export function Publish() {
         </div>
       )}
       {duplicarId != null && (
-        <div className="note" style={{ background: 'var(--teal-light)', color: 'var(--ink)', marginBottom: 16 }}>
+        <div className="note info ink" style={{ marginBottom: 'var(--s-4)' }}>
           {t('publicar.duplicating')}
         </div>
       )}
@@ -964,8 +964,8 @@ export function Publish() {
       ) : (
         <>
           {step === 0 && (
-            <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+            <section className="card col card-pad gap-3">
+              <p className="muted text-sm">
                 {t('publicar.fillInOrder')}
               </p>
               <div className="label">{t('publicar.sectionVehicleInfo')}</div>
@@ -986,7 +986,7 @@ export function Publish() {
                 <Campo label={t('publicar.transmission')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {cat.transmisiones.map((t) => (
-                      <button type="button" key={t.id} disabled={bloqueado('idTransmision')} className={d.idTransmision === String(t.id) ? 'on' : ''} onClick={() => set('idTransmision', String(t.id))}>
+                      <button type="button" key={t.id} disabled={bloqueado('idTransmision')} className={d.idTransmision === String(t.id) ? 'on' : ''} aria-pressed={d.idTransmision === String(t.id)} onClick={() => set('idTransmision', String(t.id))}>
                         {nombreCatalogo(t.nombre)}
                       </button>
                     ))}
@@ -996,7 +996,7 @@ export function Publish() {
                   <input className="input" id="kilometraje" disabled={bloqueado('kilometraje')} inputMode="numeric" placeholder="45,000" value={d.kilometraje ? entero(Number(d.kilometraje)) : ''} onChange={(e) => set('kilometraje', digitos(e.target.value, 7))} />
                 </Campo>
               </div>
-              <div className="label" style={{ marginTop: 8 }}>
+              <div className="label" style={{ marginTop: 'var(--s-2)' }}>
                 {t('publicar.sectionClassification')}
               </div>
               <div className="grid3">
@@ -1018,14 +1018,14 @@ export function Publish() {
                 <Campo label={t('publicar.condition')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {CONDICIONES.map((c) => (
-                      <button type="button" key={c.valor} disabled={bloqueado('condicion')} className={d.condicion === c.valor ? 'on' : ''} onClick={() => set('condicion', c.valor)}>
+                      <button type="button" key={c.valor} disabled={bloqueado('condicion')} className={d.condicion === c.valor ? 'on' : ''} aria-pressed={d.condicion === c.valor} onClick={() => set('condicion', c.valor)}>
                         {t(c.label)}
                       </button>
                     ))}
                   </div>
                 </Campo>
               </div>
-              <div className="label" style={{ marginTop: 8 }}>
+              <div className="label" style={{ marginTop: 'var(--s-2)' }}>
                 {t('publicar.sectionAdditionalInfo')}
               </div>
               <div className="grid3">
@@ -1056,10 +1056,10 @@ export function Publish() {
                 </Campo>
                 <Campo label={t('publicar.insuranceRecovered')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
-                    <button type="button" disabled={bloqueado('recuperado')} className={d.recuperado ? 'on' : ''} onClick={() => set('recuperado', true)}>
+                    <button type="button" disabled={bloqueado('recuperado')} className={d.recuperado ? 'on' : ''} aria-pressed={d.recuperado} onClick={() => set('recuperado', true)}>
                       {t('publicar.yes')}
                     </button>
-                    <button type="button" disabled={bloqueado('recuperado')} className={!d.recuperado ? 'on' : ''} onClick={() => set('recuperado', false)}>
+                    <button type="button" disabled={bloqueado('recuperado')} className={!d.recuperado ? 'on' : ''} aria-pressed={!d.recuperado} onClick={() => set('recuperado', false)}>
                       {t('publicar.no')}
                     </button>
                   </div>
@@ -1068,29 +1068,29 @@ export function Publish() {
               <div className="grid3">
                 <Campo label={t('publicar.originalInvoice')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
-                    <button type="button" disabled={bloqueado('facturaOriginal')} className={d.facturaOriginal ? 'on' : ''} onClick={() => set('facturaOriginal', true)}>
+                    <button type="button" disabled={bloqueado('facturaOriginal')} className={d.facturaOriginal ? 'on' : ''} aria-pressed={d.facturaOriginal} onClick={() => set('facturaOriginal', true)}>
                       {t('publicar.yes')}
                     </button>
-                    <button type="button" disabled={bloqueado('facturaOriginal')} className={!d.facturaOriginal ? 'on' : ''} onClick={() => set('facturaOriginal', false)}>
+                    <button type="button" disabled={bloqueado('facturaOriginal')} className={!d.facturaOriginal ? 'on' : ''} aria-pressed={!d.facturaOriginal} onClick={() => set('facturaOriginal', false)}>
                       {t('publicar.no')}
                     </button>
                   </div>
                 </Campo>
                 <Campo label={t('publicar.airConditioning')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
-                    <button type="button" disabled={bloqueado('aireAcondicionado')} className={d.aireAcondicionado ? 'on' : ''} onClick={() => set('aireAcondicionado', true)}>
+                    <button type="button" disabled={bloqueado('aireAcondicionado')} className={d.aireAcondicionado ? 'on' : ''} aria-pressed={d.aireAcondicionado} onClick={() => set('aireAcondicionado', true)}>
                       {t('publicar.yes')}
                     </button>
-                    <button type="button" disabled={bloqueado('aireAcondicionado')} className={!d.aireAcondicionado ? 'on' : ''} onClick={() => set('aireAcondicionado', false)}>
+                    <button type="button" disabled={bloqueado('aireAcondicionado')} className={!d.aireAcondicionado ? 'on' : ''} aria-pressed={!d.aireAcondicionado} onClick={() => set('aireAcondicionado', false)}>
                       {t('publicar.no')}
                     </button>
                   </div>
                 </Campo>
               </div>
-              <div className="label" style={{ marginTop: 8 }}>
+              <div className="label" style={{ marginTop: 'var(--s-2)' }}>
                 {t('publicar.sectionDocument')}
               </div>
-              <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+              <p className="muted text-sm">
                 {t('publicar.documentHint')}
               </p>
               <div className="grid3">
@@ -1133,9 +1133,9 @@ export function Publish() {
                         aria-label={t('publicar.changeDocumentPhoto')}
                       >
                         {docEsPdf ? (
-                          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '12px 12px 36px', color: 'var(--ink)', wordBreak: 'break-all' }}>
+                          <span className="col gap-2 ink" style={{ alignItems: 'center', padding: 'var(--s-3) var(--s-3) 36px', wordBreak: 'break-all' }}>
                             <Icon name="doc" size={28} />
-                            <b style={{ fontSize: 13 }}>{docFoto.file?.name ?? t('publicar.documentSavedPdf')}</b>
+                            <b className="text-sm">{docFoto.file?.name ?? t('publicar.documentSavedPdf')}</b>
                           </span>
                         ) : (
                           <img src={docFoto.url} alt={t('publicar.documentPhoto')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1148,7 +1148,7 @@ export function Publish() {
                         {t('publicar.addDocumentPhoto')}
                       </button>
                     )}
-                    <span className={docError ? 'ferr' : 'muted'} style={{ fontSize: 12 }}>
+                    <span className={docError ? 'ferr' : 'muted'} style={{ fontSize: 'var(--fs-xs)' }}>
                       {docError ? t(docError) : t('publicar.documentFileHint', { n: CONSTANCIA_MAX_BYTES / (1024 * 1024) })}
                     </span>
                     <input
@@ -1165,14 +1165,14 @@ export function Publish() {
           )}
 
           {step === 1 && (
-            <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <section className="card col card-pad gap-4">
               <div className="row" style={{ justifyContent: 'space-between' }}>
                 <div className="label">{t('publicar.requiredPhotos')}</div>
                 <span className={`badge ${angulos.every(Boolean) ? 'b-succ' : 'b-neu'}`}>
                   {t('publicar.photosCount', { n: fotos.length, max: MAX_FOTOS })}
                 </span>
               </div>
-              <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+              <p className="muted text-sm">
                 {t('publicar.platesHidden')}
               </p>
               <div className="photogrid">
@@ -1212,12 +1212,12 @@ export function Publish() {
                 </div>
               </div>
               {angulos[ANGULOS.length - 1] && tableroExterior.has(angulos[ANGULOS.length - 1]!.key) && (
-                <p className="note" style={{ margin: 0, background: 'var(--warning-l)', color: 'var(--ink)' }}>
+                <p className="note warn ink">
                   {t('publicar.dashLooksExterior')}
                 </p>
               )}
               {!motor && (
-                <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                <p className="muted text-sm">
                   {motorSinLugar ? t('publicar.engineNoRoom', { n: MAX_FOTOS }) : t('publicar.engineHint')}
                 </p>
               )}
@@ -1250,9 +1250,9 @@ export function Publish() {
                   agregarExtras([...e.dataTransfer.files])
                 }}
               >
-                <Icon name="upload" size={22} />
+                <Icon name="upload" size={24} />
                 {lugaresExtra > 0 ? t('publicar.addMorePhotos', { n: lugaresExtra }) : t('publicar.photosLimit', { n: MAX_FOTOS })}
-                <span className="muted" style={{ fontSize: 12 }}>
+                <span className="muted text-xs">
                   {t('publicar.dropHint')}
                 </span>
               </button>
@@ -1269,14 +1269,14 @@ export function Publish() {
           )}
 
           {step === 2 && (
-            <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <section className="card col card-pad gap-4">
               <Campo id="desc" label={t('publicar.descriptionTitle')}>
                 <textarea className="input" id="desc" placeholder={t('publicar.descriptionPlaceholder')} maxLength={2000} value={d.descripcion} onChange={(e) => set('descripcion', e.target.value)} />
               </Campo>
               <Campo id="imp" label={t('publicar.imperfectionsTitle')}>
                 <textarea className="input" id="imp" placeholder={t('publicar.imperfectionsPlaceholder')} maxLength={1000} value={d.imperfecciones} onChange={(e) => set('imperfecciones', e.target.value)} />
               </Campo>
-              <div className="note" style={{ background: 'var(--teal-light)' }}>
+              <div className="note info">
                 {t('publicar.tipBefore')}
                 <b>{t('publicar.tipBold')}</b>
                 {t('publicar.tipAfter')}
@@ -1285,11 +1285,11 @@ export function Publish() {
                 <input className="input" id="precio" inputMode="numeric" placeholder="250,000" value={d.precio ? entero(Number(d.precio)) : ''} onChange={(e) => set('precio', digitos(e.target.value, 10))} />
               </Campo>
               {sugerencia === 'cargando' ? (
-                <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                <p className="muted text-sm">
                   {t('publicar.priceLoading')}
                 </p>
               ) : sugerencia === 'error' ? null : sugerencia ? (
-                <div className="note" style={{ background: 'var(--teal-light)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div className="note col info gap-2">
                   <span>
                     {t('publicar.priceSuggest', {
                       grupo:
@@ -1321,7 +1321,7 @@ export function Publish() {
                 step === 2 &&
                 modeloSel &&
                 !modeloSel.esOtro && (
-                  <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+                  <p className="muted text-sm">
                     {t('publicar.priceNoData')}
                   </p>
                 )
@@ -1330,18 +1330,18 @@ export function Publish() {
           )}
 
           {step === 3 && (
-            <section className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <section className="card col card-pad gap-4">
               <div className="grid2" style={{ gridTemplateColumns: 'minmax(0,1.2fr) minmax(0,1fr)', alignItems: 'start' }}>
-                <CarPhoto src={fotos[0]?.url} alt={titulo} style={{ height: 260, borderRadius: 16 }} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <h2>
+                <CarPhoto src={fotos[0]?.url} alt={titulo} style={{ height: 260, borderRadius: 'var(--r-lg)' }} />
+                <div className="col gap-2">
+                  <h2 className="h2-section">
                     {marcaNombre} {modeloNombre}
                   </h2>
                   <span className="price-xl num">{formatoPrecio(Number(d.precio))}</span>
                   <span className="muted">
                     {d.anio} · {d.kilometraje ? `${entero(Number(d.kilometraje))} km` : ''} · {t('publicar.photosShort', { n: fotos.length })}
                   </span>
-                  <div className="note" style={{ background: 'var(--warning-l)', marginTop: 8 }}>
+                  <div className="note warn" style={{ marginTop: 'var(--s-2)' }}>
                     {t('publicar.reviewNotice')}
                   </div>
                 </div>
@@ -1367,7 +1367,7 @@ export function Publish() {
             </section>
           )}
 
-          <div className="row" style={{ justifyContent: 'space-between', margin: '20px 0 40px' }}>
+          <div className="row" style={{ justifyContent: 'space-between', margin: 'var(--s-5) 0 var(--s-10)' }}>
             <button className="btn btn-ghost" disabled={step === 0} style={step === 0 ? { opacity: 0.4 } : undefined} onClick={() => irA(step - 1)}>
               <Icon name="back" size={16} />
               {t('publicar.previous')}
@@ -1416,7 +1416,7 @@ function Exito({ titulo, editando, aprobada, editId }: { titulo: string; editand
       : t('publicar.successResubmitMessage', { titulo })
   return (
     <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
-      <span className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--success-l)', color: 'var(--success)' }}>
+      <span className="nic done-icon">
         <Icon name="check" size={30} />
       </span>
       <ModalHead title={editando && !aprobada ? t('publicar.successResubmitTitle') : t('publicar.successTitle')} sub={mensaje} />

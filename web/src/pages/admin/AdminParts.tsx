@@ -56,12 +56,12 @@ export function Badge({ s }: { s: string }) {
   return <span className={`badge ${BADGE[s] ?? 'b-neu'}`}>{ESTADO_CLAVE[s] ? t(ESTADO_CLAVE[s]) : s}</span>
 }
 
-const COLORES = ['#2F7A80', '#7C3AED', '#2563EB', '#C53030', '#1A4A6E', '#B45309', '#0D2B45', '#15803D']
+const COLORES = ['#2F7A80', '#7C3AED', '#2563EB', '#C53030', '#1A4A6E', '#B45309', 'var(--navy-deep)', '#15803D']
 /** Círculo con iniciales; el color sale del nombre para que siempre sea el mismo. */
 export function Ini({ name, src, square = false }: { name: string; src?: string | null; square?: boolean }) {
   const color = COLORES[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORES.length]
   return (
-    <span className="ini" style={{ background: color, borderRadius: square ? 10 : undefined }}>
+    <span className="ini" style={{ background: color, borderRadius: square ? 'var(--r-sm)' : undefined }}>
       {src ? <img src={src} alt="" /> : iniciales(name)}
     </span>
   )
@@ -71,9 +71,9 @@ export const fecha = (iso: string) => new Date(iso).toLocaleDateString(traducir(
 
 export function AdminHead({ title, desc, right }: { title: string; desc: string; right?: ReactNode }) {
   return (
-    <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 20, gap: 12 }}>
+    <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 'var(--s-5)' }}>
       <div>
-        <h1 style={{ fontSize: 28 }}>{title}</h1>
+        <h1 className="h1-page">{title}</h1>
         <p className="muted">{desc}</p>
       </div>
       {right}
@@ -83,9 +83,9 @@ export function AdminHead({ title, desc, right }: { title: string; desc: string;
 
 export function Tabs<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: [T, string][] }) {
   return (
-    <div className="seg" style={{ marginBottom: 16 }}>
+    <div className="seg" style={{ marginBottom: 'var(--s-4)' }}>
       {options.map(([v, t]) => (
-        <button key={v} className={value === v ? 'on' : ''} onClick={() => onChange(v)}>
+        <button key={v} className={value === v ? 'on' : ''} aria-pressed={value === v} onClick={() => onChange(v)}>
           {t}
         </button>
       ))}
@@ -131,7 +131,7 @@ export function ReasonModal({
     <div className="modal">
       <ModalHead title={title} sub={desc} />
       <textarea className="input" placeholder={hint} value={motivo} maxLength={500} onChange={(e) => setMotivo(e.target.value)} autoFocus />
-      <span className="mid" style={{ fontSize: 12, color: largo > 0 && largo < MIN_MOTIVO ? 'var(--error)' : undefined }}>
+      <span className="mid text-xs" style={{ color: largo > 0 && largo < MIN_MOTIVO ? 'var(--error)' : undefined }}>
         {largo < MIN_MOTIVO ? t('admin.reasonMin', { min: MIN_MOTIVO, n: largo }) : t('admin.reasonCount', { n: largo })}
       </span>
       <AlertBox message={error} />
@@ -311,11 +311,11 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
 
   return (
     <div className="card adminbar">
-      <div className="row" style={{ flexWrap: 'wrap', gap: 10 }}>
+      <div className="row" style={{ flexWrap: 'wrap' }}>
         <span className="nic">
           <Icon name="shield" size={18} />
         </span>
-        <b style={{ color: 'var(--ink)' }}>{t('admin.reviewBar')}</b>
+        <b className="ink">{t('admin.reviewBar')}</b>
         <Badge s={estadoAdmin(row, car)} />
         <span className="barnota muted">
           {propuesta != null ? t('admin.reviewBarPending') : t('admin.reviewBarDone')}
@@ -395,11 +395,11 @@ export function DocumentoVehiculoAdmin({ idPublicacion, recargar }: { idPublicac
   }
 
   return (
-    <div className="row" style={{ gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-      <span className="muted" style={{ fontSize: 13 }}>
+    <div className="row" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
+      <span className="muted text-sm">
         {t('admin.vehicleDocument')}
       </span>
-      <b style={{ color: 'var(--ink)', wordBreak: 'break-all' }}>{valor}</b>
+      <b className="ink" style={{ wordBreak: 'break-all' }}>{valor}</b>
       {doc && esFoto && (
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void abrir(doc.valor)}>
           <Icon name="eye" size={14} />
@@ -507,11 +507,11 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
 
   return (
     <div className="card adminbar">
-      <div className="row" style={{ flexWrap: 'wrap', gap: 10 }}>
+      <div className="row" style={{ flexWrap: 'wrap' }}>
         <span className="nic">
           <Icon name="flag" size={18} />
         </span>
-        <b style={{ color: 'var(--ink)' }}>{t('admin.reportReviewBar', { id: idReporte })}</b>
+        <b className="ink">{t('admin.reportReviewBar', { id: idReporte })}</b>
         {r && <Badge s={r.estado_reporte.charAt(0).toUpperCase() + r.estado_reporte.slice(1)} />}
         <span className="barnota muted">
           {r === null ? t('admin.reportNotFound') : r ? <Traducido texto={r.motivo_reporte} /> : ''}

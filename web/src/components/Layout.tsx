@@ -19,10 +19,10 @@ export function Footer() {
             <img src="/logo.png" alt="" />
             Karsy
           </div>
-          <p style={{ marginTop: 12, maxWidth: 300 }}>{t('footer.tagline')}</p>
+          <p style={{ marginTop: 'var(--s-3)', maxWidth: 300 }}>{t('footer.tagline')}</p>
         </div>
         <div className="footlegal">
-          <h3>{t('footer.legal')}</h3>
+          <p className="foottitle">{t('footer.legal')}</p>
           <button onClick={go('/terminos')}>{t('legal.terms')}</button>
           <button onClick={go('/privacidad/politicas')}>{t('legal.policy')}</button>
           <button onClick={go('/ayuda')}>{t('help.title')}</button>
@@ -45,7 +45,7 @@ function PublicarFab() {
   if (mode === 'guest' || pathname.startsWith('/publicar')) return null
   return (
     <button className="fab" aria-label={t('nav.publish')} onClick={() => navigate('/publicar')}>
-      <Icon name="plus" size={22} />
+      <Icon name="plus" size={24} />
       <span>{t('nav.publish')}</span>
     </button>
   )
@@ -65,7 +65,8 @@ export function Layout() {
   }, [notice, clearNotice, toast])
 
   return (
-    <>
+    // Columna de al menos el alto de la ventana: en páginas cortas (p. ej. 404) el pie queda al fondo.
+    <div className="layout">
       <TopNav />
       <TiempoReal />
       <main>
@@ -73,6 +74,6 @@ export function Layout() {
       </main>
       <Footer />
       <PublicarFab />
-    </>
+    </div>
   )
 }

@@ -56,10 +56,10 @@ export function PhotoViewer({ fotos, inicio, alt, onClose }: { fotos: string[]; 
       {n > 1 && (
         <>
           <button className="vnav prev" aria-label={t('vehiculo.viewer.prev')} onClick={() => ir(-1)}>
-            <Icon name="back" size={22} />
+            <Icon name="back" size={24} />
           </button>
           <button className="vnav next" aria-label={t('vehiculo.viewer.next')} onClick={() => ir(1)}>
-            <Icon name="chev" size={22} />
+            <Icon name="chev" size={24} />
           </button>
         </>
       )}

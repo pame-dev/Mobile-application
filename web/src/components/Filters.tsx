@@ -25,14 +25,14 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
     <>
       <div className="field">
         <label>{t('filters.type')}</label>
-        <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
-          <button type="button" className={`chip ${!draft.tipo ? 'on' : ''}`} onClick={() => set('tipo', '')}>
+        <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
+          <button type="button" className={`chip ${!draft.tipo ? 'on' : ''}`} aria-pressed={!draft.tipo} onClick={() => set('tipo', '')}>
             {t('filters.all')}
           </button>
           {cat?.carrocerias
             .filter((c) => !c.esOtro)
             .map((c) => (
-              <button type="button" key={c.id} className={`chip ${draft.tipo === c.nombre ? 'on' : ''}`} onClick={() => set('tipo', c.nombre)}>
+              <button type="button" key={c.id} className={`chip ${draft.tipo === c.nombre ? 'on' : ''}`} aria-pressed={draft.tipo === c.nombre} onClick={() => set('tipo', c.nombre)}>
                 {nombreCatalogo(c.nombre)}
               </button>
             ))}
@@ -75,7 +75,7 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
       </div>
       <div className="field">
         <label>{t('filters.price')}</label>
-        <div className="grid2" style={{ gap: 8 }}>
+        <div className="grid2" style={{ gap: 'var(--s-2)' }}>
           <input className="input" inputMode="numeric" placeholder={t('filters.min')} aria-label={t('filters.minLabel')} value={draft.min} onChange={(e) => set('min', e.target.value.replace(/\D/g, ''))} />
           <input className="input" inputMode="numeric" placeholder={t('filters.max')} aria-label={t('filters.maxLabel')} value={draft.max} onChange={(e) => set('max', e.target.value.replace(/\D/g, ''))} />
         </div>
@@ -92,7 +92,7 @@ function FiltersModal({ value, anios, onApply }: { value: Filtros; anios?: strin
   const { t } = useI18n()
   const [draft, setDraft] = useState(value)
   return (
-    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="modal">
       <ModalHead title={t('filters.modalTitle')} />
       <FilterFields draft={draft} onChange={setDraft} anios={anios} />
       <div className="grid2">
@@ -127,7 +127,6 @@ export function FiltersButton({ value, onApply, anios }: { value: Filtros; onApp
   return (
     <button
       className={`btn filterbtn solo ${activos ? 'on' : ''}`}
-      style={{ height: 46 }}
       onClick={() => openModal(<FiltersModal value={value} anios={anios} onApply={onApply} />)}
     >
       <Icon name="filter" size={18} />

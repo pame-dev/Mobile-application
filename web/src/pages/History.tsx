@@ -50,7 +50,7 @@ export function History() {
   for (const v of vistos ?? []) grupos.set(grupoDe(v.seenAt), [...(grupos.get(grupoDe(v.seenAt)) ?? []), v])
 
   return (
-    <div className="wrap" style={{ paddingBottom: 40 }}>
+    <div className="wrap page-end">
       <div className="pagehead">
         <div className="row">
           <VolverButton to="/perfil" />
@@ -72,7 +72,7 @@ export function History() {
         </div>
       ) : vistos.length === 0 ? (
         <div className="card empty">
-          <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
+          <span className="nic empty-icon">
             <Icon name="history" size={26} />
           </span>
           <p className="muted">{t('perfil.historyEmpty')}</p>
@@ -83,7 +83,7 @@ export function History() {
       ) : (
         [...grupos].map(([grupo, lista]) => (
           <div key={grupo}>
-            <div className="label" style={{ margin: '18px 0 12px' }}>
+            <div className="label" style={{ margin: 'var(--s-4) 0 var(--s-3)' }}>
               {t(grupo)}
             </div>
             <div className="vgrid">

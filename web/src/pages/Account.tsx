@@ -57,9 +57,9 @@ function SetRow({ icon, title, desc, onClick, right }: { icon: IconName; title: 
         <Icon name={icon} />
       </span>
       <span className="grow">
-        <b style={{ color: 'var(--ink)' }}>{title}</b>
+        <b className="ink">{title}</b>
         <br />
-        <span className="muted" style={{ fontSize: 12.5 }}>
+        <span className="muted text-xs">
           {desc}
         </span>
       </span>
@@ -156,9 +156,9 @@ export function Notifications() {
   if (redirect) return redirect
 
   return (
-    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+    <div className="wrap wrap-narrow page-end">
       <PageHead title={t('notif.title')} back="historial" />
-      <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 'var(--s-4)' }}>
         <SetRow icon="settings" title={t('notif.prefs.title')} desc={t('notif.prefs.linkDesc')} onClick={() => navigate('/notificaciones/preferencias')} />
       </div>
       {error ? (
@@ -172,7 +172,7 @@ export function Notifications() {
         <div className="skeleton" style={{ height: 320 }} />
       ) : lista.length === 0 ? (
         <div className="card empty">
-          <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
+          <span className="nic empty-icon">
             <Icon name="bell" size={26} />
           </span>
           <p className="muted">{t('notif.empty')}</p>
@@ -191,15 +191,15 @@ export function Notifications() {
                 <div className="grow">
                   <p style={{ color: 'var(--charcoal)', fontWeight: n.leida ? 400 : 600 }}>{texto}</p>
                   {n.motivo?.trim() && (
-                    <p className="muted" style={{ fontSize: 13 }}>
+                    <p className="muted text-sm">
                       <Traducido texto={n.motivo}>{(m) => t('notif.reason', { motivo: m })}</Traducido>
                     </p>
                   )}
-                  <span className="mid" style={{ fontSize: 12 }}>
+                  <span className="mid text-xs">
                     {haceCuanto(n.fecha_creacion)}
                   </span>
                 </div>
-                {!n.leida && <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--teal)', marginTop: 6, flex: 'none' }} />}
+                {!n.leida && <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--teal)', marginTop: 'var(--s-2)', flex: 'none' }} />}
               </>
             )
             return destino ? (
@@ -260,11 +260,11 @@ export function NotificationPreferences() {
   ]
 
   return (
-    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+    <div className="wrap wrap-narrow page-end">
       {/* Regresa por el historial: ir directo a /notificaciones agregaba otra página y su
           botón de regresar volvía aquí (bucle entre las dos). */}
       <PageHead title={t('notif.prefs.title')} back="historial" fallback="/notificaciones" />
-      <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 'var(--s-4)' }}>
         <SetRow
           icon="bell"
           title={t('notif.prefs.browser')}
@@ -302,7 +302,7 @@ export function NotificationPreferences() {
           ))}
         </div>
       )}
-      <p className="muted" style={{ fontSize: 13, margin: '14px 4px 0' }}>
+      <p className="muted text-sm" style={{ margin: 'var(--s-4) var(--s-1) 0' }}>
         {t('notif.prefs.footer')}
       </p>
     </div>
@@ -337,9 +337,9 @@ export function SavedSearches() {
       .catch((e) => toast(mensajeUsuario(e)))
 
   return (
-    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+    <div className="wrap wrap-narrow page-end">
       <PageHead title={t('saved.title')} back="/configuracion" />
-      <p className="muted" style={{ margin: '0 0 16px' }}>
+      <p className="muted" style={{ margin: '0 0 var(--s-4)' }}>
         {t('saved.hint')}
       </p>
       {error ? (
@@ -353,7 +353,7 @@ export function SavedSearches() {
         <div className="skeleton" style={{ height: 200 }} />
       ) : lista.length === 0 ? (
         <div className="card empty">
-          <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
+          <span className="nic empty-icon">
             <Icon name="bell" size={26} />
           </span>
           <p className="muted">{t('saved.empty')}</p>
@@ -367,7 +367,7 @@ export function SavedSearches() {
               </span>
               <div className="grow">
                 <p style={{ color: 'var(--charcoal)', fontWeight: 600 }}>{describirBusqueda(b)}</p>
-                <span className="mid" style={{ fontSize: 12 }}>
+                <span className="mid text-xs">
                   {t('saved.since', { fecha: haceCuanto(b.fecha_creacion) })}
                 </span>
               </div>
@@ -390,7 +390,7 @@ function LanguageModal() {
   const { t, lang, setLang } = useI18n()
   const opciones: Lang[] = ['es', 'en']
   return (
-    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="modal">
       <ModalHead title={t('lang.title')} sub={t('lang.sub')} />
       {opciones.map((l) => (
         <button
@@ -424,7 +424,7 @@ function ThemeModal({ tema, onElegir }: { tema: Tema; onElegir: (t: Tema) => voi
   const { closeModal } = useUi()
   const { t } = useI18n()
   return (
-    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="modal">
       <ModalHead title={t('settings.theme')} sub={t('settings.themeDesc')} />
       {TEMAS.map(([v, clave, icono]) => (
         <button
@@ -437,7 +437,7 @@ function ThemeModal({ tema, onElegir }: { tema: Tema; onElegir: (t: Tema) => voi
             closeModal()
           }}
         >
-          <span style={{ fontSize: 22 }}>{icono}</span>
+          <span style={{ fontSize: 'var(--fs-xl)' }}>{icono}</span>
           <b className="grow">{t(clave)}</b>
           <span className="radio" />
         </button>
@@ -462,7 +462,7 @@ export function Settings() {
   }
 
   return (
-    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+    <div className="wrap wrap-narrow page-end">
       <PageHead title={t('settings.title')} back="/perfil" />
       <div className="card" style={{ overflow: 'hidden' }}>
         <SetRow icon="bell" title={t('notif.title')} desc={t('settings.notificationsDesc')} onClick={() => navigate('/notificaciones')} />
@@ -474,7 +474,7 @@ export function Settings() {
           desc={t(lang === 'es' ? 'lang.es' : 'lang.en')}
           onClick={() => openModal(<LanguageModal />)}
           right={
-            <span className="row" style={{ gap: 6 }}>
+            <span className="row gap-2">
               <span className="badge b-neu">{lang.toUpperCase()}</span>
               <Icon name="chev" />
             </span>
@@ -489,7 +489,7 @@ export function Settings() {
         <SetRow icon="doc" title={t('settings.terms')} desc={t('settings.termsDesc')} onClick={() => navigate('/terminos')} />
         <SetRow icon="help" title={t('help.title')} desc={t('help.settingsDesc')} onClick={() => navigate('/ayuda')} />
       </div>
-      <button className="btn btn-ghost btn-block" style={{ marginTop: 18, color: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => openModal(<LogoutModal />)}>
+      <button className="btn btn-ghost btn-block" style={{ marginTop: 'var(--s-4)', color: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => openModal(<LogoutModal />)}>
         <Icon name="logout" size={18} />
         {t('nav.logout')}
       </button>
@@ -570,9 +570,9 @@ export function Privacy() {
   if (redirect) return redirect
 
   return (
-    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+    <div className="wrap wrap-narrow page-end">
       <PageHead title={t('settings.privacy')} back="/configuracion" />
-      <div className="label" style={{ marginBottom: 10 }}>
+      <div className="label" style={{ marginBottom: 'var(--s-3)' }}>
         {t('privacy.security')}
       </div>
       <div className="card" style={{ overflow: 'hidden' }}>
@@ -603,7 +603,7 @@ export function Privacy() {
           }
         />
       </div>
-      <div className="label" style={{ margin: '22px 0 10px' }}>
+      <div className="label" style={{ margin: 'var(--s-6) 0 var(--s-3)' }}>
         {t('privacy.privacy')}
       </div>
       <div className="card" style={{ overflow: 'hidden' }}>
@@ -627,25 +627,25 @@ function Legal({ title, doc, id }: { title: Clave; doc: Record<Lang, LegalDoc>; 
   // Regresa en el historial (Registro, Configuración, pie de página…); si se abrió directo, al Inicio (o al registro).
   const volver = () => (location.key !== 'default' ? navigate(-1) : navigate(desdeRegistro ? '/registro' : '/', { replace: true }))
   return (
-    <div className="wrap" style={{ padding: '28px 16px 40px' }}>
+    <div className="wrap" style={{ padding: 'var(--s-6) var(--s-4) var(--s-10)' }}>
       <div className="card legaltext" style={{ margin: '0 auto' }}>
-        <div style={{ marginBottom: 18 }}>
+        <div style={{ marginBottom: 'var(--s-4)' }}>
           <VolverButton onClick={volver} label={desdeRegistro ? t('legal.backToRegister') : t('common.back')} />
         </div>
-        <h1 style={{ fontSize: 30 }}>{t(title)}</h1>
-        <p className="mid" style={{ margin: '6px 0 16px' }}>
+        <h1 className="h1-page">{t(title)}</h1>
+        <p className="mid" style={{ margin: 'var(--s-2) 0 var(--s-4)' }}>
           {d.update}
         </p>
         <p>{d.intro}</p>
         {d.sections.map(([h, b]) => (
           <div key={h}>
-            <h3>{h}</h3>
+            <h2>{h}</h2>
             <p>{b}</p>
           </div>
         ))}
         {desdeRegistro && (
           <div className="legalaccept">
-            <label className="row" style={{ gap: 10, cursor: 'pointer', color: 'var(--ink)', fontWeight: 600 }}>
+            <label className="row ink" style={{ cursor: 'pointer', fontWeight: 600 }}>
               <input type="checkbox" checked={acepto} onChange={(e) => setAcepto(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--teal)', flex: 'none' }} />
               {t(id === 'terminos' ? 'legal.acceptTerms' : 'legal.acceptPrivacy')}
             </label>

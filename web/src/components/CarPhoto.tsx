@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 
 /** Silueta del diseño para cuando una publicación no tiene foto (o no carga). */
 function CarIllustration() {
@@ -45,7 +45,21 @@ export function CarPhoto({
 }) {
   const [failed, setFailed] = useState(false)
   return (
-    <div className={`ph ${className}`} style={style} onClick={onClick}>
+    <div
+      className={`ph ${className}`}
+      style={style}
+      onClick={onClick}
+      // Clicable (abre el visor o cambia la foto): se usa con teclado como un botón.
+      {...(onClick && {
+        role: 'button',
+        tabIndex: 0,
+        onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+          if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return
+          e.preventDefault()
+          onClick()
+        },
+      })}
+    >
       {src && !failed ? <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} /> : <CarIllustration />}
       {children}
     </div>
