@@ -194,7 +194,7 @@ export function Home() {
               <Icon name="user" />
             </div>
             <div className="grow">
-              <b style={{ color: 'var(--ink)', fontFamily: 'var(--f-display)', fontSize: 16 }}>{t('home.visitorTitle')}</b>
+              <b className="ink" style={{ fontFamily: 'var(--f-display)', fontSize: 'var(--fs-lg)' }}>{t('home.visitorTitle')}</b>
               <p className="muted">{t('home.visitorText')}</p>
             </div>
             <button className="btn btn-primary" onClick={() => navigate('/registro')}>
@@ -219,7 +219,7 @@ export function Home() {
           </div>
           <div className="row" style={{ flexWrap: 'wrap' }}>
             {estadoCerca ? (
-              <button className="chip" onClick={quitarLugar} style={{ background: 'var(--teal)', borderColor: 'var(--teal)', color: '#fff' }}>
+              <button className="chip" onClick={quitarLugar} style={{ background: '#2F7A80', borderColor: '#2F7A80', color: '#fff' }}>
                 {t('home.nearMeActive', { lugar: [municipioCerca, estadoCerca].filter(Boolean).join(', ') })}
                 <Icon name="x" size={14} />
               </button>
@@ -229,7 +229,7 @@ export function Home() {
               </button>
             )}
             {account && hayFiltrosGuardables && (
-              <button className="chip" onClick={() => void avisarme()} disabled={guardando} style={{ color: 'var(--teal)', borderColor: 'var(--teal)' }}>
+              <button className="chip" onClick={() => void avisarme()} disabled={guardando} style={{ color: 'var(--teal-text)', borderColor: 'var(--teal)' }}>
                 <Icon name="bell" size={14} />
                 {guardando ? t('saved.saving') : t('saved.save')}
               </button>
@@ -250,8 +250,7 @@ export function Home() {
               className="input"
               aria-label={t('sort.label')}
               value={params.get('orden') ?? 'recientes'}
-              onChange={(e) => setOrden(e.target.value)}
-              style={{ height: 36, width: 'auto', borderRadius: 999 }}
+              onChange={(e) => setOrden(e.target.value)} style={{ height: 36, width: 'auto', borderRadius: 'var(--r-pill)' }}
             >
               {ORDEN.map(([v, clave]) => (
                 <option key={v} value={v}>
@@ -311,7 +310,7 @@ function ElegirLugarModal({ onElegir }: { onElegir: (estado: string, municipio: 
   return (
     <div className="modal">
       <ModalHead title={t('home.nearMePickTitle')} sub={t('home.nearMePickSub')} />
-      <div className="grid2" style={{ marginBottom: 16 }}>
+      <div className="grid2" style={{ marginBottom: 'var(--s-4)' }}>
         <div className="field">
           <label htmlFor="cerca-estado">{t('perfil.state')}</label>
           <select className="input" id="cerca-estado" value={estado} onChange={(e) => (setEstado(e.target.value), setMunicipio(''))}>

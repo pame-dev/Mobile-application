@@ -15,6 +15,9 @@ interface UiValue {
 
 const UiContext = createContext<UiValue | null>(null)
 
+/** id del título del modal abierto (lo pone ModalHead; los modales sin ModalHead lo ponen en su título). */
+export const MODAL_TITULO = 'modal-titulo'
+
 /** Avisos flotantes y ventanas modales compartidas por todas las pantallas. */
 export function UiProvider({ children }: { children: ReactNode }) {
   const [toastData, setToast] = useState<ToastData | null>(null)
@@ -27,20 +30,63 @@ export function UiProvider({ children }: { children: ReactNode }) {
     timer.current = window.setTimeout(() => setToast(null), action ? 5000 : 2600)
   }, [])
   const closeModal = useCallback(() => setModal(null), [])
+  const overlayRef = useRef<HTMLDivElement>(null)
+  /** Elemento que tenía el foco al abrir el modal; al cerrarlo, el foco regresa ahí. */
+  const focoPrevio = useRef<HTMLElement | null>(null)
+  const abierto = modal != null
+  const abiertoRef = useRef(false)
+  const openModal = useCallback((content: ReactNode) => {
+    // Si ya había uno abierto (se reemplaza), se conserva el foco de origen.
+    if (!abiertoRef.current) focoPrevio.current = document.activeElement as HTMLElement | null
+    setModal(content)
+  }, [])
 
-  // Esc cierra el modal.
+  // Foco al abrir, Esc cierra y Tab no sale del modal (mismo patrón que MenuMovil de TopNav.tsx).
   useEffect(() => {
-    if (!modal) return
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setModal(null)
+    if (!abierto) return
+    abiertoRef.current = true
+    const enfocables = () =>
+      [...(overlayRef.current?.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])') ?? [])].filter((el) => !el.hasAttribute('disabled'))
+    // Si el contenido ya enfocó algo (autoFocus), se respeta.
+    if (!overlayRef.current?.contains(document.activeElement)) (enfocables()[0] ?? overlayRef.current)?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return setModal(null)
+      if (e.key !== 'Tab') return
+      const lista = enfocables()
+      const primero = lista[0]
+      const ultimo = lista[lista.length - 1]
+      if (!primero) return e.preventDefault()
+      if (e.shiftKey && (document.activeElement === primero || !overlayRef.current?.contains(document.activeElement))) {
+        e.preventDefault()
+        ultimo.focus()
+      } else if (!e.shiftKey && (document.activeElement === ultimo || !overlayRef.current?.contains(document.activeElement))) {
+        e.preventDefault()
+        primero.focus()
+      }
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [modal])
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      abiertoRef.current = false
+      // Al cerrar, el foco regresa a donde estaba (si ese elemento sigue en la página).
+      if (focoPrevio.current?.isConnected) focoPrevio.current.focus()
+      focoPrevio.current = null
+    }
+  }, [abierto])
 
   return (
-    <UiContext.Provider value={{ toast, openModal: setModal, closeModal }}>
+    <UiContext.Provider value={{ toast, openModal, closeModal }}>
       {children}
       {modal && (
-        <div className="overlay" onClick={(e) => e.target === e.currentTarget && setModal(null)}>
+        <div
+          ref={overlayRef}
+          className="overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={MODAL_TITULO}
+          tabIndex={-1}
+          onClick={(e) => e.target === e.currentTarget && setModal(null)}
+        >
           {modal}
         </div>
       )}
@@ -78,8 +124,8 @@ export function ModalHead({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="row" style={{ alignItems: 'flex-start' }}>
       <div className="grow">
-        <h3>{title}</h3>
-        {sub && <p className="muted" style={{ marginTop: 4 }}>{sub}</p>}
+        <h3 id={MODAL_TITULO}>{title}</h3>
+        {sub && <p className="muted" style={{ marginTop: 'var(--s-1)' }}>{sub}</p>}
       </div>
       <button className="iconbtn mclose" aria-label={t('common.close')} onClick={closeModal}>
         <Icon name="x" size={18} />

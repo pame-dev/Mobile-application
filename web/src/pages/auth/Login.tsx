@@ -59,9 +59,8 @@ export function Login() {
   return (
     <AuthShell title={t('auth.login.artTitle')} sub={t('auth.login.artSub')}>
       <BackButton onClick={() => navigate('/')} />
-      <h2>{t('auth.login.title')}</h2>
-      <form
-        style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
+      <h1>{t('auth.login.title')}</h1>
+      <form className="col gap-4"
         onSubmit={(e) => {
           e.preventDefault()
           void entrar()
@@ -100,7 +99,7 @@ export function Login() {
           {t('auth.login.forgot')}
         </button>
         <AlertBox message={error} />
-        <button type="submit" className="btn btn-primary btn-block" style={{ height: 50 }} disabled={loading}>
+        <button type="submit" className="btn btn-primary btn-block btn-lg" disabled={loading}>
           {loading ? t('auth.login.loading') : t('auth.login.submit')}
         </button>
       </form>

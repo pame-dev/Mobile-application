@@ -90,18 +90,18 @@ export function VerifyEmail() {
   return (
     <AuthShell title={t('auth.verify.artTitle')} sub={t('auth.verify.artSub')} photo={8}>
       <BackButton onClick={() => navigate(-1)} />
-      <span className="nic" style={{ width: 64, height: 64, borderRadius: 18, background: 'var(--teal-light)', color: 'var(--teal)' }}>
+      <span className="nic" style={{ width: 64, height: 64, borderRadius: 'var(--r-lg)', background: 'var(--teal-light)', color: 'var(--teal)' }}>
         <Icon name="mail" size={30} />
       </span>
-      <h2>{t('auth.verify.title')}</h2>
+      <h1>{t('auth.verify.title')}</h1>
       <p className="muted">
-        {t('auth.verify.sub1', { n: EMAIL_CODE_LENGTH })} <b style={{ color: 'var(--ink)' }}>{email}</b>
+        {t('auth.verify.sub1', { n: EMAIL_CODE_LENGTH })} <b className="ink">{email}</b>
         {t('auth.verify.sub2')}
       </p>
       <OtpInput value={code} onChange={setCode} onComplete={(c) => void verificar(c)} />
       <AlertBox message={error} />
       <ResendRow sending={sending} seconds={countdown.seconds} onResend={() => void reenviar()} />
-      <button className="btn btn-primary btn-block" style={{ height: 50 }} disabled={verifying} onClick={() => void verificar()}>
+      <button className="btn btn-primary btn-block btn-lg" disabled={verifying} onClick={() => void verificar()}>
         {verifying ? t('auth.verifying') : t('auth.verify')}
       </button>
     </AuthShell>

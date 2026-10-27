@@ -66,23 +66,23 @@ export function RevisarRepuveModal({ car, recargar, onAprobar, onRechazar }: { c
     }
   }
   const fila = (etiqueta: string, valor: string | number) => (
-    <p className="row" style={{ justifyContent: 'space-between', gap: 12, margin: 0 }}>
+    <p className="row" style={{ justifyContent: 'space-between' }}>
       <span className="muted">{etiqueta}</span>
       <b style={{ textAlign: 'right' }}>{valor || '—'}</b>
     </p>
   )
   const casilla = (marcada: boolean, cambiar: (v: boolean) => void, texto: string) => (
-    <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+    <label className="row gap-2" style={{ alignItems: 'flex-start' }}>
       <input type="checkbox" checked={marcada} onChange={(e) => cambiar(e.target.checked)} />
       <span>{texto}</span>
     </label>
   )
 
   return (
-    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="modal">
       <ModalHead title={t('admin.repuveTitle', { auto: `${car.brand} ${car.model} ${car.year || ''}`.trim() })} sub={t('admin.repuveSub')} />
       {errorCarga ? (
-        <div className="note" style={{ background: 'var(--error-l)', color: 'var(--ink)', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="note error ink" style={{ display: 'flex', gap: 'var(--s-3)', alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="grow">{t('admin.repuveLoadError')}</span>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIntento((n) => n + 1)}>
             {t('common.retry')}
@@ -91,13 +91,13 @@ export function RevisarRepuveModal({ car, recargar, onAprobar, onRechazar }: { c
       ) : doc === undefined ? (
         <div className="skeleton" style={{ height: 160 }} />
       ) : doc === null ? (
-        <div className="note" style={{ background: 'var(--warning-l)', color: 'var(--ink)' }}>
+        <div className="note warn ink">
           {t('admin.repuveNoDocument')}
         </div>
       ) : (
         <>
-          <div className="note" style={{ background: 'var(--teal-light)', color: 'var(--ink)' }}>
-            <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className="note info ink">
+            <ol className="col" style={{ margin: 0, paddingLeft: 'var(--s-5)', gap: 'var(--s-1)' }}>
               <li>{t(escrito ? 'admin.repuveStep1Copy' : 'admin.repuveStep1File')}</li>
               <li>{t('admin.repuveStep2')}</li>
               <li>{t('admin.repuveStep3')}</li>
@@ -105,13 +105,13 @@ export function RevisarRepuveModal({ car, recargar, onAprobar, onRechazar }: { c
               <li>{t('admin.repuveStep5')}</li>
             </ol>
           </div>
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
             {escrito ? (
               <>
-                <span className="muted" style={{ fontSize: 13 }}>
+                <span className="muted text-sm">
                   {t(doc.tipo === 'vin' ? 'publicar.vin' : 'publicar.docPlate')}
                 </span>
-                <code style={{ fontSize: 17, fontWeight: 700, letterSpacing: '.04em', userSelect: 'all', flex: '1 1 auto', wordBreak: 'break-all' }}>{doc.valor}</code>
+                <code style={{ fontSize: 'var(--fs-lg)', fontWeight: 700, letterSpacing: '.04em', userSelect: 'all', flex: '1 1 auto', wordBreak: 'break-all' }}>{doc.valor}</code>
                 <button type="button" className="btn btn-ghost btn-sm" onClick={copiar}>
                   <Icon name="doc" size={14} />
                   {t('admin.curpCopy')}
@@ -129,7 +129,7 @@ export function RevisarRepuveModal({ car, recargar, onAprobar, onRechazar }: { c
           </div>
         </>
       )}
-      <div className="card" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="card col card-pad-sm gap-2">
         <div className="label">{t('admin.repuveListingData')}</div>
         {fila(t('admin.repuveBrand'), car.brand)}
         {fila(t('admin.repuveModel'), car.model)}
@@ -143,7 +143,7 @@ export function RevisarRepuveModal({ car, recargar, onAprobar, onRechazar }: { c
               {casilla(sinRobo, setSinRobo, t('admin.repuveCheckNoTheft'))}
             </>
           )}
-      <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+      <div className="row gap-2" style={{ justifyContent: 'flex-end' }}>
         <button className="btn btn-ghost" disabled={aprobando} onClick={onRechazar}>
           {t('admin.reject')}
         </button>

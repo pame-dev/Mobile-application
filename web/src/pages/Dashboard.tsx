@@ -46,7 +46,7 @@ function Rendimiento({ stats, cars }: { stats: SellerStats; cars: OwnCar[] }) {
       </div>
 
       {filas.length === 0 ? (
-        <p className="muted" style={{ marginTop: 16 }}>
+        <p className="muted" style={{ marginTop: 'var(--s-4)' }}>
           {t('perfil.performanceEmpty')}
         </p>
       ) : (
@@ -87,7 +87,7 @@ function ExportarModal({ onCsv, onPdf }: { onCsv: () => void; onPdf: () => void 
   return (
     <div className="modal">
       <ModalHead title={t('perfil.exportTitle')} sub={t('perfil.exportSub')} />
-      <div className="col" style={{ gap: 10, marginTop: 16 }}>
+      <div className="col gap-3" style={{ marginTop: 'var(--s-4)' }}>
         <button className="btn btn-ghost btn-block" onClick={() => elegir(onCsv)}>
           <Icon name="doc" size={18} />
           {t('perfil.exportCsv')}
@@ -341,22 +341,22 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
       {/* Publicación nueva en revisión: foto atenuada (todavía nadie más la ve). */}
       <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} className={c.status === 'Pendiente' ? 'enrevision' : ''} onClick={() => navigate(`/vehiculo/${c.id}`)} />
       <div style={{ minWidth: 0 }}>
-        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-          <b style={{ color: 'var(--ink)', fontFamily: 'var(--f-display)' }}>
+        <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
+          <b className="ink" style={{ fontFamily: 'var(--f-display)' }}>
             {c.brand} {c.model} {c.year}
           </b>
           <span className={`badge ${STATUS_BADGE[c.status]}`}>{t(statusLabel(c.status))}</span>
         </div>
-        <div className="vprice num" style={{ textAlign: 'left', fontSize: 15 }}>
+        <div className="vprice num" style={{ textAlign: 'left', fontSize: 'var(--fs-md)' }}>
           {precio(c.priceValue)}
         </div>
         {nota && (
-          <div className="muted" style={{ fontSize: 12, color: peligro ? 'var(--error)' : undefined }}>
+          <div className="muted text-xs" style={{ color: peligro ? 'var(--error)' : undefined }}>
             {nota}
           </div>
         )}
         {favs > 0 && (
-          <div className="mid" style={{ fontSize: 12 }}>
+          <div className="mid text-xs">
             {t(favs === 1 ? 'perfil.savedByOne' : 'perfil.savedByMany', { n: favs })}
           </div>
         )}
@@ -481,7 +481,7 @@ export function Dashboard() {
           <VolverButton to="/perfil" label={t('perfil.backToProfile')} />
           <h1>{t('perfil.dashboardTitle')}</h1>
         </div>
-        <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+        <div className="row" style={{ flexWrap: 'wrap' }}>
           <button className="btn btn-ghost" disabled={!listo} onClick={() => openModal(<ExportarModal onCsv={() => void exportarExcel()} onPdf={() => void exportarPdf()} />)}>
             <Icon name="doc" size={18} />
             {t('perfil.export')}
@@ -495,7 +495,7 @@ export function Dashboard() {
       {imprimir && stats && cars && account && <ReportePanel nombre={account.nombre} kpis={kpis.map(([k, n, sub]) => [k, n, sub])} stats={stats} cars={cars} extra={extra} />}
 
       {error && (
-        <div className="card empty" style={{ marginBottom: 18 }}>
+        <div className="card empty" style={{ marginBottom: 'var(--s-4)' }}>
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
             {t('common.retry')}
@@ -513,24 +513,24 @@ export function Dashboard() {
               </span>
             </div>
             <b className="num">{n}</b>
-            <span className="muted" style={{ fontSize: 12.5 }}>
+            <span className="muted text-xs">
               {s}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="twocol split" style={{ margin: '20px 0 40px' }}>
-        <div className="card" style={{ padding: 22 }}>
-          <h3 style={{ fontSize: 17 }}>{t('perfil.performanceTitle')}</h3>
-          <p className="muted" style={{ fontSize: 13, marginBottom: 14 }}>
+      <div className="twocol split" style={{ margin: 'var(--s-5) 0 var(--s-10)' }}>
+        <div className="card card-pad">
+          <h2 className="card-title tight">{t('perfil.performanceTitle')}</h2>
+          <p className="muted text-sm" style={{ marginBottom: 'var(--s-3)' }}>
             {t('perfil.performanceSub')}
           </p>
           {stats && cars ? <Rendimiento stats={stats} cars={cars} /> : <div className="skeleton" style={{ height: 190 }} />}
         </div>
 
-        <div className="card" style={{ padding: 22 }}>
-          <h3 style={{ fontSize: 17, marginBottom: 14 }}>{t('perfil.myVehicles')}</h3>
+        <div className="card card-pad">
+          <h2 className="card-title">{t('perfil.myVehicles')}</h2>
           {!cars ? (
             <div className="skeleton" style={{ height: 240 }} />
           ) : cars.length === 0 ? (
@@ -541,20 +541,20 @@ export function Dashboard() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="col gap-2">
               {visibles.map((c) => (
                 <ListingRow key={c.id} c={c} favs={favs.get(c.id) ?? 0} acciones={acciones} oculta={false} onOcultar={(v) => ocultar(c.id, v)} />
               ))}
               {escondidas.length > 0 && (
                 <>
-                  <button className="card row" style={{ padding: '14px 16px', width: '100%', textAlign: 'left', marginTop: 8 }} onClick={() => setVerOcultas((v) => !v)}>
+                  <button className="card row card-pad-sm" style={{ width: '100%', textAlign: 'left', marginTop: 'var(--s-2)' }} onClick={() => setVerOcultas((v) => !v)}>
                     <span className="mid">
                       <Icon name="eye" />
                     </span>
                     <span className="grow">
-                      <b style={{ color: 'var(--ink)' }}>{t('perfil.hiddenListings', { n: escondidas.length })}</b>
+                      <b className="ink">{t('perfil.hiddenListings', { n: escondidas.length })}</b>
                       <br />
-                      <span className="muted" style={{ fontSize: 12.5 }}>
+                      <span className="muted text-xs">
                         {t('perfil.hiddenDescDashboard')}
                       </span>
                     </span>

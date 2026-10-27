@@ -33,24 +33,24 @@ function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; 
       .catch(() => undefined)
   }
   const fila = (etiqueta: string, valor: string) => (
-    <p className="row" style={{ justifyContent: 'space-between', gap: 12, margin: 0 }}>
+    <p className="row" style={{ justifyContent: 'space-between' }}>
       <span className="muted">{etiqueta}</span>
       <b style={{ textAlign: 'right' }}>{valor}</b>
     </p>
   )
   return (
-    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="modal">
       <ModalHead title={t('admin.curpReviewTitle', { nombre: v.nombre_mostrar })} sub={t('admin.curpReviewSub')} />
-      <div className="note" style={{ background: 'var(--teal-light)', color: 'var(--ink)' }}>
-        <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div className="note info ink">
+        <ol className="col" style={{ margin: 0, paddingLeft: 'var(--s-5)', gap: 'var(--s-1)' }}>
           <li>{t('admin.curpStep1')}</li>
           <li>{t('admin.curpStep2')}</li>
           <li>{t('admin.curpStep3')}</li>
           <li>{t('admin.curpStep4')}</li>
         </ol>
       </div>
-      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <code style={{ fontSize: 17, fontWeight: 700, letterSpacing: '.04em', userSelect: 'all', flex: '1 1 auto' }}>{curp}</code>
+      <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
+        <code style={{ fontSize: 'var(--fs-lg)', fontWeight: 700, letterSpacing: '.04em', userSelect: 'all', flex: '1 1 auto' }}>{curp}</code>
         <button type="button" className="btn btn-ghost btn-sm" disabled={!curp} onClick={copiar}>
           <Icon name="doc" size={14} />
           {t('admin.curpCopy')}
@@ -60,18 +60,18 @@ function RevisarCurpModal({ v, onAprobar, onRechazar }: { v: VerificacionAdmin; 
         </a>
       </div>
       {/* Solo lo que dio en el registro: el nombre (gob.mx lo muestra para compararlo). */}
-      <div className="card" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="card col card-pad-sm gap-2">
         {fila(t('admin.curpProfileName'), v.nombre_mostrar)}
       </div>
-      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+      <label className="row gap-2" style={{ alignItems: 'flex-start' }}>
         <input type="checkbox" checked={existe} onChange={(e) => setExiste(e.target.checked)} />
         <span>{t('admin.curpCheckExists')}</span>
       </label>
-      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+      <label className="row gap-2" style={{ alignItems: 'flex-start' }}>
         <input type="checkbox" checked={nombre} onChange={(e) => setNombre(e.target.checked)} />
         <span>{t('admin.curpCheckName')}</span>
       </label>
-      <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+      <div className="row gap-2" style={{ justifyContent: 'flex-end' }}>
         <button className="btn btn-ghost" disabled={aprobando} onClick={onRechazar}>
           {t('admin.reject')}
         </button>
@@ -106,10 +106,10 @@ function RevisarConstanciaModal({ v, onVer, onAprobar, onRechazar }: { v: Verifi
   const [nombre, setNombre] = useState(false)
   const [aprobando, setAprobando] = useState(false)
   return (
-    <div className="modal" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="modal">
       <ModalHead title={t('admin.csfReviewTitle', { nombre: v.nombre_mostrar })} sub={t('admin.csfReviewSub')} />
-      <div className="note" style={{ background: 'var(--teal-light)', color: 'var(--ink)' }}>
-        <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div className="note info ink">
+        <ol className="col" style={{ margin: 0, paddingLeft: 'var(--s-5)', gap: 'var(--s-1)' }}>
           <li>{t('admin.csfStep1')}</li>
           <li>{t('admin.csfStep2')}</li>
           <li>{t('admin.csfStep3')}</li>
@@ -118,8 +118,8 @@ function RevisarConstanciaModal({ v, onVer, onAprobar, onRechazar }: { v: Verifi
           <li>{t('admin.csfStep6')}</li>
         </ol>
       </div>
-      <div className="row" style={{ gap: 12, flexWrap: 'wrap', justifyContent: 'space-between' }}>
-        <p style={{ margin: 0 }}>
+      <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <p>
           <span className="muted">{t('admin.csfLotName')}</span>
           <br />
           <b>{v.nombre_mostrar}</b>
@@ -129,15 +129,15 @@ function RevisarConstanciaModal({ v, onVer, onAprobar, onRechazar }: { v: Verifi
           {t('admin.verifOpen')}
         </button>
       </div>
-      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+      <label className="row gap-2" style={{ alignItems: 'flex-start' }}>
         <input type="checkbox" checked={documento} onChange={(e) => setDocumento(e.target.checked)} />
         <span>{t('admin.csfCheckDocument')}</span>
       </label>
-      <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+      <label className="row gap-2" style={{ alignItems: 'flex-start' }}>
         <input type="checkbox" checked={nombre} onChange={(e) => setNombre(e.target.checked)} />
         <span>{t('admin.csfCheckName')}</span>
       </label>
-      <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+      <div className="row gap-2" style={{ justifyContent: 'flex-end' }}>
         <button className="btn btn-ghost" disabled={aprobando} onClick={onRechazar}>
           {t('admin.reject')}
         </button>
@@ -255,17 +255,16 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
             {lista.map((v) => (
               <tr key={v.id}>
                 <td>
-                  <div className="row" style={{ gap: 10 }}>
+                  <div className="row">
                     <Ini name={v.nombre_mostrar} square={v.tipo_usuario === 'lote'} />
                     <div style={{ minWidth: 0 }}>
                       <button
-                        className="linkbtn"
-                        style={{ color: 'var(--ink)', fontWeight: 700 }}
+                        className="linkbtn ink" style={{ fontWeight: 700 }}
                         onClick={() => navigate(v.tipo_usuario === 'lote' ? `/lotes/${v.user_id}` : `/vendedor/${v.user_id}`)}
                       >
                         {v.nombre_mostrar}
                       </button>
-                      <div className="muted" style={{ fontSize: 12 }}>
+                      <div className="muted text-xs">
                         {v.correo}
                       </div>
                     </div>
@@ -278,7 +277,7 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
                   {documento(v.tipo_documento)}
                   {/* La CURP no tiene archivo: se muestra para compararla con el nombre del usuario. */}
                   {v.curp && (
-                    <div style={{ fontFamily: 'monospace', fontSize: 13, marginTop: 2, userSelect: 'all' }}>
+                    <div className="text-sm" style={{ fontFamily: 'monospace', marginTop: 2, userSelect: 'all' }}>
                       {v.curp}
                     </div>
                   )}
@@ -287,18 +286,18 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
                 <td style={{ whiteSpace: 'normal', minWidth: 160 }}>
                   <span className={`badge ${ESTADO[v.estado][1]}`}>{t(ESTADO[v.estado][0])}</span>
                   {v.motivo_rechazo && (
-                    <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+                    <div className="muted text-xs" style={{ marginTop: 'var(--s-1)' }}>
                       {t('admin.reason', { m: v.motivo_rechazo })}
                     </div>
                   )}
                   {v.revisado_por && (
-                    <div className="mid" style={{ fontSize: 12, marginTop: 2 }}>
+                    <div className="mid text-xs" style={{ marginTop: 2 }}>
                       {t('admin.verifReviewedBy', { nombre: v.revisado_por })}
                     </div>
                   )}
                 </td>
                 <td>
-                  <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+                  <div className="row gap-2" style={{ justifyContent: 'flex-end' }}>
                     {v.archivo_path && (
                       <button className="btn btn-ghost btn-sm" onClick={() => void abrir(v)}>
                         <Icon name="doc" size={14} />
@@ -331,7 +330,7 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
             ))}
             {lista.length === 0 && (
               <tr>
-                <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
+                <td colSpan={6} className="muted empty-row">
                   {t('admin.verifEmpty')}
                 </td>
               </tr>

@@ -7,7 +7,7 @@ import { Icon } from '../components/Icon'
 import { PhotoViewer } from '../components/PhotoViewer'
 import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
-import { ModalHead, useUi } from '../components/Ui'
+import { MODAL_TITULO, ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
 import { carDetail, cuentaVerificada, registerView, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
 import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
@@ -52,44 +52,44 @@ function ContactModal({ detail }: { detail: CarDetail }) {
       ) : (
         <>
           {c.medio_principal && (
-            <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--teal-light)', fontSize: 13 }} className="row">
+            <div className="note info row">
               <Icon name={prefiereWa ? 'chat' : 'phone'} size={16} />
               {prefiereWa ? t('vehiculo.contact.prefersWa') : t('vehiculo.contact.prefersCall')}
             </div>
           )}
           {c.telefono && (
-            <div className="card" style={{ padding: '14px 16px' }}>
+            <div className="card card-pad-sm">
               <span className="label">{t('vehiculo.contact.phone')}</span>
-              <b style={{ display: 'block', fontSize: 18, color: 'var(--ink)' }} className="num">
+              <b style={{ display: 'block', fontSize: 'var(--fs-lg)' }} className="num ink">
                 {c.telefono}
               </b>
               {whatsapp && (
-                <span className="mid" style={{ fontSize: 12.5 }}>
+                <span className="mid text-xs">
                   {t('vehiculo.contact.whatsapp', { n: whatsapp })}
                 </span>
               )}
             </div>
           )}
           {c.correo && (
-            <div className="card" style={{ padding: '14px 16px' }}>
+            <div className="card card-pad-sm">
               <span className="label">{t('vehiculo.contact.email')}</span>
-              <b style={{ display: 'block', color: 'var(--ink)' }}>{c.correo}</b>
+              <b className="ink" style={{ display: 'block' }}>{c.correo}</b>
             </div>
           )}
           {whatsapp && (
-            <a className="btn btn-teal btn-block" style={{ height: 48 }} href={whatsappUrl(whatsapp, mensaje)} target="_blank" rel="noreferrer">
+            <a className="btn btn-teal btn-block btn-lg" href={whatsappUrl(whatsapp, mensaje)} target="_blank" rel="noreferrer">
               <Icon name="chat" size={18} />
               {t('vehiculo.contact.sendWa')}
             </a>
           )}
           {c.telefono && (
-            <a className="btn btn-ghost btn-block" style={{ height: 48 }} href={`tel:${c.telefono.replace(/[^\d+]/g, '')}`}>
+            <a className="btn btn-ghost btn-block btn-lg" href={`tel:${c.telefono.replace(/[^\d+]/g, '')}`}>
               <Icon name="phone" size={18} />
               {t('vehiculo.contact.call')}
             </a>
           )}
           {!c.telefono && !whatsapp && <p className="muted">{t('vehiculo.contact.noPhone')}</p>}
-          <p className="mid" style={{ fontSize: 12 }}>
+          <p className="mid text-xs">
             {t('vehiculo.contact.suggested', { m: mensaje })}
           </p>
           <GuiaSeguridad />
@@ -110,17 +110,16 @@ function GuiaSeguridad() {
   const { t } = useI18n()
   const [abierta, setAbierta] = useState(false)
   return (
-    <div className="note" style={{ background: 'var(--warning-l)', color: 'var(--ink)' }}>
-      <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+    <div className="note warn ink">
+      <div className="row gap-2" style={{ alignItems: 'flex-start' }}>
         <span style={{ color: 'var(--warning)', flex: 'none' }}>
-          <Icon name="shield" size={17} />
+          <Icon name="shield" size={18} />
         </span>
         <b>{t('vehiculo.safety.short')}</b>
       </div>
       {/* Oscuro y subrayado: el teal no contrasta lo suficiente sobre el fondo ámbar claro. */}
       <button
-        className="linkbtn"
-        style={{ marginTop: 8, fontSize: 13, color: 'var(--ink)', textDecoration: 'underline', minHeight: 32 }}
+        className="linkbtn text-sm ink" style={{ marginTop: 'var(--s-2)', textDecoration: 'underline', minHeight: 32 }}
         aria-expanded={abierta}
         onClick={() => setAbierta((a) => !a)}
       >
@@ -128,11 +127,11 @@ function GuiaSeguridad() {
       </button>
       {abierta &&
         GUIA.map(([titulo, puntos]) => (
-          <div key={titulo} style={{ marginTop: 10 }}>
-            <b style={{ fontSize: 13 }}>{t(titulo)}</b>
-            <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+          <div key={titulo} style={{ marginTop: 'var(--s-3)' }}>
+            <b className="text-sm">{t(titulo)}</b>
+            <ul style={{ margin: 'var(--s-1) 0 0', paddingLeft: 'var(--s-5)' }}>
               {puntos.map((p) => (
-                <li key={p} style={{ margin: '3px 0' }}>
+                <li key={p} style={{ margin: 'var(--s-1) 0' }}>
                   {t(p)}
                 </li>
               ))}
@@ -175,10 +174,10 @@ function ReportModal({ carId }: { carId: number }) {
   if (estado === 'enviado') {
     return (
       <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
-        <div className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--success-l)', color: 'var(--success)' }}>
+        <div className="nic done-icon">
           <Icon name="check" size={30} />
         </div>
-        <h3>{t('vehiculo.report.sentTitle')}</h3>
+        <h3 id={MODAL_TITULO}>{t('vehiculo.report.sentTitle')}</h3>
         <p className="muted">{t('vehiculo.report.sentMsg')}</p>
         <button className="btn btn-primary btn-block" onClick={closeModal}>
           {t('vehiculo.gotIt')}
@@ -214,21 +213,21 @@ function ReportModal({ carId }: { carId: number }) {
         >
           <span className="radio" />
           <span>
-            <b style={{ color: 'var(--ink)' }}>{tp === 'publicacion' ? t('vehiculo.report.listing') : t('vehiculo.report.account')}</b>
+            <b className="ink">{tp === 'publicacion' ? t('vehiculo.report.listing') : t('vehiculo.report.account')}</b>
             <br />
-            <span className="muted" style={{ fontSize: 13 }}>
+            <span className="muted text-sm">
               {tp === 'publicacion' ? t('vehiculo.report.listingDesc') : t('vehiculo.report.accountDesc')}
             </span>
           </span>
         </button>
       ))}
-      <div className="label" style={{ marginTop: 6 }}>
+      <div className="label" style={{ marginTop: 'var(--s-2)' }}>
         {tipo === 'publicacion' ? t('vehiculo.report.reasonsListing') : t('vehiculo.report.reasonsAccount')}
       </div>
       {RAZONES[tipo].map(([r, clave]) => (
-        <button key={r} className={`opt ${razon === r ? 'on' : ''}`} style={{ padding: '10px 14px' }} onClick={() => setRazon(r)}>
+        <button key={r} className={`opt ${razon === r ? 'on' : ''}`} style={{ padding: 'var(--s-3) var(--s-4)' }} onClick={() => setRazon(r)}>
           <span className="radio" />
-          <span style={{ color: 'var(--ink)' }}>{t(clave)}</span>
+          <span className="ink">{t(clave)}</span>
         </button>
       ))}
       <textarea
@@ -238,7 +237,7 @@ function ReportModal({ carId }: { carId: number }) {
         maxLength={500}
         onChange={(e) => setDetalles(e.target.value)}
       />
-      {error && <p style={{ color: 'var(--error)', fontSize: 13 }}>{error}</p>}
+      {error && <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>}
       <div className="grid2">
         <button className="btn btn-ghost" onClick={closeModal}>
           {t('common.cancel')}
@@ -390,7 +389,7 @@ export function Detail() {
 
   if (detail === undefined) {
     return (
-      <div className="wrap" style={{ paddingTop: 20 }}>
+      <div className="wrap" style={{ paddingTop: 'var(--s-5)' }}>
         <div className="detailgrid">
           <div className="skeleton" style={{ height: 440 }} />
           <div className="skeleton" style={{ height: 360 }} />
@@ -400,9 +399,9 @@ export function Detail() {
   }
   if (detail === null) {
     return (
-      <div className="wrap" style={{ maxWidth: 820 }}>
-        <div className="card empty" style={{ marginTop: 40 }}>
-          <h2>{t('vehiculo.detail.unavailable')}</h2>
+      <div className="wrap wrap-narrow">
+        <div className="card empty empty-page">
+          <h1 className="empty-title">{t('vehiculo.detail.unavailable')}</h1>
           <p className="muted">{t('vehiculo.detail.unavailableMsg')}</p>
           <button className="btn btn-primary" onClick={() => navigate('/')}>
             {t('vehiculo.detail.seeMore')}
@@ -439,7 +438,7 @@ export function Detail() {
     <div className="wrap">
       {/* Desde la revisión del admin, la barra de abajo ya trae su propio botón de regresar. */}
       {desdeReporte == null && !desdeRevision ? (
-        <div style={{ paddingBlock: 20 }}>
+        <div style={{ paddingBlock: 'var(--s-5)' }}>
           <VolverButton fallback="/" />
         </div>
       ) : (
@@ -485,7 +484,7 @@ export function Detail() {
         <div className="card ownerbar">
           <div className="row" style={{ flexWrap: 'wrap' }}>
             <span className={`badge ${STATUS_BADGE[c.status]}`}>{t(statusLabel(c.status))}</span>
-            <div className="grow muted" style={{ fontSize: 13 }}>
+            <div className="grow muted text-sm">
               {c.status === 'Activo' ? t('vehiculo.detail.ownerVisible') : t('vehiculo.detail.ownerPreview')}
             </div>
           </div>
@@ -525,7 +524,9 @@ export function Detail() {
       )}
 
       <div className="detailgrid">
-        <div className="col" style={{ gap: 22 }}>
+        {/* En 1000 px o menos, .detailmain se "deshace" (display: contents) y el bloque de precio y
+            contacto (aside) sube justo debajo de la galería con order (styles.css). */}
+        <div className="col detailmain" style={{ gap: 'var(--s-5)' }}>
           <div className="gallery">
             <CarPhoto
               src={fotos[foto]}
@@ -550,7 +551,7 @@ export function Detail() {
                     fav.toggle(c.id)
                   }}
                 >
-                  <Icon name="heart" size={19} />
+                  <Icon name="heart" size={18} />
                 </button>
               )}
             </CarPhoto>
@@ -562,9 +563,9 @@ export function Detail() {
               </div>
             )}
           </div>
-          <div>
-            <h3 style={{ fontSize: 19, marginBottom: 12 }}>{t('vehiculo.detail.specs')}</h3>
-            <div className="ficha">
+          <div className="detailrest">
+            <h2 className="card-title">{t('vehiculo.detail.specs')}</h2>
+            <div className="ficha cols4">
               {specs.map(([k, v]) => (
                 <div key={k}>
                   <span>{t(k)}</span>
@@ -573,15 +574,15 @@ export function Detail() {
               ))}
             </div>
           </div>
-          <div className="card" style={{ padding: 22 }}>
-            <h3 style={{ fontSize: 17, marginBottom: 8 }}>{t('vehiculo.detail.description')}</h3>
+          <div className="card detailrest card-pad">
+            <h2 className="card-title">{t('vehiculo.detail.description')}</h2>
             <p className="muted" style={{ lineHeight: 1.7, whiteSpace: 'pre-line' }}>
               {(verTraduccion && traduccion?.descripcion) || c.description || t('vehiculo.detail.noDescription')}
             </p>
             {traduccion?.descripcion && <AvisoTraduccion viendoTraduccion={verTraduccion} onCambiar={() => setVerTraduccion((v) => !v)} />}
           </div>
-          <div className="card" style={{ padding: 22 }}>
-            <h3 style={{ fontSize: 17, marginBottom: 8 }}>{t('vehiculo.detail.carDetails')}</h3>
+          <div className="card detailrest card-pad">
+            <h2 className="card-title">{t('vehiculo.detail.carDetails')}</h2>
             <p className="muted" style={{ whiteSpace: 'pre-line' }}>
               {detail.row.tiene_problemas ? (verTraduccion && traduccion?.problemas) || detail.detalles : t('vehiculo.noProblems')}
             </p>
@@ -590,7 +591,7 @@ export function Detail() {
 
         <aside className="card sidebox">
           <div className="row" style={{ justifyContent: 'flex-end' }}>
-            <div className="row" style={{ gap: 8 }}>
+            <div className="row gap-2">
               <button className="iconbtn" aria-label={t('vehiculo.detail.share')} onClick={compartir}>
                 <Icon name="share" size={18} />
               </button>
@@ -607,12 +608,12 @@ export function Detail() {
           </div>
           <div>
             <div className="detail-title">
-              <h1 style={{ fontSize: 28 }}>
+              <h1 className="h1-page">
                 {c.brand} {c.model}
               </h1>
               <ConditionTag condicion={detail.row.condicion_vehiculo} />
             </div>
-            <div className="loc" style={{ marginTop: 6 }}>
+            <div className="loc" style={{ marginTop: 'var(--s-2)' }}>
               <Icon name="pin" />
               {[c.city, c.year, km(c.km)].filter(Boolean).join(' · ')}
             </div>
@@ -622,33 +623,32 @@ export function Detail() {
           </div>
           {acciones && (
             <button
-              className="btn btn-primary btn-block"
-              style={{ height: 52 }}
+              className="btn btn-primary btn-block btn-lg"
               onClick={() => (mode === 'guest' ? pedirRegistro(t('vehiculo.detail.guestContact')) : openModal(<ContactModal detail={detail} />))}
             >
               <Icon name="chat" size={18} />
               {t('vehiculo.detail.contactSeller')}
             </button>
           )}
-          <div className="label" style={{ marginTop: 4 }}>
+          <div className="label" style={{ marginTop: 'var(--s-1)' }}>
             {t('vehiculo.detail.sellerContact')}
           </div>
           <button className="seller" onClick={() => navigate(c.sellerType === 'lote' ? `/lotes/${c.ownerId}` : `/vendedor/${c.ownerId}`)}>
-            <span className="sellerlogo" style={c.sellerType === 'lote' ? undefined : { borderRadius: '50%', background: 'var(--teal)' }}>
+            <span className="sellerlogo" style={c.sellerType === 'lote' ? undefined : { borderRadius: '50%', background: '#2F7A80' }}>
               {detail.sellerAvatar ? <img src={detail.sellerAvatar} alt="" /> : iniciales(c.ownerName)}
             </span>
             <span className="grow">
-              <span className="verified-name" style={{ gap: 6 }}>
-                <b style={{ color: 'var(--ink)' }}>{c.ownerName}</b>
+              <span className="verified-name" style={{ gap: 'var(--s-2)' }}>
+                <b className="ink">{c.ownerName}</b>
                 {vendedorVerificado && <VerifiedShield />}
               </span>
-              <span className="muted" style={{ fontSize: 12.5 }}>
+              <span className="muted text-xs">
                 {t('vehiculo.detail.viewProfile', { tipo: t(c.sellerType === 'lote' ? 'nav.lot' : 'nav.individual') })}
               </span>
             </span>
             <Icon name="chev" />
           </button>
-          <p className="mid" style={{ fontSize: 12 }}>
+          <p className="mid text-xs">
             {t('vehiculo.detail.disclaimer')}
           </p>
         </aside>
@@ -674,10 +674,10 @@ export function Detail() {
 function AvisoTraduccion({ viendoTraduccion, onCambiar }: { viendoTraduccion: boolean; onCambiar: () => void }) {
   const { t } = useI18n()
   return (
-    <p className="mid" style={{ fontSize: 12.5, marginTop: 10, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+    <p className="mid text-xs" style={{ marginTop: 'var(--s-3)', display: 'flex', gap: 'var(--s-2)', alignItems: 'center', flexWrap: 'wrap' }}>
       <Icon name="globe" size={14} />
       {viendoTraduccion ? t('vehiculo.detail.translated') : t('vehiculo.detail.original')}
-      <button className="linkbtn" onClick={onCambiar} style={{ fontSize: 12.5 }}>
+      <button className="linkbtn text-xs" onClick={onCambiar}>
         {viendoTraduccion ? t('vehiculo.detail.seeOriginal') : t('vehiculo.detail.seeTranslation')}
       </button>
     </p>

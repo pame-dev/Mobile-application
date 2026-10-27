@@ -23,17 +23,17 @@ const PREGUNTAS: [Clave, Clave][] = [
 export function Ayuda() {
   const { t } = useI18n()
   return (
-    <div className="wrap" style={{ maxWidth: 820, paddingBottom: 40 }}>
+    <div className="wrap wrap-narrow page-end">
       <div className="pagehead">
         <div className="row">
           <VolverButton fallback="/" />
           <h1>{t('help.title')}</h1>
         </div>
       </div>
-      <p className="muted" style={{ marginBottom: 16 }}>
+      <p className="muted" style={{ marginBottom: 'var(--s-4)' }}>
         {t('help.sub')}
       </p>
-      <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 'var(--s-4)' }}>
         {PREGUNTAS.map(([p, r]) => (
           <details key={p} className="faq">
             <summary>
@@ -44,13 +44,13 @@ export function Ayuda() {
           </details>
         ))}
       </div>
-      <div className="card" style={{ padding: 20, display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-        <span className="nic" style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--teal-light)', color: 'var(--teal)', display: 'grid', placeItems: 'center' }}>
+      <div className="card" style={{ padding: 'var(--s-5)', display: 'flex', gap: 'var(--s-3)', alignItems: 'center', flexWrap: 'wrap' }}>
+        <span className="nic" style={{ width: 44, height: 44, borderRadius: 'var(--r-md)', background: 'var(--teal-light)', color: 'var(--teal)' }}>
           <Icon name="mail" size={20} />
         </span>
         <div className="grow" style={{ minWidth: 200 }}>
-          <b style={{ color: 'var(--ink)' }}>{t('help.contactTitle')}</b>
-          <p className="muted" style={{ margin: 0, fontSize: 13.5 }}>
+          <b className="ink">{t('help.contactTitle')}</b>
+          <p className="muted text-sm">
             {t('help.contactDesc')}
           </p>
         </div>

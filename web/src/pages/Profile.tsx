@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { AlertBox } from '../components/AuthParts'
 import { Icon } from '../components/Icon'
-import { ModalHead, useUi } from '../components/Ui'
+import { MODAL_TITULO, ModalHead, useUi } from '../components/Ui'
 import { ProfileHeader } from '../components/ProfileParts'
 import { VehicleCard } from '../components/VehicleCard'
 import { VolverButton } from '../components/VolverButton'
@@ -28,7 +28,7 @@ function Campo({ id, label, error, children, hint }: { id?: string; label: strin
     <div className="field">
       <label htmlFor={id}>{label}</label>
       {children}
-      {error ? <span className="ferr">{error}</span> : hint ? <span className="muted" style={{ fontSize: 12 }}>{hint}</span> : null}
+      {error ? <span className="ferr">{error}</span> : hint ? <span className="muted text-xs">{hint}</span> : null}
     </div>
   )
 }
@@ -185,7 +185,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
     <div className="modal editmodal">
       {/* Encabezado fijo arriba; solo el cuerpo hace scroll. */}
       <div className="editmodal-head">
-        <h3>{t('perfil.editProfile')}</h3>
+        <h3 id={MODAL_TITULO}>{t('perfil.editProfile')}</h3>
         <button className="iconbtn" aria-label={t('common.close')} onClick={cerrar}>
           <Icon name="x" size={18} />
         </button>
@@ -193,9 +193,9 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
 
       <div className="editmodal-body">
 
-        <div className="cover" style={{ height: 130, borderRadius: 16 }}>
+        <div className="cover" style={{ height: 130, borderRadius: 'var(--r-lg)' }}>
           {portada && <img src={portada} alt="" />}
-          <div className="row" style={{ position: 'absolute', right: 10, bottom: 10, gap: 6 }}>
+          <div className="row gap-2" style={{ position: 'absolute', right: 10, bottom: 10 }}>
             {portada && (
               <button
                 className="btn btn-sm coverbtn"
@@ -218,7 +218,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
         {/* Foto en su propio bloque, debajo de la portada (sin encimarse). */}
         <div className="editmodal-avatar">
           <div className="avatarwrap">
-            <div className="bigavatar" style={esLote ? { borderRadius: 24, background: 'var(--navy)' } : undefined}>
+            <div className="bigavatar" style={esLote ? { borderRadius: 'var(--r-xl)', background: 'var(--navy)' } : undefined}>
               {foto ? <img src={foto} alt="" /> : iniciales(p.displayName)}
             </div>
             <button className="camb" aria-label={t('perfil.changePhoto')} onClick={() => avatarInput.current?.click()}>
@@ -272,14 +272,14 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
           {input('whatsapp', t('perfil.whatsapp'), { inputMode: 'tel', placeholder: t('perfil.tenDigits'), filtro: R.telefonoAlEscribir })}
         </div>
         <Campo label={t('perfil.mainContact')}>
-          <div className="row" style={{ gap: 8 }}>
+          <div className="row gap-2">
             {(
               [
                 [WHATSAPP, 'perfil.whatsapp', 'chat'],
                 [LLAMADA, 'perfil.calls', 'phone'],
               ] as const
             ).map(([v, clave, i]) => (
-              <button key={v} type="button" className={`chip ${p.medioPrincipal === v ? 'on' : ''}`} onClick={() => set('medioPrincipal', v)}>
+              <button key={v} type="button" className={`chip ${p.medioPrincipal === v ? 'on' : ''}`} aria-pressed={p.medioPrincipal === v} onClick={() => set('medioPrincipal', v)}>
                 <Icon name={i} size={16} />
                 {t(clave)}
               </button>
@@ -288,7 +288,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
         </Campo>
         <Campo id="ep-bio" label={t('perfil.description')}>
           <textarea className="input" id="ep-bio" maxLength={R.DESCRIPCION_MAX} value={p.bio} onChange={(ev) => set('bio', ev.target.value)} />
-          <span className="muted" style={{ fontSize: 12, alignSelf: 'flex-end' }}>
+          <span className="muted text-xs" style={{ alignSelf: 'flex-end' }}>
             {p.bio.length}/{R.DESCRIPCION_MAX}
           </span>
         </Campo>
@@ -320,7 +320,7 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
 
   if (perfil.verificacion === 'pendiente') {
     return (
-      <div className="note" style={{ marginTop: 22, background: 'var(--teal-light)', display: 'flex', gap: 10, alignItems: 'center' }}>
+      <div className="note info" style={{ marginTop: 'var(--s-6)', display: 'flex', gap: 'var(--s-3)', alignItems: 'center' }}>
         <Icon name="doc" size={18} />
         {t('perfil.curpPending')}
       </div>
@@ -341,10 +341,10 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
     setEnviando(false)
   }
   return (
-    <section className="card" style={{ marginTop: 22, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <section className="card col gap-3" style={{ marginTop: 'var(--s-6)', padding: 'var(--s-5)' }}>
       <div>
-        <h3 style={{ fontSize: 17 }}>{t('perfil.curpTitle')}</h3>
-        <p className="muted" style={{ fontSize: 13 }}>
+        <h2 className="card-title tight">{t('perfil.curpTitle')}</h2>
+        <p className="muted text-sm">
           {t('perfil.curpDesc')}
         </p>
       </div>
@@ -366,9 +366,9 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
   )
 }
 
-/** Estado de la constancia del lote: color del texto, fondo y color del ícono. */
+/** Estado de la constancia del lote: color del texto, fondo y color del ícono (sin documento: --mid, pasa AA en claro y oscuro). */
 const ESTADO_CONSTANCIA = {
-  sin_documento: { color: '#9AA7B3', fondo: '#1D3550', icono: '#9CC3EA' },
+  sin_documento: { color: 'var(--mid)', fondo: '#1D3550', icono: '#9CC3EA' },
   pendiente: { color: '#E8C66A', fondo: '#3A3320', icono: '#E8C66A' },
   verificado: { color: '#7FD3A4', fondo: '#1F3B2C', icono: '#7FD3A4' },
   rechazado: { color: '#F08A8A', fondo: '#3D2224', icono: '#F08A8A' },
@@ -421,7 +421,7 @@ function ConstanciaLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void
   }
 
   return (
-    <section className="card csfrow" style={{ marginTop: 22 }}>
+    <section className="card csfrow" style={{ marginTop: 'var(--s-6)' }}>
       <span className="csfrow-icon" style={{ background: colores.fondo, color: colores.icono }}>
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
@@ -524,8 +524,8 @@ export function Profile() {
 
   if (error) {
     return (
-      <div className="wrap" style={{ maxWidth: 820 }}>
-        <div className="card empty" style={{ marginTop: 40 }}>
+      <div className="wrap wrap-narrow">
+        <div className="card empty empty-page">
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
             {t('common.retry')}
@@ -536,9 +536,9 @@ export function Profile() {
   }
   if (!perfil || !account) {
     return (
-      <div className="wrap" style={{ paddingTop: 24 }}>
-        <div className="skeleton" style={{ height: 210, borderRadius: 22 }} />
-        <div className="skeleton" style={{ height: 300, marginTop: 24 }} />
+      <div className="wrap page-top">
+        <div className="skeleton" style={{ height: 210, borderRadius: 'var(--r-xl)' }} />
+        <div className="skeleton" style={{ height: 300, marginTop: 'var(--s-6)' }} />
       </div>
     )
   }
@@ -555,8 +555,8 @@ export function Profile() {
   const datos = [perfil.municipio && `${perfil.municipio}, ${perfil.estado}`, perfil.email].filter(Boolean).join(' · ')
 
   return (
-    <div className="wrap" style={{ paddingTop: 24 }}>
-      <div style={{ marginBottom: 14 }}>
+    <div className="wrap page-top">
+      <div style={{ marginBottom: 'var(--s-4)' }}>
         <VolverButton fallback="/" />
       </div>
       <ProfileHeader
@@ -602,21 +602,21 @@ export function Profile() {
       {esLote && mode !== 'admin' && <ConstanciaLote perfil={perfil} onSent={cargar} />}
       {!esLote && mode !== 'admin' && !perfil.verificado && <VerificarParticular perfil={perfil} onSent={cargar} />}
 
-      <div className="twocol" style={{ margin: '26px 0 40px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="twocol" style={{ margin: 'var(--s-6) 0 var(--s-10)' }}>
+        <div className="col gap-4">
           <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
             {stats.map(([n, clave]) => (
               <div key={clave} className="statbox">
                 <b className="num">{n}</b>
-                <span className="muted" style={{ fontSize: 12 }}>
+                <span className="muted text-xs">
                   {t(clave)}
                 </span>
               </div>
             ))}
           </div>
           {perfil.bio && (
-            <div className="card" style={{ padding: 20 }}>
-              <div className="label" style={{ marginBottom: 8 }}>
+            <div className="card" style={{ padding: 'var(--s-5)' }}>
+              <div className="label" style={{ marginBottom: 'var(--s-2)' }}>
                 {t('perfil.description')}
               </div>
               <p className="muted">
@@ -624,28 +624,28 @@ export function Profile() {
               </p>
             </div>
           )}
-          <button className="card row" style={{ padding: 18, width: '100%', textAlign: 'left' }} onClick={() => navigate('/panel')}>
+          <button className="card row" style={{ padding: 'var(--s-5)', width: '100%', textAlign: 'left' }} onClick={() => navigate('/panel')}>
             <span className="nic" style={{ background: 'var(--navy)', color: '#fff' }}>
               <Icon name="chart" />
             </span>
             <span className="grow">
-              <b style={{ color: 'var(--ink)' }}>{t('nav.myDashboard')}</b>
+              <b className="ink">{t('nav.myDashboard')}</b>
               <br />
-              <span className="muted" style={{ fontSize: 12.5 }}>
+              <span className="muted text-xs">
                 {t('perfil.dashboardDesc')}
               </span>
             </span>
             <Icon name="chev" />
           </button>
           {mode === 'admin' && (
-            <button className="card row" style={{ padding: 18, width: '100%', textAlign: 'left' }} onClick={() => navigate('/admin')}>
+            <button className="card row" style={{ padding: 'var(--s-5)', width: '100%', textAlign: 'left' }} onClick={() => navigate('/admin')}>
               <span className="nic" style={{ background: 'var(--admin-blue)', color: '#fff' }}>
                 <Icon name="shield" />
               </span>
               <span className="grow">
-                <b style={{ color: 'var(--ink)' }}>{t('perfil.adminPanel')}</b>
+                <b className="ink">{t('perfil.adminPanel')}</b>
                 <br />
-                <span className="muted" style={{ fontSize: 12.5 }}>
+                <span className="muted text-xs">
                   {t('perfil.adminPanelDesc')}
                 </span>
               </span>
@@ -655,8 +655,8 @@ export function Profile() {
         </div>
 
         <div>
-          <div className="row" style={{ justifyContent: 'space-between', marginBottom: 16 }}>
-            <h2 style={{ fontSize: 22 }}>{t('perfil.myListings')}</h2>
+          <div className="row" style={{ justifyContent: 'space-between', marginBottom: 'var(--s-4)' }}>
+            <h2 className="h2-section">{t('perfil.myListings')}</h2>
             <button className="btn btn-primary btn-sm" onClick={() => navigate('/publicar')}>
               <Icon name="plus" size={16} />
               {t('nav.publish')}
@@ -681,21 +681,21 @@ export function Profile() {
           )}
           {escondidas.length > 0 && (
             <>
-              <button className="card row" style={{ padding: '16px 18px', marginTop: 18, width: '100%', textAlign: 'left' }} onClick={() => setVerOcultas((v) => !v)}>
+              <button className="card row" style={{ padding: 'var(--s-4) var(--s-5)', marginTop: 'var(--s-4)', width: '100%', textAlign: 'left' }} onClick={() => setVerOcultas((v) => !v)}>
                 <span className="mid">
                   <Icon name="eye" />
                 </span>
                 <span className="grow">
-                  <b style={{ color: 'var(--ink)' }}>{t('perfil.hiddenListings', { n: escondidas.length })}</b>
+                  <b className="ink">{t('perfil.hiddenListings', { n: escondidas.length })}</b>
                   <br />
-                  <span className="muted" style={{ fontSize: 12.5 }}>
+                  <span className="muted text-xs">
                     {t('perfil.hiddenDescProfile')}
                   </span>
                 </span>
                 <Icon name="down" />
               </button>
               {verOcultas && (
-                <div className="vgrid" style={{ marginTop: 16 }}>
+                <div className="vgrid" style={{ marginTop: 'var(--s-4)' }}>
                   {escondidas.map((c) => (
                     <VehicleCard key={c.id} car={c} showStatus />
                   ))}

@@ -48,8 +48,8 @@ export function LotProfile() {
 
   if (error) {
     return (
-      <div className="wrap" style={{ maxWidth: 820 }}>
-        <div className="card empty" style={{ marginTop: 40 }}>
+      <div className="wrap wrap-narrow">
+        <div className="card empty empty-page">
           <p className="muted">{error}</p>
           <button className="btn btn-ghost" onClick={cargar}>
             {t('common.retry')}
@@ -60,17 +60,17 @@ export function LotProfile() {
   }
   if (lote === undefined) {
     return (
-      <div className="wrap" style={{ paddingTop: 24 }}>
-        <div className="skeleton" style={{ height: 210, borderRadius: 22 }} />
-        <div className="skeleton" style={{ height: 300, marginTop: 24 }} />
+      <div className="wrap page-top">
+        <div className="skeleton" style={{ height: 210, borderRadius: 'var(--r-xl)' }} />
+        <div className="skeleton" style={{ height: 300, marginTop: 'var(--s-6)' }} />
       </div>
     )
   }
   if (lote === null) {
     return (
-      <div className="wrap" style={{ maxWidth: 820 }}>
-        <div className="card empty" style={{ marginTop: 40 }}>
-          <h2>{t('perfil.lotNotFound')}</h2>
+      <div className="wrap wrap-narrow">
+        <div className="card empty empty-page">
+          <h1 className="empty-title">{t('perfil.lotNotFound')}</h1>
           <button className="btn btn-primary" onClick={() => navigate('/lotes')}>
             {t('perfil.viewLots')}
           </button>
@@ -88,8 +88,8 @@ export function LotProfile() {
   const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([lote.name, lote.address || lote.city].join(', '))}`
 
   return (
-    <div className="wrap" style={{ paddingTop: 24 }}>
-      <div style={{ marginBottom: 14 }}>
+    <div className="wrap page-top">
+      <div style={{ marginBottom: 'var(--s-4)' }}>
         <VolverButton fallback="/lotes" />
       </div>
 
@@ -103,14 +103,14 @@ export function LotProfile() {
         info={[lote.city, t(lote.vehicleCount === 1 ? 'perfil.forSaleOne' : 'perfil.forSaleMany', { n: lote.vehicleCount })].filter(Boolean).join(' · ')}
       />
 
-      <div className="twocol" style={{ marginTop: 24 }}>
-        <aside className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="twocol" style={{ marginTop: 'var(--s-6)' }}>
+        <aside className="card col card-pad gap-3">
           {lote.description && (
             <p className="muted">
               <Traducido texto={lote.description} />
             </p>
           )}
-          <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
             {invitado || !contacto?.phone ? (
               <button className="btn btn-primary btn-sm" aria-disabled={!puedeLlamar} onClick={pedirRegistro}>
                 <Icon name="phone" size={16} />

@@ -31,7 +31,7 @@ export function ConstanciaField({ file, onChange, showLabel = true }: { file: Fi
   return (
     <div className="field" data-field="constancia">
       {showLabel && <label htmlFor="constancia">{t('auth.csf.label')}</label>}
-      <span className="muted" style={{ fontSize: 12.5 }}>
+      <span className="muted text-xs">
         {t('auth.csf.help')}
       </span>
       {file ? (
@@ -40,10 +40,10 @@ export function ConstanciaField({ file, onChange, showLabel = true }: { file: Fi
             <Icon name="doc" size={20} />
           </span>
           <div className="grow" style={{ minWidth: 0 }}>
-            <b className="ellipsis" style={{ display: 'block', color: 'var(--ink)' }}>
+            <b className="ellipsis ink" style={{ display: 'block' }}>
               {file.name}
             </b>
-            <span className="muted" style={{ fontSize: 12 }}>
+            <span className="muted text-xs">
               {tamano(file.size)}
             </span>
           </div>
@@ -67,11 +67,11 @@ export function ConstanciaField({ file, onChange, showLabel = true }: { file: Fi
           onDragLeave={() => setEncima(false)}
           onDrop={soltar}
         >
-          <Icon name="doc" size={22} />
+          <Icon name="doc" size={24} />
           <span>
             <b>{t('auth.csf.drop')}</b>
             <br />
-            <span className="muted" style={{ fontSize: 12 }}>
+            <span className="muted text-xs">
               {t('auth.csf.formats')}
             </span>
           </span>
@@ -104,7 +104,7 @@ export function VerifiedBadge({ compact = false }: { compact?: boolean }) {
     <span className={`verified-badge ${compact ? 'compact' : ''}`} aria-label={t('perfil.verifiedA11y')}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="#FFFFFF" />
-        <path d="M8 12l3 3 5-5.5" fill="none" stroke="#3D7FC4" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8 12l3 3 5-5.5" fill="none" stroke="#2F6DB0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       {t('perfil.verified')}
     </span>
@@ -118,7 +118,7 @@ export function VerifiedShield() {
     <span className="verified-badge solo" title={t('perfil.verifiedA11y')} aria-label={t('perfil.verifiedA11y')}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="#FFFFFF" />
-        <path d="M8 12l3 3 5-5.5" fill="none" stroke="#3D7FC4" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8 12l3 3 5-5.5" fill="none" stroke="#2F6DB0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
   )

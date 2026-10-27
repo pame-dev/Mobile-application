@@ -133,7 +133,7 @@ export function Recover() {
     [
       t('auth.recover.title1'),
       <>
-        {t('auth.recover.sub1a', { n: EMAIL_CODE_LENGTH })} <b style={{ color: 'var(--ink)' }}>{email.trim()}</b>
+        {t('auth.recover.sub1a', { n: EMAIL_CODE_LENGTH })} <b className="ink">{email.trim()}</b>
         {t('auth.recover.sub1b')}
       </>,
     ],
@@ -152,16 +152,15 @@ export function Recover() {
         ))}
       </div>
       {step === 3 && (
-        <span className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--success-l)', color: 'var(--success)' }}>
+        <span className="nic done-icon">
           <Icon name="check" size={30} />
         </span>
       )}
-      <h2>{textos[step][0]}</h2>
+      <h1>{textos[step][0]}</h1>
       <p className="muted">{textos[step][1]}</p>
 
       {step === 0 && (
-        <form
-          style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
+        <form className="col gap-4"
           onSubmit={(e) => {
             e.preventDefault()
             sendCode()
@@ -177,7 +176,7 @@ export function Recover() {
             </div>
           </div>
           <AlertBox message={error} />
-          <button type="submit" className="btn btn-primary btn-block" style={{ height: 50 }} disabled={sending}>
+          <button type="submit" className="btn btn-primary btn-block btn-lg" disabled={sending}>
             {sending ? t('auth.sendingCode') : t('auth.recover.send')}
           </button>
         </form>
@@ -188,15 +187,14 @@ export function Recover() {
           <OtpInput value={code} onChange={setCode} onComplete={(c) => void verifyCode(c)} />
           <AlertBox message={error} />
           <ResendRow sending={sending} seconds={countdown.seconds} onResend={() => countdown.seconds === 0 && void enviar(() => undefined)} />
-          <button className="btn btn-primary btn-block" style={{ height: 50 }} disabled={loading} onClick={() => void verifyCode()}>
+          <button className="btn btn-primary btn-block btn-lg" disabled={loading} onClick={() => void verifyCode()}>
             {loading ? t('auth.verifying') : t('auth.verify')}
           </button>
         </>
       )}
 
       {step === 2 && (
-        <form
-          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+        <form className="col gap-3"
           onSubmit={(e) => {
             e.preventDefault()
             void guardar()
@@ -217,14 +215,14 @@ export function Recover() {
             {mismatch && <span className="ferr">{t('auth.passwordMismatch')}</span>}
           </div>
           <AlertBox message={error} />
-          <button type="submit" className="btn btn-primary btn-block" style={{ height: 50 }} disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-block btn-lg" disabled={loading}>
             {loading ? t('common.saving') : t('auth.recover.reset')}
           </button>
         </form>
       )}
 
       {step === 3 && (
-        <button className="btn btn-primary btn-block" style={{ height: 50 }} onClick={() => navigate('/login', { replace: true })}>
+        <button className="btn btn-primary btn-block btn-lg" onClick={() => navigate('/login', { replace: true })}>
           {t('auth.login')}
         </button>
       )}

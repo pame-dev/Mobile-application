@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '../components/Icon'
 import { Traducido } from '../components/Traducido'
+import { esClicNormal } from '../components/VehicleCard'
 import { VolverButton } from '../components/VolverButton'
 import { lots as cargarLotes } from '../data/api'
 import type { Lot } from '../data/types'
@@ -44,17 +45,17 @@ export function Lots() {
   const visibles = (lista ?? []).filter((l) => !q || l.name.toLowerCase().includes(q) || l.city.toLowerCase().includes(q))
 
   return (
-    <div className="wrap" style={{ paddingTop: 28 }}>
-      <div style={{ marginBottom: 14 }}>
+    <div className="wrap page-top">
+      <div style={{ marginBottom: 'var(--s-4)' }}>
         <VolverButton fallback="/" />
       </div>
       <div className="banner">
         <span className="eyebrow" style={{ color: '#8FD3D8' }}>
           {t('perfil.lotsEyebrow')}
         </span>
-        <h1 style={{ fontSize: 36, margin: '6px 0 8px' }}>{t('nav.lots')}</h1>
+        <h1 className="h1-page" style={{ margin: 'var(--s-2) 0' }}>{t('nav.lots')}</h1>
         <p>{t('perfil.lotsLead')}</p>
-        <div className="inputicon" style={{ marginTop: 20, maxWidth: 520 }}>
+        <div className="inputicon" style={{ marginTop: 'var(--s-5)', maxWidth: 520 }}>
           <Icon name="search" size={18} />
           <input
             className="input"
@@ -92,7 +93,7 @@ export function Lots() {
         </div>
       ) : visibles.length === 0 ? (
         <div className="card empty">
-          <span className="nic" style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--teal-light)', color: 'var(--teal)' }}>
+          <span className="nic empty-icon">
             <Icon name="building" size={26} />
           </span>
           <p className="muted">{lista.length === 0 ? t('perfil.lotsEmpty') : t('perfil.lotsNoMatch')}</p>
@@ -100,10 +101,19 @@ export function Lots() {
       ) : (
         <div className="lgrid">
           {visibles.map((l) => (
-            <button key={l.id} className="card lotcard" onClick={() => navigate(`/lotes/${l.id}`)}>
+            <a
+              key={l.id}
+              className="card lotcard"
+              href={`/lotes/${l.id}`}
+              onClick={(e) => {
+                if (!esClicNormal(e)) return
+                e.preventDefault()
+                navigate(`/lotes/${l.id}`)
+              }}
+            >
               <LotLogo lot={l} />
-              <span className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-                <b style={{ fontFamily: 'var(--f-display)', fontSize: 17, color: 'var(--ink)' }}>{l.name}</b>
+              <span className="grow col" style={{ gap: 'var(--s-1)', minWidth: 0 }}>
+                <b className="ink" style={{ fontFamily: 'var(--f-display)', fontSize: 'var(--fs-lg)' }}>{l.name}</b>
                 {l.city && (
                   <span className="loc">
                     <Icon name="pin" />
@@ -111,15 +121,15 @@ export function Lots() {
                   </span>
                 )}
                 {l.description && (
-                  <span className="muted" style={{ fontSize: 13, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <span className="muted text-sm" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     <Traducido texto={l.description} />
                   </span>
                 )}
-                <span className="badge b-info" style={{ alignSelf: 'flex-start', marginTop: 6 }}>
+                <span className="badge b-info" style={{ alignSelf: 'flex-start', marginTop: 'var(--s-2)' }}>
                   {t(l.vehicleCount === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: l.vehicleCount })}
                 </span>
               </span>
-            </button>
+            </a>
           ))}
         </div>
       )}

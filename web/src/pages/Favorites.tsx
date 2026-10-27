@@ -12,13 +12,15 @@ import { useFavorites } from '../session/FavoritesContext'
 import { useRecargar } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
 
-function Aviso({ titulo, texto, children }: { titulo: string; texto: string; children?: ReactNode }) {
+/** [principal]: sin otro título en la pantalla (visitante), el aviso lleva el h1; si no, es un h2 bajo el h1 de Favoritos. */
+function Aviso({ titulo, texto, principal = false, children }: { titulo: string; texto: string; principal?: boolean; children?: ReactNode }) {
+  const Titulo = principal ? 'h1' : 'h2'
   return (
-    <div className="card" style={{ padding: 60, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+    <div className="card col gap-3" style={{ padding: 60, textAlign: 'center', alignItems: 'center' }}>
       <div style={{ color: 'var(--teal)' }}>
         <Icon name="heart" size={40} />
       </div>
-      <h3>{titulo}</h3>
+      <Titulo className="empty-title">{titulo}</Titulo>
       <p className="muted">{texto}</p>
       {children}
     </div>
@@ -57,16 +59,16 @@ export function Favorites() {
   const filtrando = !!q.trim() || hayFiltros(filtros)
   const guardadosTexto = t(guardados.length === 1 ? 'perfil.savedOne' : 'perfil.savedMany', { n: guardados.length })
 
-  if (cargandoSesion) return <div className="wrap" style={{ paddingTop: 28 }}><div className="skeleton" style={{ height: 300 }} /></div>
+  if (cargandoSesion) return <div className="wrap page-top"><div className="skeleton" style={{ height: 300 }} /></div>
 
   if (mode === 'guest') {
     return (
-      <div className="wrap" style={{ maxWidth: 820, paddingTop: 28 }}>
-        <div style={{ marginBottom: 14 }}>
+      <div className="wrap wrap-narrow page-top">
+        <div style={{ marginBottom: 'var(--s-4)' }}>
           <VolverButton fallback="/" />
         </div>
-        <Aviso titulo={t('perfil.favGuestTitle')} texto={t('perfil.favGuestText')}>
-          <div className="row" style={{ marginTop: 8 }}>
+        <Aviso titulo={t('perfil.favGuestTitle')} texto={t('perfil.favGuestText')} principal>
+          <div className="row" style={{ marginTop: 'var(--s-2)' }}>
             <button className="btn btn-ghost" onClick={() => navigate('/login', { state: { from: '/favoritos' } })}>
               {t('nav.login')}
             </button>
@@ -82,7 +84,7 @@ export function Favorites() {
   return (
     <div className="wrap">
       <div className="pagehead">
-        <div className="row" style={{ alignItems: 'flex-start', gap: 12 }}>
+        <div className="row" style={{ alignItems: 'flex-start' }}>
           <VolverButton fallback="/" />
           <div>
             <h1>{t('nav.favorites')}</h1>
@@ -92,7 +94,7 @@ export function Favorites() {
           </div>
         </div>
         {guardados.length > 0 && (
-          <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
             <div className="inputicon" style={{ width: 280, maxWidth: '100%' }}>
               <Icon name="search" size={18} />
               <input className="input" placeholder={t('perfil.favSearchPlaceholder')} aria-label={t('perfil.favSearchLabel')} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -124,7 +126,7 @@ export function Favorites() {
         </div>
       ) : guardados.length === 0 ? (
         <Aviso titulo={t('perfil.favEmptyTitle')} texto={t('perfil.favEmptyText')}>
-          <button className="btn btn-primary" style={{ marginTop: 8 }} onClick={() => navigate('/')}>
+          <button className="btn btn-primary" style={{ marginTop: 'var(--s-2)' }} onClick={() => navigate('/')}>
             {t('perfil.exploreVehicles')}
           </button>
         </Aviso>

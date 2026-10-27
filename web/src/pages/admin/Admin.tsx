@@ -224,9 +224,9 @@ export function Admin() {
       {/* Solo en pantallas chicas: logo y botón ☰ en lugar de la barra lateral. */}
       <header className="admintop">
         <Brand />
-        <div className="row" style={{ gap: 8 }}>
-          <button className="iconbtn" style={{ position: 'relative' }} aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
-            <Icon name="bell" size={19} />
+        <div className="row gap-2">
+          <button className="iconbtn" aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')} onClick={() => navigate('/notificaciones')}>
+            <Icon name="bell" size={18} />
             {sinLeer > 0 && <span className="dot">{sinLeer > 99 ? '99+' : sinLeer}</span>}
           </button>
           <button className="iconbtn adminburger" aria-label={t('nav.openMenu')} aria-expanded={menu} onClick={() => setMenu(true)}>
@@ -297,7 +297,7 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
       desc={t('admin.homeDesc')}
       right={
         // Alineados arriba: el selector de días trae margen abajo y desfasaba el botón.
-        <div className="row" style={{ gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div className="row" style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <ExportarAdmin stats={stats} dias={rango} />
           <Tabs value={String(rango)} onChange={(v) => setRango(Number(v))} options={[7, 30, 90].map((d) => [String(d), t('admin.rangeDays', { n: d })] as [string, string])} />
         </div>
@@ -326,9 +326,9 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
   // Solo lo que realmente tiene pendientes.
   const alertas: [number, string, Seccion, string, string?][] = (
     [
-      [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'admin.alertReviewOne', 'admin.alertReviewMany'), 'vehiculos', '#F59E0B'],
+      [stats.propuestasPendientes, plural(stats.propuestasPendientes, 'admin.alertReviewOne', 'admin.alertReviewMany'), 'vehiculos', 'var(--warning)'],
       [stats.reportesPendientes, plural(stats.reportesPendientes, 'admin.alertReportsOne', 'admin.alertReportsMany'), 'reportes', '#EF4444'],
-      [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', '#F59E0B'],
+      [stats.destacadosPendientes, plural(stats.destacadosPendientes, 'admin.alertFeaturedOne', 'admin.alertFeaturedMany'), 'destacados', 'var(--warning)'],
       // Solicitudes de verificación sin revisar: se quitan al aprobarlas o rechazarlas.
       [verificaciones, plural(verificaciones, 'admin.alertVerificationOne', 'admin.alertVerificationMany'), 'verificacion', '#14B8A6'],
       [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'tipo=lote'],
@@ -343,23 +343,21 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
     <>
       {head}
       {/* Pendientes primero: es lo que el admin tiene que atender (igual que la app). */}
-      <div className="card" style={{ padding: 22, marginBottom: 18 }}>
-        <h3 style={{ fontSize: 17 }} className="row">
+      <div className="card card-pad" style={{ marginBottom: 'var(--s-4)' }}>
+        <h2 className="card-title row">
           <Icon name="alert" size={18} /> {t('admin.needsAttention')}
-        </h3>
+        </h2>
         {alertas.length === 0 ? (
-          <p className="muted" style={{ marginTop: 10 }}>
-            {t('admin.allCaughtUp')}
-          </p>
+          <p className="muted">{t('admin.allCaughtUp')}</p>
         ) : (
-          <div className="grid3" style={{ marginTop: 14 }}>
+          <div className="grid3">
             {alertas.map(([, txt, s, c, filtro]) => (
-              <button key={txt} className="card row" style={{ padding: '14px 16px', textAlign: 'left', width: '100%' }} onClick={() => ir(s, filtro)}>
+              <button key={txt} className="card row card-pad-sm" style={{ textAlign: 'left', width: '100%' }} onClick={() => ir(s, filtro)}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', flex: 'none', background: c }} />
-                <span className="grow" style={{ color: 'var(--ink)', fontWeight: 500 }}>
+                <span className="grow ink" style={{ fontWeight: 500 }}>
                   {txt}
                 </span>
-                <span style={{ color: 'var(--admin-blue)', fontSize: 12.5, fontWeight: 600 }}>{t('admin.seeAll')}</span>
+                <span className="text-xs" style={{ color: 'var(--admin-blue)', fontWeight: 600 }}>{t('admin.seeAll')}</span>
               </button>
             ))}
           </div>
@@ -375,7 +373,7 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
               <span className="badge b-succ">+{entero(nuevos)}</span>
             </div>
             <b className="num">{entero(n)}</b>
-            <span className="muted" style={{ fontSize: 13 }}>
+            <span className="muted text-sm">
               {k}
             </span>
           </div>
@@ -385,27 +383,27 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
             <span className="ic" style={{ background: '#22C55E22', color: '#22C55E' }}>
               <Icon name="check" />
             </span>
-            <b style={{ fontSize: 22 }}>{pct}%</b>
+            <b style={{ fontSize: 'var(--fs-xl)' }}>{pct}%</b>
           </div>
-          <span className="muted" style={{ fontSize: 13 }}>
+          <span className="muted text-sm">
             {t('admin.kpiActive')}
           </span>
-          <div style={{ height: 8, borderRadius: 9, background: 'var(--warning)', overflow: 'hidden', opacity: 0.9 }}>
+          <div style={{ height: 8, borderRadius: 'var(--r-sm)', background: 'var(--warning)', overflow: 'hidden', opacity: 0.9 }}>
             <div style={{ width: `${pct}%`, height: '100%', background: '#22C55E' }} />
           </div>
-          <span className="mid" style={{ fontSize: 12 }}>
+          <span className="mid text-xs">
             {t('admin.kpiStatusDetail', { a: entero(stats.activas), d: entero(stats.deshabilitadas) })}
           </span>
         </div>
       </div>
 
-      <div className="twocol half" style={{ marginTop: 18 }}>
-        <div className="card" style={{ padding: 22 }}>
-          <h3 style={{ fontSize: 17 }}>{t('admin.growthTitle')}</h3>
-          <p className="muted" style={{ fontSize: 13 }}>
+      <div className="twocol half" style={{ marginTop: 'var(--s-4)' }}>
+        <div className="card card-pad">
+          <h2 className="card-title tight">{t('admin.growthTitle')}</h2>
+          <p className="muted text-sm">
             {t('admin.growthSub')}
           </p>
-          <div className="legend" style={{ margin: '12px 0' }}>
+          <div className="legend" style={{ margin: 'var(--s-3) 0' }}>
             <span>
               <i style={{ background: '#3B82F6' }} />
               {t('admin.legendUsers')}
@@ -428,16 +426,16 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
             ]}
           />
         </div>
-        <div className="card" style={{ padding: 22 }}>
+        <div className="card card-pad">
           <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <div>
-              <h3 style={{ fontSize: 17 }}>{t('admin.interestTitle')}</h3>
-              <p className="muted" style={{ fontSize: 13 }}>
+              <h2 className="card-title tight">{t('admin.interestTitle')}</h2>
+              <p className="muted text-sm">
                 {t('admin.interestSub')}
               </p>
             </div>
             {/* Totales del rango elegido, junto al título (antes eran tres cajas bajo la gráfica). */}
-            <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+            <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
               <span className="badge b-info">
                 {t('admin.views')} <b className="num">{entero(vistas)}</b>
               </span>
@@ -449,7 +447,7 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
               </span>
             </div>
           </div>
-          <div className="legend" style={{ margin: '12px 0' }}>
+          <div className="legend" style={{ margin: 'var(--s-3) 0' }}>
             <span>
               <i style={{ background: '#3B82F6' }} />
               {t('admin.views')}
@@ -512,8 +510,8 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
       <div className="row">
         <Ini name={c.nombre_mostrar} src={publicUrl(c.foto_perfil)} />
         <div>
-          <b style={{ color: 'var(--ink)' }}>{c.nombre_mostrar}</b>
-          <div className="muted" style={{ fontSize: 12.5 }}>
+          <b className="ink">{c.nombre_mostrar}</b>
+          <div className="muted text-xs">
             {c.correo}
           </div>
         </div>
@@ -622,7 +620,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
                 <td>
                   <div className="mini">
                     <Ini name={x.nombre_mostrar} src={publicUrl(x.foto_perfil)} />
-                    <b style={{ color: 'var(--ink)' }}>{x.nombre_mostrar}</b>
+                    <b className="ink">{x.nombre_mostrar}</b>
                     {x.verificado && <VerifiedShield />}
                   </div>
                 </td>
@@ -641,7 +639,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
             ))}
             {lista.length === 0 && (
               <tr>
-                <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
+                <td colSpan={6} className="muted empty-row">
                   {t('admin.usersEmpty')}
                 </td>
               </tr>
@@ -692,22 +690,22 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
   return (
     <div className="modal wide">
       <ModalHead title={t('admin.vehicleDetail')} sub={`${t('admin.listingNumber', { n: car.id })} · ${car.ownerName}`} />
-      <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`} style={{ height: 220, borderRadius: 14 }} />
+      <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`} style={{ height: 220, borderRadius: 'var(--r-md)' }} />
       <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
-        <b style={{ fontFamily: 'var(--f-display)', fontSize: 19, color: 'var(--ink)' }}>
+        <b className="ink" style={{ fontFamily: 'var(--f-display)', fontSize: 'var(--fs-xl)' }}>
           {car.brand} {car.model} {car.year}
         </b>
         <span className="vprice num">{precio(car.priceValue)}</span>
       </div>
-      <div className="row" style={{ gap: 8 }}>
+      <div className="row gap-2">
         <Badge s={estado} />
         {row.estado_ultima_propuesta === 'rechazada' && row.motivo_rechazo_propuesta && (
-          <span className="muted" style={{ fontSize: 12.5 }}>
+          <span className="muted text-xs">
             <Traducido texto={row.motivo_rechazo_propuesta}>{(m) => t('admin.reason', { m })}</Traducido>
           </span>
         )}
         {!habilitada && row.motivo_deshabilitacion && (
-          <span className="muted" style={{ fontSize: 12.5 }}>
+          <span className="muted text-xs">
             <Traducido texto={row.motivo_deshabilitacion}>{(m) => t('admin.reason', { m })}</Traducido>
           </span>
         )}
@@ -855,7 +853,7 @@ function RegistrarHuellas() {
     toast(t('admin.fingerprintsDone', { n: hechas }))
   }
   return (
-    <div className="note row" style={{ background: 'var(--teal-light)', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+    <div className="note row info" style={{ justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 'var(--s-4)' }}>
       <span>{t('admin.fingerprintsPending', { n: faltan.length })}</span>
       <button className="btn btn-primary btn-sm" disabled={!!avance} onClick={() => void registrar()}>
         {avance ? t('admin.fingerprintsProgress', { n: avance[0], total: avance[1] }) : t('admin.fingerprintsButton')}
@@ -911,10 +909,10 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
                     <div className="mini">
                       <CarPhoto src={car.imageUrl} />
                       <div>
-                        <b style={{ color: 'var(--ink)' }}>
+                        <b className="ink">
                           {car.brand} {car.model}
                         </b>
-                        <div className="mid" style={{ fontSize: 12 }}>
+                        <div className="mid text-xs">
                           {t('admin.listingNumber', { n: car.id })}
                         </div>
                       </div>
@@ -936,7 +934,7 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
             })}
             {lista.length === 0 && (
               <tr>
-                <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 30 }}>
+                <td colSpan={6} className="muted empty-row">
                   {t('admin.vehiclesEmpty')}
                 </td>
               </tr>
@@ -982,11 +980,11 @@ function ReportReview({ r, datos, listo, tab }: { r: ReporteAdmin; datos: Datos;
           </div>
         ))}
       </div>
-      <div className="note muted" style={{ background: 'var(--bg)' }}>
+      <div className="note muted neutral">
         <Traducido texto={r.motivo_reporte} />
       </div>
       {r.motivo_resolucion && (
-        <div className="note" style={{ background: 'var(--success-l)' }}>
+        <div className="note success">
           <b>{t('admin.resolution')}</b> <Traducido texto={r.motivo_resolucion} />
         </div>
       )}
@@ -994,10 +992,10 @@ function ReportReview({ r, datos, listo, tab }: { r: ReporteAdmin; datos: Datos;
         <div className="listing" style={{ gridTemplateColumns: '120px 1fr' }}>
           <CarPhoto src={auto.car.imageUrl} />
           <div>
-            <b style={{ color: 'var(--ink)' }}>
+            <b className="ink">
               {auto.car.brand} {auto.car.model} {auto.car.year}
             </b>
-            <div className="muted" style={{ fontSize: 12.5 }}>
+            <div className="muted text-xs">
               {auto.car.ownerName} · {km(auto.car.km)}
             </div>
           </div>
@@ -1016,7 +1014,7 @@ function ReportReview({ r, datos, listo, tab }: { r: ReporteAdmin; datos: Datos;
           {t('admin.viewListing')}
         </button>
       ) : (
-        <div className="note muted" style={{ background: 'var(--bg)' }}>
+        <div className="note muted neutral">
           {t('admin.listingGone')}
         </div>
       )}
@@ -1091,7 +1089,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
               return (
                 <tr key={r.id_reporte}>
                   <td className="num">
-                    <b style={{ color: 'var(--ink)' }}>#R-{r.id_reporte}</b>
+                    <b className="ink">#R-{r.id_reporte}</b>
                   </td>
                   <td data-label={t('admin.type')}>
                     <span className={`badge ${deCuenta ? 'b-info' : 'b-neu'}`}>{t(deCuenta ? 'admin.user' : 'admin.listing')}</span>
@@ -1113,7 +1111,7 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
             })}
             {lista.length === 0 && (
               <tr>
-                <td colSpan={8} className="muted" style={{ textAlign: 'center', padding: 30 }}>
+                <td colSpan={8} className="muted empty-row">
                   {t('admin.reportsEmpty')}
                 </td>
               </tr>
@@ -1149,9 +1147,9 @@ function RejectFeatured({ d, listo }: { d: DestacadoAdmin; listo: (m: string) =>
         <button key={valor} className={`opt ${motivo === valor ? 'on' : ''}`} onClick={() => setMotivo(valor)}>
           <span className="radio" />
           <span>
-            <b style={{ color: 'var(--ink)' }}>{t(titulo)}</b>
+            <b className="ink">{t(titulo)}</b>
             <br />
-            <span className="muted" style={{ fontSize: 12.5 }}>
+            <span className="muted text-xs">
               {t(desc)}
             </span>
           </span>
@@ -1189,7 +1187,7 @@ function Aprobada({ titulo }: { titulo: string }) {
   const { t } = useI18n()
   return (
     <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
-      <span className="nic" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--warning-l)', color: 'var(--star)' }}>
+      <span className="nic done-icon warn">
         <Icon name="star" size={30} />
       </span>
       <ModalHead title={t('admin.featApprovedTitle')} sub={t('admin.featApprovedSub', { title: titulo })} />
@@ -1249,22 +1247,22 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
                     ★ {d.estado_solicitud === 'pendiente' ? t('admin.st.requested') : etiquetaEstado(capital(d.estado_solicitud))}
                   </span>
                 </CarPhoto>
-                <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <b style={{ fontFamily: 'var(--f-display)', color: 'var(--ink)', fontSize: 16 }}>{titulo}</b>
+                <div className="col gap-2" style={{ padding: 'var(--s-4)' }}>
+                  <b className="ink" style={{ fontFamily: 'var(--f-display)', fontSize: 'var(--fs-lg)' }}>{titulo}</b>
                   {car && <span className="vprice num" style={{ textAlign: 'left' }}>{precio(car.priceValue)}</span>}
-                  <div className="row" style={{ gap: 8 }}>
+                  <div className="row gap-2">
                     <Ini name={d.solicitante} src={publicUrl(d.solicitante_foto)} />
-                    <p className="muted" style={{ fontSize: 12.5 }}>
+                    <p className="muted text-xs">
                       <b>{d.solicitante}</b> {t('admin.requestedWhen', { when: haceCuanto(d.fecha_solicitud).toLowerCase() })}
                     </p>
                   </div>
                   {d.motivo_rechazo && (
-                    <p className="muted" style={{ fontSize: 12.5 }}>
+                    <p className="muted text-xs">
                       <Traducido texto={d.motivo_rechazo}>{(m) => t('admin.reason', { m })}</Traducido>
                     </p>
                   )}
                   {tab === 'pendiente' && (
-                    <div className="grid2" style={{ gap: 8, marginTop: 4 }}>
+                    <div className="grid2" style={{ gap: 'var(--s-2)', marginTop: 'var(--s-1)' }}>
                       <button className="btn btn-ghost btn-sm" disabled={busy === d.id_solicitud_destacado} onClick={() => openModal(<RejectFeatured d={d} listo={listo} />)}>
                         {t('admin.reject')}
                       </button>
