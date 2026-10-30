@@ -671,6 +671,12 @@ export function Profile() {
           ) : visibles.length === 0 ? (
             <div className="card empty">
               <p className="muted">{t('perfil.noListings')}</p>
+              {/* "Primer vehículo" solo si de verdad no tiene ninguna (ni ocultas). */}
+              {escondidas.length === 0 && (
+                <button className="btn btn-primary" onClick={() => navigate('/publicar')}>
+                  {t('perfil.publishFirst')}
+                </button>
+              )}
             </div>
           ) : (
             <div className="vgrid">
