@@ -50,6 +50,7 @@ export function toCar(a: AnuncioRow): Car {
     estado: a.estado_ubicacion ?? '',
     municipio: a.municipio_ubicacion ?? '',
     condition: a.condicion_vehiculo ?? null,
+    ownerVerified: false,
   }
 }
 
@@ -80,7 +81,28 @@ export async function visibleCars(): Promise<Car[]> {
   const rows = check(
     await supabase.from(VISTA).select('*').eq('visible', true).order('fecha_primera_publicacion', { ascending: false }),
   ) as AnuncioRow[]
-  return rows.map(toCar)
+  return conDuenoVerificado(rows.map(toCar))
+}
+
+/**
+ * Llena [Car.ownerVerified] con cuentas.verificado de los dueños (la vista no lo trae). En bloques,
+ * porque cada id va en la URL; si la consulta falla, las tarjetas se muestran sin insignia.
+ */
+async function conDuenoVerificado(cars: Car[]): Promise<Car[]> {
+  const duenos = [...new Set(cars.map((c) => c.ownerId).filter(Boolean))]
+  if (duenos.length === 0) return cars
+  try {
+    const verificados = new Set<string>()
+    for (let i = 0; i < duenos.length; i += 100) {
+      const filas = check(
+        await supabase.from('cuentas').select('id_cuenta').in('id_cuenta', duenos.slice(i, i + 100)).eq('verificado', true),
+      ) as { id_cuenta: string }[]
+      filas.forEach((f) => verificados.add(f.id_cuenta))
+    }
+    return cars.map((c) => (verificados.has(c.ownerId) ? { ...c, ownerVerified: true } : c))
+  } catch {
+    return cars
+  }
 }
 
 /** Con [cambiosPendientes] (el admin al revisar) muestra los cambios en revisión, no lo aprobado. */

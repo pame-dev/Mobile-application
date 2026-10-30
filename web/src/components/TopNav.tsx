@@ -182,11 +182,12 @@ export function TopNav() {
       : navigate(to)
   /** Opciones de la cuenta: las usa el menú del avatar y el de hamburguesa. */
   const cuentaItems: [string, string, IconName][] = [
+    // Mismo orden que el menú de la cuenta en la app: perfil, paneles y después lo demás.
     ['/perfil', t('nav.myProfile'), 'user'],
     ['/panel', t('nav.myDashboard'), 'chart'],
+    ...(account?.rolPanel ? [['/admin', t('nav.adminPanel'), 'shield'] as [string, string, IconName]] : []),
     ['/historial', t('nav.history'), 'history'],
     ['/configuracion', t('nav.settings'), 'settings'],
-    ...(account?.rolPanel ? [['/admin', t('nav.adminPanel'), 'shield'] as [string, string, IconName]] : []),
   ]
   const foto = publicUrl(account?.fotoPerfil)
 
