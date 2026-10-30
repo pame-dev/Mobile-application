@@ -27,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,11 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyAmberSoft
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyStar
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.theme.KarsyInk
@@ -146,7 +152,7 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
                     .height(210.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Lg))
                     .background(KarsyCharcoal)
             ) {
                 // Se desliza entre fotos; al tocar se abre a pantalla completa.
@@ -163,25 +169,25 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 if (carImages.size > 1) CarouselArrow(
                     icon = Icons.Rounded.ChevronLeft,
                     description = stringResource(R.string.publish_previous),
-                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
+                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 4.dp), // 12dp menos lo que crece la zona táctil
                     onClick = { goTo((imgIndex - 1 + carImages.size) % carImages.size) }
                 )
                 if (carImages.size > 1) CarouselArrow(
                     icon = Icons.Rounded.ChevronRight,
                     description = stringResource(R.string.publish_next),
-                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp),
                     onClick = { goTo((imgIndex + 1) % carImages.size) }
                 )
                 if (carImages.isNotEmpty()) Text(
                     "${imgIndex + 1} / ${carImages.size}",
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     fontWeight = FontWeight.SemiBold,
                     color = KarsyWhite,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(12.dp)
-                        .clip(RoundedCornerShape(50))
+                        .clip(CircleShape)
                         .background(KarsyNavy.copy(alpha = 0.75f))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 )
@@ -203,8 +209,8 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(width = 64.dp, height = 48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .border(2.dp, if (selected) KarsyNavy else Color.Transparent, RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Md))
+                            .border(2.dp, if (selected) KarsyNavy else Color.Transparent, RoundedCornerShape(KarsyRadius.Md))
                             .clickable { goTo(i) }
                     )
                 }
@@ -215,19 +221,19 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 Text(
                     "${form.marcaNombre} ${form.modeloNombre} · ${form.anio.trim()}",
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     color = KarsyMid,
                     modifier = Modifier.padding(top = 2.dp)
                 )
                 Text(
                     buildAnnotatedString {
                         append(form.precioTexto + " ")
-                        withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold)) { append("MXN") }
+                        withStyle(SpanStyle(fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold)) { append("MXN") }
                     },
                     fontFamily = Outfit,
-                    fontSize = 22.sp,
+                    fontSize = KarsyTextSize.HeadlineLarge,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -238,9 +244,9 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Lg))
                         .background(KarsySurface)
-                        .border(1.dp, KarsyBorderMuted, RoundedCornerShape(16.dp))
+                        .border(1.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Lg))
                 ) {
                     techSpecs.forEachIndexed { i, (key, value) ->
                         Row(
@@ -252,14 +258,14 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                             Text(
                                 key,
                                 fontFamily = DmSans,
-                                fontSize = 12.sp,
+                                fontSize = KarsyTextSize.Small,
                                 color = KarsyMid,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
                                 value,
                                 fontFamily = DmSans,
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 fontWeight = FontWeight.SemiBold,
                                 color = KarsyCharcoal
                             )
@@ -276,13 +282,13 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 Box(Modifier.padding(top = 16.dp)) { BlockLabel(stringResource(R.string.publish_block_imperfections)) }
                 TextBlock(
                     form.imperfecciones.trim().ifEmpty { stringResource(R.string.publish_no_imperfections) },
-                    background = karsyTint(Color(0xFFF5B400), Color(0xFFFFFBF0)),
+                    background = karsyTint(KarsyStar, KarsyAmberSoft),
                     border = if (Tema.oscuro) Color(0xFF5A4A1A) else Color(0xFFF5E8B0)
                 )
                 Text(
                     stringResource(R.string.publish_review_notice),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = KarsyMid,
                     modifier = Modifier.padding(top = 14.dp)
                 )
@@ -327,6 +333,7 @@ private fun CarouselArrow(
 ) {
     Box(
         modifier = modifier
+            .minimumInteractiveComponentSize()
             .size(32.dp)
             .shadow(4.dp, CircleShape)
             .clip(CircleShape)
@@ -343,7 +350,7 @@ private fun BlockLabel(text: String) {
     Text(
         text,
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.05.em,
         color = KarsyInk,
@@ -356,14 +363,14 @@ private fun TextBlock(text: String, background: Color, border: Color) {
     Text(
         text,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         lineHeight = 22.sp,
         color = KarsyCharcoal,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(background)
-            .border(1.dp, border, RoundedCornerShape(16.dp))
+            .border(1.dp, border, RoundedCornerShape(KarsyRadius.Lg))
             .padding(16.dp)
     )
 }

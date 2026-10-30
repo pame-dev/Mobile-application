@@ -2,11 +2,12 @@ import type { MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Car } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
-import { km, precio } from '../lib/format'
+import { haceCuanto, km, precio } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
 import { CarPhoto } from './CarPhoto'
 import { ConditionTag } from './ConditionTag'
+import { VerifiedBadge } from './ConstanciaField'
 import { Icon } from './Icon'
 import { Traducido } from './Traducido'
 import { STATUS_BADGE, statusLabel } from './OwnerActions'
@@ -52,8 +53,9 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
                 </div>
                 <ConditionTag condicion={car.condition} compact />
               </div>
+              {/* Cuándo se publicó: ayuda a saber si el anuncio sigue vigente. */}
               <div className="mid text-xs">
-                {car.year} · {km(car.km)}
+                {[String(car.year), km(car.km), haceCuanto(car.publishedAt)].filter(Boolean).join(' · ')}
               </div>
             </div>
             <div>
@@ -71,10 +73,20 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
               {note}
             </div>
           )}
-          {car.city && (
+          {(car.city || car.ownerVerified) && (
             <div className="loc">
-              <Icon name="pin" />
-              {car.city}
+              {car.city && (
+                <>
+                  <Icon name="pin" />
+                  {car.city}
+                </>
+              )}
+              {/* Vendedor con documento aprobado por un admin (cuentas.verificado). */}
+              {car.ownerVerified && (
+                <span className="loc-verified">
+                  <VerifiedBadge compact />
+                </span>
+              )}
             </div>
           )}
         </div>

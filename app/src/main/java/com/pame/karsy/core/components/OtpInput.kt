@@ -33,8 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.KarsyBg
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
@@ -59,7 +60,7 @@ fun OtpInput(otp: MutableList<String>, modifier: Modifier = Modifier, autoFocus:
         horizontalArrangement = Arrangement.spacedBy(if (otp.size > 4) 8.dp else 12.dp, Alignment.CenterHorizontally)
     ) {
         otp.forEachIndexed { index, digit ->
-            val shape = RoundedCornerShape(14.dp)
+            val shape = RoundedCornerShape(KarsyRadius.Lg)
             BasicTextField(
                 value = digit,
                 onValueChange = { raw ->
@@ -78,7 +79,7 @@ fun OtpInput(otp: MutableList<String>, modifier: Modifier = Modifier, autoFocus:
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 textStyle = TextStyle(
                     fontFamily = Outfit,
-                    fontSize = 24.sp,
+                    fontSize = KarsyTextSize.Display,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     textAlign = TextAlign.Center

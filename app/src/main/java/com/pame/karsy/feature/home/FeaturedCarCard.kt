@@ -37,12 +37,14 @@ import com.pame.karsy.core.components.StarBadge
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyImagePlaceholder
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyCardOutline
 import com.pame.karsy.core.theme.KarsyNavy
-import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSecondary
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
@@ -60,7 +62,7 @@ fun FeaturedCarCard(
     modifier: Modifier = Modifier,
     width: Dp = 300.dp,
 ) {
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Xl)
     Column(
         modifier = modifier
             .width(width)
@@ -91,7 +93,8 @@ fun FeaturedCarCard(
                 onToggle = onToggleFavorite,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 10.dp, end = 12.dp)
+                    // Zona táctil de 48dp: el padding descuenta lo que crece para que se vea igual.
+                    .padding(top = 3.dp, end = 5.dp)
             )
         }
         Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 20.dp)) {
@@ -102,7 +105,7 @@ fun FeaturedCarCard(
                         Text(
                             car.title,
                             fontFamily = Outfit,
-                            fontSize = 17.sp,
+                            fontSize = KarsyTextSize.TitleLarge,
                             fontWeight = FontWeight.Bold,
                             color = KarsyInk,
                             lineHeight = 20.sp,
@@ -115,7 +118,7 @@ fun FeaturedCarCard(
                     Text(
                         car.year.toString(),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         color = KarsyMid,
                         modifier = Modifier.padding(top = 2.dp)
                     )
@@ -125,21 +128,21 @@ fun FeaturedCarCard(
                     buildAnnotatedString {
                         append(car.price)
                         append(" ")
-                        withStyle(SpanStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, color = KarsyMid)) {
+                        withStyle(SpanStyle(fontSize = KarsyTextSize.Caption, fontWeight = FontWeight.Medium, color = KarsyMid)) {
                             append(car.currency)
                         }
                     },
                     fontFamily = Outfit,
-                    fontSize = 17.sp,
+                    fontSize = KarsyTextSize.TitleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     maxLines = 1
                 )
             }
             Text(
                 rememberTraduccion(car.description, corto = true),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 lineHeight = 19.5.sp,
                 color = KarsyTextSecondary,
                 maxLines = 2,

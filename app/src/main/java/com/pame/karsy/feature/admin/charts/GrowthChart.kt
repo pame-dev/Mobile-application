@@ -14,10 +14,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyTextSize
 
 /** Serie de la gráfica de líneas. [fillArea] dibuja el degradado bajo la línea. */
 data class ChartSeries(
@@ -39,7 +39,7 @@ fun GrowthChart(
     gridValues: List<Int> = listOf(0, 200, 400, 600, 800),
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val labelStyle = TextStyle(fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+    val labelStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Tiny, color = KarsyMid)
 
     Canvas(modifier) {
         val left = 34.dp.toPx()

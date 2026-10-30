@@ -56,6 +56,7 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsySuccess
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.data.repository.AuthRepository
@@ -106,7 +107,7 @@ fun PrivacyScreen(
                     Text(
                         it,
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         color = KarsyCharcoal,
                         modifier = Modifier.padding(bottom = 14.dp)
                     )
@@ -222,7 +223,7 @@ private fun SectionLabel(@StringRes textRes: Int) {
     Text(
         stringResource(textRes).uppercase(),
         fontFamily = DmSans,
-        fontSize = 12.sp,
+        fontSize = KarsyTextSize.Small,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.6.sp,
         color = KarsyMid,
@@ -246,17 +247,17 @@ private fun PrivacyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(icon, fontSize = 22.sp, textAlign = TextAlign.Center, modifier = Modifier.width(36.dp))
+        Text(icon, fontSize = KarsyTextSize.HeadlineLarge, textAlign = TextAlign.Center, modifier = Modifier.width(36.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 stringResource(labelRes),
                 fontFamily = DmSans,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp,
+                fontSize = KarsyTextSize.Subtitle,
                 color = KarsyCharcoal
             )
             Spacer(Modifier.height(2.dp))
-            Text(description, fontFamily = DmSans, fontSize = 13.sp, color = descriptionColor)
+            Text(description, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = descriptionColor)
         }
         RowChevron()
     }

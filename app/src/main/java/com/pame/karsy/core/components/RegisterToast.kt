@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -30,11 +31,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import kotlinx.coroutines.delay
@@ -61,7 +64,7 @@ fun RegisterToast(
         delay(if (actionLabel != null) 5000 else 3500)
         onClose()
     }
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Row(
         modifier = modifier
             .navigationBarsPadding()
@@ -84,12 +87,12 @@ fun RegisterToast(
             Icon(if (showRegister) Icons.Outlined.Lock else Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(20.dp))
         }
         Column(Modifier.weight(1f)) {
-            Text(message, color = KarsyWhite, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(message, color = KarsyWhite, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold)
             if (showRegister) Text(
                 stringResource(R.string.core_register_toast_subtitle),
                 color = Color.White.copy(alpha = 0.6f),
                 fontFamily = DmSans,
-                fontSize = 12.sp
+                fontSize = KarsyTextSize.Small
             )
         }
         if (actionLabel != null) Button(
@@ -97,20 +100,20 @@ fun RegisterToast(
                 onAction()
                 onClose()
             },
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+            shape = RoundedCornerShape(KarsyRadius.Md),
+            colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Text(actionLabel, fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(actionLabel, fontFamily = Outfit, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.Bold)
         } else if (showRegister) Button(
             onClick = onRegister,
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+            shape = RoundedCornerShape(KarsyRadius.Md),
+            colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Text(stringResource(R.string.core_register_me), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.core_register_me), fontFamily = Outfit, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.Bold)
         }
-        IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
+        IconButton(onClick = onClose, modifier = Modifier.minimumInteractiveComponentSize().size(32.dp)) {
             Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.core_close), tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
         }
     }

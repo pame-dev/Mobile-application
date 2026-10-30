@@ -1,5 +1,10 @@
 package com.pame.karsy.feature.favorites
 
+import com.pame.karsy.core.components.PrimaryButton
+import com.pame.karsy.core.theme.KarsyGreenDark
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.components.HeartCoral
 import com.pame.karsy.core.components.HeartToggle
@@ -61,7 +66,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
@@ -96,6 +100,7 @@ fun FavoritesScreen(
     userMode: UserMode,
     onBack: () -> Unit,
     onCarClick: (Long) -> Unit,
+    onExplore: () -> Unit,
     vm: FavoritesViewModel = viewModel(),
 ) {
     LaunchedEffect(Unit) { vm.load() }
@@ -143,21 +148,21 @@ fun FavoritesScreen(
                                 Text(
                                     pluralStringResource(R.plurals.home_vehicles_saved, displayed.size, displayed.size),
                                     fontFamily = Outfit,
-                                    fontSize = 16.sp,
+                                    fontSize = KarsyTextSize.Title,
                                     fontWeight = FontWeight.Bold,
                                     color = KarsyInk
                                 )
                                 Text(
                                     vm.sortLabel,
                                     fontFamily = DmSans,
-                                    fontSize = 13.sp,
+                                    fontSize = KarsyTextSize.Body,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = KarsyTeal,
+                                    color = KarsyTealText,
                                     modifier = Modifier.clickable(onClick = vm::nextSort)
                                 )
                             }
                             (errorMsg ?: vm.error)?.let {
-                                Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError, modifier = Modifier.padding(top = 8.dp))
+                                Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyError, modifier = Modifier.padding(top = 8.dp))
                             }
                         }
                     }
@@ -193,7 +198,9 @@ fun FavoritesScreen(
                             if (vm.cars.isEmpty()) EmptyState(
                                 icon = Icons.Rounded.FavoriteBorder,
                                 title = stringResource(R.string.favorites_empty_title),
-                                subtitle = stringResource(R.string.favorites_empty_subtitle)
+                                subtitle = stringResource(R.string.favorites_empty_subtitle),
+                                action = stringResource(R.string.core_empty_explore),
+                                onAction = onExplore
                             ) else EmptyState(
                                 icon = Icons.Rounded.Search,
                                 title = stringResource(R.string.home_no_results),
@@ -236,7 +243,7 @@ fun FavoritesScreen(
 
 @Composable
 private fun SearchRow(search: String, onSearch: (String) -> Unit, onFilter: () -> Unit) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
         Row(
             Modifier
@@ -254,13 +261,13 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit, onFilter: () -
                 value = search,
                 onValueChange = onSearch,
                 singleLine = true,
-                textStyle = TextStyle(fontFamily = DmSans, fontSize = 15.sp, color = KarsyCharcoal),
+                textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyCharcoal),
                 cursorBrush = SolidColor(KarsyTeal),
                 modifier = Modifier.weight(1f),
                 decorationBox = { inner ->
                     Box {
                         if (search.isEmpty()) {
-                            Text(stringResource(R.string.home_favorites_search_placeholder), fontFamily = DmSans, fontSize = 15.sp, color = KarsyMid, maxLines = 1)
+                            Text(stringResource(R.string.home_favorites_search_placeholder), fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyMid, maxLines = 1)
                         }
                         inner()
                     }
@@ -279,12 +286,12 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit, onFilter: () -
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(Icons.Rounded.FilterList, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(18.dp))
-            Text(stringResource(R.string.home_filter), fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyTeal)
+            Text(stringResource(R.string.home_filter), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = KarsyTealText)
         }
     }
 }
 
-private val SoldBadge = Color(0xFF027A48)
+private val SoldBadge = KarsyGreenDark
 
 @Composable
 private fun FavoriteCard(
@@ -293,7 +300,7 @@ private fun FavoriteCard(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Xl)
     val sold = car.status == EstadoAuto.VENDIDO
     Column(
         modifier
@@ -330,9 +337,10 @@ private fun FavoriteCard(
                 filled = true,
                 onToggle = onRemove,
                 size = 34.dp,
+                // Zona táctil de 48dp: el padding descuenta lo que crece para que se vea igual.
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(10.dp)
+                    .padding(3.dp)
             )
         }
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp)) {
@@ -341,7 +349,7 @@ private fun FavoriteCard(
                 Text(
                     car.title,
                     fontFamily = Outfit,
-                    fontSize = 15.sp,
+                    fontSize = KarsyTextSize.Subtitle,
                     fontWeight = FontWeight.Bold,
                     color = KarsyCharcoal,
                     maxLines = 1,
@@ -353,7 +361,7 @@ private fun FavoriteCard(
             Text(
                 "${car.year} · ${car.kilometraje}",
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 color = KarsyMid,
                 modifier = Modifier.padding(bottom = 10.dp)
             )
@@ -362,15 +370,15 @@ private fun FavoriteCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(car.price, fontFamily = Outfit, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                Text(car.price, fontFamily = Outfit, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
                 Button(
                     onClick = onClick,
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
                     modifier = Modifier.height(34.dp)
                 ) {
-                    Text(stringResource(R.string.home_see_more), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.home_see_more), fontFamily = DmSans, fontSize = KarsyTextSize.Small, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -378,7 +386,13 @@ private fun FavoriteCard(
 }
 
 @Composable
-private fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
+private fun EmptyState(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    action: String? = null,
+    onAction: () -> Unit = {},
+) {
     Column(
         Modifier
             .fillMaxWidth()
@@ -400,7 +414,7 @@ private fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
             title,
             textAlign = TextAlign.Center,
             fontFamily = Outfit,
-            fontSize = 16.sp,
+            fontSize = KarsyTextSize.Title,
             fontWeight = FontWeight.SemiBold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 6.dp)
@@ -408,9 +422,12 @@ private fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
         Text(
             subtitle,
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             color = KarsyMid,
             textAlign = TextAlign.Center
         )
+        if (action != null) {
+            PrimaryButton(text = action, onClick = onAction, modifier = Modifier.padding(start = 40.dp, end = 40.dp, top = 20.dp))
+        }
     }
 }

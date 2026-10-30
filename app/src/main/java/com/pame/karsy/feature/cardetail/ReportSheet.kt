@@ -56,6 +56,10 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyDisabled
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyRed
+import com.pame.karsy.core.theme.KarsyRedSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -70,8 +74,8 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 // Tonos del flujo de reporte tomados del mockup.
-private val ReportRed = Color(0xFFE53935)
-private val ReportRedLight: Color get() = karsyTint(Color(0xFFEF4444), Color(0xFFFDEDEC))
+private val ReportRed = KarsyRed
+private val ReportRedLight: Color get() = karsyTint(KarsyRed, KarsyRedSoft)
 private val ReportDisabled: Color get() = KarsyDisabled
 private val RadioBorder = Color(0xFFB7C0C7)
 
@@ -172,7 +176,7 @@ internal fun ReportSheet(onSubmit: (String, (String?) -> Unit) -> Unit, onDismis
                         Text(
                             it,
                             fontFamily = DmSans,
-                            fontSize = 12.sp,
+                            fontSize = KarsyTextSize.Small,
                             color = ReportRed,
                             modifier = Modifier.padding(top = 10.dp)
                         )
@@ -210,7 +214,7 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
             stringResource(R.string.detail_report_what_title),
             textAlign = TextAlign.Center,
             fontFamily = Outfit,
-            fontSize = 19.sp,
+            fontSize = KarsyTextSize.Headline,
             fontWeight = FontWeight.Bold,
             color = KarsyInk,
             modifier = Modifier
@@ -228,7 +232,7 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
             stringResource(R.string.detail_report_account_desc),
     ).forEach { (info, desc) ->
         val (type, icon, title) = info
-        val shape = RoundedCornerShape(16.dp)
+        val shape = RoundedCornerShape(KarsyRadius.Lg)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -245,22 +249,22 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
             Box(
                 Modifier
                     .size(42.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(ReportRedLight),
                 contentAlignment = Alignment.Center
             ) {
-                Text(icon, fontSize = 14.sp)
+                Text(icon, fontSize = KarsyTextSize.BodyLarge)
             }
             Column(Modifier.weight(1f)) {
                 Text(
                     title,
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     fontWeight = FontWeight.Bold,
                     color = KarsyCharcoal,
                     modifier = Modifier.padding(bottom = 3.dp)
                 )
-                Text(desc, fontFamily = DmSans, fontSize = 11.5.sp, lineHeight = 16.sp, color = KarsyMid)
+                Text(desc, fontFamily = DmSans, fontSize = KarsyTextSize.Small, lineHeight = 16.sp, color = KarsyMid)
             }
             Icon(
                 Icons.AutoMirrored.Rounded.KeyboardArrowRight,
@@ -275,12 +279,12 @@ private fun TypeStep(onClose: () -> Unit, onChoose: (String) -> Unit) {
         stringResource(R.string.detail_cancel),
         textAlign = TextAlign.Center,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         fontWeight = FontWeight.SemiBold,
         color = KarsyMid,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Sm))
             .clickable(onClick = onClose)
             .padding(top = 8.dp, bottom = 4.dp)
     )
@@ -307,7 +311,7 @@ private fun ReasonsStep(
             Text(
                 if (isPublicacion) stringResource(R.string.detail_reasons_listing_title) else stringResource(R.string.detail_reasons_seller_title),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
@@ -315,7 +319,7 @@ private fun ReasonsStep(
             Text(
                 stringResource(R.string.detail_reasons_subtitle),
                 fontFamily = DmSans,
-                fontSize = 11.5.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -327,7 +331,7 @@ private fun ReasonsStep(
         val r = item.value
         val desc = item.descRes?.let { stringResource(it) }.orEmpty()
         val selected = reason == r
-        val shape = RoundedCornerShape(13.dp)
+        val shape = RoundedCornerShape(KarsyRadius.Md)
         Row(
             horizontalArrangement = Arrangement.spacedBy(11.dp),
             modifier = Modifier
@@ -348,12 +352,12 @@ private fun ReasonsStep(
                     .border(if (selected) 5.dp else 2.dp, if (selected) ReportRed else RadioBorder, CircleShape)
             )
             Column {
-                Text(stringResource(item.labelRes), fontFamily = DmSans, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
+                Text(stringResource(item.labelRes), fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
                 if (desc.isNotEmpty()) {
                     Text(
                         desc,
                         fontFamily = DmSans,
-                        fontSize = 10.5.sp,
+                        fontSize = KarsyTextSize.Tiny,
                         color = KarsyMid,
                         modifier = Modifier.padding(top = 2.dp)
                     )
@@ -369,14 +373,14 @@ private fun ReasonsStep(
             Text(
                 stringResource(R.string.detail_report_details_placeholder),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid
             )
         },
         minLines = 3,
         maxLines = 5,
-        textStyle = TextStyle(fontFamily = DmSans, fontSize = 12.sp, lineHeight = 17.sp, color = KarsyCharcoal),
-        shape = RoundedCornerShape(13.dp),
+        textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Small, lineHeight = 17.sp, color = KarsyCharcoal),
+        shape = RoundedCornerShape(KarsyRadius.Md),
         colors = karsyTextFieldColors(container = KarsyBg),
         modifier = Modifier
             .fillMaxWidth()
@@ -387,7 +391,7 @@ private fun ReasonsStep(
     Button(
         onClick = onSend,
         enabled = enabled,
-        shape = RoundedCornerShape(999.dp),
+        shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = ReportRed,
             contentColor = KarsyWhite,
@@ -398,9 +402,9 @@ private fun ReasonsStep(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 14.dp)
-            .shadow(if (enabled) 5.dp else 0.dp, RoundedCornerShape(999.dp), spotColor = ReportRed, ambientColor = ReportRed)
+            .shadow(if (enabled) 5.dp else 0.dp, CircleShape, spotColor = ReportRed, ambientColor = ReportRed)
     ) {
-        Text(stringResource(R.string.detail_send_report), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.detail_send_report), fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -425,7 +429,7 @@ private fun SuccessStep(onClose: () -> Unit) {
         Text(
             stringResource(R.string.detail_report_sent_title),
             fontFamily = Outfit,
-            fontSize = 19.sp,
+            fontSize = KarsyTextSize.Headline,
             fontWeight = FontWeight.Bold,
             color = KarsyInk,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -434,7 +438,7 @@ private fun SuccessStep(onClose: () -> Unit) {
             stringResource(R.string.detail_report_sent_message),
             textAlign = TextAlign.Center,
             fontFamily = DmSans,
-            fontSize = 12.5.sp,
+            fontSize = KarsyTextSize.Body,
             lineHeight = 19.sp,
             color = KarsyCharcoal,
             modifier = Modifier
@@ -443,14 +447,14 @@ private fun SuccessStep(onClose: () -> Unit) {
         )
         Button(
             onClick = onClose,
-            shape = RoundedCornerShape(999.dp),
+            shape = CircleShape,
             colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
             contentPadding = PaddingValues(vertical = 14.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(stringResource(R.string.detail_got_it), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.detail_got_it), fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.Bold)
         }
     }
 }

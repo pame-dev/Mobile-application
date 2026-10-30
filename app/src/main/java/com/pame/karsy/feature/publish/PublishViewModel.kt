@@ -81,6 +81,19 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var error by mutableStateOf<String?>(null)
         private set
 
+    /** Campos que ya muestran su error: al salir de ellos o al tocar Siguiente. */
+    var camposMarcados by mutableStateOf<Set<String>>(emptySet())
+        private set
+    /** Primer campo con error del último intento; la pantalla lo trae a la vista en cada [enfoqueSignal]. */
+    var campoAEnfocar by mutableStateOf<String?>(null)
+        private set
+    var enfoqueSignal by mutableIntStateOf(0)
+        private set
+
+    fun marcarCampo(campo: String) {
+        if (campo !in camposMarcados) camposMarcados = camposMarcados + campo
+    }
+
     var catalogs by mutableStateOf<Catalogs?>(null)
         private set
 
@@ -592,8 +605,18 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             nextFromPhotos(context)
             return
         }
-        error = validate(step)
-        if (error == null && step < 4) step++
+        // Un error de campo se muestra debajo del campo (y se lleva la vista ahí), no arriba.
+        val campo = camposDelPaso(step).firstOrNull { errorDe(it) != null }
+        if (campo != null) {
+            marcarCampo(campo)
+            campoAEnfocar = campo
+            enfoqueSignal++
+        } else {
+            // Sin error de campo: al volver a este paso no se debe saltar a un campo ya corregido.
+            campoAEnfocar = null
+        }
+        error = if (campo != null) null else validate(step)
+        if (campo == null && error == null && step < 4) step++
     }
 
     /**
@@ -700,30 +723,41 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         return true
     }
 
-    private fun validate(paso: Int): String? = when (paso) {
-        1 -> {
+    /** Mensaje de error de [campo] con lo que tiene ahora, o null si está bien. */
+    fun errorDe(campo: String): String? = when (campo) {
+        "anio" -> {
             val anioActual = Calendar.getInstance().get(Calendar.YEAR)
             val anioNum = anio.trim().toIntOrNull()
-            // El primer campo vacío, en el mismo orden del formulario.
-            val falta = ordenCampos.firstOrNull { !it.second }
-            when {
-                falta != null -> texto(falta.third)
-                anioNum == null || anioNum !in 1900..(anioActual + 1) -> texto(R.string.publish_error_year)
-                (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
-                else -> errorDocumento(tipoDocumento, documentoTexto, documentoNuevo != null || documentoRuta != null)?.let { texto(it) }
-            }
+            if (anioNum == null || anioNum !in 1900..(anioActual + 1)) texto(R.string.publish_error_year) else null
         }
+        "cilindros" -> when {
+            !esElectrico && cilindros.isBlank() -> texto(R.string.publish_error_cylinders_required)
+            (cilindros.filter(Char::isDigit).toIntOrNull() ?: 0) > MAX_CILINDROS -> texto(R.string.publish_error_cylinders, MAX_CILINDROS)
+            else -> null
+        }
+        "documento_tipo" -> if (tipoDocumento.isEmpty()) texto(R.string.publish_error_document_type) else null
+        "documento" -> if (tipoDocumento.isEmpty()) null
+            else errorDocumento(tipoDocumento, documentoTexto, documentoNuevo != null || documentoRuta != null)?.let { texto(it) }
+        "descripcion" -> if (descripcion.isBlank()) texto(R.string.publish_error_description) else null
+        // El precio va al final del formulario, junto con la sugerencia de autos similares.
+        "precio" -> if ((precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0) texto(R.string.publish_error_price) else null
+        // El primer campo vacío, en el mismo orden del formulario.
+        else -> ordenCampos.firstOrNull { it.first == campo }?.takeIf { !it.second }?.let { texto(it.third) }
+    }
+
+    /** Campos con validación de cada paso, en el orden del formulario (el 2 son las fotos). */
+    private fun camposDelPaso(paso: Int): List<String> = when (paso) {
+        1 -> ordenCampos.map { it.first } + listOf("documento_tipo", "documento")
+        3 -> listOf("descripcion", "precio")
+        else -> emptyList()
+    }
+
+    private fun validate(paso: Int): String? = when (paso) {
         2 -> photos.indices.filter { photos[it] == null }
             .takeIf { it.isNotEmpty() }
             ?.let { texto(R.string.publish_error_required_photos, nombresFotos(it)) }
             ?: if (fotosElegidas.size > MAX_FOTOS) texto(R.string.publish_photos_limit, MAX_FOTOS) else null
-        3 -> when {
-            descripcion.isBlank() -> texto(R.string.publish_error_description)
-            // El precio va al final del formulario, junto con la sugerencia de autos similares.
-            (precio.filter(Char::isDigit).toLongOrNull() ?: 0) <= 0 -> texto(R.string.publish_error_price)
-            else -> null
-        }
-        else -> null
+        else -> camposDelPaso(paso).firstNotNullOfOrNull { errorDe(it) }
     }
 
     // ── Publicar ─────────────────────────────────────────────────────────────

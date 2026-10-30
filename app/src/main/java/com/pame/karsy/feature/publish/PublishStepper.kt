@@ -2,6 +2,8 @@ package com.pame.karsy.feature.publish
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,11 +36,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
@@ -48,10 +58,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.rememberFilteredFieldValue
+import com.pame.karsy.core.theme.KarsyError
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -84,7 +96,7 @@ fun PublishHeader(title: String, onBack: () -> Unit) {
             text = title,
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
-            fontSize = 17.sp,
+            fontSize = KarsyTextSize.TitleLarge,
             color = KarsyInk,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -140,7 +152,7 @@ fun PublishStepper(step: Int) {
                             Text(
                                 text = num.toString(),
                                 fontFamily = DmSans,
-                                fontSize = 11.sp,
+                                fontSize = KarsyTextSize.Caption,
                                 fontWeight = FontWeight.Bold,
                                 color = if (active) KarsyWhite else KarsyMid
                             )
@@ -149,7 +161,7 @@ fun PublishStepper(step: Int) {
                     Text(
                         text = label,
                         fontFamily = DmSans,
-                        fontSize = 10.sp,
+                        fontSize = KarsyTextSize.Tiny,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                         color = if (inactive) KarsyMid else KarsyInk,
                         maxLines = 1,
@@ -182,7 +194,7 @@ fun FieldLabel(text: String) {
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.05.em,
         color = KarsyMid,
@@ -196,10 +208,60 @@ fun SectionTitle(text: String) {
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 12.sp,
+        fontSize = KarsyTextSize.Small,
         fontWeight = FontWeight.Bold,
         color = KarsyInk
     )
+}
+
+/** true dentro de un [PublishField] con error: los campos pintan su borde en rojo. */
+internal val LocalCampoConError = compositionLocalOf { false }
+
+/**
+ * Campo del formulario con validación ([PublishViewModel.errorDe]): muestra su error debajo
+ * cuando se toca Siguiente o, con [marcarAlSalir], al salir del campo; se quita en cuanto se
+ * corrige. Siguiente trae a la vista el primer campo con error.
+ */
+@Composable
+fun PublishField(
+    form: PublishViewModel,
+    campo: String,
+    modifier: Modifier = Modifier,
+    /** Validar al perder el foco (campos de texto). */
+    marcarAlSalir: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val mensaje = if (campo in form.camposMarcados) form.errorDe(campo) else null
+    val enVista = remember { BringIntoViewRequester() }
+    LaunchedEffect(form.enfoqueSignal) {
+        if (form.enfoqueSignal > 0 && form.campoAEnfocar == campo) enVista.bringIntoView()
+    }
+    var tuvoFoco by remember { mutableStateOf(false) }
+    Column(
+        modifier
+            .bringIntoViewRequester(enVista)
+            .then(
+                if (marcarAlSalir) Modifier.onFocusChanged {
+                    if (it.hasFocus) tuvoFoco = true
+                    else if (tuvoFoco) {
+                        tuvoFoco = false
+                        form.marcarCampo(campo)
+                    }
+                } else Modifier
+            )
+    ) {
+        CompositionLocalProvider(LocalCampoConError provides (mensaje != null)) { content() }
+        if (mensaje != null) {
+            Text(
+                mensaje,
+                fontFamily = DmSans,
+                fontSize = KarsyTextSize.Small,
+                fontWeight = FontWeight.SemiBold,
+                color = KarsyError,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+    }
 }
 
 /** Campo de texto del formulario de publicación. */
@@ -216,6 +278,7 @@ fun PublishTextInput(
     /** false: el campo se ve atenuado y no se puede escribir (formulario en orden). */
     enabled: Boolean = true,
 ) {
+    val conError = LocalCampoConError.current
     // Numérico: solo dígitos, también si pegan texto (sin desincronizar el teclado).
     val (fieldValue, onFieldChange) = rememberFilteredFieldValue(
         value, if (numeric) { t -> FormRules.soloDigitos(t, maxDigits) } else null, onValueChange
@@ -224,7 +287,7 @@ fun PublishTextInput(
         value = fieldValue,
         onValueChange = onFieldChange,
         singleLine = true,
-        textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal),
+        textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal),
         cursorBrush = SolidColor(KarsyInk),
         keyboardOptions = KeyboardOptions(
             keyboardType = if (numeric) KeyboardType.Number else KeyboardType.Text
@@ -235,13 +298,13 @@ fun PublishTextInput(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(background)
-                    .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
+                    .border(1.5.dp, if (conError) KarsyError else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 if (value.isEmpty()) {
-                    Text(placeholder, fontFamily = DmSans, fontSize = 14.sp, color = KarsyMid)
+                    Text(placeholder, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyMid)
                 }
                 inner()
             }
@@ -255,8 +318,8 @@ fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(3.dp, RoundedCornerShape(16.dp), ambientColor = KarsyNavy.copy(alpha = 0.2f), spotColor = KarsyNavy.copy(alpha = 0.2f))
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(3.dp, RoundedCornerShape(KarsyRadius.Lg), ambientColor = KarsyNavy.copy(alpha = 0.2f), spotColor = KarsyNavy.copy(alpha = 0.2f))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsySurface)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -271,7 +334,7 @@ fun PublishPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier =
         onClick = onClick,
         // Mientras trabaja (revisar fotos, subirlas) no se puede volver a tocar.
         enabled = !loading,
-        shape = RoundedCornerShape(50),
+        shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = KarsyNavy,
             contentColor = KarsyWhite,
@@ -285,7 +348,7 @@ fun PublishPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier =
             CircularProgressIndicator(color = KarsyWhite, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(10.dp))
         }
-        Text(text, fontFamily = Outfit, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+        Text(text, fontFamily = Outfit, fontWeight = FontWeight.SemiBold, fontSize = KarsyTextSize.Subtitle)
     }
 }
 

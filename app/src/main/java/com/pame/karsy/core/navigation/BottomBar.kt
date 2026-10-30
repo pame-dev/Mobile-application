@@ -23,6 +23,8 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Business
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -45,6 +47,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavyDeep
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Tema
@@ -98,7 +101,7 @@ fun KarsyBottomBar(
     profileMenu: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Xxl)
     Box(
         modifier
             .fillMaxWidth()
@@ -139,7 +142,8 @@ fun KarsyBottomBar(
                     active = current == BottomTab.Profile || profileMenuOpen,
                     icon = if (current == BottomTab.Profile || profileMenuOpen) Icons.Rounded.Person else Icons.Outlined.Person,
                     description = stringResource(R.string.nav_profile),
-                    onClick = { onTab(BottomTab.Profile) }
+                    onClick = { onTab(BottomTab.Profile) },
+                    menuOpen = profileMenuOpen
                 )
                 // El menú se ancla a este Box: como no cabe abajo, se abre hacia arriba.
                 Box(Modifier.align(Alignment.TopEnd)) { profileMenu() }
@@ -159,18 +163,25 @@ private fun androidx.compose.foundation.layout.RowScope.TabItem(
 ) {
     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
         val active = tab == current
-        Pill(active, if (active) activeIcon else inactiveIcon, description) { onTab(tab) }
+        Pill(active, if (active) activeIcon else inactiveIcon, description, onClick = { onTab(tab) })
     }
 }
 
 /** Ícono de pestaña; activo va dentro de una cápsula azul hielo. */
 @Composable
-private fun Pill(active: Boolean, icon: ImageVector, description: String, onClick: () -> Unit) {
+private fun Pill(
+    active: Boolean,
+    icon: ImageVector,
+    description: String,
+    onClick: () -> Unit,
+    /** La pestaña abre un menú: flechita hacia arriba (se abre hacia arriba) o abajo (abierto). */
+    menuOpen: Boolean? = null,
+) {
     Box(
         Modifier
             .width(52.dp)
             .height(36.dp)
-            .clip(RoundedCornerShape(50))
+            .clip(CircleShape)
             .background(if (active) ActivePill else Color.Transparent)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -180,5 +191,13 @@ private fun Pill(active: Boolean, icon: ImageVector, description: String, onClic
         contentAlignment = Alignment.Center
     ) {
         Icon(icon, contentDescription = description, tint = if (active) ActiveIcon else KarsyMid, modifier = Modifier.size(23.dp))
+        if (menuOpen != null) {
+            Icon(
+                if (menuOpen) Icons.Rounded.KeyboardArrowDown else Icons.Rounded.KeyboardArrowUp,
+                contentDescription = null,
+                tint = if (active) ActiveIcon else KarsyMid,
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 1.dp).size(13.dp)
+            )
+        }
     }
 }

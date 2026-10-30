@@ -2,6 +2,9 @@ package com.pame.karsy.feature.admin
 
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.remember
 import androidx.compose.animation.shrinkVertically
@@ -52,7 +55,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
@@ -182,13 +184,13 @@ fun AdminDashboardScreen(
                         .background(KarsyTealLight)
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
-                    Text(lastMessage, fontFamily = DmSans, fontSize = 13.sp, color = KarsyInk, modifier = Modifier.weight(1f))
+                    Text(lastMessage, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyInk, modifier = Modifier.weight(1f))
                     Text(
                         stringResource(R.string.admin1_close),
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         fontWeight = FontWeight.SemiBold,
-                        color = KarsyTeal,
+                        color = KarsyTealText,
                         modifier = Modifier.clickable { vm.dismissMessage() }
                     )
                 }
@@ -237,7 +239,7 @@ private fun AdminTopBar(onMenu: () -> Unit, unread: Int, onNotifications: () -> 
                 "Karsy Admin",
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 letterSpacing = 0.03.em,
                 color = KarsyInk,
                 modifier = Modifier.weight(1f)
@@ -263,9 +265,9 @@ private fun TopBarButton(icon: ImageVector, description: String, onClick: () -> 
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(KarsyBg)
-            .border(1.5.dp, KarsyBorder, RoundedCornerShape(10.dp))
+            .border(1.5.dp, KarsyBorder, RoundedCornerShape(KarsyRadius.Md))
     ) {
         IconButton(onClick = onClick) {
             Icon(icon, contentDescription = description, tint = KarsyInk, modifier = Modifier.size(19.dp))

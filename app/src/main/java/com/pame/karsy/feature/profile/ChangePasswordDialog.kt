@@ -29,7 +29,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.pame.karsy.R
@@ -37,12 +36,14 @@ import com.pame.karsy.core.components.FormInput
 import com.pame.karsy.core.components.PasswordRequirements
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTextSecondary
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -65,7 +66,7 @@ fun ChangePasswordDialog(
         onDismissRequest = { if (!saving) onDismiss() },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        val shape = RoundedCornerShape(20.dp)
+        val shape = RoundedCornerShape(KarsyRadius.Xl)
         Column(
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 24.dp)
@@ -81,13 +82,13 @@ fun ChangePasswordDialog(
                 stringResource(R.string.profile_change_password),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
+                fontSize = KarsyTextSize.Headline,
                 color = KarsyInk
             )
             Text(
                 stringResource(R.string.profile_password_desc),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 color = KarsyMid,
                 modifier = Modifier.padding(top = 6.dp, bottom = 20.dp)
             )
@@ -117,25 +118,25 @@ fun ChangePasswordDialog(
                 enabled = !saving
             )
             error?.let {
-                Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError, modifier = Modifier.padding(bottom = 12.dp))
+                Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyError, modifier = Modifier.padding(bottom = 12.dp))
             }
             Spacer(Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedButton(
                     onClick = onDismiss,
                     enabled = !saving,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     border = BorderStroke(1.5.dp, KarsyBorder),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyTextSecondary),
                     contentPadding = PaddingValues(vertical = 12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(stringResource(R.string.profile_cancel), fontFamily = DmSans, fontSize = 14.sp)
+                    Text(stringResource(R.string.profile_cancel), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge)
                 }
                 Button(
                     onClick = { onConfirm(current, new, confirm) },
                     enabled = !saving,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
                     contentPadding = PaddingValues(vertical = 12.dp),
                     modifier = Modifier.weight(2f)
@@ -144,7 +145,7 @@ fun ChangePasswordDialog(
                         stringResource(if (saving) R.string.profile_edit_saving else R.string.profile_password_save),
                         fontFamily = Outfit,
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp
+                        fontSize = KarsyTextSize.Subtitle
                     )
                 }
             }

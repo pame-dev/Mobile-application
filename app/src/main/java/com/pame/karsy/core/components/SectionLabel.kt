@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 
 /** Título de sección en mayúsculas con una línea a la derecha. */
@@ -33,7 +33,7 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
         Text(
             text = text.uppercase(),
             fontFamily = Outfit,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.Bold,
             color = KarsyInk,
             letterSpacing = 0.06.em

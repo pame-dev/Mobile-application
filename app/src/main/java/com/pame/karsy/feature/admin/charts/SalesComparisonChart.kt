@@ -11,7 +11,6 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
@@ -19,6 +18,7 @@ import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTextSize
 
 /**
  * Gráfica de barras agrupadas "Comparación de ventas": ventas vía Karsy vs. fuera de la
@@ -33,10 +33,10 @@ fun SalesComparisonChart(
     gridValues: List<Int> = listOf(0, 50, 100, 150, 200),
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val axisStyle = TextStyle(fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+    val axisStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Tiny, color = KarsyMid)
     val valueStyle = TextStyle(
         fontFamily = DmSans,
-        fontSize = 10.sp,
+        fontSize = KarsyTextSize.Tiny,
         fontWeight = FontWeight.Bold,
         color = KarsyInk
     )

@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,17 +34,22 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
+import com.pame.karsy.core.components.VerifiedBadge
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyCardOutline
 import com.pame.karsy.core.theme.KarsyNavy
-import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSecondary
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.Formato
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.EstadoAuto
 
@@ -60,7 +64,7 @@ fun VehicleCard(
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -89,9 +93,10 @@ fun VehicleCard(
                 filled = isFavorite,
                 onToggle = onToggleFavorite,
                 size = 32.dp,
+                // Zona táctil de 48dp: el padding descuenta lo que crece para que se vea igual.
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(10.dp)
+                    .padding(2.dp)
             )
         }
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 18.dp)) {
@@ -102,7 +107,7 @@ fun VehicleCard(
                         Text(
                             car.title,
                             fontFamily = Outfit,
-                            fontSize = 15.sp,
+                            fontSize = KarsyTextSize.Subtitle,
                             fontWeight = FontWeight.Bold,
                             color = KarsyInk,
                             maxLines = 1,
@@ -111,10 +116,12 @@ fun VehicleCard(
                         )
                         ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
                     }
+                    // Cuándo se publicó: ayuda a saber si el anuncio sigue vigente.
+                    val publicado = Formato.haceCuanto(car.publishedAt)
                     Text(
-                        "${car.year} · ${car.kilometraje}",
+                        listOf(car.year.toString(), car.kilometraje, publicado).filter { it.isNotBlank() }.joinToString(" · "),
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         color = KarsyMid,
                         modifier = Modifier.padding(top = 1.dp)
                     )
@@ -124,17 +131,17 @@ fun VehicleCard(
                     Text(
                         car.price,
                         fontFamily = Outfit,
-                        fontSize = 15.sp,
+                        fontSize = KarsyTextSize.Subtitle,
                         fontWeight = FontWeight.Bold,
-                        color = KarsyTeal
+                        color = KarsyTealText
                     )
-                    Text(car.currency, fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+                    Text(car.currency, fontFamily = DmSans, fontSize = KarsyTextSize.Tiny, color = KarsyMid)
                 }
             }
             Text(
                 rememberTraduccion(car.description, corto = true),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 lineHeight = 18.sp,
                 color = KarsyTextSecondary,
                 maxLines = 2,
@@ -149,8 +156,10 @@ fun VehicleCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .heightIn(min = 16.dp)
+                    // Alto de la insignia de verificado: todas las tarjetas miden lo mismo, la tengan o no.
+                    .heightIn(min = 24.dp)
             ) {
                 if (ubicacion.isNotEmpty()) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(14.dp))
@@ -158,11 +167,17 @@ fun VehicleCard(
                     Text(
                         ubicacion,
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         color = KarsyMid,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
+                }
+                // Vendedor con documento aprobado por un admin (cuentas.verificado).
+                if (car.ownerVerified) {
+                    Spacer(Modifier.weight(1f))
+                    VerifiedBadge(compact = true, modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }
@@ -175,11 +190,11 @@ internal fun EtiquetaVendido(modifier: Modifier = Modifier) {
     Text(
         stringResource(R.string.profile_status_sold),
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.Bold,
         color = KarsyWhite,
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Sm))
             .background(KarsyNavy.copy(alpha = 0.85f))
             .padding(horizontal = 8.dp, vertical = 3.dp)
     )

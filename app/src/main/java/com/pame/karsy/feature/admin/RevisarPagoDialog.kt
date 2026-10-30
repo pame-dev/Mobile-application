@@ -30,8 +30,10 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.copiarAlPortapapeles
 
@@ -68,14 +70,14 @@ internal fun RevisarPagoDialog(
             Text(
                 stringResource(R.string.admin2_pay_review_title, vehiculo),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
         },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_pay_review_sub), fontFamily = DmSans, fontSize = 13.sp, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_pay_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
                 // Se abre con el visor o navegador del teléfono (URL firmada de 10 min).
                 AdminActionButton(stringResource(R.string.admin2_pay_view_receipt), tone = ActionTone.Success, onClick = onOpenReceipt)
 
@@ -91,19 +93,19 @@ internal fun RevisarPagoDialog(
                 Text(
                     stringResource(R.string.admin2_pay_steps, amount, reference),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 19.sp,
                     color = KarsyInk,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(KarsyTealSoft)
                         .padding(12.dp)
                 )
                 CasillaRevision(monto, stringResource(R.string.admin2_pay_check_amount)) { monto = it }
                 CasillaRevision(encontrado, stringResource(R.string.admin2_pay_check_found)) { encontrado = it }
                 CasillaRevision(recibido, stringResource(R.string.admin2_pay_check_received)) { recibido = it }
-                error?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg) }
+                error?.let { Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg) }
             }
         },
         confirmButton = {
@@ -128,10 +130,10 @@ internal fun RevisarPagoDialog(
 @Composable
 private fun DatoParaCopiar(etiqueta: String, valor: String, onCopy: (String) -> Unit) {
     Column {
-        Text(etiqueta, fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AdminColors.Muted)
+        Text(etiqueta, fontFamily = DmSans, fontSize = KarsyTextSize.Small, fontWeight = FontWeight.Bold, color = AdminColors.Muted)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SelectionContainer(Modifier.weight(1f)) {
-                Text(valor, fontFamily = FontFamily.Monospace, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                Text(valor, fontFamily = FontFamily.Monospace, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.Bold, color = KarsyInk)
             }
             AdminActionButton(stringResource(R.string.admin2_curp_copy)) { onCopy(etiqueta) }
         }

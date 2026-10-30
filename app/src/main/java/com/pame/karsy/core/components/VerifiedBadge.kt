@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,9 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyVerifiedBlue
 
 /** Azul de la insignia (fondo de la píldora y palomita). */
-private val VerifiedBlue = Color(0xFF3D7FC4)
+private val VerifiedBlue = KarsyVerifiedBlue
 
 /** Escudo relleno blanco con palomita azul (mismo dibujo que .verified-badge de la web). */
 private val EscudoVerificado: ImageVector = ImageVector.Builder(
@@ -63,7 +63,7 @@ fun VerifiedBadge(modifier: Modifier = Modifier, compact: Boolean = false) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 6.dp),
         modifier = modifier
-            .clip(RoundedCornerShape(percent = 50))
+            .clip(CircleShape)
             .background(VerifiedBlue)
             .padding(
                 if (compact) PaddingValues(start = 5.dp, end = 9.dp, top = 3.dp, bottom = 3.dp)

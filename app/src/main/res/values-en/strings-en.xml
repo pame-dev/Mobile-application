@@ -634,7 +634,6 @@
     <string name="profile_title">My profile</string>
     <string name="profile_history_cd">History</string>
     <string name="profile_settings_cd">Settings</string>
-    <string name="profile_panel_admin">Admin panel</string>
     <string name="profile_panel_seller">My dashboard</string>
     <string name="profile_badge_admin">Administrator</string>
     <string name="profile_badge_lot">Lot</string>
@@ -661,6 +660,8 @@
     <string name="profile_curp_sent">We received your CURP. We\'ll review it soon.</string>
     <string name="profile_my_posts">My listings</string>
     <string name="profile_no_posts">You don\'t have any listings yet.</string>
+    <string name="profile_publish_first">List my vehicle</string>
+    <string name="core_empty_explore">Browse vehicles</string>
     <string name="profile_hidden_posts">Hidden listings (%1$d)</string>
     <string name="profile_hidden_posts_desc">They don\'t appear in My listings. Open one to show it again.</string>
     <string name="profile_stat_posts">Listings</string>

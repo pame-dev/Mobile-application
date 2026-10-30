@@ -37,9 +37,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -47,6 +47,7 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 
 /**
@@ -95,7 +96,7 @@ fun FormInput(
         Text(
             text = label,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 6.dp)
@@ -107,13 +108,13 @@ fun FormInput(
             value = fieldValue,
             onValueChange = onFieldChange,
             placeholder = {
-                Text(placeholder, fontFamily = DmSans, fontSize = 15.sp, color = KarsyMid)
+                Text(placeholder, fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyMid)
             },
             singleLine = singleLine,
             minLines = minLines,
             enabled = enabled,
             isError = error != null,
-            textStyle = TextStyle(fontFamily = DmSans, fontSize = 15.sp, color = KarsyCharcoal),
+            textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyCharcoal),
             visualTransformation = if (isPassword && !show) PasswordVisualTransformation() else visualTransformation,
             keyboardOptions = KeyboardOptions(
                 keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
@@ -133,7 +134,7 @@ fun FormInput(
                     }
                 }
             } else null,
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(KarsyRadius.Md),
             colors = karsyTextFieldColors(),
             modifier = Modifier
                 .fillMaxWidth()
@@ -147,7 +148,7 @@ fun FormInput(
             Text(
                 "${text.length}/$maxChars",
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 color = if (text.length >= maxChars) KarsyError else KarsyMid,
                 modifier = Modifier.align(Alignment.End).padding(top = 4.dp, end = 4.dp)
             )
@@ -156,7 +157,7 @@ fun FormInput(
             Text(
                 text = error,
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyError,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
             )

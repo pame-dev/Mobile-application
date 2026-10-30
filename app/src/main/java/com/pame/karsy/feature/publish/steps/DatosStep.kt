@@ -57,6 +57,8 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -71,6 +73,8 @@ import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.feature.publish.FieldLabel
+import com.pame.karsy.feature.publish.LocalCampoConError
+import com.pame.karsy.feature.publish.PublishField
 import com.pame.karsy.feature.publish.PublishStepScaffold
 import com.pame.karsy.feature.publish.PublishTextInput
 import com.pame.karsy.feature.publish.PublishViewModel
@@ -122,14 +126,14 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         Text(
             stringResource(R.string.publish_fill_in_order),
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             color = KarsyMid
         )
 
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_vehicle_info))
 
-            Column {
+            PublishField(form, "marca") {
                 FieldLabel(stringResource(R.string.publish_label_brand))
                 CatalogDropdown(
                     value = catalogs?.marcas?.firstOrNull { it.id == form.idMarca }?.nombre.orEmpty(),
@@ -143,7 +147,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "modelo") {
                 FieldLabel(stringResource(R.string.publish_label_model))
                 CatalogDropdown(
                     value = catalogs?.modelos?.firstOrNull { it.id == form.idModelo }?.nombre.orEmpty(),
@@ -159,7 +163,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             }
 
             // El precio va al final del formulario (paso Detalles), con la sugerencia de precio.
-            Column {
+            PublishField(form, "anio") {
                 FieldLabel(stringResource(R.string.publish_label_year))
                 // Del año que viene hacia atrás, hasta ANIO_MIN.
                 val anioMax = Calendar.getInstance().get(Calendar.YEAR) + 1
@@ -173,7 +177,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 )
             }
 
-            Column {
+            PublishField(form, "transmision") {
                 FieldLabel(stringResource(R.string.publish_label_transmission))
                 FlowRow(
                     modifier = Modifier.alpha(if (activo("transmision")) 1f else 0.5f),
@@ -184,9 +188,9 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                         val selected = form.idTransmision == t.id
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(KarsyRadius.Md))
                                 .background(if (selected) KarsyNavy else KarsyBg)
-                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
+                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                                 .clickable(enabled = activo("transmision")) { form.idTransmision = t.id }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             contentAlignment = Alignment.Center
@@ -194,7 +198,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                             Text(
                                 t.nombre,
                                 fontFamily = DmSans,
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (selected) KarsyWhite else KarsyMid
                             )
@@ -203,7 +207,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "kilometraje", marcarAlSalir = true) {
                 FieldLabel(stringResource(R.string.publish_label_mileage))
                 PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18500", numeric = true, maxDigits = 7, enabled = activo("kilometraje"))
             }
@@ -212,7 +216,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_classification))
 
-            Column {
+            PublishField(form, "carroceria") {
                 FieldLabel(stringResource(R.string.publish_label_body_type))
                 FlowRow(
                     modifier = Modifier.alpha(if (activo("carroceria")) 1f else 0.5f),
@@ -224,13 +228,13 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                         Text(
                             text = t.nombre,
                             fontFamily = DmSans,
-                            fontSize = 12.sp,
+                            fontSize = KarsyTextSize.Small,
                             fontWeight = FontWeight.SemiBold,
                             color = if (selected) KarsyWhite else KarsyMid,
                             modifier = Modifier
-                                .clip(RoundedCornerShape(50))
+                                .clip(CircleShape)
                                 .background(if (selected) KarsyNavy else KarsyBg)
-                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(50))
+                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, CircleShape)
                                 .clickable(enabled = activo("carroceria")) { form.idCarroceria = t.id }
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         )
@@ -238,7 +242,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "color") {
                 FieldLabel(stringResource(R.string.publish_label_color))
                 FlowRow(
                     modifier = Modifier
@@ -259,7 +263,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "duenos") {
                 FieldLabel(stringResource(R.string.publish_label_previous_owners))
                 val max = PublishViewModel.DUENOS_MAX
                 val masDe = stringResource(R.string.publish_owners_or_more, max)
@@ -272,7 +276,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 )
             }
 
-            Column {
+            PublishField(form, "condicion") {
                 FieldLabel(stringResource(R.string.publish_label_condition))
                 OpcionesSeleccion(
                     opciones = PublishViewModel.CONDICIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) },
@@ -286,7 +290,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_additional_info))
 
-            Column {
+            PublishField(form, "combustible") {
                 FieldLabel(stringResource(R.string.publish_label_fuel))
                 val combustibles = PublishViewModel.COMBUSTIBLES
                 CatalogDropdown(
@@ -301,7 +305,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             // Un eléctrico no lleva cilindros, litros ni aspiración.
             val electrico = form.esElectrico
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
+                PublishField(form, "cilindros", Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_cylinders))
                     CatalogDropdown(
                         value = form.cilindros,
@@ -311,7 +315,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                         enabled = !electrico && activo("cilindros")
                     )
                 }
-                Column(Modifier.weight(1f)) {
+                PublishField(form, "litros", Modifier.weight(1f), marcarAlSalir = true) {
                     FieldLabel(stringResource(R.string.publish_label_engine_liters))
                     PublishTextInput(
                         form.litros,
@@ -324,7 +328,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
+                PublishField(form, "aspiracion", Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_aspiration))
                     val aspiraciones = PublishViewModel.ASPIRACIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) }
                     CatalogDropdown(
@@ -354,9 +358,9 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                         val selected = form.recuperadoPorSeguro == valor
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(KarsyRadius.Md))
                                 .background(if (selected) KarsyNavy else KarsyBg)
-                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
+                                .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                                 .clickable(enabled = activo("recuperado")) { form.recuperadoPorSeguro = valor }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             contentAlignment = Alignment.Center
@@ -364,7 +368,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                             Text(
                                 etiqueta,
                                 fontFamily = DmSans,
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (selected) KarsyWhite else KarsyMid
                             )
@@ -400,9 +404,9 @@ private fun <T> OpcionesSeleccion(opciones: List<Pair<T, String>>, seleccionado:
             val selected = seleccionado == valor
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(if (selected) KarsyNavy else KarsyBg)
-                    .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(12.dp))
+                    .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                     .clickable(enabled = enabled) { onSelect(valor) }
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 contentAlignment = Alignment.Center
@@ -410,7 +414,7 @@ private fun <T> OpcionesSeleccion(opciones: List<Pair<T, String>>, seleccionado:
                 Text(
                     etiqueta,
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     fontWeight = FontWeight.SemiBold,
                     color = if (selected) KarsyWhite else KarsyMid
                 )
@@ -442,12 +446,12 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
         Text(
             stringResource(R.string.publish_document_hint),
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             lineHeight = 17.sp,
             color = KarsyMid
         )
 
-        Column {
+        PublishField(form, "documento_tipo") {
             FieldLabel(stringResource(R.string.publish_label_document_type))
             CatalogDropdown(
                 value = tipos.firstOrNull { it.first == form.tipoDocumento }?.second.orEmpty(),
@@ -459,7 +463,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
         }
 
         when {
-            form.tipoDocumento == "vin" || form.tipoDocumento == "placa" -> Column {
+            form.tipoDocumento == "vin" || form.tipoDocumento == "placa" -> PublishField(form, "documento", marcarAlSalir = true) {
                 val esVin = form.tipoDocumento == "vin"
                 FieldLabel(stringResource(if (esVin) R.string.publish_label_vin else R.string.publish_label_plate))
                 PublishTextInput(
@@ -469,9 +473,9 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
                     enabled = enabled
                 )
             }
-            form.documentoEsFoto -> Column {
+            form.documentoEsFoto -> PublishField(form, "documento") {
                 FieldLabel(stringResource(R.string.publish_label_document_photo))
-                val shape = RoundedCornerShape(12.dp)
+                val shape = RoundedCornerShape(KarsyRadius.Md)
                 // Foto con vista previa; PDF con su nombre. Sin archivo: invita a elegir uno.
                 val imagen = form.documentoArchivo.takeIf { !form.documentoEsPdf }
                 val conArchivo = imagen != null || form.documentoEsPdf
@@ -503,7 +507,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
                             Text(
                                 form.documentoNombre,
                                 fontFamily = DmSans,
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 fontWeight = FontWeight.SemiBold,
                                 color = KarsyCharcoal,
                                 maxLines = 1,
@@ -516,7 +520,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier
                             .then(if (conArchivo) Modifier.align(Alignment.BottomCenter).padding(10.dp) else Modifier)
-                            .clip(RoundedCornerShape(50))
+                            .clip(CircleShape)
                             .background(if (conArchivo) KarsyNavy else Color.Transparent)
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
@@ -529,7 +533,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
                         Text(
                             stringResource(if (conArchivo) R.string.publish_change_document_photo else R.string.publish_add_document_photo),
                             fontFamily = DmSans,
-                            fontSize = 13.sp,
+                            fontSize = KarsyTextSize.Body,
                             fontWeight = FontWeight.SemiBold,
                             color = if (conArchivo) KarsyWhite else KarsyMid
                         )
@@ -538,7 +542,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
                 Text(
                     form.documentoError ?: stringResource(R.string.publish_document_file_hint, Constancia.MAX_MB),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = if (form.documentoError != null) KarsyError else KarsyMid,
                     modifier = Modifier.padding(top = 6.dp, start = 4.dp)
                 )
@@ -554,21 +558,21 @@ private fun RejectedNotice(reason: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(KarsyErrorLight)
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Text(
             stringResource(R.string.publish_edit_rejected_title),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.Bold,
             color = KarsyError
         )
         Text(
             rememberTraduccion(reason),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             lineHeight = 18.sp,
             color = KarsyCharcoal,
             modifier = Modifier.padding(top = 4.dp)
@@ -582,12 +586,12 @@ private fun DuplicateNotice() {
     Text(
         stringResource(R.string.publish_duplicating),
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         lineHeight = 18.sp,
         color = KarsyCharcoal,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(KarsyTealSoft)
             .padding(horizontal = 14.dp, vertical = 12.dp)
     )
@@ -598,12 +602,12 @@ internal fun StepError(message: String) {
     Text(
         message,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         fontWeight = FontWeight.SemiBold,
         color = KarsyError,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(KarsyErrorLight)
             .padding(horizontal = 14.dp, vertical = 10.dp)
     )
@@ -627,6 +631,7 @@ private fun CatalogDropdown(
     selectedId: Long? = null,
 ) {
     val activo = enabled && options.isNotEmpty()
+    val conError = LocalCampoConError.current
     var expanded by remember { mutableStateOf(false) }
     val enVista = remember { BringIntoViewRequester() }
     var alto by remember { mutableStateOf(0) }
@@ -642,9 +647,9 @@ private fun CatalogDropdown(
                 .bringIntoViewRequester(enVista)
                 .onSizeChanged { alto = it.height }
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Md))
                 .background(KarsyBg)
-                .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
+                .border(1.5.dp, if (conError) KarsyError else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                 .alpha(if (enabled) 1f else 0.5f)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -652,7 +657,7 @@ private fun CatalogDropdown(
             Text(
                 text = value.ifEmpty { placeholder },
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 color = if (value.isNotEmpty()) KarsyCharcoal else KarsyMid,
                 modifier = Modifier.weight(1f)
             )
@@ -676,7 +681,7 @@ private fun CatalogDropdown(
                         Text(
                             nombre,
                             fontFamily = DmSans,
-                            fontSize = 14.sp,
+                            fontSize = KarsyTextSize.BodyLarge,
                             fontWeight = if (elegido) FontWeight.SemiBold else FontWeight.Normal,
                             color = if (elegido) KarsyTeal else KarsyCharcoal
                         )
@@ -701,7 +706,7 @@ private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Sm))
             .clickable(enabled = enabled, onClick = onClick)
     ) {
         Box(
@@ -725,7 +730,7 @@ private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: 
         Text(
             text = name,
             fontFamily = DmSans,
-            fontSize = 9.sp,
+            fontSize = KarsyTextSize.Tiny,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             color = if (selected) KarsyInk else KarsyMid,
             textAlign = TextAlign.Center

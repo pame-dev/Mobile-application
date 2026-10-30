@@ -8,6 +8,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 
+/**
+ * Escala de tamaños de letra de la app. Usar siempre estos valores en lugar de escribir
+ * `N.sp` a mano, para que los textos se vean parejos entre pantallas.
+ */
+object KarsyTextSize {
+    val Tiny = 10.sp
+    val Caption = 11.sp
+    val Small = 12.sp
+    val Body = 13.sp
+    val BodyLarge = 14.sp
+    val Subtitle = 15.sp
+    val Title = 16.sp
+    val TitleLarge = 18.sp
+    val Headline = 20.sp
+    val HeadlineLarge = 22.sp
+    val Display = 24.sp
+    val DisplayLarge = 28.sp
+    val Hero = 32.sp
+}
+
 val Outfit = FontFamily(
     Font(R.font.outfit_regular, FontWeight.Normal),
     Font(R.font.outfit_medium, FontWeight.Medium),
@@ -24,31 +44,31 @@ val KarsyTypography = Typography(
     headlineLarge = TextStyle(
         fontFamily = Outfit,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 28.sp
+        fontSize = KarsyTextSize.DisplayLarge
     ),
     titleLarge = TextStyle(
         fontFamily = Outfit,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp
+        fontSize = KarsyTextSize.Headline
     ),
     titleMedium = TextStyle(
         fontFamily = Outfit,
         fontWeight = FontWeight.Medium,
-        fontSize = 16.sp
+        fontSize = KarsyTextSize.Title
     ),
     bodyLarge = TextStyle(
         fontFamily = DmSans,
         fontWeight = FontWeight.Normal,
-        fontSize = 15.sp
+        fontSize = KarsyTextSize.Subtitle
     ),
     bodyMedium = TextStyle(
         fontFamily = DmSans,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.sp
+        fontSize = KarsyTextSize.Body
     ),
     labelLarge = TextStyle(
         fontFamily = DmSans,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 13.sp
+        fontSize = KarsyTextSize.Body
     )
 )

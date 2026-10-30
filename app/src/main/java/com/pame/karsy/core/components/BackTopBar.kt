@@ -21,10 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -47,7 +47,7 @@ fun BackTopBar(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         KarsyBackButton(onClick = onBack)
-        KarsyBrand(logoSize = 38.dp, fontSize = 20.sp, color = logoColor)
+        KarsyBrand(logoSize = 38.dp, fontSize = KarsyTextSize.Headline, color = logoColor)
         Spacer(Modifier.width(30.dp))
     }
 }
@@ -89,7 +89,7 @@ fun SubHeader(
                 text = title,
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 color = KarsyInk,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

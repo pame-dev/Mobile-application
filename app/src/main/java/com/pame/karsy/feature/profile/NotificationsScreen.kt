@@ -62,6 +62,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.KarsyAmber
+import com.pame.karsy.core.theme.KarsyAmberSoft
+import com.pame.karsy.core.theme.KarsyBlue
+import com.pame.karsy.core.theme.KarsyBlueSoft
+import com.pame.karsy.core.theme.KarsyGreen
+import com.pame.karsy.core.theme.KarsyGreenSoft
+import com.pame.karsy.core.theme.KarsyPurple
+import com.pame.karsy.core.theme.KarsyPurpleSoft
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyRed
+import com.pame.karsy.core.theme.KarsyRedSoft
+import com.pame.karsy.core.theme.KarsySlate
+import com.pame.karsy.core.theme.KarsySlateSoft
+import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -88,28 +103,28 @@ import com.pame.karsy.data.repository.NotificationRepository
 private data class NotifStyle(val icon: ImageVector, val color: Color, val bg: Color)
 
 private fun styleFor(tipo: String): NotifStyle = when (tipo) {
-    "favorito" -> NotifStyle(Icons.Rounded.Favorite, Color(0xFFEF4444), Color(0xFFFEF2F2))
-    "propuesta_enviada" -> NotifStyle(Icons.Rounded.HourglassTop, Color(0xFFD97706), Color(0xFFFFFBEB))
+    "favorito" -> NotifStyle(Icons.Rounded.Favorite, KarsyRed, KarsyRedSoft)
+    "propuesta_enviada" -> NotifStyle(Icons.Rounded.HourglassTop, KarsyAmber, KarsyAmberSoft)
     "publicacion_aprobada", "edicion_aprobada", "publicacion_rehabilitada" ->
-        NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4))
-    "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, Color(0xFF8B5CF6), Color(0xFFF5F3FF))
-    "destacado_por_vencer" -> NotifStyle(Icons.Rounded.Star, Color(0xFFD97706), Color(0xFFFFFBEB))
-    "pago_destacado" -> NotifStyle(Icons.Rounded.Payments, Color(0xFFD97706), Color(0xFFFFFBEB))
-    "publicacion_rechazada", "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2))
-    "publicacion_deshabilitada", "cuenta_suspendida" -> NotifStyle(Icons.Rounded.Block, Color(0xFFDC2626), Color(0xFFFEF2F2))
-    "cuenta_reactivada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4))
-    "verificacion_pendiente" -> NotifStyle(Icons.Rounded.VerifiedUser, Color(0xFFD97706), Color(0xFFFFFBEB))
-    "verificacion_aprobada" -> NotifStyle(Icons.Rounded.VerifiedUser, Color(0xFF16A34A), Color(0xFFF0FDF4))
-    "verificacion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2))
-    "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, Color(0xFFD97706), Color(0xFFFFFBEB))
-    "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, Color(0xFF2563EB), Color(0xFFEFF6FF))
+        NotifStyle(Icons.Rounded.CheckCircle, KarsyGreen, KarsyGreenSoft)
+    "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, KarsyPurple, KarsyPurpleSoft)
+    "destacado_por_vencer" -> NotifStyle(Icons.Rounded.Star, KarsyAmber, KarsyAmberSoft)
+    "pago_destacado" -> NotifStyle(Icons.Rounded.Payments, KarsyAmber, KarsyAmberSoft)
+    "publicacion_rechazada", "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, KarsyRed, KarsyRedSoft)
+    "publicacion_deshabilitada", "cuenta_suspendida" -> NotifStyle(Icons.Rounded.Block, KarsyRed, KarsyRedSoft)
+    "cuenta_reactivada" -> NotifStyle(Icons.Rounded.CheckCircle, KarsyGreen, KarsyGreenSoft)
+    "verificacion_pendiente" -> NotifStyle(Icons.Rounded.VerifiedUser, KarsyAmber, KarsyAmberSoft)
+    "verificacion_aprobada" -> NotifStyle(Icons.Rounded.VerifiedUser, KarsyGreen, KarsyGreenSoft)
+    "verificacion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, KarsyRed, KarsyRedSoft)
+    "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, KarsyAmber, KarsyAmberSoft)
+    "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, KarsyBlue, KarsyBlueSoft)
     "reporte_descartado" -> NotifStyle(Icons.Rounded.Flag, KarsyTeal, KarsyBg)
-    "busqueda_coincidencia" -> NotifStyle(Icons.Rounded.NotificationsActive, KarsyTeal, Color(0xFFE6F6F6))
-    "precio_bajo" -> NotifStyle(Icons.Rounded.TrendingDown, Color(0xFF16A34A), Color(0xFFF0FDF4))
-    "favorito_no_disponible" -> NotifStyle(Icons.Rounded.HeartBroken, Color(0xFF64748B), Color(0xFFF1F5F9))
-    "resumen_semanal", "auto_parecido" -> NotifStyle(Icons.Rounded.DirectionsCar, KarsyTeal, Color(0xFFE6F6F6))
-    "resumen_vendedor", "hito_vistas" -> NotifStyle(Icons.Rounded.Insights, Color(0xFF8B5CF6), Color(0xFFF5F3FF))
-    "poca_actividad", "confirmar_venta" -> NotifStyle(Icons.Rounded.Sell, Color(0xFFD97706), Color(0xFFFFFBEB))
+    "busqueda_coincidencia" -> NotifStyle(Icons.Rounded.NotificationsActive, KarsyTeal, KarsyTealSoft)
+    "precio_bajo" -> NotifStyle(Icons.Rounded.TrendingDown, KarsyGreen, KarsyGreenSoft)
+    "favorito_no_disponible" -> NotifStyle(Icons.Rounded.HeartBroken, KarsySlate, KarsySlateSoft)
+    "resumen_semanal", "auto_parecido" -> NotifStyle(Icons.Rounded.DirectionsCar, KarsyTeal, KarsyTealSoft)
+    "resumen_vendedor", "hito_vistas" -> NotifStyle(Icons.Rounded.Insights, KarsyPurple, KarsyPurpleSoft)
+    "poca_actividad", "confirmar_venta" -> NotifStyle(Icons.Rounded.Sell, KarsyAmber, KarsyAmberSoft)
     else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg)
 }
 
@@ -176,7 +191,7 @@ fun NotificationsScreen(
                         Text(
                             stringResource(R.string.notif_empty),
                             fontFamily = DmSans,
-                            fontSize = 14.sp,
+                            fontSize = KarsyTextSize.BodyLarge,
                             color = KarsyMid,
                             modifier = Modifier.padding(20.dp)
                         )
@@ -215,9 +230,9 @@ private fun NotificationRow(n: NotificacionDto, onOpen: (() -> Unit)?) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(karsyTint(style.color, style.bg))
-            .then(if (n.leida) Modifier else Modifier.border(1.dp, style.color.copy(alpha = 0.35f), RoundedCornerShape(10.dp)))
+            .then(if (n.leida) Modifier else Modifier.border(1.dp, style.color.copy(alpha = 0.35f), RoundedCornerShape(KarsyRadius.Md)))
             .clickable(enabled = onOpen != null) { onOpen?.invoke() }
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
@@ -225,7 +240,7 @@ private fun NotificationRow(n: NotificacionDto, onOpen: (() -> Unit)?) {
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(30.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Sm))
                 .background(KarsySurface)
         ) {
             Icon(style.icon, contentDescription = null, tint = style.color, modifier = Modifier.size(16.dp))
@@ -235,7 +250,7 @@ private fun NotificationRow(n: NotificacionDto, onOpen: (() -> Unit)?) {
             Text(
                 notificationText(LocalContext.current, n.tipo, vehiculo, datosDeAviso(n.datos)),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 fontWeight = if (n.leida) FontWeight.Medium else FontWeight.SemiBold,
                 lineHeight = 17.sp,
                 color = KarsyCharcoal
@@ -246,7 +261,7 @@ private fun NotificationRow(n: NotificacionDto, onOpen: (() -> Unit)?) {
                 Text(
                     stringResource(R.string.notif_reason, rememberTraduccion(motivo)),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     lineHeight = 17.sp,
                     color = style.color
                 )
@@ -255,7 +270,7 @@ private fun NotificationRow(n: NotificacionDto, onOpen: (() -> Unit)?) {
             Text(
                 Formato.haceCuanto(n.fecha),
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 color = KarsyMid
             )
         }
@@ -293,12 +308,12 @@ private fun PreferencesRow(onPreferences: () -> Unit) {
                         }
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
-                    Icon(Icons.Rounded.NotificationsOff, contentDescription = null, tint = Color(0xFFD97706), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Rounded.NotificationsOff, contentDescription = null, tint = KarsyAmber, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Text(
                         stringResource(R.string.notif_prefs_system_off),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         lineHeight = 18.sp,
                         color = KarsyCharcoal,
                         modifier = Modifier.weight(1f)
@@ -318,7 +333,7 @@ private fun PreferencesRow(onPreferences: () -> Unit) {
                 Text(
                     stringResource(R.string.notif_prefs_title),
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = KarsyCharcoal,
                     modifier = Modifier.weight(1f)

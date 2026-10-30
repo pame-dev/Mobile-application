@@ -39,9 +39,11 @@ import androidx.core.net.toUri
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWarningLight
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.remote.DocumentoVehiculoDto
@@ -85,26 +87,26 @@ internal fun RevisarRepuveDialog(
             Text(
                 stringResource(R.string.admin2_repuve_title, "${vehicle.name} ${vehicle.year}"),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
         },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_repuve_sub), fontFamily = DmSans, fontSize = 13.sp, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_repuve_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
                 if (!loaded) {
                     LinearProgressIndicator(color = KarsyTeal, modifier = Modifier.fillMaxWidth())
                 } else if (document == null) {
                     Text(
                         stringResource(R.string.admin2_repuve_no_document),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         lineHeight = 19.sp,
                         color = KarsyInk,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Md))
                             .background(KarsyWarningLight)
                             .padding(12.dp)
                     )
@@ -112,12 +114,12 @@ internal fun RevisarRepuveDialog(
                     Text(
                         stringResource(if (escrito) R.string.admin2_repuve_steps_copy else R.string.admin2_repuve_steps_file),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         lineHeight = 19.sp,
                         color = KarsyInk,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Md))
                             .background(KarsyTealSoft)
                             .padding(12.dp)
                     )
@@ -125,12 +127,12 @@ internal fun RevisarRepuveDialog(
                         Text(
                             stringResource(if (document.tipo == "vin") R.string.publish_label_vin else R.string.publish_doc_plate),
                             fontFamily = DmSans,
-                            fontSize = 12.sp,
+                            fontSize = KarsyTextSize.Small,
                             fontWeight = FontWeight.Bold,
                             color = AdminColors.Muted
                         )
                         SelectionContainer {
-                            Text(document.valor, fontFamily = FontFamily.Monospace, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                            Text(document.valor, fontFamily = FontFamily.Monospace, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -159,7 +161,7 @@ internal fun RevisarRepuveDialog(
                         }
                     }
                 }
-                Text(stringResource(R.string.admin2_repuve_listing_data), fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AdminColors.Muted)
+                Text(stringResource(R.string.admin2_repuve_listing_data), fontFamily = DmSans, fontSize = KarsyTextSize.Small, fontWeight = FontWeight.Bold, color = AdminColors.Muted)
                 AdminField(stringResource(R.string.admin2_repuve_vehicle), vehicle.name)
                 AdminField(stringResource(R.string.admin2_repuve_year), vehicle.year.toString())
                 if (loaded && document == null) {
@@ -168,7 +170,7 @@ internal fun RevisarRepuveDialog(
                     CasillaRevision(coincide, stringResource(R.string.admin2_repuve_check_match)) { coincide = it }
                     CasillaRevision(sinRobo, stringResource(R.string.admin2_repuve_check_no_theft)) { sinRobo = it }
                 }
-                error?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg) }
+                error?.let { Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg) }
             }
         },
         confirmButton = {

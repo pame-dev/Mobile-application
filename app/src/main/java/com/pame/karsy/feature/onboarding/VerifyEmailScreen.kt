@@ -40,6 +40,7 @@ import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.Formato
 
@@ -88,7 +89,7 @@ fun VerifyEmailScreen(
                 stringResource(R.string.auth_verify_email_title),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 25.sp,
+                fontSize = KarsyTextSize.Display,
                 lineHeight = 30.sp,
                 color = KarsyInk,
                 textAlign = TextAlign.Center
@@ -97,7 +98,7 @@ fun VerifyEmailScreen(
             Text(
                 stringResource(R.string.auth_verify_email_subtitle, EMAIL_CODE_LENGTH, Formato.correoOculto(email) ?: email),
                 fontFamily = DmSans,
-                fontSize = 13.5.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 lineHeight = 21.sp,
                 color = KarsyMid,
                 textAlign = TextAlign.Center
@@ -121,7 +122,7 @@ fun VerifyEmailScreen(
                 Text(
                     it,
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     color = KarsyError,
                     textAlign = TextAlign.Center,
                     modifier = Modifier

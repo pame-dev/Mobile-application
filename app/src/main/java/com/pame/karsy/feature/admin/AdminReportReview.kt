@@ -41,11 +41,13 @@ import com.pame.karsy.R
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -59,9 +61,9 @@ fun ReportReviewNotice(report: AdminReport) {
         Modifier
             .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(BadgeTone.Danger.bg)
-            .border(1.dp, BadgeTone.Danger.fg.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
+            .border(1.dp, BadgeTone.Danger.fg.copy(alpha = 0.25f), RoundedCornerShape(KarsyRadius.Lg))
             .padding(14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -70,18 +72,18 @@ fun ReportReviewNotice(report: AdminReport) {
             Text(
                 stringResource(R.string.admin2_report_number, report.id.toString().padStart(4, '0')),
                 fontFamily = Outfit,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = BadgeTone.Danger.fg,
                 modifier = Modifier.weight(1f)
             )
-            Text(report.date, fontFamily = DmSans, fontSize = 11.sp, color = AdminColors.NeutralText)
+            Text(report.date, fontFamily = DmSans, fontSize = KarsyTextSize.Caption, color = AdminColors.NeutralText)
         }
         Spacer(Modifier.height(8.dp))
         Text(
             "${stringResource(R.string.admin2_reported_by)}: ${report.reporter}",
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             fontWeight = FontWeight.SemiBold,
             color = KarsyCharcoal
         )
@@ -89,7 +91,7 @@ fun ReportReviewNotice(report: AdminReport) {
         Text(
             "${stringResource(R.string.admin2_reason)}: ${rememberTraduccion(report.reason)}",
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             lineHeight = 17.sp,
             color = KarsyCharcoal
         )
@@ -117,7 +119,7 @@ fun ReportReviewBar(vm: AdminViewModel, report: AdminReport, onDone: () -> Unit)
                 .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
         ) {
             if (acted && dialog == null && !vm.working) vm.message?.let {
-                Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg)
+                Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 AdminSheetButton(
@@ -218,7 +220,7 @@ fun AdminReasonDialog(
             Text(
                 stringResource(texts.title),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
@@ -228,7 +230,7 @@ fun AdminReasonDialog(
                 Text(
                     stringResource(texts.description),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 18.sp,
                     color = AdminColors.NeutralText
                 )
@@ -237,13 +239,13 @@ fun AdminReasonDialog(
                     value = reason,
                     onValueChange = { if (it.length <= 500) reason = it },
                     placeholder = {
-                        Text(stringResource(texts.hint), fontFamily = DmSans, fontSize = 13.sp)
+                        Text(stringResource(texts.hint), fontFamily = DmSans, fontSize = KarsyTextSize.Body)
                     },
-                    textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, color = KarsyCharcoal),
+                    textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyCharcoal),
                     enabled = !working,
                     minLines = 3,
                     maxLines = 6,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = KarsyNavy,
                         unfocusedBorderColor = KarsyBorder,
@@ -255,12 +257,12 @@ fun AdminReasonDialog(
                     if (valid) stringResource(R.string.admin2_disable_dialog_count, length)
                     else stringResource(R.string.admin2_disable_dialog_min, MIN_ADMIN_REASON, length),
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     color = if (valid) AdminColors.Muted else BadgeTone.Warning.fg
                 )
                 error?.let {
                     Spacer(Modifier.height(6.dp))
-                    Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg)
+                    Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg)
                 }
             }
         },

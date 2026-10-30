@@ -23,12 +23,12 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 
 @Composable
 /**
@@ -103,7 +103,7 @@ fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialSt
                                 Text(
                                     vehicle.name,
                                     fontFamily = DmSans,
-                                    fontSize = 14.sp,
+                                    fontSize = KarsyTextSize.BodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = KarsyInk
                                 )
@@ -111,7 +111,7 @@ fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialSt
                                 Text(
                                     "${vehicle.year} · ${vehicle.price}",
                                     fontFamily = DmSans,
-                                    fontSize = 12.sp,
+                                    fontSize = KarsyTextSize.Small,
                                     color = AdminColors.TableText
                                 )
                             }

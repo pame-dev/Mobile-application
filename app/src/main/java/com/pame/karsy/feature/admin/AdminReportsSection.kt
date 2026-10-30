@@ -31,6 +31,7 @@ import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.core.theme.Outfit
 
@@ -104,7 +105,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
                                 Text(
                                     if (isAccount) report.ownerName.orEmpty() else report.target,
                                     fontFamily = DmSans,
-                                    fontSize = 14.sp,
+                                    fontSize = KarsyTextSize.BodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = KarsyInk
                                 )
@@ -112,7 +113,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
                                 Text(
                                     rememberTraduccion(report.reason, corto = true),
                                     fontFamily = DmSans,
-                                    fontSize = 12.sp,
+                                    fontSize = KarsyTextSize.Small,
                                     color = AdminColors.TableText,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis

@@ -56,8 +56,10 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 
 /** Tamaños de los campos: como FormInput (registro) o como los de Editar perfil. */
@@ -172,7 +174,7 @@ private fun PickerField(
             Text(
                 value.ifBlank { placeholder },
                 fontFamily = DmSans,
-                fontSize = 15.sp,
+                fontSize = KarsyTextSize.Subtitle,
                 color = if (value.isBlank()) KarsyMid else KarsyCharcoal,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -181,7 +183,7 @@ private fun PickerField(
             Icon(Icons.Rounded.ExpandMore, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(22.dp))
         }
         if (error != null) {
-            Text(error, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+            Text(error, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyError, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
         }
     }
 }
@@ -204,19 +206,19 @@ private fun SearchPickerSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = KarsySurface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = KarsyRadius.Xl, topEnd = KarsyRadius.Xl),
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).imePadding()) {
-            Text(title, fontFamily = Outfit, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+            Text(title, fontFamily = Outfit, fontSize = KarsyTextSize.Headline, fontWeight = FontWeight.Bold, color = KarsyInk)
             Spacer(Modifier.size(12.dp))
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
                 singleLine = true,
-                placeholder = { Text(stringResource(R.string.location_search), fontFamily = DmSans, fontSize = 15.sp, color = KarsyMid) },
+                placeholder = { Text(stringResource(R.string.location_search), fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyMid) },
                 leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = KarsyMid) },
-                textStyle = TextStyle(fontFamily = DmSans, fontSize = 15.sp, color = KarsyCharcoal),
-                shape = RoundedCornerShape(12.dp),
+                textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyCharcoal),
+                shape = RoundedCornerShape(KarsyRadius.Md),
                 colors = karsyTextFieldColors(),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -225,7 +227,7 @@ private fun SearchPickerSheet(
                 Text(
                     stringResource(R.string.location_no_results),
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     color = KarsyMid,
                     modifier = Modifier.padding(vertical = 24.dp)
                 )
@@ -242,7 +244,7 @@ private fun SearchPickerSheet(
                         Text(
                             option,
                             fontFamily = DmSans,
-                            fontSize = 15.sp,
+                            fontSize = KarsyTextSize.Subtitle,
                             fontWeight = if (option == selected) FontWeight.Bold else FontWeight.Normal,
                             color = if (option == selected) KarsyTeal else KarsyCharcoal,
                             modifier = Modifier.weight(1f)

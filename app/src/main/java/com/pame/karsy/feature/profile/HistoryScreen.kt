@@ -27,9 +27,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.PrimaryButton
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,7 +49,6 @@ import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
-import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
@@ -57,7 +59,7 @@ import com.pame.karsy.data.repository.CarRepository
  * Sale de interacciones_publicacion tipo 'ver_detalle' de la cuenta en sesión.
  */
 @Composable
-fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
+fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit, onExplore: () -> Unit) {
     var historyItems by remember { mutableStateOf<List<Pair<Car, String>>?>(null) }
     val scope = rememberCoroutineScope()
     suspend fun load() {
@@ -97,9 +99,14 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                         Text(
                             stringResource(R.string.profile_history_empty),
                             fontFamily = DmSans,
-                            fontSize = 14.sp,
+                            fontSize = KarsyTextSize.BodyLarge,
                             color = KarsyMid,
                             modifier = Modifier.padding(20.dp)
+                        )
+                        PrimaryButton(
+                            text = stringResource(R.string.core_empty_explore),
+                            onClick = onExplore,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
                         )
                     }
                     items.forEachIndexed { idx, (car, sub) ->
@@ -117,7 +124,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(72.dp)
-                                    .clip(RoundedCornerShape(14.dp))
+                                    .clip(RoundedCornerShape(KarsyRadius.Lg))
                                     .background(ImagePlaceholder)
                             )
                             Column(modifier = Modifier.weight(1f)) {
@@ -127,7 +134,7 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                                         "${car.title} ${car.year}",
                                         fontFamily = DmSans,
                                         fontWeight = FontWeight.SemiBold,
-                                        fontSize = 15.sp,
+                                        fontSize = KarsyTextSize.Subtitle,
                                         color = KarsyInk,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -140,14 +147,14 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                                     "${car.price} ${car.currency}",
                                     fontFamily = Outfit,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
-                                    color = KarsyTeal
+                                    fontSize = KarsyTextSize.Subtitle,
+                                    color = KarsyTealText
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
                                     sub,
                                     fontFamily = DmSans,
-                                    fontSize = 12.sp,
+                                    fontSize = KarsyTextSize.Small,
                                     color = KarsyMid
                                 )
                             }

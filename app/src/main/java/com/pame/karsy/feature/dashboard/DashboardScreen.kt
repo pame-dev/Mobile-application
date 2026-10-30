@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import kotlin.coroutines.cancellation.CancellationException
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.locale.texto
@@ -171,16 +174,16 @@ fun DashboardScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     vm.error?.let {
-                        Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
+                        Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyError)
                     }
                     val stats = vm.stats
                     if (stats == null && vm.loading) {
                         // Esqueleto: tarjetas de estadísticas + rendimiento + una publicación.
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
-                            SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp))
+                            SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(KarsyRadius.Lg))
+                            SkeletonBlock(110.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(KarsyRadius.Lg))
                         }
-                        SkeletonBlock(170.dp, shape = RoundedCornerShape(16.dp))
+                        SkeletonBlock(170.dp, shape = RoundedCornerShape(KarsyRadius.Lg))
                         SkeletonCarCard(imageHeight = 110.dp)
                     }
                     if (stats != null) {
@@ -244,7 +247,7 @@ private fun DashboardHeader(name: String, avatarUrl: String?, onBack: () -> Unit
         Text(
             stringResource(R.string.profile_dashboard_title),
             fontFamily = Outfit,
-            fontSize = 22.sp,
+            fontSize = KarsyTextSize.HeadlineLarge,
             fontWeight = FontWeight.Bold,
             color = KarsyInk,
             modifier = Modifier
@@ -319,7 +322,7 @@ private fun SmallStatCard(label: String, value: String, valueColor: Color, capti
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsySurface)
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
@@ -328,7 +331,7 @@ private fun SmallStatCard(label: String, value: String, valueColor: Color, capti
         Text(
             value,
             fontFamily = Outfit,
-            fontSize = 28.sp,
+            fontSize = KarsyTextSize.DisplayLarge,
             lineHeight = 28.sp,
             fontWeight = FontWeight.Bold,
             color = valueColor,
@@ -337,7 +340,7 @@ private fun SmallStatCard(label: String, value: String, valueColor: Color, capti
         Text(
             caption,
             fontFamily = DmSans,
-            fontSize = 11.sp,
+            fontSize = KarsyTextSize.Caption,
             color = KarsyMid,
             modifier = Modifier.padding(top = 4.dp)
         )
@@ -346,7 +349,7 @@ private fun SmallStatCard(label: String, value: String, valueColor: Color, capti
 
 @Composable
 private fun CardLabel(text: String) {
-    Text(text, fontFamily = DmSans, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
+    Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.Caption, fontWeight = FontWeight.SemiBold, color = KarsyMid)
 }
 
 /** Elegir formato: Excel (.xlsx) para trabajar los números o PDF para presentarlos. */
@@ -359,14 +362,14 @@ private fun ExportarDialog(onDismiss: () -> Unit, onElegir: (pdf: Boolean) -> Un
             Text(
                 stringResource(R.string.profile_dashboard_export_title),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(stringResource(R.string.profile_dashboard_export_sub), fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid)
+                Text(stringResource(R.string.profile_dashboard_export_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid)
                 OutlinedButton(onClick = { onElegir(false) }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.profile_dashboard_export_csv), fontFamily = DmSans, color = KarsyInk)
                 }
@@ -403,14 +406,14 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsySurface)
             .padding(16.dp)
     ) {
         Text(
             stringResource(R.string.profile_dashboard_performance_title),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.Bold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 2.dp)
@@ -418,7 +421,7 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
         Text(
             stringResource(R.string.profile_dashboard_performance_sub),
             fontFamily = DmSans,
-            fontSize = 11.sp,
+            fontSize = KarsyTextSize.Caption,
             color = KarsyMid,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -437,18 +440,18 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth(1f - i * 0.08f)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(KarsyBg)
                         .height(IntrinsicSize.Min)
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Box(Modifier.width(4.dp).fillMaxHeight().clip(RoundedCornerShape(4.dp)).background(color))
+                    Box(Modifier.width(4.dp).fillMaxHeight().clip(RoundedCornerShape(KarsyRadius.Xs)).background(color))
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(texto, fontFamily = DmSans, fontSize = 12.sp, color = KarsyInk)
-                        if (sub != null) Text(sub, fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+                        Text(texto, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyInk)
+                        if (sub != null) Text(sub, fontFamily = DmSans, fontSize = KarsyTextSize.Tiny, color = KarsyMid)
                     }
-                    Text(n.toString(), fontFamily = Outfit, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                    Text(n.toString(), fontFamily = Outfit, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
                 }
             }
         }
@@ -458,7 +461,7 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
             Text(
                 stringResource(R.string.profile_dashboard_performance_empty),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid
             )
         } else if (filas.isNotEmpty()) {
@@ -467,7 +470,7 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .clickable { onCarClick(r.id) }
                         .padding(vertical = 8.dp, horizontal = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -475,7 +478,7 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
                     Text(
                         "${car.brand} ${car.model} ${if (car.year > 0) car.year else ""}".trim(),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         fontWeight = FontWeight.SemiBold,
                         color = KarsyInk,
                         maxLines = 1,
@@ -485,21 +488,21 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
                         Modifier
                             .fillMaxWidth()
                             .height(8.dp)
-                            .clip(RoundedCornerShape(99.dp))
+                            .clip(CircleShape)
                             .background(KarsyBg)
                     ) {
                         Box(
                             Modifier
                                 .fillMaxWidth((r.vistas.toFloat() / max).coerceAtLeast(0.02f))
                                 .fillMaxHeight()
-                                .clip(RoundedCornerShape(99.dp))
+                                .clip(CircleShape)
                                 .background(KarsyTeal)
                         )
                     }
                     Text(
                         stringResource(R.string.profile_dashboard_performance_row, r.vistas, r.favoritos, r.contactos),
                         fontFamily = DmSans,
-                        fontSize = 11.sp,
+                        fontSize = KarsyTextSize.Caption,
                         color = KarsyMid
                     )
                 }
@@ -509,12 +512,12 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
                     if (todas) stringResource(R.string.profile_dashboard_performance_less)
                     else stringResource(R.string.profile_dashboard_performance_all, filas.size),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     fontWeight = FontWeight.SemiBold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     modifier = Modifier
                         .padding(top = 6.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Sm))
                         .clickable { todas = !todas }
                         .padding(horizontal = 4.dp, vertical = 6.dp)
                 )
@@ -543,7 +546,7 @@ private fun MyListingsSection(
             Text(
                 stringResource(R.string.profile_dashboard_my_listings),
                 fontFamily = Outfit,
-                fontSize = 15.sp,
+                fontSize = KarsyTextSize.Subtitle,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 modifier = Modifier.weight(1f)
@@ -552,11 +555,11 @@ private fun MyListingsSection(
             Text(
                 stringResource(R.string.profile_dashboard_publish),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.SemiBold,
-                color = KarsyTeal,
+                color = KarsyTealText,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(50))
+                    .clip(CircleShape)
                     .clickable(onClick = onNewPublication)
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             )
@@ -566,7 +569,7 @@ private fun MyListingsSection(
                 Text(
                     stringResource(R.string.profile_dashboard_no_listings),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     color = KarsyMid
                 )
             }
@@ -588,14 +591,14 @@ private fun HiddenListingsSection(
         Text(
             stringResource(R.string.profile_dashboard_hidden_listings),
             fontFamily = Outfit,
-            fontSize = 15.sp,
+            fontSize = KarsyTextSize.Subtitle,
             fontWeight = FontWeight.Bold,
             color = KarsyInk
         )
         Text(
             stringResource(R.string.profile_dashboard_hidden_desc),
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             color = KarsyMid,
             modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
         )
@@ -639,7 +642,7 @@ private fun ListingCard(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsySurface)
             .clickable { onCarClick(car.id) }
     ) {
@@ -660,12 +663,12 @@ private fun ListingCard(
             Text(
                 carStatusLabel(car.status),
                 fontFamily = DmSans,
-                fontSize = 10.sp,
+                fontSize = KarsyTextSize.Tiny,
                 fontWeight = FontWeight.SemiBold,
                 color = KarsyWhite,
                 modifier = Modifier
                     .padding(8.dp)
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Xs))
                     .background((if (car.status == EstadoAuto.ACTIVO) KarsyTeal else KarsyNavy).copy(alpha = 0.85f))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             )
@@ -680,7 +683,7 @@ private fun ListingCard(
                 Text(
                     "${car.title} ${car.year}",
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     lineHeight = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = KarsyCharcoal,
@@ -693,9 +696,9 @@ private fun ListingCard(
             Text(
                 car.price,
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Bold,
-                color = KarsyTeal,
+                color = KarsyTealText,
                 modifier = Modifier.padding(top = 4.dp)
             )
             // Usuarios que la guardaron en favoritos.
@@ -704,7 +707,7 @@ private fun ListingCard(
                 Text(
                     pluralStringResource(R.plurals.profile_dashboard_favorites, favorites, favorites),
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     color = KarsyMid,
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -714,9 +717,9 @@ private fun ListingCard(
                 Text(
                     it,
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     fontWeight = FontWeight.SemiBold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     modifier = Modifier.padding(top = 6.dp)
                 )
             }
@@ -725,7 +728,7 @@ private fun ListingCard(
                 Text(
                     stringResource(R.string.detail_disabled_reason, rememberTraduccion(reason)),
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     lineHeight = 14.sp,
                     color = KarsyError,
                     maxLines = 3,
@@ -737,7 +740,7 @@ private fun ListingCard(
             if (onUnhide != null) {
                 OutlinedButton(
                     onClick = onUnhide,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     border = BorderStroke(1.dp, KarsyNavy),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = KarsyNavy),
                     contentPadding = PaddingValues(vertical = 8.dp),
@@ -749,7 +752,7 @@ private fun ListingCard(
                     Text(
                         stringResource(R.string.profile_dashboard_unhide),
                         fontFamily = Outfit,
-                        fontSize = 11.sp,
+                        fontSize = KarsyTextSize.Caption,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -757,8 +760,8 @@ private fun ListingCard(
             } else if (car.rejectedReason != null) {
                 Button(
                     onClick = { onEdit(car.id) },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
+                    colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
                     contentPadding = PaddingValues(vertical = 8.dp),
                     modifier = Modifier
                         .padding(top = 10.dp)
@@ -768,7 +771,7 @@ private fun ListingCard(
                     Text(
                         stringResource(R.string.profile_dashboard_fix_resubmit),
                         fontFamily = Outfit,
-                        fontSize = 11.sp,
+                        fontSize = KarsyTextSize.Caption,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -780,7 +783,7 @@ private fun ListingCard(
                 Button(
                     onClick = { onDestacar(car) },
                     enabled = activo,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     colors = ButtonDefaults.buttonColors(containerColor = if (renovar) KarsyTeal else KarsyNavy, contentColor = KarsyWhite),
                     contentPadding = PaddingValues(vertical = 8.dp),
                     modifier = Modifier
@@ -797,7 +800,7 @@ private fun ListingCard(
                             else -> stringResource(R.string.profile_dashboard_feature)
                         },
                         fontFamily = Outfit,
-                        fontSize = 11.sp,
+                        fontSize = KarsyTextSize.Caption,
                         fontWeight = FontWeight.Bold
                     )
                 }

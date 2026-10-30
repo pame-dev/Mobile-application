@@ -15,13 +15,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyDisabled
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -37,7 +38,7 @@ fun PrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(KarsyRadius.Lg),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = KarsyWhite,
@@ -48,9 +49,9 @@ fun PrimaryButton(
         modifier = modifier
             .fillMaxWidth()
             .height(54.dp)
-            .shadow(if (enabled) 6.dp else 0.dp, RoundedCornerShape(14.dp), ambientColor = KarsyNavy, spotColor = KarsyNavy)
+            .shadow(if (enabled) 6.dp else 0.dp, RoundedCornerShape(KarsyRadius.Lg), ambientColor = KarsyNavy, spotColor = KarsyNavy)
     ) {
-        Text(text, fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(text, fontFamily = Outfit, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -64,13 +65,13 @@ fun SecondaryButton(
 ) {
     OutlinedButton(
         onClick = onClick,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(KarsyRadius.Lg),
         border = BorderStroke(1.5.dp, KarsyBorder),
         colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = contentColor),
         modifier = modifier
             .fillMaxWidth()
             .height(54.dp)
     ) {
-        Text(text, fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(text, fontFamily = Outfit, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.SemiBold)
     }
 }

@@ -2,7 +2,7 @@ package com.pame.karsy.core.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -38,7 +38,7 @@ fun ConditionTag(condicion: String?, compact: Boolean = false, modifier: Modifie
         maxLines = 1,
         softWrap = false,
         modifier = modifier
-            .clip(RoundedCornerShape(percent = 50))
+            .clip(CircleShape)
             .background(if (seminuevo) SeminuevoBg else UsadoBg)
             .padding(
                 horizontal = if (compact) 9.dp else 12.dp,

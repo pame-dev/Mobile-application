@@ -42,6 +42,7 @@ import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.remote.PreferenciasAvisosDto
@@ -113,7 +114,7 @@ fun NotificationPreferencesScreen(onBack: () -> Unit) {
             Text(
                 stringResource(R.string.notif_prefs_footer),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 lineHeight = 17.sp,
                 color = KarsyMid,
                 modifier = Modifier.padding(horizontal = 4.dp)
@@ -132,9 +133,9 @@ private fun PrefRow(@StringRes title: Int, @StringRes desc: Int, checked: Boolea
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Column(Modifier.weight(1f)) {
-            Text(stringResource(title), fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
+            Text(stringResource(title), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
             Spacer(Modifier.height(2.dp))
-            Text(stringResource(desc), fontFamily = DmSans, fontSize = 12.sp, lineHeight = 17.sp, color = KarsyMid)
+            Text(stringResource(desc), fontFamily = DmSans, fontSize = KarsyTextSize.Small, lineHeight = 17.sp, color = KarsyMid)
         }
         Spacer(Modifier.width(12.dp))
         Switch(

@@ -10,6 +10,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.net.toUri
 import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.theme.KarsyGreen
+import com.pame.karsy.core.theme.KarsyGreenSoft
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyRed
+import com.pame.karsy.core.theme.KarsyRedSoft
+import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.PagoDestacado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -93,8 +101,8 @@ import com.pame.karsy.feature.profile.ProfileAvatar
 
 private val FeaturedYellowBg: Color get() = karsyTint(Color(0xFFD99A1E), Color(0xFFFFF4CC))
 private val FeaturedYellowFg: Color get() = if (Tema.oscuro) Color(0xFFFBBF24) else Color(0xFF8A6415)
-private val ApprovedBg: Color get() = karsyTint(Color(0xFF22C55E), Color(0xFFEDF7ED))
-private val RejectedBg: Color get() = karsyTint(Color(0xFFEF4444), Color(0xFFFDECEC))
+private val ApprovedBg: Color get() = karsyTint(KarsyGreen, KarsyGreenSoft)
+private val RejectedBg: Color get() = karsyTint(KarsyRed, KarsyRedSoft)
 private val RejectedFg: Color get() = BadgeTone.Danger.fg
 
 @Composable
@@ -267,12 +275,12 @@ private fun FeaturedRequestRow(request: FeaturedRequest, onClick: () -> Unit) {
         AdminThumbnail(request.image, size = 44.dp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(request.vehicle, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+            Text(request.vehicle, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
             Spacer(Modifier.height(2.dp))
             Text(
                 listOf(request.year.takeIf { it > 0 }?.toString(), request.price).filterNotNull().joinToString(" · "),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = AdminColors.TableText
             )
         }
@@ -328,7 +336,7 @@ private fun FeaturedRequestDetail(
                 description = stringResource(R.string.admin1_review_desc)
             )
 
-            val shape = RoundedCornerShape(18.dp)
+            val shape = RoundedCornerShape(KarsyRadius.Xl)
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -348,13 +356,13 @@ private fun FeaturedRequestDetail(
                         Text(
                             stringResource(R.string.admin1_badge_featured),
                             fontFamily = DmSans,
-                            fontSize = 12.sp,
+                            fontSize = KarsyTextSize.Small,
                             fontWeight = FontWeight.ExtraBold,
                             color = FeaturedYellowFg,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(16.dp)
-                                .clip(RoundedCornerShape(999.dp))
+                                .clip(CircleShape)
                                 .background(FeaturedYellowBg)
                                 .padding(horizontal = 12.dp, vertical = 7.dp)
                         )
@@ -364,12 +372,12 @@ private fun FeaturedRequestDetail(
                 Column(Modifier.padding(20.dp)) {
                     Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.weight(1f)) {
-                            Text(request.year.toString(), fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid)
+                            Text(request.year.toString(), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid)
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 request.vehicle,
                                 fontFamily = Outfit,
-                                fontSize = 22.sp,
+                                fontSize = KarsyTextSize.HeadlineLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = KarsyInk
                             )
@@ -378,9 +386,9 @@ private fun FeaturedRequestDetail(
                         Text(
                             request.price,
                             fontFamily = Outfit,
-                            fontSize = 18.sp,
+                            fontSize = KarsyTextSize.TitleLarge,
                             fontWeight = FontWeight.ExtraBold,
-                            color = KarsyTeal
+                            color = KarsyTealText
                         )
                     }
                     Spacer(Modifier.height(8.dp))
@@ -390,7 +398,7 @@ private fun FeaturedRequestDetail(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Lg))
                             .background(KarsyBg)
                             .padding(16.dp)
                     ) {
@@ -408,7 +416,7 @@ private fun FeaturedRequestDetail(
                     Text(
                         request.description.ifBlank { noDescription },
                         fontFamily = DmSans,
-                        fontSize = 14.sp,
+                        fontSize = KarsyTextSize.BodyLarge,
                         lineHeight = 23.sp,
                         color = KarsyTextSecondary
                     )
@@ -421,9 +429,9 @@ private fun FeaturedRequestDetail(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Lg))
                             .background(KarsySurface)
-                            .border(1.dp, KarsyBorder, RoundedCornerShape(14.dp))
+                            .border(1.dp, KarsyBorder, RoundedCornerShape(KarsyRadius.Lg))
                             .padding(15.dp)
                     ) {
                         ProfileAvatar(
@@ -437,16 +445,16 @@ private fun FeaturedRequestDetail(
                             Text(
                                 request.user,
                                 fontFamily = Outfit,
-                                fontSize = 16.sp,
+                                fontSize = KarsyTextSize.Title,
                                 fontWeight = FontWeight.Bold,
                                 color = KarsyInk
                             )
                             Text(
                                 stringResource(R.string.admin1_view_profile),
                                 fontFamily = DmSans,
-                                fontSize = 12.sp,
+                                fontSize = KarsyTextSize.Small,
                                 fontWeight = FontWeight.Bold,
-                                color = KarsyTeal,
+                                color = KarsyTealText,
                                 // TODO: navegar al perfil del usuario solicitante
                                 modifier = Modifier.clickable { }.padding(top = 3.dp)
                             )
@@ -487,7 +495,7 @@ private fun SpecText(label: String, value: String, modifier: Modifier = Modifier
             append(value)
         },
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         color = KarsyCharcoal,
         modifier = modifier
     )
@@ -506,7 +514,7 @@ private fun BottomActionButton(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .alpha(if (enabled) 1f else 0.45f)
-            .clip(RoundedCornerShape(13.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(color)
             .clickable(enabled = enabled, onClick = onClick)
             .heightIn(min = 48.dp)
@@ -515,7 +523,7 @@ private fun BottomActionButton(
         Text(
             text,
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             fontWeight = FontWeight.ExtraBold,
             color = textColor,
             textAlign = TextAlign.Center
@@ -534,7 +542,7 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
             modifier = Modifier
                 .padding(24.dp)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Xl))
                 .background(KarsySurface)
                 .padding(28.dp)
         ) {
@@ -548,7 +556,7 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
             Text(
                 stringResource(R.string.admin1_approved_title),
                 fontFamily = Outfit,
-                fontSize = 22.sp,
+                fontSize = KarsyTextSize.HeadlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 textAlign = TextAlign.Center
@@ -563,7 +571,7 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
                     append(approvedSuffix)
                 },
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 lineHeight = 21.sp,
                 color = KarsyCharcoal,
                 textAlign = TextAlign.Center
@@ -572,7 +580,7 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
             Text(
                 stringResource(R.string.admin1_approved_notified),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid,
                 textAlign = TextAlign.Center
             )
@@ -593,7 +601,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                 .padding(20.dp)
                 .fillMaxWidth()
                 .heightIn(max = 640.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Xl))
                 .background(KarsySurface)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
@@ -612,7 +620,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             Text(
                 stringResource(R.string.admin1_reject_dialog_title),
                 fontFamily = Outfit,
-                fontSize = 21.sp,
+                fontSize = KarsyTextSize.HeadlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 textAlign = TextAlign.Center,
@@ -622,7 +630,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             Text(
                 stringResource(R.string.admin1_reject_dialog_desc),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 lineHeight = 19.sp,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
@@ -636,12 +644,12 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                     Column(
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (active) karsyTint(Color(0xFFEF4444), Color(0xFFFFF7F7)) else KarsyBg)
+                            .clip(RoundedCornerShape(KarsyRadius.Md))
+                            .background(if (active) karsyTint(KarsyRed, KarsyRedSoft) else KarsyBg)
                             .border(
                                 if (active) 1.5.dp else 1.dp,
                                 if (active) AdminColors.Danger else KarsyBorder,
-                                RoundedCornerShape(12.dp)
+                                RoundedCornerShape(KarsyRadius.Md)
                             )
                             .clickable { reason = title }
                             .padding(horizontal = 13.dp, vertical = 12.dp)
@@ -649,14 +657,14 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 if (active) "●" else "○",
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 color = if (active) AdminColors.Danger else KarsyMid,
                                 modifier = Modifier.width(20.dp)
                             )
                             Text(
                                 title,
                                 fontFamily = DmSans,
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = KarsyInk
                             )
@@ -665,7 +673,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                         Text(
                             desc,
                             fontFamily = DmSans,
-                            fontSize = 11.5.sp,
+                            fontSize = KarsyTextSize.Small,
                             lineHeight = 16.sp,
                             color = KarsyMid,
                             modifier = Modifier.padding(start = 20.dp)
@@ -678,7 +686,7 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             BasicTextField(
                 value = comment,
                 onValueChange = { comment = it },
-                textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, color = KarsyCharcoal),
+                textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyCharcoal),
                 cursorBrush = SolidColor(KarsyInk),
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth(),
@@ -686,16 +694,16 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Md))
                             .background(KarsyBg)
-                            .border(1.dp, KarsyBorder, RoundedCornerShape(12.dp))
+                            .border(1.dp, KarsyBorder, RoundedCornerShape(KarsyRadius.Md))
                             .padding(13.dp)
                     ) {
                         if (comment.isEmpty()) {
                             Text(
                                 stringResource(R.string.admin1_reject_comment_hint),
                                 fontFamily = DmSans,
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 color = KarsyMid
                             )
                         }
@@ -734,7 +742,7 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         stringResource(R.string.admin2_pay_title),
-                        fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = KarsyInk,
+                        fontFamily = Outfit, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.Bold, color = KarsyInk,
                         modifier = Modifier.weight(1f)
                     )
                     if (datos != null) {
@@ -745,11 +753,11 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                     }
                 }
                 Spacer(Modifier.height(2.dp))
-                Text(stringResource(R.string.admin2_pay_desc), fontFamily = DmSans, fontSize = 12.sp, lineHeight = 17.sp, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_pay_desc), fontFamily = DmSans, fontSize = KarsyTextSize.Small, lineHeight = 17.sp, color = AdminColors.NeutralText)
             }
             if (datos == null) {
                 if (vm.loading) SkeletonListRow(circle = false)
-                else Text(stringResource(R.string.admin2_pay_load_error), fontFamily = DmSans, fontSize = 13.sp, color = BadgeTone.Danger.fg)
+                else Text(stringResource(R.string.admin2_pay_load_error), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = BadgeTone.Danger.fg)
                 return@Column
             }
             // Lo guardado, con el mismo formato que los campos (para detectar cambios y Descartar).
@@ -770,12 +778,12 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                 Text(
                     stringResource(R.string.admin2_pay_missing),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 19.sp,
                     color = BadgeTone.Warning.fg,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(BadgeTone.Warning.bg)
                         .padding(12.dp)
                 )
@@ -799,7 +807,7 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
             if (precioOk != null && diasOk != null) {
                 Text(
                     stringResource(R.string.admin2_pay_summary, PagoDestacado.monto(precioOk), diasOk),
-                    fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary
+                    fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyTextSecondary
                 )
             }
 
@@ -827,19 +835,19 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                                 Spacer(Modifier.width(4.dp))
                                 Text(
                                     stringResource(R.string.admin2_pay_clabe_ok) + (detectado?.let { " · $it" } ?: ""),
-                                    fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BadgeTone.Success.fg
+                                    fontFamily = DmSans, fontSize = KarsyTextSize.Small, fontWeight = FontWeight.SemiBold, color = BadgeTone.Success.fg
                                 )
                             }
                         } else if (clabeCompleta) {
                             Text(
                                 stringResource(R.string.admin2_pay_error_clabe_digit),
-                                fontFamily = DmSans, fontSize = 12.sp, lineHeight = 16.sp, color = BadgeTone.Danger.fg
+                                fontFamily = DmSans, fontSize = KarsyTextSize.Small, lineHeight = 16.sp, color = BadgeTone.Danger.fg
                             )
                         }
                     }
                     Text(
                         "${clabe.length}/${PagoDestacado.LARGO_CLABE}",
-                        fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary,
+                        fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyTextSecondary,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -849,7 +857,7 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                     banco = it.uppercase().take(PagoDestacado.MAX_BANCO)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(stringResource(R.string.admin2_pay_bank_help), fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary)
+                Text(stringResource(R.string.admin2_pay_bank_help), fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyTextSecondary)
             }
 
             // Vista previa: lo que verá el lote en la ventana "Destacar".
@@ -858,20 +866,20 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(karsyTint(KarsyTeal, Color(0xFFEAF5F6)))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
+                        .background(karsyTint(KarsyTeal, KarsyTealSoft))
                         .padding(12.dp)
                 ) {
                     Text(
                         stringResource(R.string.admin2_pay_preview),
-                        fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = KarsyTeal
+                        fontFamily = DmSans, fontSize = KarsyTextSize.Small, fontWeight = FontWeight.Bold, color = KarsyTealText
                     )
                     PaymentPreviewLine(stringResource(R.string.admin2_pay_bank), bancoFinal)
                     PaymentPreviewLine("CLABE", PagoDestacado.clabeAgrupada(clabe), monospace = true)
                     if (precioOk != null && diasOk != null) {
                         Text(
                             "${PagoDestacado.monto(precioOk)} MXN · $diasOk $diasSufijo",
-                            fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = KarsyInk
+                            fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.Bold, color = KarsyInk
                         )
                     }
                 }
@@ -889,7 +897,7 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
             if (cambios) {
                 Text(
                     stringResource(R.string.admin2_pay_unsaved),
-                    fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BadgeTone.Warning.fg
+                    fontFamily = DmSans, fontSize = KarsyTextSize.Small, fontWeight = FontWeight.SemiBold, color = BadgeTone.Warning.fg
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -920,7 +928,7 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
 
 @Composable
 private fun PaymentSubtitle(text: String) {
-    Text(text, fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+    Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.Bold, color = KarsyInk)
 }
 
 @Composable
@@ -932,7 +940,7 @@ private fun PaymentPreviewLine(label: String, value: String, monospace: Boolean 
                 append(value)
             }
         },
-        fontFamily = DmSans, fontSize = 13.sp, color = KarsyInk
+        fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyInk
     )
 }
 
@@ -952,19 +960,19 @@ private fun PaymentField(
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
-        label = { Text(label, fontFamily = DmSans, fontSize = 12.sp) },
-        prefix = prefix?.let { { Text(it, fontFamily = DmSans, fontSize = 14.sp, color = KarsyTextSecondary) } },
-        suffix = suffix?.let { { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary) } },
+        label = { Text(label, fontFamily = DmSans, fontSize = KarsyTextSize.Small) },
+        prefix = prefix?.let { { Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyTextSecondary) } },
+        suffix = suffix?.let { { Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyTextSecondary) } },
         singleLine = true,
         enabled = enabled,
         isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         textStyle = TextStyle(
             fontFamily = if (monospace) FontFamily.Monospace else DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             color = KarsyCharcoal
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(KarsyRadius.Md),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = KarsyNavy,
             unfocusedBorderColor = KarsyBorder,

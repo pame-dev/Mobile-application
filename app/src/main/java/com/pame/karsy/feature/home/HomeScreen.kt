@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.home
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.FlowRow
 import android.widget.Toast
@@ -23,6 +24,9 @@ import com.pame.karsy.core.location.Lugar
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.Catalogo
 import com.pame.karsy.core.util.Formato
 import androidx.compose.foundation.background
@@ -69,7 +73,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
@@ -141,7 +144,6 @@ fun HomeScreen(
     userMode: UserMode,
     onCarClick: (Long) -> Unit,
     onNotifications: () -> Unit,
-    onAdminPanel: () -> Unit,
     onRegister: () -> Unit,
     onLogin: () -> Unit,
     vm: HomeViewModel = viewModel(),
@@ -232,7 +234,6 @@ fun HomeScreen(
                     onLogin()
                 },
                 onNotifications = onNotifications,
-                onAdminPanel = onAdminPanel,
                 heroHeightPx = heroHeightPx,
                 onHeight = { headerHeightPx = it }
             )
@@ -448,16 +449,16 @@ private fun EmptyMessage(text: String, action: String?, onAction: () -> Unit) {
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text, fontFamily = DmSans, fontSize = 14.sp, color = KarsyMid, textAlign = TextAlign.Center)
+        Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyMid, textAlign = TextAlign.Center)
         if (action != null) {
             OutlinedButton(
                 onClick = onAction,
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(KarsyRadius.Md),
                 border = BorderStroke(1.5.dp, KarsyBorder),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = KarsyInk),
                 modifier = Modifier.padding(top = 12.dp)
             ) {
-                Text(action, fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(action, fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -476,7 +477,6 @@ internal fun HomeHeader(
     onToggleMenu: () -> Unit,
     onLogin: () -> Unit,
     onNotifications: () -> Unit,
-    onAdminPanel: () -> Unit,
     /** Alto del banner de abajo, para continuar el mismo degradado. */
     heroHeightPx: Float,
     onHeight: (Float) -> Unit,
@@ -506,20 +506,15 @@ internal fun HomeHeader(
                 when {
                     !userMode.isLoggedIn -> Button(
                         onClick = onLogin,
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(KarsyRadius.Md),
                         // Turquesa: sobre el azul del encabezado un botón azul no se vería.
-                        colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+                        colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
                         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
                         modifier = Modifier.height(38.dp)
                     ) {
-                        Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold)
                     }
                     else -> {
-                        if (SessionManager.hasPanel) {
-                            HeaderIconButton(p, onClick = onAdminPanel) {
-                                Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = p.headerContent, modifier = Modifier.size(18.dp))
-                            }
-                        }
                         // Número de avisos sin leer, como en la web.
                         Box {
                             HeaderIconButton(p, onClick = onNotifications) {
@@ -549,9 +544,10 @@ internal fun HomeHeader(
 
 @Composable
 private fun HeaderIconButton(p: HeroPalette, onClick: () -> Unit, active: Boolean = false, content: @Composable () -> Unit) {
-    val shape = RoundedCornerShape(10.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
+            .minimumInteractiveComponentSize()
             .size(38.dp)
             .clip(shape)
             // Botones translúcidos sobre el degradado del encabezado.
@@ -596,7 +592,7 @@ private fun HeroSection(
                 Text(
                     stringResource(R.string.home_hero_tagline),
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     fontWeight = FontWeight.SemiBold,
                     color = p.tagline,
                     letterSpacing = 0.1.em,
@@ -606,7 +602,7 @@ private fun HeroSection(
             Text(
                 stringResource(R.string.home_hero_title),
                 fontFamily = Outfit,
-                fontSize = 32.sp,
+                fontSize = KarsyTextSize.Hero,
                 lineHeight = 37.sp,
                 fontWeight = FontWeight.Bold,
                 color = p.title,
@@ -617,7 +613,7 @@ private fun HeroSection(
             Text(
                 stringResource(R.string.home_hero_subtitle),
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 lineHeight = 22.sp,
                 color = p.subtitle,
                 textAlign = TextAlign.Center,
@@ -636,13 +632,13 @@ private fun HeroSection(
                         Text(
                             texto,
                             fontFamily = DmSans,
-                            fontSize = 13.sp,
+                            fontSize = KarsyTextSize.Body,
                             color = p.searchText,
                             maxLines = 1,
                             modifier = Modifier
-                                .clip(RoundedCornerShape(50))
+                                .clip(CircleShape)
                                 .background(p.searchBg)
-                                .border(1.dp, p.searchBorder, RoundedCornerShape(50))
+                                .border(1.dp, p.searchBorder, CircleShape)
                                 .clickable(role = Role.Button) { onSugerencia(texto) }
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         )
@@ -656,8 +652,8 @@ private fun HeroSection(
                 stats.forEach { (num, lbl) ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         // Números en turquesa en ambos temas (identidad de la marca).
-                        Text(num, fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = p.statNumber)
-                        Text(lbl, fontFamily = DmSans, fontSize = 12.sp, color = p.statLabel)
+                        Text(num, fontFamily = Outfit, fontSize = KarsyTextSize.HeadlineLarge, fontWeight = FontWeight.Bold, color = p.statNumber)
+                        Text(lbl, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = p.statLabel)
                     }
                 }
             }
@@ -724,7 +720,7 @@ private data class HeroPalette(
  * El encabezado comparte el degradado del banner (ver heroBrush).
  */
 private fun heroPalette(): HeroPalette = if (Tema.oscuro) HeroPalette(
-    gradientStart = Color(0xFF0D2B45),
+    gradientStart = KarsyNavyDeep,
     gradientEnd = Color(0xFF081726),
     tagline = KarsyTeal,
     title = Color.White,
@@ -742,7 +738,7 @@ private fun heroPalette(): HeroPalette = if (Tema.oscuro) HeroPalette(
     headerButtonBorder = Color.White.copy(alpha = 0.22f),
 ) else HeroPalette(
     // Azul marino profundo a azul petróleo.
-    gradientStart = Color(0xFF0D2B45),
+    gradientStart = KarsyNavyDeep,
     gradientEnd = Color(0xFF123B4E),
     tagline = KarsyTeal,
     title = Color.White,
@@ -764,7 +760,7 @@ private fun heroPalette(): HeroPalette = if (Tema.oscuro) HeroPalette(
 /** Filtra mientras se escribe; "Buscar" (o la tecla del teclado) baja a los resultados. */
 @Composable
 private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch: () -> Unit, p: HeroPalette) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Row(
         Modifier
             .fillMaxWidth()
@@ -780,7 +776,7 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-            textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = p.searchText),
+            textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = p.searchText),
             cursorBrush = SolidColor(KarsyTeal),
             modifier = Modifier
                 .weight(1f)
@@ -788,14 +784,14 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
             decorationBox = { inner ->
                 Box {
                     if (query.isEmpty()) {
-                        Text(stringResource(R.string.home_search_placeholder), fontFamily = DmSans, fontSize = 14.sp, color = p.searchHint, maxLines = 1)
+                        Text(stringResource(R.string.home_search_placeholder), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = p.searchHint, maxLines = 1)
                     }
                     inner()
                 }
             }
         )
         if (query.isNotEmpty()) {
-            IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(40.dp)) {
+            IconButton(onClick = { onQueryChange("") }, modifier = Modifier.minimumInteractiveComponentSize().size(40.dp)) {
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = stringResource(R.string.home_search_clear),
@@ -812,14 +808,14 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
                 .padding(horizontal = 18.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(stringResource(R.string.home_search), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyWhite)
+            Text(stringResource(R.string.home_search), fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = KarsyWhite)
         }
     }
 }
 
 @Composable
 private fun VisitorBanner(onRegister: () -> Unit, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
         modifier
             .fillMaxWidth()
@@ -830,13 +826,13 @@ private fun VisitorBanner(onRegister: () -> Unit, modifier: Modifier = Modifier)
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("👀", fontSize = 22.sp)
+            Text("👀", fontSize = KarsyTextSize.HeadlineLarge)
             Column {
-                Text(stringResource(R.string.home_visitor_title), fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                Text(stringResource(R.string.home_visitor_title), fontFamily = Outfit, fontSize = KarsyTextSize.Subtitle, fontWeight = FontWeight.Bold, color = KarsyInk)
                 Text(
                     stringResource(R.string.home_visitor_message),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 18.sp,
                     color = KarsyTextSecondary
                 )
@@ -844,12 +840,12 @@ private fun VisitorBanner(onRegister: () -> Unit, modifier: Modifier = Modifier)
         }
         Button(
             onClick = onRegister,
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(KarsyRadius.Md),
             colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
             contentPadding = PaddingValues(horizontal = 22.dp, vertical = 9.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(stringResource(R.string.home_create_account_free), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.home_create_account_free), fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -867,8 +863,8 @@ private fun SectionHeader(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = KarsyInk, letterSpacing = (-0.01).em)
-            Text(subtitle, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(top = 4.dp))
+            Text(title, fontFamily = Outfit, fontSize = KarsyTextSize.HeadlineLarge, fontWeight = FontWeight.Bold, color = KarsyInk, letterSpacing = (-0.01).em)
+            Text(subtitle, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid, modifier = Modifier.padding(top = 4.dp))
         }
         action()
     }
@@ -937,7 +933,7 @@ private fun NearMeChip(
     modifier: Modifier = Modifier,
 ) {
     val activo = lugar != null
-    val shape = RoundedCornerShape(999.dp)
+    val shape = CircleShape
     Row(modifier) {
         Text(
             when {
@@ -949,7 +945,7 @@ private fun NearMeChip(
                 else -> stringResource(R.string.home_near_me)
             },
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = if (activo) KarsyWhite else KarsyInk,
             maxLines = 1,
@@ -980,14 +976,14 @@ private fun ElegirLugarSheet(onElegir: (Lugar) -> Unit, onDismiss: () -> Unit) {
             Text(
                 stringResource(R.string.home_near_me_pick_title),
                 fontFamily = Outfit,
-                fontSize = 20.sp,
+                fontSize = KarsyTextSize.Headline,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
             Text(
                 stringResource(R.string.home_near_me_pick_subtitle),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 color = KarsyTextSecondary,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
             )
@@ -1014,7 +1010,7 @@ private fun ElegirLugarSheet(onElegir: (Lugar) -> Unit, onDismiss: () -> Unit) {
  */
 @Composable
 private fun ActiveFilterChip(texto: String, destacado: Boolean = true, accion: String? = null, onQuitar: () -> Unit) {
-    val shape = RoundedCornerShape(999.dp)
+    val shape = CircleShape
     val quitar = accion ?: stringResource(R.string.home_remove_filter, texto)
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -1028,7 +1024,7 @@ private fun ActiveFilterChip(texto: String, destacado: Boolean = true, accion: S
         Text(
             texto,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = if (destacado) KarsyWhite else KarsyInk,
             maxLines = 1
@@ -1040,13 +1036,13 @@ private fun ActiveFilterChip(texto: String, destacado: Boolean = true, accion: S
 /** "🔔 Avisarme de nuevos": guarda los filtros activos como búsqueda con alerta. */
 @Composable
 private fun SaveSearchChip(guardando: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(999.dp)
+    val shape = CircleShape
     Text(
         stringResource(if (guardando) R.string.saved_search_saving else R.string.saved_search_save),
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         fontWeight = FontWeight.SemiBold,
-        color = KarsyTeal,
+        color = KarsyTealText,
         maxLines = 1,
         modifier = Modifier
             .clip(shape)

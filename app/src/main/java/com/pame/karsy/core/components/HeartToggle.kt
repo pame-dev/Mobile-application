@@ -10,21 +10,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Icon
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.KarsyCoral
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.Tema
 
 /** Rojo coral del corazón de favoritos guardado (igual en tema claro y oscuro). */
-val HeartCoral = Color(0xFFE65B5B)
+val HeartCoral = KarsyCoral
 
 /**
  * Ícono de corazón: relleno rojo coral cuando está guardado; si no, contorno en
@@ -55,6 +59,7 @@ fun HeartToggle(
     size: Dp = 34.dp,
 ) {
     val oscuro = Tema.oscuro
+    val haptic = LocalHapticFeedback.current
     val fondo = when {
         !filled -> Color.Black.copy(alpha = 0.4f)
         oscuro -> Color(0xFF0D1B2A).copy(alpha = 0.75f)
@@ -62,12 +67,16 @@ fun HeartToggle(
     }
     Box(
         modifier = modifier
+            .minimumInteractiveComponentSize()
             .size(size)
             .then(if (filled && !oscuro) Modifier.shadow(4.dp, CircleShape) else Modifier)
             .clip(CircleShape)
             .background(fondo)
             .then(if (filled && oscuro) Modifier.border(1.dp, Color.White.copy(alpha = 0.18f), CircleShape) else Modifier)
-            .clickable(onClick = onToggle),
+            .clickable {
+                haptic.performHapticFeedback(if (filled) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn)
+                onToggle()
+            },
         contentAlignment = Alignment.Center
     ) {
         HeartIcon(filled = filled, size = size * 0.5f, outlineTint = Color.White)

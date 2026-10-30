@@ -67,6 +67,7 @@ import com.pame.karsy.core.components.karsyTextFieldColors
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -75,6 +76,8 @@ import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.Formato
@@ -155,7 +158,7 @@ private fun LoginForm(
                     stringResource(R.string.auth_login_title),
                     fontFamily = Outfit,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 26.sp,
+                    fontSize = KarsyTextSize.Display,
                     letterSpacing = (-0.02).em,
                     color = KarsyCharcoal
                 )
@@ -184,12 +187,12 @@ private fun LoginForm(
                     Text(
                         stringResource(R.string.auth_forgot_password),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         fontWeight = FontWeight.Medium,
-                        color = KarsyTeal,
+                        color = KarsyTealText,
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Xs))
                             .clickable { onForgot(email) }
                             .padding(4.dp)
                     )
@@ -206,7 +209,7 @@ private fun LoginForm(
                     Text(
                         it,
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         color = KarsyError,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -225,13 +228,13 @@ private fun LoginForm(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(stringResource(R.string.auth_no_account_question), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal)
+            Text(stringResource(R.string.auth_no_account_question), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal)
             Text(
                 stringResource(R.string.auth_sign_up),
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = KarsyTeal,
+                color = KarsyTealText,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable(onClick = onRegister)
             )
@@ -256,7 +259,7 @@ private fun IconInput(
         Text(
             label,
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 0.04.em,
             color = KarsyCharcoal,
@@ -265,7 +268,7 @@ private fun IconInput(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, fontFamily = DmSans, fontSize = 15.sp, color = KarsyMid) },
+            placeholder = { Text(placeholder, fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyMid) },
             leadingIcon = { Icon(leading, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(20.dp)) },
             trailingIcon = if (isPassword) {
                 {
@@ -280,10 +283,10 @@ private fun IconInput(
                 }
             } else null,
             singleLine = true,
-            textStyle = TextStyle(fontFamily = DmSans, fontSize = 15.sp, color = KarsyCharcoal),
+            textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, color = KarsyCharcoal),
             visualTransformation = if (isPassword && !show) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else keyboardType),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(KarsyRadius.Md),
             colors = karsyTextFieldColors(),
             modifier = Modifier
                 .fillMaxWidth()
@@ -345,7 +348,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     title,
                     fontFamily = Outfit,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 25.sp,
+                    fontSize = KarsyTextSize.Display,
                     lineHeight = 30.sp,
                     color = KarsyInk,
                     textAlign = TextAlign.Center
@@ -354,7 +357,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                 Text(
                     subtitle,
                     fontFamily = DmSans,
-                    fontSize = 13.5.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     lineHeight = 21.sp,
                     color = KarsyMid,
                     textAlign = TextAlign.Center
@@ -427,7 +430,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                             Text(
                                 stringResource(R.string.auth_passwords_mismatch),
                                 fontFamily = DmSans,
-                                fontSize = 11.5.sp,
+                                fontSize = KarsyTextSize.Small,
                                 color = KarsyError,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
@@ -441,7 +444,7 @@ private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
                     Text(
                         it,
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         color = KarsyError,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -469,7 +472,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
             .padding(28.dp),
         contentAlignment = Alignment.Center
     ) {
-        val shape = RoundedCornerShape(24.dp)
+        val shape = RoundedCornerShape(KarsyRadius.Xxl)
         Column(
             Modifier
                 .fillMaxWidth()
@@ -493,7 +496,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
                 stringResource(R.string.auth_password_updated_title),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 21.sp,
+                fontSize = KarsyTextSize.HeadlineLarge,
                 color = KarsyInk,
                 textAlign = TextAlign.Center
             )
@@ -501,7 +504,7 @@ private fun SuccessOverlay(onLogin: () -> Unit) {
             Text(
                 stringResource(R.string.auth_password_updated_message),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 lineHeight = 20.sp,
                 color = KarsyCharcoal,
                 textAlign = TextAlign.Center

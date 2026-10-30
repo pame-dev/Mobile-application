@@ -50,7 +50,9 @@ import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
-import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -94,7 +96,7 @@ fun HelpScreen(onBack: () -> Unit) {
                 .navigationBarsPadding()
                 .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
         ) {
-            Text(stringResource(R.string.help_sub), fontFamily = DmSans, fontSize = 14.sp, color = KarsyMid)
+            Text(stringResource(R.string.help_sub), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyMid)
             Spacer(Modifier.height(14.dp))
             ProfileCard {
                 PREGUNTAS.forEachIndexed { i, (pregunta, respuesta) ->
@@ -105,8 +107,8 @@ fun HelpScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(16.dp))
             ProfileCard {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.help_contact_title), fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
-                    Text(stringResource(R.string.help_contact_desc), fontFamily = DmSans, fontSize = 14.sp, lineHeight = 20.sp, color = KarsyCharcoal)
+                    Text(stringResource(R.string.help_contact_title), fontFamily = Outfit, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.Bold, color = KarsyInk)
+                    Text(stringResource(R.string.help_contact_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, lineHeight = 20.sp, color = KarsyCharcoal)
                     Button(
                         onClick = {
                             try {
@@ -116,8 +118,8 @@ fun HelpScreen(onBack: () -> Unit) {
                                 Toast.makeText(context, CORREO_SOPORTE, Toast.LENGTH_LONG).show()
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+                        shape = RoundedCornerShape(KarsyRadius.Md),
+                        colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
                         modifier = Modifier.padding(top = 4.dp)
                     ) {
                         Icon(Icons.Outlined.Email, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -144,7 +146,7 @@ private fun Pregunta(@StringRes pregunta: Int, @StringRes respuesta: Int, abiert
             Text(
                 stringResource(pregunta),
                 fontFamily = DmSans,
-                fontSize = 15.sp,
+                fontSize = KarsyTextSize.Subtitle,
                 fontWeight = FontWeight.SemiBold,
                 color = KarsyInk,
                 modifier = Modifier.weight(1f)
@@ -162,7 +164,7 @@ private fun Pregunta(@StringRes pregunta: Int, @StringRes respuesta: Int, abiert
             Text(
                 stringResource(respuesta),
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 lineHeight = 21.sp,
                 color = KarsyCharcoal,
                 modifier = Modifier.padding(top = 10.dp)

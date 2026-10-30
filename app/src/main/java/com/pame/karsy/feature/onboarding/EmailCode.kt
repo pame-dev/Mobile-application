@@ -13,11 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyMid
-import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -59,21 +59,21 @@ fun ResendCodeRow(sending: Boolean, secondsLeft: Int, onResend: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         when {
-            sending -> Text(stringResource(R.string.auth_sending_code), fontFamily = DmSans, fontSize = 12.5.sp, color = KarsyMid)
+            sending -> Text(stringResource(R.string.auth_sending_code), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid)
             secondsLeft > 0 -> Text(
                 stringResource(R.string.auth_resend_wait, secondsLeft),
                 fontFamily = DmSans,
-                fontSize = 12.5.sp,
+                fontSize = KarsyTextSize.Body,
                 color = KarsyMid
             )
             else -> {
-                Text(stringResource(R.string.auth_no_code_question), fontFamily = DmSans, fontSize = 12.5.sp, color = KarsyMid)
+                Text(stringResource(R.string.auth_no_code_question), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid)
                 Text(
                     stringResource(R.string.auth_resend_code),
                     fontFamily = DmSans,
-                    fontSize = 12.5.sp,
+                    fontSize = KarsyTextSize.Body,
                     fontWeight = FontWeight.Bold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     modifier = Modifier.clickable(onClick = onResend)
                 )
             }

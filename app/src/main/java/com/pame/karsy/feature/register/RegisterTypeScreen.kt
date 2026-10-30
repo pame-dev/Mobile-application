@@ -44,6 +44,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.BackTopBar
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyBg
@@ -53,6 +54,8 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -111,7 +114,7 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
             Text(
                 stringResource(R.string.auth_complete_profile_later),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -125,13 +128,13 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.auth_have_account_question), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal)
+                Text(stringResource(R.string.auth_have_account_question), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal)
                 Text(
                     stringResource(R.string.auth_sign_in_here),
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable(onClick = onLogin)
                 )
@@ -148,7 +151,7 @@ private fun TypeCard(
     active: Boolean,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     val bg by animateColorAsState(if (active) KarsyTealLight else KarsySurface, label = "cardBg")
     val iconBg by animateColorAsState(if (active) KarsyTeal else KarsyTealLight, label = "iconBg")
     Row(
@@ -171,16 +174,16 @@ private fun TypeCard(
         Box(
             Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(14.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Lg))
                 .background(iconBg),
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = null, tint = if (active) KarsyWhite else KarsyTeal, modifier = Modifier.size(34.dp))
         }
         Column {
-            Text(title, fontFamily = Outfit, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = KarsyInk)
+            Text(title, fontFamily = Outfit, fontWeight = FontWeight.Bold, fontSize = KarsyTextSize.TitleLarge, color = KarsyInk)
             Spacer(Modifier.height(4.dp))
-            Text(desc, fontFamily = DmSans, fontSize = 14.sp, lineHeight = 19.6.sp, color = KarsyMid)
+            Text(desc, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, lineHeight = 19.6.sp, color = KarsyMid)
         }
     }
 }

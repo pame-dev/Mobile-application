@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCardOutline
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.Tema
 
@@ -40,7 +41,7 @@ import com.pame.karsy.core.theme.Tema
  * Esqueletos de carga: bloques grises con un brillo que los recorre, con la forma del
  * contenido que va a aparecer. Se usan en lugar del círculo girando mientras carga una lista.
  */
-fun Modifier.shimmer(shape: Shape = RoundedCornerShape(8.dp)): Modifier = composed {
+fun Modifier.shimmer(shape: Shape = RoundedCornerShape(KarsyRadius.Sm)): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "shimmer")
     val progress by transition.animateFloat(
         initialValue = -1f,
@@ -64,7 +65,7 @@ fun Modifier.shimmer(shape: Shape = RoundedCornerShape(8.dp)): Modifier = compos
 
 /** Bloque de esqueleto de [width]×[height] (o todo el ancho si [width] es null). */
 @Composable
-fun SkeletonBlock(height: Dp, width: Dp? = null, modifier: Modifier = Modifier, shape: Shape = RoundedCornerShape(8.dp)) {
+fun SkeletonBlock(height: Dp, width: Dp? = null, modifier: Modifier = Modifier, shape: Shape = RoundedCornerShape(KarsyRadius.Sm)) {
     Box(
         (if (width != null) modifier.width(width) else modifier.fillMaxWidth())
             .height(height)
@@ -75,7 +76,7 @@ fun SkeletonBlock(height: Dp, width: Dp? = null, modifier: Modifier = Modifier, 
 /** Tarjeta de vehículo en carga (misma forma que VehicleCard / FeaturedCarCard). */
 @Composable
 fun SkeletonCarCard(modifier: Modifier = Modifier, imageHeight: Dp = 180.dp) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
         modifier
             .fillMaxWidth()
@@ -104,7 +105,7 @@ fun SkeletonListRow(modifier: Modifier = Modifier, circle: Boolean = false) {
         modifier.fillMaxWidth().padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(44.dp).shimmer(if (circle) CircleShape else RoundedCornerShape(10.dp)))
+        Box(Modifier.size(44.dp).shimmer(if (circle) CircleShape else RoundedCornerShape(KarsyRadius.Md)))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SkeletonBlock(13.dp, width = 170.dp)

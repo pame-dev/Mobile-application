@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,20 +33,25 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyCoral
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.feature.profile.ProfileAvatar
 
-private val MenuGray = Color(0xFF8E9A8E)
-private val LogoutCoral = Color(0xFFE65B5B)
+private val MenuGray: Color get() = KarsyMid
+private val LogoutCoral = KarsyCoral
 
 /**
  * Menú flotante del ícono de perfil (solo con sesión): datos de la cuenta,
- * "Mi perfil", "Idioma" y "Cerrar sesión". Se ancla debajo del ícono y se cierra al tocar fuera.
+ * "Mi perfil", "Mi panel", "Panel de administración" (admin o moderador), "Idioma" y
+ * "Cerrar sesión". Se ancla debajo del ícono y se cierra al tocar fuera.
  */
 @Composable
 internal fun AccountMenu(
@@ -54,6 +61,10 @@ internal fun AccountMenu(
     avatarUrl: String?,
     onDismiss: () -> Unit,
     onProfile: () -> Unit,
+    showPanel: Boolean,
+    onPanel: () -> Unit,
+    showAdminPanel: Boolean,
+    onAdminPanel: () -> Unit,
     onLanguage: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -61,7 +72,7 @@ internal fun AccountMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
         offset = DpOffset(0.dp, 8.dp),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(KarsyRadius.Lg),
         containerColor = KarsySurface,
         shadowElevation = 10.dp,
         modifier = Modifier.widthIn(min = 240.dp, max = 300.dp)
@@ -76,7 +87,7 @@ internal fun AccountMenu(
                 Text(
                     name,
                     fontFamily = Outfit,
-                    fontSize = 15.sp,
+                    fontSize = KarsyTextSize.Subtitle,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     maxLines = 1,
@@ -85,7 +96,7 @@ internal fun AccountMenu(
                 if (email.isNotBlank()) Text(
                     email,
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = MenuGray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -96,6 +107,14 @@ internal fun AccountMenu(
         MenuOption(Icons.Outlined.Person, stringResource(R.string.home_my_profile), KarsyInk) {
             onDismiss()
             onProfile()
+        }
+        if (showPanel) MenuOption(Icons.Outlined.SpaceDashboard, stringResource(R.string.profile_panel_seller), KarsyInk) {
+            onDismiss()
+            onPanel()
+        }
+        if (showAdminPanel) MenuOption(Icons.Outlined.AdminPanelSettings, stringResource(R.string.home_admin_panel), KarsyInk) {
+            onDismiss()
+            onAdminPanel()
         }
         // A la vista (antes solo estaba en Ajustes): los usuarios no lo encontraban.
         MenuOption(Icons.Outlined.Language, stringResource(R.string.settings_language), KarsyInk) {
@@ -121,7 +140,7 @@ private fun MenuOption(icon: ImageVector, text: String, color: Color, onClick: (
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(19.dp))
-        Text(text, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = color)
+        Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = color)
     }
 }
 

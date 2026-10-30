@@ -6,11 +6,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.foundation.ScrollState
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWarning
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.pame.karsy.core.components.PhoneVisualTransformation
-import com.pame.karsy.core.theme.KarsyTeal
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -64,13 +66,13 @@ internal fun RegisterHeader(title: String, subtitle: String, modifier: Modifier 
             title,
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
-            fontSize = 28.sp,
+            fontSize = KarsyTextSize.DisplayLarge,
             lineHeight = 34.sp,
             letterSpacing = (-0.02).em,
             color = KarsyInk
         )
         Spacer(Modifier.height(6.dp))
-        Text(subtitle, fontFamily = DmSans, fontSize = 15.sp, lineHeight = 21.sp, color = KarsyMid)
+        Text(subtitle, fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, lineHeight = 21.sp, color = KarsyMid)
     }
 }
 
@@ -81,7 +83,7 @@ internal fun RegisterError(message: String?) {
     Text(
         message,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         color = KarsyError,
         textAlign = TextAlign.Center,
         modifier = Modifier
@@ -138,7 +140,7 @@ internal fun ContactFields(vm: RegisterViewModel, phoneLabel: String, onPosition
         onSelect = { vm.medioContacto = if (it == 0) RegisterViewModel.WHATSAPP else RegisterViewModel.LLAMADA }
     )
     vm.errorFor("medio")?.let {
-        Text(it, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+        Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyError, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
     }
     Spacer(Modifier.height(16.dp))
 }
@@ -149,7 +151,7 @@ private fun FieldQuestion(text: String) {
     Text(
         text,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         fontWeight = FontWeight.SemiBold,
         color = KarsyCharcoal,
         modifier = Modifier.padding(bottom = 6.dp)
@@ -167,7 +169,7 @@ private fun OptionButtons(
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         options.forEachIndexed { i, option ->
             val active = i == selected
-            val shape = RoundedCornerShape(12.dp)
+            val shape = RoundedCornerShape(KarsyRadius.Md)
             Box(
                 Modifier
                     .weight(1f)
@@ -181,7 +183,7 @@ private fun OptionButtons(
                 Text(
                     option,
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = if (active) KarsyWhite else KarsyMid
                 )
@@ -197,13 +199,13 @@ internal fun EmailSuggestion(vm: RegisterViewModel) {
     Text(
         buildAnnotatedString {
             append(stringResource(R.string.form_email_suggestion_prefix))
-            withStyle(SpanStyle(color = KarsyTeal, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
+            withStyle(SpanStyle(color = KarsyTealText, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
                 append(sugerido)
             }
             append("?")
         },
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         color = KarsyCharcoal,
         modifier = Modifier
             .offset(y = (-8).dp)
@@ -229,7 +231,7 @@ internal fun FieldNotice(message: String?, actionLabel: String? = null, onAction
         Text(
             message,
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             lineHeight = 16.sp,
             color = if (actionLabel != null) KarsyError else KarsyWarning,
             modifier = Modifier.weight(1f, fill = false)
@@ -238,9 +240,9 @@ internal fun FieldNotice(message: String?, actionLabel: String? = null, onAction
             Text(
                 actionLabel,
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Bold,
-                color = KarsyTeal,
+                color = KarsyTealText,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .padding(start = 8.dp)
@@ -290,9 +292,9 @@ internal fun EmailExistsAction(vm: RegisterViewModel, onLogin: () -> Unit) {
     Text(
         stringResource(R.string.form_action_login),
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         fontWeight = FontWeight.Bold,
-        color = KarsyTeal,
+        color = KarsyTealText,
         textDecoration = TextDecoration.Underline,
         modifier = Modifier
             .offset(y = (-8).dp)

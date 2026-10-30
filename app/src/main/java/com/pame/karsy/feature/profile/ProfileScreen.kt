@@ -38,7 +38,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,6 +70,10 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.VerifiedBadge
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
+import com.pame.karsy.core.theme.KarsyVerifiedBlue
 import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyErrorLight
@@ -107,8 +110,7 @@ import com.pame.karsy.core.components.FormInput
 fun ProfileScreen(
     userMode: UserMode,
     onBack: () -> Unit,
-    onPanel: () -> Unit,
-    onAdminPanel: () -> Unit,
+    onPublish: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
     onCarClick: (Long) -> Unit,
@@ -218,15 +220,15 @@ fun ProfileScreen(
                 }
             } else if (vm.loading) {
                 // Esqueleto: portada con avatar y nombre.
-                SkeletonBlock(230.dp, shape = RoundedCornerShape(20.dp))
+                SkeletonBlock(230.dp, shape = RoundedCornerShape(KarsyRadius.Xl))
                 Spacer(Modifier.height(16.dp))
             }
             vm.message?.let {
                 Text(
                     it,
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
-                    color = KarsyTeal,
+                    fontSize = KarsyTextSize.Body,
+                    color = KarsyTealText,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
@@ -238,15 +240,10 @@ fun ProfileScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            // El admin conserva su cuenta (particular o lote) y además tiene el panel de administración.
-            if (SessionManager.hasPanel) {
-                AdminPanelButton(onClick = onAdminPanel)
-                Spacer(Modifier.height(16.dp))
-            }
-
+            // Mi panel y el panel de administración están en el menú del ícono de Perfil.
             PostsCard(
                 cars = vm.visibleCars,
-                onPanel = onPanel,
+                onPublish = onPublish,
                 onCarClick = onCarClick
             )
             val hiddenCars = vm.hiddenCars
@@ -362,7 +359,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                 text = user.displayName,
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
+                fontSize = KarsyTextSize.Headline,
                 color = KarsyInk,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -386,15 +383,15 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
             Text(
                 text = "@" + user.email.substringBefore("@"),
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = KarsyTeal
+                color = KarsyTealText
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 text = listOf(rememberTraduccion(user.bio), user.location).filter { it.isNotBlank() }.joinToString(" · "),
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 lineHeight = 21.sp,
                 color = KarsyTextSecondary
             )
@@ -402,7 +399,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
             Spacer(Modifier.height(14.dp))
             OutlinedButton(
                 onClick = onEdit,
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(KarsyRadius.Md),
                 border = BorderStroke(1.5.dp, KarsyBorder),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = KarsySurface,
@@ -413,7 +410,7 @@ private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit
                 Text(
                     stringResource(R.string.profile_edit_profile),
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -445,7 +442,7 @@ private fun CurpVerificationCard(
                         stringResource(R.string.profile_curp_pending_title),
                         fontFamily = Outfit,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = KarsyTextSize.Title,
                         color = KarsyInk
                     )
                 }
@@ -453,7 +450,7 @@ private fun CurpVerificationCard(
                 Text(
                     stringResource(R.string.profile_curp_pending_desc),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 19.sp,
                     color = KarsyTextSecondary
                 )
@@ -463,14 +460,14 @@ private fun CurpVerificationCard(
                     stringResource(if (rechazada) R.string.profile_curp_rejected_title else R.string.profile_curp_title),
                     fontFamily = Outfit,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
+                    fontSize = KarsyTextSize.Title,
                     color = KarsyInk
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     stringResource(R.string.profile_curp_desc),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 19.sp,
                     color = KarsyTextSecondary
                 )
@@ -479,12 +476,12 @@ private fun CurpVerificationCard(
                     Text(
                         stringResource(R.string.profile_verification_reason, rememberTraduccion(motivoRechazo)),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         lineHeight = 19.sp,
                         color = KarsyError,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Md))
                             .background(KarsyErrorLight)
                             .padding(horizontal = 12.dp, vertical = 10.dp)
                     )
@@ -517,7 +514,7 @@ private fun CurpVerificationCard(
 
 // Colores de la tarjeta de la constancia: gris del detalle y azul del botón.
 private val ConstanciaGris = Color(0xFF9AA7B3)
-private val ConstanciaAzul = Color(0xFF3D7FC4)
+private val ConstanciaAzul = KarsyVerifiedBlue
 
 /**
  * Constancia de Situación Fiscal del propio lote, en una fila: ícono por estado, título, estado
@@ -577,7 +574,7 @@ private fun LoteConstanciaCard(
                 Box(
                     modifier = Modifier
                         .size(46.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(fondo),
                     contentAlignment = Alignment.Center
                 ) {
@@ -588,7 +585,7 @@ private fun LoteConstanciaCard(
                         stringResource(R.string.profile_verification_field_label),
                         fontFamily = Outfit,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = KarsyTextSize.Title,
                         color = KarsyInk
                     )
                     Spacer(Modifier.height(2.dp))
@@ -598,7 +595,7 @@ private fun LoteConstanciaCard(
                             if (detalle != null) append(" · $detalle")
                         },
                         fontFamily = DmSans,
-                        fontSize = 14.sp,
+                        fontSize = KarsyTextSize.BodyLarge,
                         lineHeight = 20.sp,
                         color = ConstanciaGris,
                         maxLines = 2,
@@ -611,7 +608,7 @@ private fun LoteConstanciaCard(
                 Button(
                     onClick = { picker.launch(Constancia.TIPOS_SELECTOR) },
                     enabled = !enviando,
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = ConstanciaAzul,
                         contentColor = Color.White,
@@ -623,7 +620,7 @@ private fun LoteConstanciaCard(
                     Text(
                         stringResource(if (enviando) R.string.profile_verification_sending else boton),
                         fontFamily = DmSans,
-                        fontSize = 14.sp,
+                        fontSize = KarsyTextSize.BodyLarge,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -632,7 +629,7 @@ private fun LoteConstanciaCard(
                 Text(
                     error,
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = KarsyError,
                     modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                 )
@@ -646,11 +643,11 @@ private fun AccountBadge(text: String) {
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.SemiBold,
-        color = KarsyTeal,
+        color = KarsyTealText,
         modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Xl))
             .background(KarsyTealLight)
             .padding(horizontal = 10.dp, vertical = 3.dp)
     )
@@ -669,7 +666,7 @@ private fun StatBox(num: String, label: String, modifier: Modifier = Modifier) {
                 num,
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                fontSize = KarsyTextSize.HeadlineLarge,
                 color = KarsyInk
             )
             Spacer(Modifier.height(3.dp))
@@ -677,7 +674,7 @@ private fun StatBox(num: String, label: String, modifier: Modifier = Modifier) {
                 label,
                 fontFamily = DmSans,
                 fontWeight = FontWeight.Medium,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid
             )
         }
@@ -685,31 +682,7 @@ private fun StatBox(num: String, label: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AdminPanelButton(onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.5.dp, KarsyNavy),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = KarsySurface,
-            contentColor = KarsyNavy
-        ),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Icon(Icons.Outlined.SpaceDashboard, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(8.dp))
-        Text(
-            stringResource(R.string.profile_panel_admin),
-            fontFamily = DmSans,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp
-        )
-    }
-}
-
-@Composable
-private fun PostsCard(cars: List<Car>, onPanel: () -> Unit, onCarClick: (Long) -> Unit) {
+private fun PostsCard(cars: List<Car>, onPublish: () -> Unit, onCarClick: (Long) -> Unit) {
     ProfileCard {
         Row(
             modifier = Modifier
@@ -722,35 +695,23 @@ private fun PostsCard(cars: List<Car>, onPanel: () -> Unit, onCarClick: (Long) -
                 stringResource(R.string.profile_my_posts),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
+                fontSize = KarsyTextSize.Title,
                 color = KarsyInk
             )
-            Button(
-                onClick = onPanel,
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KarsyNavy,
-                    contentColor = KarsyWhite
-                ),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 7.dp),
-                modifier = Modifier.height(34.dp)
-            ) {
-                Text(
-                    stringResource(R.string.profile_panel_seller),
-                    fontFamily = DmSans,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
-                )
-            }
         }
         RowDivider()
         if (cars.isEmpty()) {
             Text(
                 stringResource(R.string.profile_no_posts),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 color = KarsyMid,
                 modifier = Modifier.padding(21.dp)
+            )
+            PrimaryButton(
+                text = stringResource(R.string.profile_publish_first),
+                onClick = onPublish,
+                modifier = Modifier.padding(start = 21.dp, end = 21.dp, bottom = 21.dp)
             )
         }
         PostsGrid(cars, onCarClick)
@@ -777,7 +738,7 @@ private fun HiddenPostsCard(cars: List<Car>, onCarClick: (Long) -> Unit) {
                 stringResource(R.string.profile_hidden_posts, cars.size),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
+                fontSize = KarsyTextSize.Title,
                 color = KarsyInk,
                 modifier = Modifier.weight(1f)
             )
@@ -796,7 +757,7 @@ private fun HiddenPostsCard(cars: List<Car>, onCarClick: (Long) -> Unit) {
                 Text(
                     stringResource(R.string.profile_hidden_posts_desc),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = KarsyMid,
                     modifier = Modifier.padding(start = 22.dp, end = 22.dp, top = 12.dp, bottom = 9.dp)
                 )
@@ -820,7 +781,7 @@ private fun PostsGrid(cars: List<Car>, onCarClick: (Long) -> Unit) {
                         Modifier
                             .weight(1f)
                             .aspectRatio(1f)
-                            .clip(RoundedCornerShape(6.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Xs))
                             .background(ImagePlaceholder)
                             .clickable { onCarClick(car.id) }
                     ) {
@@ -838,13 +799,13 @@ private fun PostsGrid(cars: List<Car>, onCarClick: (Long) -> Unit) {
                         if (car.status != EstadoAuto.ACTIVO) Text(
                             carStatusLabel(car.status),
                             fontFamily = DmSans,
-                            fontSize = 10.sp,
+                            fontSize = KarsyTextSize.Tiny,
                             fontWeight = FontWeight.SemiBold,
                             color = KarsyWhite,
                             modifier = Modifier
                                 .align(Alignment.BottomStart)
                                 .padding(5.dp)
-                                .clip(RoundedCornerShape(6.dp))
+                                .clip(RoundedCornerShape(KarsyRadius.Xs))
                                 .background(KarsyNavy.copy(alpha = 0.75f))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         )

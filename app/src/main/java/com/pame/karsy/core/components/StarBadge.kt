@@ -11,9 +11,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 
 /** Etiqueta tipo píldora ("Destacado", "Premium"...). */
@@ -27,12 +28,12 @@ fun StarBadge(
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.SemiBold,
         letterSpacing = 0.04.em,
         color = contentColor,
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Xl))
             .background(background)
             .padding(horizontal = 10.dp, vertical = 4.dp)
     )

@@ -79,6 +79,8 @@ export interface Car {
   municipio: string
   /** Condición de la ficha técnica: 'seminuevo', 'usado' o null. */
   condition: string | null
+  /** cuentas.verificado del dueño: insignia "Verificado" en la tarjeta (solo lo llena visibleCars). */
+  ownerVerified: boolean
 }
 
 /** Detalle completo de una publicación (equivale a data/model/CarDetail.kt). */

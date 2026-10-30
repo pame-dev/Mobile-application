@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
+import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.supabase.mensajeUsuario
@@ -49,9 +51,11 @@ import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.safeCall
@@ -64,7 +68,7 @@ import kotlinx.coroutines.launch
  * y avisan cuando se publica un auto que coincide.
  */
 @Composable
-fun SavedSearchesScreen(onBack: () -> Unit) {
+fun SavedSearchesScreen(onBack: () -> Unit, onExplore: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var busquedas by remember { mutableStateOf<List<BusquedaGuardadaDto>?>(null) }
@@ -102,7 +106,7 @@ fun SavedSearchesScreen(onBack: () -> Unit) {
                 Text(
                     stringResource(R.string.saved_search_hint),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 18.sp,
                     color = KarsyMid,
                     modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 14.dp)
@@ -113,13 +117,20 @@ fun SavedSearchesScreen(onBack: () -> Unit) {
                         items == null -> Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
                             repeat(3) { SkeletonListRow() }
                         }
-                        items.isEmpty() -> Text(
-                            stringResource(R.string.saved_search_empty),
-                            fontFamily = DmSans,
-                            fontSize = 14.sp,
-                            color = KarsyMid,
-                            modifier = Modifier.padding(20.dp)
-                        )
+                        items.isEmpty() -> Column {
+                            Text(
+                                stringResource(R.string.saved_search_empty),
+                                fontFamily = DmSans,
+                                fontSize = KarsyTextSize.BodyLarge,
+                                color = KarsyMid,
+                                modifier = Modifier.padding(20.dp)
+                            )
+                            PrimaryButton(
+                                text = stringResource(R.string.core_empty_explore),
+                                onClick = onExplore,
+                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
+                            )
+                        }
                         else -> Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.padding(14.dp)
@@ -139,7 +150,7 @@ private fun SavedSearchRow(b: BusquedaGuardadaDto, onDelete: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(karsyTint(KarsyTeal, KarsyTealLight))
             .padding(start = 14.dp, top = 12.dp, bottom = 12.dp, end = 4.dp)
     ) {
@@ -147,7 +158,7 @@ private fun SavedSearchRow(b: BusquedaGuardadaDto, onDelete: () -> Unit) {
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(30.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Sm))
                 .background(KarsySurface)
         ) {
             Icon(Icons.Rounded.NotificationsActive, contentDescription = null, tint = KarsyTeal, modifier = Modifier.size(16.dp))
@@ -157,7 +168,7 @@ private fun SavedSearchRow(b: BusquedaGuardadaDto, onDelete: () -> Unit) {
             Text(
                 SearchRepository.describir(b),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.SemiBold,
                 lineHeight = 18.sp,
                 color = KarsyCharcoal
@@ -166,13 +177,14 @@ private fun SavedSearchRow(b: BusquedaGuardadaDto, onDelete: () -> Unit) {
             Text(
                 stringResource(R.string.saved_search_since, Formato.haceCuanto(b.fecha)),
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 color = KarsyMid
             )
         }
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
+                .minimumInteractiveComponentSize()
                 .size(40.dp)
                 .clip(CircleShape)
                 .clickable(onClick = onDelete)
