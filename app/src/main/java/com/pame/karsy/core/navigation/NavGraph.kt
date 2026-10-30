@@ -166,7 +166,7 @@ fun KarsyNavGraph(
             popUpTo(navController.graph.id) { inclusive = true }
         }
         when {
-            account.esAdmin -> navController.navigate(Routes.AdminDashboard.route)
+            account.tienePanel -> navController.navigate(Routes.AdminDashboard.route)
             account.mode == UserMode.LOTE -> navController.navigate(Routes.Dashboard.route)
         }
     }

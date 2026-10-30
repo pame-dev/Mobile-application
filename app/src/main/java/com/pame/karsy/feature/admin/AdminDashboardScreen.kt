@@ -90,7 +90,10 @@ fun AdminDashboardScreen(
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var section by rememberSaveable { mutableStateOf(AdminSection.Inicio) }
+    val secciones = AdminSection.delRol(SessionManager.account?.rolPanel)
+    // El administrador empieza en Inicio; un moderador, en su primera sección.
+    val primera = secciones.first()
+    var section by rememberSaveable { mutableStateOf(primera) }
     // Filtro con el que se abre Vehículos o Usuarios desde "Requiere atención"; desde el menú, "Todos".
     var filtro by rememberSaveable { mutableStateOf("Todos") }
     // El menú lateral cubre la pantalla: sin barra inferior mientras se abre o está abierto.
@@ -108,14 +111,14 @@ fun AdminDashboardScreen(
     LaunchedEffect(pedida) {
         if (pedida != null) {
             filtro = "Todos"
-            section = pedida
+            if (pedida in secciones) section = pedida
             AdminPanelRequest.section = null
         }
     }
 
-    // Atrás desde una sección vuelve a Inicio (el menú abierto lo maneja ModalDrawerSheet).
-    BackHandler(enabled = section != AdminSection.Inicio && drawerState.isClosed) {
-        section = AdminSection.Inicio
+    // Atrás desde una sección vuelve a la primera (el menú abierto lo maneja ModalDrawerSheet).
+    BackHandler(enabled = section != primera && drawerState.isClosed) {
+        section = primera
     }
 
     ModalNavigationDrawer(
@@ -131,11 +134,16 @@ fun AdminDashboardScreen(
                     scope.launch { drawerState.close() }
                 },
                 adminName = SessionManager.account?.nombre.orEmpty(),
-                badges = (if (stats == null) emptyMap<AdminSection, Int>() else mapOf(
-                    AdminSection.Vehiculos to stats.propuestasPendientes,
-                    AdminSection.Reportes to stats.reportesPendientes,
-                    AdminSection.Destacados to stats.destacadosPendientes,
-                )) + (AdminSection.Verificaciones to vm.pendingVerifications),
+                // Los moderadores no leen las estadísticas: cuentan sobre sus listas.
+                badges = secciones.associateWith { s ->
+                    when (s) {
+                        AdminSection.Vehiculos -> stats?.propuestasPendientes ?: vm.vehicles.count { it.pendingProposalId != null }
+                        AdminSection.Reportes -> stats?.reportesPendientes ?: vm.reports.count { it.status == "Pendiente" }
+                        AdminSection.Destacados -> stats?.destacadosPendientes ?: vm.featuredRequests.count { it.status == FeaturedStatus.Pendiente }
+                        AdminSection.Verificaciones -> vm.pendingVerifications
+                        else -> 0
+                    }
+                },
                 onLogout = onLogout
             )
         }
@@ -196,7 +204,8 @@ fun AdminDashboardScreen(
                     .weight(1f)
                     .padding(bottom = LocalBottomBarSpace.current)
             ) {
-                when (section) {
+                // Una sección restaurada que el rol ya no ve cae en la primera permitida.
+                when (if (section in secciones) section else primera) {
                     AdminSection.Inicio -> AdminHomeSection(vm = vm, onNavigate = { s, f -> filtro = f ?: "Todos"; section = s })
                     AdminSection.Usuarios -> AdminUsersSection(vm, filtro)
                     AdminSection.Vehiculos -> AdminVehiclesSection(vm, onCarClick, filtro)

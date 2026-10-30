@@ -34,11 +34,17 @@ data class SessionAccount(
     val id: String,
     val nombre: String,
     val tipoCuenta: String,
-    val esAdmin: Boolean,
+    /** rol_panel() de la BD: "administrador", "moderador_publicaciones", "moderador_verificaciones" o null. */
+    val rolPanel: String?,
     val correo: String,
     /** Tema guardado en la cuenta (códigos de Tema); null = nunca lo eligió. */
     val tema: String? = null,
 ) {
+    val esAdmin: Boolean get() = rolPanel == "administrador"
+
+    /** Admin o moderador: entra al panel de administración (con las secciones de su rol). */
+    val tienePanel: Boolean get() = rolPanel != null
+
     /** El modo sale solo del tipo de cuenta; el rol de admin se suma aparte. */
     val mode: UserMode
         get() = if (tipoCuenta == "lote") UserMode.LOTE else UserMode.PARTICULAR
@@ -58,6 +64,9 @@ object SessionManager {
 
     /** La cuenta en sesión tiene además el rol "administrador". */
     val isAdmin: Boolean get() = account?.esAdmin == true
+
+    /** Administrador o moderador: ve el botón y el panel de administración. */
+    val hasPanel: Boolean get() = account?.tienePanel == true
 
     fun login(account: SessionAccount) {
         this.account = account

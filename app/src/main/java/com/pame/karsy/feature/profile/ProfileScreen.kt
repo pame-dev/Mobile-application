@@ -239,7 +239,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(16.dp))
 
             // El admin conserva su cuenta (particular o lote) y además tiene el panel de administración.
-            if (SessionManager.isAdmin) {
+            if (SessionManager.hasPanel) {
                 AdminPanelButton(onClick = onAdminPanel)
                 Spacer(Modifier.height(16.dp))
             }

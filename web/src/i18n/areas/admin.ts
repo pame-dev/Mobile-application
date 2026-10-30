@@ -59,6 +59,7 @@ export const es = {
   'admin.sec.reports': 'Reportes',
   'admin.sec.featured': 'Destacados',
   'admin.administrator': 'Administrador',
+  'admin.moderator': 'Moderador',
   'admin.backHome': 'Volver al inicio',
 
   // Estados mostrados en insignias y pestañas
@@ -448,6 +449,7 @@ export const en: Record<keyof typeof es, string> = {
   'admin.sec.reports': 'Reports',
   'admin.sec.featured': 'Featured',
   'admin.administrator': 'Administrator',
+  'admin.moderator': 'Moderator',
   'admin.backHome': 'Back to home',
 
   'admin.st.active': 'Active',

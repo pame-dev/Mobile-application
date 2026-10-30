@@ -4,7 +4,7 @@ import { cerrarSesionLocal, supabase } from '../lib/supabase'
 import type { Account } from '../data/types'
 import { aplicarTemaDeCuenta } from '../lib/tema'
 
-/** Visitante (sin sesión), usuario (particular o lote) o administrador. */
+/** Visitante (sin sesión), usuario (particular o lote) o administrador. Un moderador es 'user' con account.rolPanel. */
 export type Mode = 'guest' | 'user' | 'admin'
 
 interface SessionValue {
@@ -35,7 +35,7 @@ export function setRecoveryMode(on: boolean) {
 }
 
 /**
- * Lee la cuenta de public.cuentas y el rol con es_administrador(), igual que
+ * Lee la cuenta de public.cuentas y el rol con rol_panel(), igual que
  * AuthRepository.loadAccountOrSignOut en la app: sin cuenta o suspendida → se cierra la sesión.
  */
 async function loadAccount(): Promise<{ account: Account | null; notice: string | null }> {
@@ -57,7 +57,7 @@ async function loadAccount(): Promise<{ account: Account | null; notice: string 
     await cerrarSesionLocal()
     return { account: null, notice: traducir('vehiculo.session.suspended') }
   }
-  const { data: esAdmin } = await supabase.rpc('es_administrador', { p_id_cuenta: user.id })
+  const { data: rolPanel } = await supabase.rpc('rol_panel')
   // El tema elegido en otro dispositivo, aparte: si falla (o aún no existe la columna), no
   // impide iniciar sesión.
   void supabase
@@ -74,7 +74,8 @@ async function loadAccount(): Promise<{ account: Account | null; notice: string 
       id: cuenta.id_cuenta,
       nombre: cuenta.nombre_mostrar,
       tipoCuenta: cuenta.tipo_cuenta,
-      esAdmin: esAdmin === true,
+      esAdmin: rolPanel === 'administrador',
+      rolPanel: (rolPanel as string | null) ?? null,
       correo: user.email ?? '',
       fotoPerfil: cuenta.foto_perfil,
     },

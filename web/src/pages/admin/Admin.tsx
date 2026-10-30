@@ -48,6 +48,13 @@ import { AdminHead, Badge, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, 
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
 
+/** Secciones que ve cada rol de panel (rol_panel en la BD); el administrador, todas. Igual que AdminSection.delRol en la app. */
+function seccionesDelRol(rol: string | null): Seccion[] {
+  if (rol === 'moderador_publicaciones') return ['usuarios', 'vehiculos', 'reportes']
+  if (rol === 'moderador_verificaciones') return ['destacados', 'verificacion']
+  return ['inicio', 'usuarios', 'vehiculos', 'reportes', 'destacados', 'verificacion']
+}
+
 /** Todo lo que necesita el panel; se recarga después de cada acción. */
 interface Datos {
   cuentas: CuentaAdmin[]
@@ -67,7 +74,7 @@ export function Admin() {
   const { sec = 'inicio' } = useParams()
   const seccion = sec as Seccion
   const navigate = useNavigate()
-  const { account, mode, loading: cargandoSesion } = useSession()
+  const { account, loading: cargandoSesion } = useSession()
   const { openModal, toast } = useUi()
   const { t } = useI18n()
   const [datos, setDatos] = useState<Datos | null>(null)
@@ -80,32 +87,47 @@ export function Admin() {
   const sideRef = useRef<HTMLElement>(null)
   const [sinLeer, setSinLeer] = useState(0)
 
+  const rol = account?.rolPanel ?? null
+  const permitidas = seccionesDelRol(rol)
+  // Un moderador solo lee lo de sus secciones (lo demás la BD se lo niega).
+  const dePublicaciones = permitidas.includes('vehiculos')
+  const deVerificaciones = permitidas.includes('verificacion')
+
   const cargar = useCallback(async () => {
     setError(null)
     try {
-      const [cuentas, filas, reportes, destacados, verificaciones] = await Promise.all([adminAccounts(), adminCars(), adminReports(), adminFeatured(), adminVerifications()])
+      const [cuentas, filas, reportes, destacados, verificaciones] = await Promise.all([
+        dePublicaciones ? adminAccounts() : [],
+        adminCars(),
+        dePublicaciones ? adminReports() : [],
+        deVerificaciones ? adminFeatured() : [],
+        deVerificaciones ? adminVerifications() : [],
+      ])
       setDatos({ cuentas, autos: filas.map((row) => ({ car: toCar(row), row })), reportes, destacados, verificaciones })
     } catch (e) {
       setError(mensajeUsuario(e))
     }
-  }, [])
+  }, [dePublicaciones, deVerificaciones])
 
+  // Las estadísticas (Inicio) solo las lee el administrador.
+  const esAdmin = account?.esAdmin === true
   const cargarStats = useCallback(() => {
+    if (!esAdmin) return
     adminStats(rango)
       .then(setStats)
       .catch((e) => setError(mensajeUsuario(e)))
-  }, [rango])
+  }, [rango, esAdmin])
 
   useEffect(() => {
-    if (mode === 'admin') void cargar()
-  }, [cargar, mode])
+    if (rol) void cargar()
+  }, [cargar, rol])
   useEffect(() => {
-    if (mode === 'admin') cargarStats()
-  }, [cargarStats, mode])
+    if (rol) cargarStats()
+  }, [cargarStats, rol])
   // Lo que pasa en la app (publicaciones nuevas, reportes, ediciones) aparece sin recargar.
   useRecargar(
     () => {
-      if (mode !== 'admin') return
+      if (!rol) return
       void cargar()
       cargarStats()
     },
@@ -173,9 +195,12 @@ export function Admin() {
 
   if (cargandoSesion) return <div className="skeleton" style={{ height: '100vh', borderRadius: 0 }} />
   if (!account) return <Navigate to="/login" replace state={{ from: '/admin' }} />
-  if (mode !== 'admin') return <Navigate to="/" replace />
+  // Administrador o moderador (rol_panel); los moderadores conservan su modo de usuario.
+  if (!rol) return <Navigate to="/" replace />
   // La sección Lotes se quitó: los lotes se ven en Usuarios con el filtro "Lote".
   if (sec === 'lotes') return <Navigate to="/admin/usuarios?tipo=lote" replace />
+  // Un moderador que entra a /admin o a una sección ajena va a su primera sección.
+  if (!permitidas.includes(seccion)) return <Navigate to={`/admin/${permitidas[0]}`} replace />
 
   const pendientes = {
     vehiculos: datos?.autos.filter((a) => propuestaPendiente(a.row) != null).length ?? 0,
@@ -183,14 +208,14 @@ export function Admin() {
     destacados: datos?.destacados.filter((d) => d.estado_solicitud === 'pendiente').length ?? 0,
     verificacion: datos?.verificaciones.filter((v) => v.estado === 'pendiente').length ?? 0,
   }
-  const items: [Seccion, Clave, IconName, number?][] = [
+  const items = ([
     ['inicio', 'admin.sec.home', 'home'],
     ['usuarios', 'admin.sec.users', 'users'],
     ['vehiculos', 'admin.sec.vehicles', 'car', pendientes.vehiculos],
     ['reportes', 'admin.sec.reports', 'flag', pendientes.reportes],
     ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
     ['verificacion', 'admin.sec.verification', 'shield', pendientes.verificacion],
-  ]
+  ] as [Seccion, Clave, IconName, number?][]).filter(([k]) => permitidas.includes(k))
   const ir = (s: Seccion, filtro?: string) => navigate((s === 'inicio' ? '/admin' : `/admin/${s}`) + (filtro ? `?${filtro}` : ''))
   /** Navega y, si el panel móvil estaba abierto, lo cierra. */
   const elegir = (accion: () => void) => {
@@ -255,7 +280,7 @@ export function Admin() {
             <Ini name={account.nombre} src={publicUrl(account.fotoPerfil)} />
             <div style={{ minWidth: 0 }}>
               <b>{account.nombre}</b>
-              <span>{t('admin.administrator')}</span>
+              <span>{t(account.esAdmin ? 'admin.administrator' : 'admin.moderator')}</span>
             </div>
           </div>
           <hr />
@@ -1200,6 +1225,7 @@ function Aprobada({ titulo }: { titulo: string }) {
 }
 
 function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void }) {
+  const esAdmin = useSession().account?.esAdmin === true
   const { openModal, toast } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -1228,7 +1254,8 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
   return (
     <>
       <AdminHead title={t('admin.featTitle')} desc={t('admin.featDesc')} />
-      <ConfigPagos />
+      {/* Precio, días y cuenta bancaria: solo el administrador (admin_guardar_config_pagos). */}
+      {esAdmin && <ConfigPagos />}
       <Tabs
         value={tab}
         onChange={setTab}

@@ -515,7 +515,7 @@ internal fun HomeHeader(
                         Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                     else -> {
-                        if (SessionManager.isAdmin) {
+                        if (SessionManager.hasPanel) {
                             HeaderIconButton(p, onClick = onAdminPanel) {
                                 Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = p.headerContent, modifier = Modifier.size(18.dp))
                             }
