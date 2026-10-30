@@ -18,8 +18,11 @@ import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 /** La cuenta existe pero su correo no está verificado: la app debe pedir el código. */
@@ -237,15 +240,13 @@ object AuthRepository {
             throw UserFacingException(texto(R.string.core_error_account_suspended))
         }
 
-        val esAdmin = Supabase.client.postgrest
-            .rpc("es_administrador", buildJsonObject { put("p_id_cuenta", user.id) })
-            .decodeAs<Boolean>()
+        val rolPanel = Supabase.client.postgrest.rpc("rol_panel").decodeAs<JsonElement>().jsonPrimitive.contentOrNull
 
         return SessionAccount(
             id = cuenta.idCuenta,
             nombre = cuenta.nombreMostrar,
             tipoCuenta = cuenta.tipoCuenta,
-            esAdmin = esAdmin,
+            rolPanel = rolPanel,
             correo = user.email.orEmpty(),
             tema = if (cuenta.tema == "sistema") Tema.SISTEMA else cuenta.tema,
         )

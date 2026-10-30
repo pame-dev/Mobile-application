@@ -126,3 +126,9 @@ PGURL="postgresql://postgres.rkuikrlejybrxrlmzsms@aws-0-us-west-2.pooler.supabas
 unset PGPASSWORD
 
 estructura completa de la bd (tablas, funciones, triggers...): estructura_base_de_datos.txt
+
+
+
+Moderador	Correo	Contraseña
+Publicaciones, reportes y usuarios	modpub@karsy.com	qZfzmAscuEcovn
+Destacados y verificaciones	modver@karsy.com	ekTkMjV5FkQZb9

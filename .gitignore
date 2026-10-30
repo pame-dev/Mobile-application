@@ -31,3 +31,4 @@ web/*.tsbuildinfo
 
 # Compilado de la web (npm run build)
 web/dist/
+graphify-out/

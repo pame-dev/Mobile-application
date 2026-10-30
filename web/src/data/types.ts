@@ -134,6 +134,8 @@ export interface Account {
   nombre: string
   tipoCuenta: 'particular' | 'lote'
   esAdmin: boolean
+  /** rol_panel() de la BD: 'administrador', 'moderador_publicaciones', 'moderador_verificaciones' o null. */
+  rolPanel: string | null
   correo: string
   fotoPerfil: string | null
 }

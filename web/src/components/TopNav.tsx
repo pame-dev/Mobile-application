@@ -186,7 +186,7 @@ export function TopNav() {
     ['/panel', t('nav.myDashboard'), 'chart'],
     ['/historial', t('nav.history'), 'history'],
     ['/configuracion', t('nav.settings'), 'settings'],
-    ...(mode === 'admin' ? [['/admin', t('nav.adminPanel'), 'shield'] as [string, string, IconName]] : []),
+    ...(account?.rolPanel ? [['/admin', t('nav.adminPanel'), 'shield'] as [string, string, IconName]] : []),
   ]
   const foto = publicUrl(account?.fotoPerfil)
 
@@ -270,7 +270,7 @@ export function TopNav() {
                     <div style={{ padding: 'var(--s-3) var(--s-3) var(--s-2)' }}>
                       <b className="ink">{account!.nombre}</b>
                       <div className="muted text-xs">
-                        {account!.correo} · {mode === 'admin' ? t('nav.admin') : account!.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
+                        {account!.correo} · {account!.esAdmin ? t('nav.admin') : account!.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
                       </div>
                     </div>
                     <hr />
@@ -417,7 +417,7 @@ function MenuMovil({
                   {account.nombre}
                 </b>
                 <span className="muted ellipsis text-xs" style={{ display: 'block' }}>
-                  {mode === 'admin' ? t('nav.admin') : account.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
+                  {account.esAdmin ? t('nav.admin') : account.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
                 </span>
               </div>
             </div>

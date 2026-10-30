@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavyDeep
 import com.pame.karsy.core.theme.KarsyNavy
@@ -76,6 +77,15 @@ enum class AdminSection(@StringRes val labelRes: Int) {
             Destacados -> Icons.Outlined.StarOutline
             Verificaciones -> Icons.Outlined.VerifiedUser
         }
+
+    companion object {
+        /** Secciones que ve cada rol de panel (rol_panel en la BD); el administrador, todas. */
+        fun delRol(rol: String?): List<AdminSection> = when (rol) {
+            "moderador_publicaciones" -> listOf(Usuarios, Vehiculos, Reportes)
+            "moderador_verificaciones" -> listOf(Destacados, Verificaciones)
+            else -> entries
+        }
+    }
 }
 
 private val AvatarBlue = Color(0xFF3B82F6)
@@ -130,7 +140,7 @@ fun AdminDrawerContent(
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
-                AdminSection.entries.forEach { section ->
+                AdminSection.delRol(SessionManager.account?.rolPanel).forEach { section ->
                     DrawerItem(
                         section = section,
                         badge = badges[section]?.takeIf { it > 0 },

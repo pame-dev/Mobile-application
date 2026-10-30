@@ -565,7 +565,7 @@ export function Profile() {
         coverUrl={perfil.coverUrl}
         lote={esLote}
         verified={perfil.verificado}
-        typeLabel={mode === 'admin' ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}
+        typeLabel={account.esAdmin ? t('nav.admin') : esLote ? t('nav.lot') : t('nav.individual')}
         info={datos}
         coverAction={
           <>
@@ -637,7 +637,7 @@ export function Profile() {
             </span>
             <Icon name="chev" />
           </button>
-          {mode === 'admin' && (
+          {account.rolPanel && (
             <button className="card row" style={{ padding: 'var(--s-5)', width: '100%', textAlign: 'left' }} onClick={() => navigate('/admin')}>
               <span className="nic" style={{ background: 'var(--admin-blue)', color: '#fff' }}>
                 <Icon name="shield" />

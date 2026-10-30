@@ -259,8 +259,8 @@ export function Detail() {
   /** Abierto con "Ver publicación" desde la revisión de Vehículos del panel de administración. */
   const origen = location.state as { revisionAdmin?: boolean; revisionReporte?: number } | null
   /** Abierto con "Ver publicación" desde la revisión de un reporte (id del reporte). */
-  const desdeReporte = mode === 'admin' && typeof origen?.revisionReporte === 'number' ? origen.revisionReporte : null
-  const desdeRevision = mode === 'admin' && desdeReporte == null && origen?.revisionAdmin === true
+  const desdeReporte = !!account?.rolPanel && typeof origen?.revisionReporte === 'number' ? origen.revisionReporte : null
+  const desdeRevision = !!account?.rolPanel && desdeReporte == null && origen?.revisionAdmin === true
   const { toast, openModal } = useUi()
   const { t } = useI18n()
   const fav = useFavorites()

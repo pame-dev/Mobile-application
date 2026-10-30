@@ -73,6 +73,7 @@ import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.components.SectionLabel
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.karsyTint
@@ -195,8 +196,11 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
             description = stringResource(R.string.admin1_featured_desc)
         )
 
-        PaymentSettingsCard(vm)
-        Spacer(Modifier.height(16.dp))
+        // Precio, días y cuenta bancaria: solo el administrador (admin_guardar_config_pagos).
+        if (SessionManager.isAdmin) {
+            PaymentSettingsCard(vm)
+            Spacer(Modifier.height(16.dp))
+        }
 
         AdminCard {
             AdminFilterBar {

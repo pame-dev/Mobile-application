@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.locale.textoPlural
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Constancia
@@ -86,21 +87,35 @@ class AdminViewModel : ViewModel() {
         viewModelScope.launch {
             loading = true
             val errores = mutableListOf<String>()
-            safeCall { StatsRepository.admin(range.toInt()) }.onSuccess { stats = it }.onFailure { errores += it.mensajeUsuario() }
-            safeCall { AdminRepository.accounts() }.onSuccess { accounts = it }.onFailure { errores += it.mensajeUsuario() }
+            // Un moderador solo lee lo de sus secciones (lo demás la BD se lo niega).
+            val ver = AdminSection.delRol(SessionManager.account?.rolPanel)
+            if (AdminSection.Inicio in ver) {
+                safeCall { StatsRepository.admin(range.toInt()) }.onSuccess { stats = it }.onFailure { errores += it.mensajeUsuario() }
+            }
+            if (AdminSection.Usuarios in ver) {
+                safeCall { AdminRepository.accounts() }.onSuccess { accounts = it }.onFailure { errores += it.mensajeUsuario() }
+            }
             safeCall { AdminRepository.cars() }.onSuccess { cars = it }.onFailure { errores += it.mensajeUsuario() }
-            safeCall { AdminRepository.reports() }.onSuccess { reportRows = it }.onFailure { errores += it.mensajeUsuario() }
-            safeCall { AdminRepository.featuredRequests() }.onSuccess { featuredRows = it }.onFailure { errores += it.mensajeUsuario() }
-            safeCall { AdminRepository.verifications() }.onSuccess { verificationRows = it }.onFailure { errores += it.mensajeUsuario() }
-            safeCall { CarRepository.datosPagoDestacado() }.onSuccess { paymentSettings = it }
-                .onFailure {
-                    // Sin datos frescos no se deja editar sobre los viejos: la tarjeta muestra el error.
-                    paymentSettings = null
-                    errores += it.mensajeUsuario()
-                }
+            if (AdminSection.Reportes in ver) {
+                safeCall { AdminRepository.reports() }.onSuccess { reportRows = it }.onFailure { errores += it.mensajeUsuario() }
+            }
+            if (AdminSection.Destacados in ver) {
+                safeCall { AdminRepository.featuredRequests() }.onSuccess { featuredRows = it }.onFailure { errores += it.mensajeUsuario() }
+            }
+            if (AdminSection.Verificaciones in ver) {
+                safeCall { AdminRepository.verifications() }.onSuccess { verificationRows = it }.onFailure { errores += it.mensajeUsuario() }
+            }
+            if (SessionManager.isAdmin) {
+                safeCall { CarRepository.datosPagoDestacado() }.onSuccess { paymentSettings = it }
+                    .onFailure {
+                        // Sin datos frescos no se deja editar sobre los viejos: la tarjeta muestra el error.
+                        paymentSettings = null
+                        errores += it.mensajeUsuario()
+                    }
+            }
             // Aparte, para no retrasar la lista: borra los documentos y comprobantes que ya nadie usa.
-            viewModelScope.launch { AdminRepository.borrarDocumentosSinUso() }
-            viewModelScope.launch { AdminRepository.borrarComprobantesSinUso() }
+            if (AdminSection.Verificaciones in ver) viewModelScope.launch { AdminRepository.borrarDocumentosSinUso() }
+            if (AdminSection.Destacados in ver) viewModelScope.launch { AdminRepository.borrarComprobantesSinUso() }
             if (errores.isNotEmpty()) message = errores.first()
             loading = false
             onDone()
@@ -127,8 +142,9 @@ class AdminViewModel : ViewModel() {
         viewModelScope.launch {
             safeCall {
                 AdminRepository.marcarVistas(estado)
-                StatsRepository.admin(range.toInt())
-            }.onSuccess { stats = it }
+                // Las estadísticas (Inicio) solo las lee el administrador.
+                if (SessionManager.isAdmin) StatsRepository.admin(range.toInt()) else null
+            }.onSuccess { if (it != null) stats = it }
                 .onFailure { message = it.mensajeUsuario() }
         }
     }
@@ -138,8 +154,9 @@ class AdminViewModel : ViewModel() {
         viewModelScope.launch {
             safeCall {
                 AdminRepository.marcarSuspendidasVistas()
-                StatsRepository.admin(range.toInt())
-            }.onSuccess { stats = it }
+                // Las estadísticas (Inicio) solo las lee el administrador.
+                if (SessionManager.isAdmin) StatsRepository.admin(range.toInt()) else null
+            }.onSuccess { if (it != null) stats = it }
                 .onFailure { message = it.mensajeUsuario() }
         }
     }
