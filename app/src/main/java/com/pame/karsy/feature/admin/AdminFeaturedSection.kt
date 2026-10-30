@@ -724,8 +724,22 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
     val datos = vm.paymentSettings
     AdminCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Activo / Incompleto según lo GUARDADO, no lo que se está escribiendo.
+            val completo = datos != null && PagoDestacado.disponible(datos.banco, datos.clabe)
             Column {
-                Text(stringResource(R.string.admin2_pay_title), fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.admin2_pay_title),
+                        fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = KarsyInk,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (datos != null) {
+                        AdminBadge(
+                            stringResource(if (completo) R.string.admin2_pay_active else R.string.admin2_pay_incomplete),
+                            if (completo) BadgeTone.Success else BadgeTone.Warning
+                        )
+                    }
+                }
                 Spacer(Modifier.height(2.dp))
                 Text(stringResource(R.string.admin2_pay_desc), fontFamily = DmSans, fontSize = 12.sp, lineHeight = 17.sp, color = AdminColors.NeutralText)
             }
@@ -734,13 +748,21 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                 else Text(stringResource(R.string.admin2_pay_load_error), fontFamily = DmSans, fontSize = 13.sp, color = BadgeTone.Danger.fg)
                 return@Column
             }
+            // Lo guardado, con el mismo formato que los campos (para detectar cambios y Descartar).
+            val precio0 = PagoDestacado.monto(datos.precio).removePrefix("$").replace(",", "")
+            val dias0 = datos.dias.toString()
+            val banco0 = datos.banco.orEmpty()
+            // El campo Banco solo se usa con un banco que no se reconoce por la CLABE: si el guardado
+            // salió de la CLABE, empieza vacío (no se arrastra a una CLABE de otro banco).
+            val bancoManual0 = if (PagoDestacado.bancoDeClabe(datos.clabe.orEmpty()) == null) banco0 else ""
+            val clabe0 = datos.clabe.orEmpty()
             // Se vuelven a llenar cuando cambian los datos guardados (p. ej. después de Guardar).
-            var precio by rememberSaveable(datos) { mutableStateOf(PagoDestacado.monto(datos.precio).removePrefix("$").replace(",", "")) }
-            var dias by rememberSaveable(datos) { mutableStateOf(datos.dias.toString()) }
-            var banco by rememberSaveable(datos) { mutableStateOf(datos.banco.orEmpty()) }
-            var clabe by rememberSaveable(datos) { mutableStateOf(datos.clabe.orEmpty()) }
+            var precio by rememberSaveable(datos) { mutableStateOf(precio0) }
+            var dias by rememberSaveable(datos) { mutableStateOf(dias0) }
+            var banco by rememberSaveable(datos) { mutableStateOf(bancoManual0) }
+            var clabe by rememberSaveable(datos) { mutableStateOf(clabe0) }
 
-            if (!PagoDestacado.disponible(datos.banco, datos.clabe)) {
+            if (!completo) {
                 Text(
                     stringResource(R.string.admin2_pay_missing),
                     fontFamily = DmSans,
@@ -754,29 +776,160 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                         .padding(12.dp)
                 )
             }
+
+            // Precio del destacado
+            PaymentSubtitle(stringResource(R.string.admin2_pay_price_section))
+            val diasSufijo = stringResource(R.string.admin2_pay_days_suffix)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                PaymentField(stringResource(R.string.admin2_pay_price), precio, KeyboardType.Decimal, !vm.working, Modifier.weight(1f)) {
-                    precio = it.filter { c -> c.isDigit() || c == '.' }.take(9)
+                PaymentField(
+                    stringResource(R.string.admin2_pay_price_label), precio, KeyboardType.Decimal, !vm.working, Modifier.weight(1f),
+                    prefix = "$", suffix = "MXN"
+                ) { precio = it.filter { c -> c.isDigit() || c == '.' }.take(9) }
+                PaymentField(
+                    stringResource(R.string.admin2_pay_duration), dias, KeyboardType.Number, !vm.working, Modifier.weight(1f),
+                    suffix = diasSufijo
+                ) { dias = it.filter(Char::isDigit).take(3) }
+            }
+            val precioOk = PagoDestacado.leerPrecio(precio)?.takeIf { it > 0 && it <= PagoDestacado.MAX_PRECIO }
+            val diasOk = dias.trim().toIntOrNull()?.takeIf { it in 1..PagoDestacado.MAX_DIAS }
+            if (precioOk != null && diasOk != null) {
+                Text(
+                    stringResource(R.string.admin2_pay_summary, PagoDestacado.monto(precioOk), diasOk),
+                    fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary
+                )
+            }
+
+            // Cuenta para recibir transferencias: primero la CLABE, de ella sale el banco.
+            PaymentSubtitle(stringResource(R.string.admin2_pay_account_section))
+            val clabeCompleta = clabe.length == PagoDestacado.LARGO_CLABE
+            val clabeOk = PagoDestacado.clabeValida(clabe)
+            // El banco sale de la CLABE; solo se escribe si su banco no está en la lista.
+            val bancoDetectado = if (clabeOk) PagoDestacado.bancoDeClabe(clabe) else null
+            val bancoFinal = bancoDetectado ?: banco.trim()
+            Column {
+                PaymentField(
+                    stringResource(R.string.admin2_pay_clabe), clabe, KeyboardType.Number, !vm.working,
+                    monospace = true, isError = clabeCompleta && !clabeOk
+                ) {
+                    clabe = PagoDestacado.limpiarClabe(it)
                 }
-                PaymentField(stringResource(R.string.admin2_pay_days), dias, KeyboardType.Number, !vm.working, Modifier.weight(1f)) {
-                    dias = it.filter(Char::isDigit).take(3)
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.Top) {
+                    Box(Modifier.weight(1f)) {
+                        if (clabeOk) {
+                            val detectado = bancoDetectado
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Verified, contentDescription = null, tint = BadgeTone.Success.fg, modifier = Modifier.size(14.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    stringResource(R.string.admin2_pay_clabe_ok) + (detectado?.let { " · $it" } ?: ""),
+                                    fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BadgeTone.Success.fg
+                                )
+                            }
+                        } else if (clabeCompleta) {
+                            Text(
+                                stringResource(R.string.admin2_pay_error_clabe_digit),
+                                fontFamily = DmSans, fontSize = 12.sp, lineHeight = 16.sp, color = BadgeTone.Danger.fg
+                            )
+                        }
+                    }
+                    Text(
+                        "${clabe.length}/${PagoDestacado.LARGO_CLABE}",
+                        fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
             }
-            PaymentField(stringResource(R.string.admin2_pay_bank), banco, KeyboardType.Text, !vm.working) {
-                banco = it.uppercase().take(PagoDestacado.MAX_BANCO)
+            if (clabeOk && bancoDetectado == null) Column {
+                PaymentField(stringResource(R.string.admin2_pay_bank), banco, KeyboardType.Text, !vm.working) {
+                    banco = it.uppercase().take(PagoDestacado.MAX_BANCO)
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.admin2_pay_bank_help), fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary)
             }
-            PaymentField(stringResource(R.string.admin2_pay_clabe), clabe, KeyboardType.Number, !vm.working, monospace = true) {
-                clabe = PagoDestacado.limpiarClabe(it)
+
+            // Vista previa: lo que verá el lote en la ventana "Destacar".
+            if (bancoFinal.isNotEmpty() && bancoFinal.length <= PagoDestacado.MAX_BANCO && clabeOk) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(karsyTint(KarsyTeal, Color(0xFFEAF5F6)))
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.admin2_pay_preview),
+                        fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = KarsyTeal
+                    )
+                    PaymentPreviewLine(stringResource(R.string.admin2_pay_bank), bancoFinal)
+                    PaymentPreviewLine("CLABE", PagoDestacado.clabeAgrupada(clabe), monospace = true)
+                    if (precioOk != null && diasOk != null) {
+                        Text(
+                            "${PagoDestacado.monto(precioOk)} MXN · $diasOk $diasSufijo",
+                            fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = KarsyInk
+                        )
+                    }
+                }
             }
-            BottomActionButton(
-                stringResource(R.string.admin2_pay_save),
-                KarsyNavy,
-                Modifier.fillMaxWidth(),
-                onClick = { vm.savePaymentSettings(precio, dias, banco, clabe) },
-                enabled = !vm.working
-            )
+
+            // Pie: Guardar solo con cambios válidos; Descartar vuelve a lo guardado.
+            // Se compara el valor, no el texto: "300" y "300.00" o "BBVA " y "BBVA" no son cambios.
+            val cambios = PagoDestacado.leerPrecio(precio) != datos.precio ||
+                dias.trim().toIntOrNull() != datos.dias ||
+                bancoFinal != banco0 ||
+                clabe != clabe0
+            val valido = PagoDestacado.errorConfig(precio, dias, bancoFinal, clabe) == null &&
+                // Con CLABE, el banco no puede quedar vacío (los lotes no sabrían a cuál transferir).
+                (clabe.isEmpty() || bancoFinal.isNotEmpty())
+            if (cambios) {
+                Text(
+                    stringResource(R.string.admin2_pay_unsaved),
+                    fontFamily = DmSans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BadgeTone.Warning.fg
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (cambios) {
+                    BottomActionButton(
+                        stringResource(R.string.admin2_pay_discard), KarsyBg, Modifier.weight(1f),
+                        onClick = {
+                            precio = precio0
+                            dias = dias0
+                            banco = bancoManual0
+                            clabe = clabe0
+                        },
+                        enabled = !vm.working,
+                        textColor = KarsyMid
+                    )
+                }
+                BottomActionButton(
+                    stringResource(R.string.admin2_pay_save_changes),
+                    KarsyNavy,
+                    Modifier.weight(1f),
+                    onClick = { vm.savePaymentSettings(precio, dias, bancoFinal, clabe) },
+                    enabled = cambios && valido && !vm.working
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun PaymentSubtitle(text: String) {
+    Text(text, fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+}
+
+@Composable
+private fun PaymentPreviewLine(label: String, value: String, monospace: Boolean = false) {
+    Text(
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = KarsyTextSecondary)) { append("$label: ") }
+            withStyle(SpanStyle(fontFamily = if (monospace) FontFamily.Monospace else DmSans, fontWeight = FontWeight.SemiBold)) {
+                append(value)
+            }
+        },
+        fontFamily = DmSans, fontSize = 13.sp, color = KarsyInk
+    )
 }
 
 @Composable
@@ -787,14 +940,20 @@ private fun PaymentField(
     enabled: Boolean,
     modifier: Modifier = Modifier,
     monospace: Boolean = false,
+    prefix: String? = null,
+    suffix: String? = null,
+    isError: Boolean = false,
     onChange: (String) -> Unit,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
         label = { Text(label, fontFamily = DmSans, fontSize = 12.sp) },
+        prefix = prefix?.let { { Text(it, fontFamily = DmSans, fontSize = 14.sp, color = KarsyTextSecondary) } },
+        suffix = suffix?.let { { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary) } },
         singleLine = true,
         enabled = enabled,
+        isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         textStyle = TextStyle(
             fontFamily = if (monospace) FontFamily.Monospace else DmSans,

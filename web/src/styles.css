@@ -370,6 +370,10 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .photoslot.filled{border:0;padding:0;overflow:hidden;position:relative}
 .photoslot img{width:100%;height:100%;object-fit:cover}
 .input.bad{border-color:var(--error)}
+/* Campo con prefijo o sufijo dentro del mismo recuadro ("$ 300 MXN", "30 días"). */
+.affix{display:flex;align-items:center;height:var(--h-md);border:1px solid var(--border-muted);border-radius:var(--r-md);background:var(--surface);padding:0 var(--s-3);gap:var(--s-2);color:var(--mid);font-size:var(--fs-sm)}
+.affix:focus-within{outline:2px solid var(--focus);outline-offset:1px}
+.affix .input{border:0;height:auto;padding:0;flex:1;min-width:0;background:none;outline:none}
 .ferr{font-size:var(--fs-xs);color:var(--error)}
 /* Aviso: texto en ámbar oscuro (el --warning no llega a 4.5:1 como texto). */
 .fwarn{font-size:var(--fs-xs);color:var(--b-warn)}
