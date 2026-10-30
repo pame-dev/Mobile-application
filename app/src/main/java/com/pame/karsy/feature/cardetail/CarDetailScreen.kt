@@ -346,6 +346,8 @@ fun CarDetailScreen(
                     toastUndo = null
                     toastMessage = msgUnhidden
                 },
+                // Destacar y duplicar son solo para lotes.
+                puedeDuplicar = vm.puedeDestacar,
                 onDuplicate = { onDuplicatePublication(detail.car.id) },
             )
             else Column(Modifier.background(KarsyBg)) {
@@ -593,6 +595,8 @@ private fun OwnerActionsBar(
     onMarkAvailable: () -> Unit,
     onHide: () -> Unit,
     onUnhide: () -> Unit,
+    /** Duplicar es solo para lotes (autos parecidos del mismo lote). */
+    puedeDuplicar: Boolean,
     onDuplicate: () -> Unit,
 ) {
     // Pausar, destacar y marcar como vendida solo aplican a una publicación aprobada que el dueño controla.
@@ -604,7 +608,6 @@ private fun OwnerActionsBar(
     val isSold = car.status == EstadoAuto.VENDIDO
     // Rechazada o deshabilitada: el dueño puede quitarla de su perfil (se guarda en su cuenta).
     val canHide = PublicacionesOcultas.sePuedeOcultar(car)
-    // Duplicar siempre está disponible, así que la barra siempre se muestra al dueño.
 
     Column(Modifier.background(KarsyBg)) {
         HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -679,7 +682,7 @@ private fun OwnerActionsBar(
                 )
             }
             // Publicación nueva con estos mismos datos (útil para lotes con autos parecidos).
-            OwnerButton(
+            if (puedeDuplicar) OwnerButton(
                 text = stringResource(R.string.detail_owner_duplicate),
                 onClick = onDuplicate,
                 color = KarsyMid,

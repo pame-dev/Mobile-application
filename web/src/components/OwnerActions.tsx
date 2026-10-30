@@ -274,7 +274,7 @@ export function useOwnerActions(onChanged: () => void) {
 export function OwnerButtons({ c, acciones, oculta, onOcultar }: { c: OwnCar; acciones: ReturnType<typeof useOwnerActions>; oculta: boolean; onOcultar: (v: boolean) => void }) {
   const { t } = useI18n()
   const navigate = useNavigate()
-  // Destacar (y renovar) es solo para lotes; la BD también lo valida en solicitar_destacado.
+  // Destacar (y renovar) y duplicar son solo para lotes; la BD también valida destacar en solicitar_destacado.
   const esLote = useSession().account?.tipoCuenta === 'lote'
   return (
     <>
@@ -328,11 +328,13 @@ export function OwnerButtons({ c, acciones, oculta, onOcultar }: { c: OwnCar; ac
           {oculta ? t('perfil.showOnProfile') : t('perfil.hide')}
         </button>
       )}
-      {/* Publicación nueva con los mismos datos (útil para lotes con autos parecidos). */}
-      <button className="btn btn-ghost btn-sm" title={t('perfil.duplicateHint')} onClick={() => navigate(`/publicar?duplicar=${c.id}`)}>
-        <Icon name="copy" size={14} />
-        {t('perfil.duplicate')}
-      </button>
+      {/* Publicación nueva con los mismos datos: solo lotes (autos parecidos del mismo lote). */}
+      {esLote && (
+        <button className="btn btn-ghost btn-sm" title={t('perfil.duplicateHint')} onClick={() => navigate(`/publicar?duplicar=${c.id}`)}>
+          <Icon name="copy" size={14} />
+          {t('perfil.duplicate')}
+        </button>
+      )}
     </>
   )
 }
