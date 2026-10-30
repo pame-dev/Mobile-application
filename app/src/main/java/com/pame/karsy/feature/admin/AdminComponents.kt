@@ -31,6 +31,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -479,6 +480,7 @@ fun AdminDetailModal(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .minimumInteractiveComponentSize()
                         .size(36.dp)
                         .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(KarsyBg)

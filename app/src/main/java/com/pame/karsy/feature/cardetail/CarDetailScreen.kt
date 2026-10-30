@@ -2,6 +2,9 @@ package com.pame.karsy.feature.cardetail
 
 import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.VerifiedShield
@@ -915,7 +918,11 @@ private fun DetailHeader(
                 )
             }
             if (showActions) {
-                HeaderSquareButton(onClick = onFav) {
+                val haptic = LocalHapticFeedback.current
+                HeaderSquareButton(onClick = {
+                    haptic.performHapticFeedback(if (fav) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn)
+                    onFav()
+                }) {
                     HeartIcon(filled = fav, size = 16.dp)
                 }
                 HeaderSquareButton(onClick = onReport) {
@@ -936,6 +943,7 @@ private fun HeaderSquareButton(onClick: () -> Unit, content: @Composable () -> U
     val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
+            .minimumInteractiveComponentSize()
             .size(36.dp)
             .clip(shape)
             .background(KarsySurface)

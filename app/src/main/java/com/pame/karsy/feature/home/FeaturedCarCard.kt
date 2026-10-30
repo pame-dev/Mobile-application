@@ -93,7 +93,8 @@ fun FeaturedCarCard(
                 onToggle = onToggleFavorite,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 10.dp, end = 12.dp)
+                    // Zona táctil de 48dp: el padding descuenta lo que crece para que se vea igual.
+                    .padding(top = 3.dp, end = 5.dp)
             )
         }
         Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 20.dp)) {

@@ -91,9 +91,10 @@ fun VehicleCard(
                 filled = isFavorite,
                 onToggle = onToggleFavorite,
                 size = 32.dp,
+                // Zona táctil de 48dp: el padding descuenta lo que crece para que se vea igual.
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(10.dp)
+                    .padding(2.dp)
             )
         }
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 18.dp)) {

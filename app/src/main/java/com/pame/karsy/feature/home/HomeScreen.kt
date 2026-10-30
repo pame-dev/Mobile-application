@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.home
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.FlowRow
 import android.widget.Toast
@@ -546,6 +547,7 @@ private fun HeaderIconButton(p: HeroPalette, onClick: () -> Unit, active: Boolea
     val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
+            .minimumInteractiveComponentSize()
             .size(38.dp)
             .clip(shape)
             // Botones translúcidos sobre el degradado del encabezado.
@@ -789,7 +791,7 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
             }
         )
         if (query.isNotEmpty()) {
-            IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(40.dp)) {
+            IconButton(onClick = { onQueryChange("") }, modifier = Modifier.minimumInteractiveComponentSize().size(40.dp)) {
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = stringResource(R.string.home_search_clear),

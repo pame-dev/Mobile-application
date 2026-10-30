@@ -31,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,6 +72,7 @@ fun ConfirmDialog(
     cancelText: String? = null,
 ) {
     if (visible) BackHandler(onBack = onCancel)
+    val haptic = LocalHapticFeedback.current
 
     AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
         Box(
@@ -144,7 +147,10 @@ fun ConfirmDialog(
                         )
                     }
                     Button(
-                        onClick = onConfirm,
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                            onConfirm()
+                        },
                         shape = RoundedCornerShape(KarsyRadius.Md),
                         colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = KarsyWhite),
                         elevation = null,

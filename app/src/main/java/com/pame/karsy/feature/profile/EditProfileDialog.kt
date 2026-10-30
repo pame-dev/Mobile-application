@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -225,7 +226,7 @@ fun EditProfileDialog(
                         color = KarsyInk,
                         modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = requestClose, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = requestClose, modifier = Modifier.minimumInteractiveComponentSize().size(32.dp)) {
                         Icon(
                             Icons.Rounded.Close,
                             contentDescription = stringResource(R.string.profile_close_cd),

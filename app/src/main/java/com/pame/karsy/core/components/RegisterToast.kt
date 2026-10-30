@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -112,7 +113,7 @@ fun RegisterToast(
         ) {
             Text(stringResource(R.string.core_register_me), fontFamily = Outfit, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.Bold)
         }
-        IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
+        IconButton(onClick = onClose, modifier = Modifier.minimumInteractiveComponentSize().size(32.dp)) {
             Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.core_close), tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
         }
     }

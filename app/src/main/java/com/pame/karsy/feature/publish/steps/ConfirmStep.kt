@@ -27,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -168,13 +169,13 @@ fun ConfirmStep(form: PublishViewModel, onPublish: () -> Unit, onBack: () -> Uni
                 if (carImages.size > 1) CarouselArrow(
                     icon = Icons.Rounded.ChevronLeft,
                     description = stringResource(R.string.publish_previous),
-                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
+                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 4.dp), // 12dp menos lo que crece la zona táctil
                     onClick = { goTo((imgIndex - 1 + carImages.size) % carImages.size) }
                 )
                 if (carImages.size > 1) CarouselArrow(
                     icon = Icons.Rounded.ChevronRight,
                     description = stringResource(R.string.publish_next),
-                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp),
                     onClick = { goTo((imgIndex + 1) % carImages.size) }
                 )
                 if (carImages.isNotEmpty()) Text(
@@ -332,6 +333,7 @@ private fun CarouselArrow(
 ) {
     Box(
         modifier = modifier
+            .minimumInteractiveComponentSize()
             .size(32.dp)
             .shadow(4.dp, CircleShape)
             .clip(CircleShape)

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -599,6 +600,7 @@ private fun HeaderSquareButton(icon: ImageVector, description: String, onClick: 
     val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
+            .minimumInteractiveComponentSize()
             .size(38.dp)
             .clip(shape)
             .background(if (active) LotIce else Color.Transparent)
@@ -616,6 +618,7 @@ private fun FilterButton(active: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
+            .minimumInteractiveComponentSize()
             .size(46.dp)
             .clip(shape)
             .background(if (active) LotIce else KarsySurface)
