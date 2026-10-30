@@ -5,6 +5,8 @@ export interface AnuncioRow {
   id_publicacion: number
   id_propietario: string
   propietario_nombre: string
+  /** cuentas.verificado del dueño (20261103120000_verificado_en_anuncios); puede faltar si la migración aún no se aplica. */
+  propietario_verificado?: boolean
   propietario_tipo: string
   propietario_foto: string | null
   titulo: string | null
@@ -79,7 +81,7 @@ export interface Car {
   municipio: string
   /** Condición de la ficha técnica: 'seminuevo', 'usado' o null. */
   condition: string | null
-  /** cuentas.verificado del dueño: insignia "Verificado" en la tarjeta (solo lo llena visibleCars). */
+  /** cuentas.verificado del dueño (v_anuncios.propietario_verificado): escudo de verificado en las tarjetas. */
   ownerVerified: boolean
 }
 

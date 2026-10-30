@@ -34,7 +34,7 @@ data class Car(
     val bodyTypeId: Long? = null,
     val bodyType: String = "",
     val publishedAt: String = "",
-    /** cuentas.verificado del dueño: insignia "Verificado" en la tarjeta. */
+    /** cuentas.verificado del dueño (v_anuncios.propietario_verificado): escudo de verificado en las tarjetas. */
     val ownerVerified: Boolean = false,
     val featured: Boolean = false,
     val featuredPending: Boolean = false,
