@@ -636,7 +636,6 @@
     <string name="profile_title">Mi perfil</string>
     <string name="profile_history_cd">Historial</string>
     <string name="profile_settings_cd">Configuración</string>
-    <string name="profile_panel_admin">Panel admin</string>
     <string name="profile_panel_seller">Mi panel</string>
     <string name="profile_badge_admin">Administrador</string>
     <string name="profile_badge_lot">Lote</string>
@@ -663,6 +662,8 @@
     <string name="profile_curp_sent">Recibimos tu CURP. La revisaremos pronto.</string>
     <string name="profile_my_posts">Mis publicaciones</string>
     <string name="profile_no_posts">Aún no tienes publicaciones.</string>
+    <string name="profile_publish_first">Publicar mi vehículo</string>
+    <string name="core_empty_explore">Explorar vehículos</string>
     <string name="profile_hidden_posts">Publicaciones ocultas (%1$d)</string>
     <string name="profile_hidden_posts_desc">No aparecen en Mis publicaciones. Abre una para volver a mostrarla.</string>
     <string name="profile_stat_posts">Publicaciones</string>

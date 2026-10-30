@@ -106,6 +106,10 @@ data class PortadaDto(@SerialName("foto_portada") val fotoPortada: String? = nul
 @Serializable
 data class VerificadoDto(val verificado: Boolean = false)
 
+/** Solo el id de una cuenta verificada (insignia en las tarjetas de la lista, CarRepository.visibleCars). */
+@Serializable
+data class CuentaIdDto(@SerialName("id_cuenta") val idCuenta: String)
+
 /** Columnas públicas de public.cuentas que usa el directorio de lotes. */
 @Serializable
 data class LoteCuentaDto(

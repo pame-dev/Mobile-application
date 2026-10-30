@@ -2,6 +2,8 @@ package com.pame.karsy.feature.publish
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,11 +36,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
@@ -51,6 +61,7 @@ import androidx.compose.ui.unit.em
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.rememberFilteredFieldValue
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.FormRules
@@ -203,6 +214,56 @@ fun SectionTitle(text: String) {
     )
 }
 
+/** true dentro de un [PublishField] con error: los campos pintan su borde en rojo. */
+internal val LocalCampoConError = compositionLocalOf { false }
+
+/**
+ * Campo del formulario con validación ([PublishViewModel.errorDe]): muestra su error debajo
+ * cuando se toca Siguiente o, con [marcarAlSalir], al salir del campo; se quita en cuanto se
+ * corrige. Siguiente trae a la vista el primer campo con error.
+ */
+@Composable
+fun PublishField(
+    form: PublishViewModel,
+    campo: String,
+    modifier: Modifier = Modifier,
+    /** Validar al perder el foco (campos de texto). */
+    marcarAlSalir: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val mensaje = if (campo in form.camposMarcados) form.errorDe(campo) else null
+    val enVista = remember { BringIntoViewRequester() }
+    LaunchedEffect(form.enfoqueSignal) {
+        if (form.enfoqueSignal > 0 && form.campoAEnfocar == campo) enVista.bringIntoView()
+    }
+    var tuvoFoco by remember { mutableStateOf(false) }
+    Column(
+        modifier
+            .bringIntoViewRequester(enVista)
+            .then(
+                if (marcarAlSalir) Modifier.onFocusChanged {
+                    if (it.hasFocus) tuvoFoco = true
+                    else if (tuvoFoco) {
+                        tuvoFoco = false
+                        form.marcarCampo(campo)
+                    }
+                } else Modifier
+            )
+    ) {
+        CompositionLocalProvider(LocalCampoConError provides (mensaje != null)) { content() }
+        if (mensaje != null) {
+            Text(
+                mensaje,
+                fontFamily = DmSans,
+                fontSize = KarsyTextSize.Small,
+                fontWeight = FontWeight.SemiBold,
+                color = KarsyError,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+    }
+}
+
 /** Campo de texto del formulario de publicación. */
 @Composable
 fun PublishTextInput(
@@ -217,6 +278,7 @@ fun PublishTextInput(
     /** false: el campo se ve atenuado y no se puede escribir (formulario en orden). */
     enabled: Boolean = true,
 ) {
+    val conError = LocalCampoConError.current
     // Numérico: solo dígitos, también si pegan texto (sin desincronizar el teclado).
     val (fieldValue, onFieldChange) = rememberFilteredFieldValue(
         value, if (numeric) { t -> FormRules.soloDigitos(t, maxDigits) } else null, onValueChange
@@ -238,7 +300,7 @@ fun PublishTextInput(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(background)
-                    .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
+                    .border(1.5.dp, if (conError) KarsyError else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 if (value.isEmpty()) {

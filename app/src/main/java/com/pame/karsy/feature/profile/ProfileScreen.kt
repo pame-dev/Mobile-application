@@ -38,7 +38,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -111,8 +110,7 @@ import com.pame.karsy.core.components.FormInput
 fun ProfileScreen(
     userMode: UserMode,
     onBack: () -> Unit,
-    onPanel: () -> Unit,
-    onAdminPanel: () -> Unit,
+    onPublish: () -> Unit,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
     onCarClick: (Long) -> Unit,
@@ -242,15 +240,10 @@ fun ProfileScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            // El admin conserva su cuenta (particular o lote) y además tiene el panel de administración.
-            if (SessionManager.hasPanel) {
-                AdminPanelButton(onClick = onAdminPanel)
-                Spacer(Modifier.height(16.dp))
-            }
-
+            // Mi panel y el panel de administración están en el menú del ícono de Perfil.
             PostsCard(
                 cars = vm.visibleCars,
-                onPanel = onPanel,
+                onPublish = onPublish,
                 onCarClick = onCarClick
             )
             val hiddenCars = vm.hiddenCars
@@ -689,31 +682,7 @@ private fun StatBox(num: String, label: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AdminPanelButton(onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        shape = RoundedCornerShape(KarsyRadius.Md),
-        border = BorderStroke(1.5.dp, KarsyNavy),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = KarsySurface,
-            contentColor = KarsyNavy
-        ),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Icon(Icons.Outlined.SpaceDashboard, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(8.dp))
-        Text(
-            stringResource(R.string.profile_panel_admin),
-            fontFamily = DmSans,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = KarsyTextSize.BodyLarge
-        )
-    }
-}
-
-@Composable
-private fun PostsCard(cars: List<Car>, onPanel: () -> Unit, onCarClick: (Long) -> Unit) {
+private fun PostsCard(cars: List<Car>, onPublish: () -> Unit, onCarClick: (Long) -> Unit) {
     ProfileCard {
         Row(
             modifier = Modifier
@@ -729,23 +698,6 @@ private fun PostsCard(cars: List<Car>, onPanel: () -> Unit, onCarClick: (Long) -
                 fontSize = KarsyTextSize.Title,
                 color = KarsyInk
             )
-            Button(
-                onClick = onPanel,
-                shape = RoundedCornerShape(KarsyRadius.Md),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KarsyNavy,
-                    contentColor = KarsyWhite
-                ),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 7.dp),
-                modifier = Modifier.height(34.dp)
-            ) {
-                Text(
-                    stringResource(R.string.profile_panel_seller),
-                    fontFamily = DmSans,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = KarsyTextSize.Body
-                )
-            }
         }
         RowDivider()
         if (cars.isEmpty()) {
@@ -755,6 +707,11 @@ private fun PostsCard(cars: List<Car>, onPanel: () -> Unit, onCarClick: (Long) -
                 fontSize = KarsyTextSize.Body,
                 color = KarsyMid,
                 modifier = Modifier.padding(21.dp)
+            )
+            PrimaryButton(
+                text = stringResource(R.string.profile_publish_first),
+                onClick = onPublish,
+                modifier = Modifier.padding(start = 21.dp, end = 21.dp, bottom = 21.dp)
             )
         }
         PostsGrid(cars, onCarClick)

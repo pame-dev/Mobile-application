@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.favorites
 
+import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.theme.KarsyGreenDark
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
@@ -99,6 +100,7 @@ fun FavoritesScreen(
     userMode: UserMode,
     onBack: () -> Unit,
     onCarClick: (Long) -> Unit,
+    onExplore: () -> Unit,
     vm: FavoritesViewModel = viewModel(),
 ) {
     LaunchedEffect(Unit) { vm.load() }
@@ -196,7 +198,9 @@ fun FavoritesScreen(
                             if (vm.cars.isEmpty()) EmptyState(
                                 icon = Icons.Rounded.FavoriteBorder,
                                 title = stringResource(R.string.favorites_empty_title),
-                                subtitle = stringResource(R.string.favorites_empty_subtitle)
+                                subtitle = stringResource(R.string.favorites_empty_subtitle),
+                                action = stringResource(R.string.core_empty_explore),
+                                onAction = onExplore
                             ) else EmptyState(
                                 icon = Icons.Rounded.Search,
                                 title = stringResource(R.string.home_no_results),
@@ -382,7 +386,13 @@ private fun FavoriteCard(
 }
 
 @Composable
-private fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
+private fun EmptyState(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    action: String? = null,
+    onAction: () -> Unit = {},
+) {
     Column(
         Modifier
             .fillMaxWidth()
@@ -416,5 +426,8 @@ private fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
             color = KarsyMid,
             textAlign = TextAlign.Center
         )
+        if (action != null) {
+            PrimaryButton(text = action, onClick = onAction, modifier = Modifier.padding(start = 40.dp, end = 40.dp, top = 20.dp))
+        }
     }
 }

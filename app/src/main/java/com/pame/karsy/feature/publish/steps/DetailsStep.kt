@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
@@ -47,6 +48,8 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.PrecioSugerido
 import com.pame.karsy.feature.publish.FieldLabel
+import com.pame.karsy.feature.publish.LocalCampoConError
+import com.pame.karsy.feature.publish.PublishField
 import com.pame.karsy.feature.publish.PublishStepScaffold
 import com.pame.karsy.feature.publish.PublishTextInput
 import com.pame.karsy.feature.publish.PublishViewModel
@@ -64,13 +67,15 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
         form.error?.let { StepError(it) }
         val tipBold = stringResource(R.string.publish_tip_bold, 60)
         val tipFull = stringResource(R.string.publish_tip_full, tipBold)
-        LimitedTextArea(
-            title = stringResource(R.string.publish_description_title),
-            value = form.descripcion,
-            onValueChange = { form.descripcion = it },
-            placeholder = stringResource(R.string.publish_description_placeholder),
-            maxChars = 500
-        )
+        PublishField(form, "descripcion", marcarAlSalir = true) {
+            LimitedTextArea(
+                title = stringResource(R.string.publish_description_title),
+                value = form.descripcion,
+                onValueChange = { form.descripcion = it },
+                placeholder = stringResource(R.string.publish_description_placeholder),
+                maxChars = 500
+            )
+        }
         LimitedTextArea(
             title = stringResource(R.string.publish_imperfections_title),
             value = form.imperfecciones,
@@ -116,7 +121,7 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
 
         // El precio va al final del formulario, con la sugerencia de autos similares.
         LaunchedEffect(form.idModelo, form.anio, form.modeloEsOtro) { form.cargarSugerenciaPrecio() }
-        Column {
+        PublishField(form, "precio", marcarAlSalir = true) {
             FieldLabel(stringResource(R.string.publish_label_price))
             PublishTextInput(form.precio, { form.precio = it }, "685000", numeric = true, maxDigits = 10)
         }
@@ -206,6 +211,7 @@ private fun LimitedTextArea(
     placeholder: String,
     maxChars: Int,
 ) {
+    val conError = LocalCampoConError.current
     Column {
         Text(
             title,
@@ -220,7 +226,7 @@ private fun LimitedTextArea(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(KarsyRadius.Lg))
                 .background(KarsySurface)
-                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Lg))
+                .border(if (conError) 1.5.dp else 1.dp, if (conError) KarsyError else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Lg))
         ) {
             BasicTextField(
                 value = value,

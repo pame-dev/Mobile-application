@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
+import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.supabase.mensajeUsuario
@@ -67,7 +68,7 @@ import kotlinx.coroutines.launch
  * y avisan cuando se publica un auto que coincide.
  */
 @Composable
-fun SavedSearchesScreen(onBack: () -> Unit) {
+fun SavedSearchesScreen(onBack: () -> Unit, onExplore: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var busquedas by remember { mutableStateOf<List<BusquedaGuardadaDto>?>(null) }
@@ -116,13 +117,20 @@ fun SavedSearchesScreen(onBack: () -> Unit) {
                         items == null -> Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
                             repeat(3) { SkeletonListRow() }
                         }
-                        items.isEmpty() -> Text(
-                            stringResource(R.string.saved_search_empty),
-                            fontFamily = DmSans,
-                            fontSize = KarsyTextSize.BodyLarge,
-                            color = KarsyMid,
-                            modifier = Modifier.padding(20.dp)
-                        )
+                        items.isEmpty() -> Column {
+                            Text(
+                                stringResource(R.string.saved_search_empty),
+                                fontFamily = DmSans,
+                                fontSize = KarsyTextSize.BodyLarge,
+                                color = KarsyMid,
+                                modifier = Modifier.padding(20.dp)
+                            )
+                            PrimaryButton(
+                                text = stringResource(R.string.core_empty_explore),
+                                onClick = onExplore,
+                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
+                            )
+                        }
                         else -> Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.padding(14.dp)

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
@@ -58,7 +59,7 @@ import com.pame.karsy.data.repository.CarRepository
  * Sale de interacciones_publicacion tipo 'ver_detalle' de la cuenta en sesión.
  */
 @Composable
-fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
+fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit, onExplore: () -> Unit) {
     var historyItems by remember { mutableStateOf<List<Pair<Car, String>>?>(null) }
     val scope = rememberCoroutineScope()
     suspend fun load() {
@@ -101,6 +102,11 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit) {
                             fontSize = KarsyTextSize.BodyLarge,
                             color = KarsyMid,
                             modifier = Modifier.padding(20.dp)
+                        )
+                        PrimaryButton(
+                            text = stringResource(R.string.core_empty_explore),
+                            onClick = onExplore,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
                         )
                     }
                     items.forEachIndexed { idx, (car, sub) ->

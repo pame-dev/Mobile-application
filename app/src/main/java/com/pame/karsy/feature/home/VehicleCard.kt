@@ -34,6 +34,7 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
+import com.pame.karsy.core.components.VerifiedBadge
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBorder
@@ -48,6 +49,7 @@ import com.pame.karsy.core.theme.KarsyTextSecondary
 import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.Formato
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.EstadoAuto
 
@@ -114,8 +116,10 @@ fun VehicleCard(
                         )
                         ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
                     }
+                    // Cuándo se publicó: ayuda a saber si el anuncio sigue vigente.
+                    val publicado = Formato.haceCuanto(car.publishedAt)
                     Text(
-                        "${car.year} · ${car.kilometraje}",
+                        listOf(car.year.toString(), car.kilometraje, publicado).filter { it.isNotBlank() }.joinToString(" · "),
                         fontFamily = DmSans,
                         fontSize = KarsyTextSize.Small,
                         color = KarsyMid,
@@ -152,8 +156,10 @@ fun VehicleCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .heightIn(min = 16.dp)
+                    // Alto de la insignia de verificado: todas las tarjetas miden lo mismo, la tengan o no.
+                    .heightIn(min = 24.dp)
             ) {
                 if (ubicacion.isNotEmpty()) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(14.dp))
@@ -164,8 +170,14 @@ fun VehicleCard(
                         fontSize = KarsyTextSize.Small,
                         color = KarsyMid,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
+                }
+                // Vendedor con documento aprobado por un admin (cuentas.verificado).
+                if (car.ownerVerified) {
+                    Spacer(Modifier.weight(1f))
+                    VerifiedBadge(compact = true, modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }

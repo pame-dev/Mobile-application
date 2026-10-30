@@ -34,6 +34,8 @@ data class Car(
     val bodyTypeId: Long? = null,
     val bodyType: String = "",
     val publishedAt: String = "",
+    /** cuentas.verificado del dueño: insignia "Verificado" en la tarjeta. */
+    val ownerVerified: Boolean = false,
     val featured: Boolean = false,
     val featuredPending: Boolean = false,
     /** Hasta cuándo dura el destacado vigente ("5 nov 2026"); solo se llena para el dueño. */

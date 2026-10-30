@@ -73,6 +73,8 @@ import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.feature.publish.FieldLabel
+import com.pame.karsy.feature.publish.LocalCampoConError
+import com.pame.karsy.feature.publish.PublishField
 import com.pame.karsy.feature.publish.PublishStepScaffold
 import com.pame.karsy.feature.publish.PublishTextInput
 import com.pame.karsy.feature.publish.PublishViewModel
@@ -131,7 +133,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_vehicle_info))
 
-            Column {
+            PublishField(form, "marca") {
                 FieldLabel(stringResource(R.string.publish_label_brand))
                 CatalogDropdown(
                     value = catalogs?.marcas?.firstOrNull { it.id == form.idMarca }?.nombre.orEmpty(),
@@ -145,7 +147,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "modelo") {
                 FieldLabel(stringResource(R.string.publish_label_model))
                 CatalogDropdown(
                     value = catalogs?.modelos?.firstOrNull { it.id == form.idModelo }?.nombre.orEmpty(),
@@ -161,7 +163,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             }
 
             // El precio va al final del formulario (paso Detalles), con la sugerencia de precio.
-            Column {
+            PublishField(form, "anio") {
                 FieldLabel(stringResource(R.string.publish_label_year))
                 // Del año que viene hacia atrás, hasta ANIO_MIN.
                 val anioMax = Calendar.getInstance().get(Calendar.YEAR) + 1
@@ -175,7 +177,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 )
             }
 
-            Column {
+            PublishField(form, "transmision") {
                 FieldLabel(stringResource(R.string.publish_label_transmission))
                 FlowRow(
                     modifier = Modifier.alpha(if (activo("transmision")) 1f else 0.5f),
@@ -205,7 +207,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "kilometraje", marcarAlSalir = true) {
                 FieldLabel(stringResource(R.string.publish_label_mileage))
                 PublishTextInput(form.kilometraje, { form.kilometraje = it }, "18500", numeric = true, maxDigits = 7, enabled = activo("kilometraje"))
             }
@@ -214,7 +216,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_classification))
 
-            Column {
+            PublishField(form, "carroceria") {
                 FieldLabel(stringResource(R.string.publish_label_body_type))
                 FlowRow(
                     modifier = Modifier.alpha(if (activo("carroceria")) 1f else 0.5f),
@@ -240,7 +242,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "color") {
                 FieldLabel(stringResource(R.string.publish_label_color))
                 FlowRow(
                     modifier = Modifier
@@ -261,7 +263,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 }
             }
 
-            Column {
+            PublishField(form, "duenos") {
                 FieldLabel(stringResource(R.string.publish_label_previous_owners))
                 val max = PublishViewModel.DUENOS_MAX
                 val masDe = stringResource(R.string.publish_owners_or_more, max)
@@ -274,7 +276,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 )
             }
 
-            Column {
+            PublishField(form, "condicion") {
                 FieldLabel(stringResource(R.string.publish_label_condition))
                 OpcionesSeleccion(
                     opciones = PublishViewModel.CONDICIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) },
@@ -288,7 +290,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         SectionCard {
             SectionTitle(stringResource(R.string.publish_section_additional_info))
 
-            Column {
+            PublishField(form, "combustible") {
                 FieldLabel(stringResource(R.string.publish_label_fuel))
                 val combustibles = PublishViewModel.COMBUSTIBLES
                 CatalogDropdown(
@@ -303,7 +305,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             // Un eléctrico no lleva cilindros, litros ni aspiración.
             val electrico = form.esElectrico
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
+                PublishField(form, "cilindros", Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_cylinders))
                     CatalogDropdown(
                         value = form.cilindros,
@@ -313,7 +315,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                         enabled = !electrico && activo("cilindros")
                     )
                 }
-                Column(Modifier.weight(1f)) {
+                PublishField(form, "litros", Modifier.weight(1f), marcarAlSalir = true) {
                     FieldLabel(stringResource(R.string.publish_label_engine_liters))
                     PublishTextInput(
                         form.litros,
@@ -326,7 +328,7 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f)) {
+                PublishField(form, "aspiracion", Modifier.weight(1f)) {
                     FieldLabel(stringResource(R.string.publish_label_aspiration))
                     val aspiraciones = PublishViewModel.ASPIRACIONES.map { (valor, etiqueta) -> valor to stringResource(etiqueta) }
                     CatalogDropdown(
@@ -449,7 +451,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
             color = KarsyMid
         )
 
-        Column {
+        PublishField(form, "documento_tipo") {
             FieldLabel(stringResource(R.string.publish_label_document_type))
             CatalogDropdown(
                 value = tipos.firstOrNull { it.first == form.tipoDocumento }?.second.orEmpty(),
@@ -461,7 +463,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
         }
 
         when {
-            form.tipoDocumento == "vin" || form.tipoDocumento == "placa" -> Column {
+            form.tipoDocumento == "vin" || form.tipoDocumento == "placa" -> PublishField(form, "documento", marcarAlSalir = true) {
                 val esVin = form.tipoDocumento == "vin"
                 FieldLabel(stringResource(if (esVin) R.string.publish_label_vin else R.string.publish_label_plate))
                 PublishTextInput(
@@ -471,7 +473,7 @@ private fun DocumentoSection(form: PublishViewModel, enabled: Boolean) {
                     enabled = enabled
                 )
             }
-            form.documentoEsFoto -> Column {
+            form.documentoEsFoto -> PublishField(form, "documento") {
                 FieldLabel(stringResource(R.string.publish_label_document_photo))
                 val shape = RoundedCornerShape(KarsyRadius.Md)
                 // Foto con vista previa; PDF con su nombre. Sin archivo: invita a elegir uno.
@@ -629,6 +631,7 @@ private fun CatalogDropdown(
     selectedId: Long? = null,
 ) {
     val activo = enabled && options.isNotEmpty()
+    val conError = LocalCampoConError.current
     var expanded by remember { mutableStateOf(false) }
     val enVista = remember { BringIntoViewRequester() }
     var alto by remember { mutableStateOf(0) }
@@ -646,7 +649,7 @@ private fun CatalogDropdown(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(KarsyRadius.Md))
                 .background(KarsyBg)
-                .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
+                .border(1.5.dp, if (conError) KarsyError else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                 .alpha(if (enabled) 1f else 0.5f)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically

@@ -1,6 +1,7 @@
 package com.pame.karsy.data.repository
 
 import com.pame.karsy.R
+import com.pame.karsy.data.remote.CuentaIdDto
 import com.pame.karsy.data.remote.PrecioDto
 import com.pame.karsy.data.remote.PropuestaDto
 import io.github.jan.supabase.postgrest.query.Columns
@@ -66,7 +67,7 @@ object CarRepository {
         db.from(VISTA).select {
             filter { eq("visible", true) }
             order("fecha_primera_publicacion", Order.DESCENDING)
-        }.decodeList<AnuncioDto>().map(::toCar)
+        }.decodeList<AnuncioDto>().map(::toCar).let { withOwnerVerified(it) }
 
     /** Con [cambiosPendientes] (el admin al revisar) muestra los cambios en revisión, no lo aprobado. */
     suspend fun detail(id: Long, cambiosPendientes: Boolean = false): CarDetail? {
@@ -148,6 +149,27 @@ object CarRepository {
                 car.copy(featuredUntil = Formato.fechaCorta(it), featuredEndsSoon = Formato.terminaEnDias(it, 3))
             } ?: car
         }
+    }
+
+    /**
+     * Llena [Car.ownerVerified] con cuentas.verificado de los dueños (una consulta para toda la
+     * lista; la vista de anuncios no lo trae). Si falla, las tarjetas se muestran sin insignia.
+     */
+    private suspend fun withOwnerVerified(cars: List<Car>): List<Car> {
+        val duenos = cars.map { it.ownerId }.filter { it.isNotEmpty() }.distinct()
+        if (duenos.isEmpty()) return cars
+        // En bloques: cada id va en la URL de PostgREST y una lista larga la haría demasiado grande.
+        val verificados = runCatching {
+            duenos.chunked(100).flatMap { bloque ->
+                db.from("cuentas").select(Columns.list("id_cuenta")) {
+                    filter {
+                        isIn("id_cuenta", bloque)
+                        eq("verificado", true)
+                    }
+                }.decodeList<CuentaIdDto>().map { it.idCuenta }
+            }.toSet()
+        }.getOrDefault(emptySet())
+        return cars.map { if (it.ownerId in verificados) it.copy(ownerVerified = true) else it }
     }
 
     // ── Favoritos ────────────────────────────────────────────────────────────

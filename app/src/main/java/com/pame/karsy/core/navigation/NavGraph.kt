@@ -422,7 +422,7 @@ fun KarsyNavGraph(
                 composable(Routes.Favorites.route) {
                     // "Atrás" del sistema igual que la flecha (los paneles de la pantalla tienen prioridad).
                     BackHandler(onBack = ::leaveSection)
-                    FavoritesScreen(userMode = userMode, onBack = ::leaveSection, onCarClick = ::openCar)
+                    FavoritesScreen(userMode = userMode, onBack = ::leaveSection, onCarClick = ::openCar, onExplore = ::goHome)
                 }
 
                 // ── Perfil ───────────────────────────────────────────────────
@@ -431,15 +431,14 @@ fun KarsyNavGraph(
                     ProfileScreen(
                         userMode = userMode,
                         onBack = ::leaveSection,
-                        onPanel = { navController.navigate(Routes.Dashboard.route) },
-                        onAdminPanel = { navController.navigate(Routes.AdminDashboard.route) },
+                        onPublish = { navController.navigate(Routes.PublishFlow.createRoute()) },
                         onHistory = { navController.navigate(Routes.History.route) },
                         onSettings = { navController.navigate(Routes.Settings.route) },
                         onCarClick = ::openCar
                     )
                 }
                 composable(Routes.History.route) {
-                    HistoryScreen(onBack = ::back, onCarClick = ::openCar)
+                    HistoryScreen(onBack = ::back, onCarClick = ::openCar, onExplore = ::goHome)
                 }
                 composable(Routes.Settings.route) {
                     SettingsScreen(
@@ -496,7 +495,7 @@ fun KarsyNavGraph(
                     NotificationPreferencesScreen(onBack = ::back)
                 }
                 composable(Routes.SavedSearches.route) {
-                    SavedSearchesScreen(onBack = ::back)
+                    SavedSearchesScreen(onBack = ::back, onExplore = ::goHome)
                 }
 
                 // ── Publicar y panel del vendedor ────────────────────────────
