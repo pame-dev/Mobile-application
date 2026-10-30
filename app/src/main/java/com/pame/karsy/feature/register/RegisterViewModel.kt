@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.compose.runtime.mutableIntStateOf
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pame.karsy.R
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionAccount
 import com.pame.karsy.core.session.SessionManager
@@ -269,12 +269,12 @@ class RegisterViewModel : ViewModel() {
                         safeCall {
                             UserRepository.enviarDocumentoVerificacion(Constancia.bytes(appContext, archivo), archivo.mime, Constancia.TIPO_DOCUMENTO)
                         }
-                            .onFailure { avisarConstanciaFallida(appContext) }
+                            .onFailure { avisarConstanciaFallida() }
                     }
                     // La CURP del particular (opcional) va a revisión; si falla, la manda después desde el perfil.
                     if (!esLote && curp.isNotBlank()) {
                         safeCall { UserRepository.enviarCurp(curp) }
-                            .onFailure { avisarCurpFallida(appContext) }
+                            .onFailure { avisarCurpFallida() }
                     }
                     loading = false
                     onCreated(cuenta)
@@ -291,7 +291,7 @@ class RegisterViewModel : ViewModel() {
                         if (esLote) constancia?.let { archivo ->
                             safeCall { Constancia.bytes(appContext, archivo) }
                                 .onSuccess { UserRepository.holdConstanciaUntilVerified(e.email, it, archivo.mime) }
-                                .onFailure { avisarConstanciaFallida(appContext) }
+                                .onFailure { avisarConstanciaFallida() }
                         }
                         // La CURP se envía igual, al verificar el correo.
                         if (!esLote && curp.isNotBlank()) UserRepository.holdCurpUntilVerified(e.email, curp)
@@ -311,13 +311,13 @@ class RegisterViewModel : ViewModel() {
     }
 
     /** "Tu cuenta se creó, pero no pudimos enviar tu CURP…" (la pantalla ya se cierra). */
-    private fun avisarCurpFallida(context: Context) {
-        Toast.makeText(context, texto(R.string.auth_curp_send_failed), Toast.LENGTH_LONG).show()
+    private fun avisarCurpFallida() {
+        AvisoKarsy.mostrar(texto(R.string.auth_curp_send_failed), error = true)
     }
 
     /** "Tu cuenta se creó, pero no pudimos subir tu constancia…" (la pantalla ya se cierra). */
-    private fun avisarConstanciaFallida(context: Context) {
-        Toast.makeText(context, texto(R.string.auth_constancia_upload_failed), Toast.LENGTH_LONG).show()
+    private fun avisarConstanciaFallida() {
+        AvisoKarsy.mostrar(texto(R.string.auth_constancia_upload_failed), error = true)
     }
 
     companion object {

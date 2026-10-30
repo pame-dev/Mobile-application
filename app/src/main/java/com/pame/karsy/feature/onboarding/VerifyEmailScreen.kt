@@ -1,6 +1,5 @@
 package com.pame.karsy.feature.onboarding
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +20,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
@@ -57,7 +56,6 @@ fun VerifyEmailScreen(
     vm: VerifyEmailViewModel = viewModel(),
 ) {
     LaunchedEffect(Unit) { vm.start(email, sendCode) }
-    val context = LocalContext.current.applicationContext
     val complete = vm.code.all { it.isNotEmpty() }
 
     Column(
@@ -114,7 +112,7 @@ fun VerifyEmailScreen(
                 text = if (vm.verifying) stringResource(R.string.auth_verifying) else stringResource(R.string.auth_verify),
                 enabled = !vm.verifying,
                 onClick = {
-                    vm.verify(email, onVerified, onNotice = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() })
+                    vm.verify(email, onVerified, onNotice = { AvisoKarsy.mostrar(it, error = true) })
                 },
                 modifier = Modifier.alpha(if (complete) 1f else 0.55f)
             )

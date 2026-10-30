@@ -31,13 +31,15 @@ object KarsyTextSize {
 val Outfit = FontFamily(
     Font(R.font.outfit_regular, FontWeight.Normal),
     Font(R.font.outfit_medium, FontWeight.Medium),
-    Font(R.font.outfit_semibold, FontWeight.SemiBold)
+    Font(R.font.outfit_semibold, FontWeight.SemiBold),
+    Font(R.font.outfit_bold, FontWeight.Bold)
 )
 
 val DmSans = FontFamily(
     Font(R.font.dmsans_regular, FontWeight.Normal),
     Font(R.font.dmsans_medium, FontWeight.Medium),
-    Font(R.font.dmsans_semibold, FontWeight.SemiBold)
+    Font(R.font.dmsans_semibold, FontWeight.SemiBold),
+    Font(R.font.dmsans_bold, FontWeight.Bold)
 )
 
 val KarsyTypography = Typography(

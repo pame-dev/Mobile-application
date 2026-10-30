@@ -7,7 +7,6 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -38,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pame.karsy.R
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.theme.DmSans
@@ -559,7 +559,7 @@ fun ExportarAdminBoton(vm: AdminViewModel) {
                 }.onSuccess { ExportarPanel.compartir(context, it, R.string.admin3_export_title) }
                     .onFailure {
                         if (it is CancellationException) throw it // se salió del panel: sin aviso de error
-                        Toast.makeText(context, texto(R.string.admin3_export_error), Toast.LENGTH_LONG).show()
+                        AvisoKarsy.mostrar(texto(R.string.admin3_export_error), error = true)
                     }
                 exportando = false
             }

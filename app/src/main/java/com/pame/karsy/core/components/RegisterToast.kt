@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,6 +60,9 @@ fun RegisterToast(
     actionLabel: String? = null,
     onAction: () -> Unit = {},
     key: Any? = null,
+    /** Ícono y fondo propios (p. ej. un error en AvisoKarsy); por defecto candado o palomita. */
+    icon: ImageVector? = null,
+    iconBackground: Color = KarsyTeal,
 ) {
     LaunchedEffect(message, key) {
         delay(if (actionLabel != null) 5000 else 3500)
@@ -81,10 +85,10 @@ fun RegisterToast(
             Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(KarsyTeal),
+                .background(iconBackground),
             contentAlignment = Alignment.Center
         ) {
-            Icon(if (showRegister) Icons.Outlined.Lock else Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(20.dp))
+            Icon(icon ?: if (showRegister) Icons.Outlined.Lock else Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(20.dp))
         }
         Column(Modifier.weight(1f)) {
             Text(message, color = KarsyWhite, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold)

@@ -1,6 +1,5 @@
 package com.pame.karsy.feature.profile
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,12 +35,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.SkeletonListRow
@@ -69,7 +68,6 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun SavedSearchesScreen(onBack: () -> Unit, onExplore: () -> Unit) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var busquedas by remember { mutableStateOf<List<BusquedaGuardadaDto>?>(null) }
     suspend fun load() {
@@ -81,7 +79,7 @@ fun SavedSearchesScreen(onBack: () -> Unit, onExplore: () -> Unit) {
         scope.launch {
             safeCall { SearchRepository.delete(b.id) }
                 .onSuccess { busquedas = busquedas?.filter { it.id != b.id } }
-                .onFailure { Toast.makeText(context, it.mensajeUsuario(), Toast.LENGTH_LONG).show() }
+                .onFailure { AvisoKarsy.mostrar(it.mensajeUsuario(), error = true) }
         }
     }
 

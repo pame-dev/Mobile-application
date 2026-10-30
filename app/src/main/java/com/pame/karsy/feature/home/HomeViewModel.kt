@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.runtime.getValue
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.data.repository.FiltrosBusqueda
 import com.pame.karsy.data.repository.SearchRepository
 import com.pame.karsy.data.repository.UserRepository
@@ -139,15 +140,15 @@ class HomeViewModel : ViewModel() {
     var guardandoBusqueda by mutableStateOf(false)
         private set
 
-    /** Guarda los filtros activos para avisar de autos nuevos; [onResult] recibe el mensaje. */
-    fun guardarBusqueda(onResult: (String) -> Unit) {
+    /** Guarda los filtros activos para avisar de autos nuevos; el resultado sale en un AvisoKarsy. */
+    fun guardarBusqueda() {
         val busqueda = busquedaParaGuardar ?: return
         if (guardandoBusqueda) return
         guardandoBusqueda = true
         viewModelScope.launch {
             safeCall { SearchRepository.save(busqueda) }
-                .onSuccess { onResult(texto(R.string.saved_search_saved)) }
-                .onFailure { onResult(it.mensajeUsuario()) }
+                .onSuccess { AvisoKarsy.mostrar(texto(R.string.saved_search_saved)) }
+                .onFailure { AvisoKarsy.mostrar(it.mensajeUsuario(), error = true) }
             guardandoBusqueda = false
         }
     }

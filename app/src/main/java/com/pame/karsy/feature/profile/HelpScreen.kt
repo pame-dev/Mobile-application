@@ -2,7 +2,6 @@ package com.pame.karsy.feature.profile
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -44,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.pame.karsy.R
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -115,7 +115,7 @@ fun HelpScreen(onBack: () -> Unit) {
                                 context.startActivity(Intent(Intent.ACTION_SENDTO, "mailto:$CORREO_SOPORTE".toUri()))
                             } catch (e: ActivityNotFoundException) {
                                 // Sin app de correo: se muestra la dirección para copiarla a mano.
-                                Toast.makeText(context, CORREO_SOPORTE, Toast.LENGTH_LONG).show()
+                                AvisoKarsy.mostrar(CORREO_SOPORTE)
                             }
                         },
                         shape = RoundedCornerShape(KarsyRadius.Md),

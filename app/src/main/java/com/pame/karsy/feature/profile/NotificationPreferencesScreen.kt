@@ -1,6 +1,6 @@
 package com.pame.karsy.feature.profile
 
-import android.widget.Toast
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -28,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,7 +54,6 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun NotificationPreferencesScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var prefs by remember { mutableStateOf<PreferenciasAvisosDto?>(null) }
     suspend fun load() {
@@ -70,7 +68,7 @@ fun NotificationPreferencesScreen(onBack: () -> Unit) {
         scope.launch {
             safeCall { NotificationRepository.savePreferences(nuevo) }.onFailure {
                 prefs = antes
-                Toast.makeText(context, it.mensajeUsuario(), Toast.LENGTH_LONG).show()
+                AvisoKarsy.mostrar(it.mensajeUsuario(), error = true)
             }
         }
     }

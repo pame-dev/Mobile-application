@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
@@ -15,7 +16,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.outlined.FileDownload
-import android.widget.Toast
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
@@ -137,7 +137,7 @@ fun DashboardScreen(
                         }.onSuccess { ExportarPanel.compartir(context, it) }
                             .onFailure {
                                 if (it is CancellationException) throw it // se salió de Mi panel: sin aviso de error
-                                Toast.makeText(context, texto(R.string.profile_dashboard_export_error), Toast.LENGTH_LONG).show()
+                                AvisoKarsy.mostrar(texto(R.string.profile_dashboard_export_error), error = true)
                             }
                         exportando = false
                     }

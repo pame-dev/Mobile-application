@@ -3,7 +3,6 @@ package com.pame.karsy.feature.home
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.FlowRow
-import android.widget.Toast
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.DisposableEffect
 import android.content.ContextWrapper
@@ -373,7 +372,7 @@ fun HomeScreen(
                             // Con filtros activos (y sesión): guardarlos para recibir alertas de autos nuevos.
                             if (userMode.isLoggedIn && vm.busquedaParaGuardar != null) {
                                 SaveSearchChip(guardando = vm.guardandoBusqueda) {
-                                    vm.guardarBusqueda { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                                    vm.guardarBusqueda()
                                 }
                             }
                         }
