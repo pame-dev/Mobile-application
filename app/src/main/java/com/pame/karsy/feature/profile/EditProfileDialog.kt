@@ -60,6 +60,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.pame.karsy.R
 import com.pame.karsy.core.components.rememberFilteredFieldValue
+import com.pame.karsy.core.theme.KarsyCoral
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.components.PickerStyle
 import com.pame.karsy.core.components.EstadoMunicipioPickers
@@ -180,7 +183,7 @@ fun EditProfileDialog(
         onDismissRequest = requestClose,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        val shape = RoundedCornerShape(20.dp)
+        val shape = RoundedCornerShape(KarsyRadius.Xl)
         // Ocupa toda la ventana del Dialog para que el modal de confirmación quede encima.
         Box(
             Modifier
@@ -218,7 +221,7 @@ fun EditProfileDialog(
                         stringResource(R.string.profile_edit_profile),
                         fontFamily = Outfit,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
+                        fontSize = KarsyTextSize.Headline,
                         color = KarsyInk,
                         modifier = Modifier.weight(1f)
                     )
@@ -237,7 +240,7 @@ fun EditProfileDialog(
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Lg))
                 ) {
                     ProfileCover(coverUrl = coverPreview, height = 96.dp)
                     Row(
@@ -245,7 +248,7 @@ fun EditProfileDialog(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(10.dp)
-                            .clip(RoundedCornerShape(50))
+                            .clip(CircleShape)
                             .background(Color.Black.copy(alpha = 0.45f))
                             .clickable(onClick = onPickCover)
                             .padding(horizontal = 12.dp, vertical = 7.dp)
@@ -254,7 +257,7 @@ fun EditProfileDialog(
                         Text(
                             stringResource(R.string.profile_edit_cover),
                             fontFamily = DmSans,
-                            fontSize = 12.sp,
+                            fontSize = KarsyTextSize.Small,
                             fontWeight = FontWeight.SemiBold,
                             color = KarsyWhite,
                             modifier = Modifier.padding(start = 6.dp)
@@ -335,14 +338,14 @@ fun EditProfileDialog(
                 EditField(stringResource(R.string.profile_edit_whatsapp), whatsapp, { whatsapp = it }, inputFilter = FormRules::telefonoAlEscribir, keyboardType = KeyboardType.Phone, error = whatsappError)
                 Spacer(Modifier.height(10.dp))
                 MainContactPicker(selected = medio, onSelect = { medio = it })
-                phonesError?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp)) }
+                phonesError?.let { Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyError, modifier = Modifier.padding(top = 4.dp)) }
                 Spacer(Modifier.height(14.dp))
                 // El correo identifica la cuenta: se muestra pero no se edita.
                 EditField(stringResource(R.string.profile_edit_email), user.email, {}, enabled = false)
                 Text(
                     stringResource(R.string.profile_edit_email_locked),
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     color = KarsyMid,
                     modifier = Modifier.padding(top = 4.dp)
                 )
@@ -378,7 +381,7 @@ fun EditProfileDialog(
                 Spacer(Modifier.height(14.dp))
                 OutlinedButton(
                     onClick = onChangePassword,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(KarsyRadius.Md),
                     border = BorderStroke(1.5.dp, KarsyBorder),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyInk),
                     contentPadding = PaddingValues(vertical = 12.dp),
@@ -386,20 +389,20 @@ fun EditProfileDialog(
                 ) {
                     Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.profile_change_password), fontFamily = DmSans, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(stringResource(R.string.profile_change_password), fontFamily = DmSans, fontWeight = FontWeight.SemiBold, fontSize = KarsyTextSize.BodyLarge)
                 }
 
                 // Particular: nombre, estado y ciudad. Lote: además su dirección.
                 (if (missing) stringResource(if (isLote) R.string.profile_edit_missing_lot else R.string.profile_edit_missing) else error)?.let {
                     Spacer(Modifier.height(12.dp))
-                    Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError)
+                    Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyError)
                 }
 
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(
                         onClick = requestClose,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(KarsyRadius.Md),
                         border = BorderStroke(1.5.dp, KarsyBorder),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = KarsySurface,
@@ -408,7 +411,7 @@ fun EditProfileDialog(
                         contentPadding = PaddingValues(vertical = 12.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(stringResource(R.string.profile_cancel), fontFamily = DmSans, fontSize = 14.sp)
+                        Text(stringResource(R.string.profile_cancel), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge)
                     }
                     Button(
                         onClick = {
@@ -431,7 +434,7 @@ fun EditProfileDialog(
                             // Si todo es válido, se pide confirmación antes de guardar.
                             if (!saving && !missing && phonesError == null && reglas.all { it == null }) confirmSave = true
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(KarsyRadius.Md),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = KarsyNavy,
                             contentColor = KarsyWhite
@@ -444,7 +447,7 @@ fun EditProfileDialog(
                             stringResource(if (saving) R.string.profile_edit_saving else R.string.profile_edit_save),
                             fontFamily = Outfit,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 15.sp
+                            fontSize = KarsyTextSize.Subtitle
                         )
                     }
                 }
@@ -470,7 +473,7 @@ fun EditProfileDialog(
             visible = confirmDiscard,
             icon = Icons.Rounded.WarningAmber,
             // Rojo coral: acción destructiva (igual que "Cerrar sesión").
-            accent = Color(0xFFE65B5B),
+            accent = KarsyCoral,
             title = stringResource(R.string.profile_discard_title),
             message = stringResource(R.string.profile_discard_message),
             confirmText = stringResource(R.string.profile_discard_yes),
@@ -502,7 +505,7 @@ private fun EditField(
             label,
             fontFamily = DmSans,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 5.dp)
         )
@@ -513,9 +516,9 @@ private fun EditField(
             enabled = enabled,
             minLines = if (singleLine) 1 else 3,
             maxLines = if (singleLine) 1 else 5,
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(KarsyRadius.Md),
             colors = karsyTextFieldColors(container = KarsyBg),
-            textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal),
+            textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             isError = error != null,
             modifier = Modifier
@@ -523,7 +526,7 @@ private fun EditField(
                 .heightIn(min = 48.dp)
         )
         if (error != null) {
-            Text(error, fontFamily = DmSans, fontSize = 12.sp, color = KarsyError, modifier = Modifier.padding(top = 4.dp, start = 2.dp))
+            Text(error, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyError, modifier = Modifier.padding(top = 4.dp, start = 2.dp))
         }
     }
 }
@@ -546,7 +549,7 @@ private fun MainContactPicker(selected: String, onSelect: (String) -> Unit) {
             stringResource(R.string.profile_phones_main_title),
             fontFamily = DmSans,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 6.dp)
         )
@@ -560,9 +563,9 @@ private fun MainContactPicker(selected: String, onSelect: (String) -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(if (active) KarsyTeal.copy(alpha = 0.08f) else KarsyBg)
-                        .border(1.dp, if (active) KarsyTeal else KarsyBorder, RoundedCornerShape(10.dp))
+                        .border(1.dp, if (active) KarsyTeal else KarsyBorder, RoundedCornerShape(KarsyRadius.Md))
                         .clickable { onSelect(value) }
                         .padding(horizontal = 10.dp, vertical = 10.dp)
                 ) {
@@ -575,7 +578,7 @@ private fun MainContactPicker(selected: String, onSelect: (String) -> Unit) {
                     Text(
                         label,
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         fontWeight = FontWeight.SemiBold,
                         color = if (active) KarsyTeal else KarsyCharcoal,
                         modifier = Modifier.padding(start = 8.dp)

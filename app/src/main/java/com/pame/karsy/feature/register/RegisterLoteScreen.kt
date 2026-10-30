@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.components.EstadoMunicipioPickers
 import com.pame.karsy.core.components.BackTopBar
@@ -191,7 +193,7 @@ fun RegisterLoteScreen(
                 Text(
                     it,
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = KarsyError,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -203,7 +205,7 @@ fun RegisterLoteScreen(
             Text(
                 stringResource(R.string.auth_lote_logo_hint),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -280,10 +282,10 @@ private fun PhotoPlaceholder(imageUri: Uri?, onClick: () -> Unit, modifier: Modi
             Text(
                 stringResource(R.string.auth_add_photo),
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 lineHeight = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = KarsyTeal,
+                color = KarsyTealText,
                 textAlign = TextAlign.Center
             )
         }

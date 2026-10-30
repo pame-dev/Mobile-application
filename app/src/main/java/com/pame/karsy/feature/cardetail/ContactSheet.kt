@@ -63,6 +63,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -70,6 +71,7 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWarning
 import com.pame.karsy.core.theme.KarsyWarningLight
 import com.pame.karsy.core.theme.KarsyWhite
@@ -79,7 +81,7 @@ import com.pame.karsy.data.model.SellerContact
 import com.pame.karsy.feature.profile.ProfileAvatar
 
 internal val SheetScrim = Color(0x800D2B45)
-internal val SheetShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
+internal val SheetShape = RoundedCornerShape(topStart = KarsyRadius.Xxl, topEnd = KarsyRadius.Xxl)
 
 /**
  * Hoja inferior "Información de contacto" con los botones de llamar y WhatsApp.
@@ -121,7 +123,7 @@ internal fun ContactSheet(
                     .padding(bottom = 16.dp)
                     .width(42.dp)
                     .height(4.dp)
-                    .clip(RoundedCornerShape(999.dp))
+                    .clip(CircleShape)
                     .background(KarsyBorderMuted)
             )
 
@@ -130,7 +132,7 @@ internal fun ContactSheet(
                     stringResource(R.string.detail_contact_info_title),
                     textAlign = TextAlign.Center,
                     fontFamily = Outfit,
-                    fontSize = 19.sp,
+                    fontSize = KarsyTextSize.Headline,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     modifier = Modifier.fillMaxWidth().align(Alignment.Center)
@@ -143,7 +145,7 @@ internal fun ContactSheet(
                 }
             }
 
-            val cardShape = RoundedCornerShape(16.dp)
+            val cardShape = RoundedCornerShape(KarsyRadius.Lg)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -169,7 +171,7 @@ internal fun ContactSheet(
                     Text(
                         detail.contactoNombre,
                         fontFamily = Outfit,
-                        fontSize = 16.sp,
+                        fontSize = KarsyTextSize.Title,
                         fontWeight = FontWeight.Bold,
                         color = KarsyInk,
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -180,7 +182,7 @@ internal fun ContactSheet(
                         Text(
                             telefono ?: stringResource(R.string.detail_no_phone),
                             fontFamily = DmSans,
-                            fontSize = 12.5.sp,
+                            fontSize = KarsyTextSize.Body,
                             fontWeight = FontWeight.Bold,
                             color = if (telefono != null) KarsyTeal else KarsyMid,
                             modifier = Modifier.padding(bottom = 3.dp)
@@ -188,14 +190,14 @@ internal fun ContactSheet(
                         Text(
                             whatsapp?.let { stringResource(R.string.detail_whatsapp_number, it) } ?: stringResource(R.string.detail_no_whatsapp),
                             fontFamily = DmSans,
-                            fontSize = 12.sp,
+                            fontSize = KarsyTextSize.Small,
                             color = KarsyCharcoal
                         )
                         contact?.medioPrincipal?.let {
                             Text(
                                 if (it == "whatsapp") stringResource(R.string.detail_prefers_whatsapp) else stringResource(R.string.detail_prefers_call),
                                 fontFamily = DmSans,
-                                fontSize = 11.5.sp,
+                                fontSize = KarsyTextSize.Small,
                                 color = KarsyMid,
                                 modifier = Modifier.padding(top = 3.dp)
                             )
@@ -208,7 +210,7 @@ internal fun ContactSheet(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Lg))
                     .background(KarsyBg)
                     .padding(12.dp)
             ) {
@@ -255,7 +257,7 @@ private fun GuiaSeguridad(modifier: Modifier = Modifier) {
     Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsyWarningLight)
             .padding(14.dp)
     ) {
@@ -264,7 +266,7 @@ private fun GuiaSeguridad(modifier: Modifier = Modifier) {
             Text(
                 stringResource(R.string.detail_safety_short),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 modifier = Modifier.padding(start = 8.dp)
@@ -275,7 +277,7 @@ private fun GuiaSeguridad(modifier: Modifier = Modifier) {
         Text(
             stringResource(if (abierta) R.string.detail_safety_less else R.string.detail_safety_more),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = KarsyInk,
             textDecoration = TextDecoration.Underline,
@@ -290,7 +292,7 @@ private fun GuiaSeguridad(modifier: Modifier = Modifier) {
             Text(
                 stringResource(titulo),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 modifier = Modifier.padding(top = 10.dp, bottom = 2.dp)
@@ -299,7 +301,7 @@ private fun GuiaSeguridad(modifier: Modifier = Modifier) {
                 Text(
                     "• " + stringResource(punto),
                     fontFamily = DmSans,
-                    fontSize = 12.5.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 18.sp,
                     color = KarsyCharcoal,
                     modifier = Modifier.padding(top = 3.dp)
@@ -323,7 +325,7 @@ private fun ContactButton(
         Text(
             text,
             fontFamily = Outfit,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 8.dp)
         )
@@ -332,7 +334,7 @@ private fun ContactButton(
         Button(
             onClick = onClick,
             enabled = enabled,
-            shape = RoundedCornerShape(999.dp),
+            shape = CircleShape,
             colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
             modifier = Modifier.fillMaxWidth(),
@@ -342,7 +344,7 @@ private fun ContactButton(
         OutlinedButton(
             onClick = onClick,
             enabled = enabled,
-            shape = RoundedCornerShape(999.dp),
+            shape = CircleShape,
             border = BorderStroke(1.5.dp, KarsyTeal),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyInk),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 13.dp),

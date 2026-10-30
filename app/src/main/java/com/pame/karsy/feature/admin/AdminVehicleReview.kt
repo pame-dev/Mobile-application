@@ -29,6 +29,7 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.feature.publish.PublishViewModel
 
 private enum class VehicleDecision { Approve, Reject, Disable, Enable }
@@ -74,7 +75,7 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
                 Text(
                     stringResource(R.string.admin2_review_approve_reenables),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     lineHeight = 17.sp,
                     color = BadgeTone.Warning.fg
                 )
@@ -111,7 +112,7 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
                 }
             }
             if (acted && dialog == null && !vm.working) vm.message?.let {
-                Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg)
+                Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg)
             }
             if (actions.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 actions.forEach { decision ->

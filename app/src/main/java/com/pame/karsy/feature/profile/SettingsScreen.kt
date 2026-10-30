@@ -1,6 +1,9 @@
 package com.pame.karsy.feature.profile
 
 import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.core.theme.KarsyCoral
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.karsyTint
 import androidx.compose.material.icons.outlined.NotificationsActive
 import com.pame.karsy.core.theme.KarsyTealLight
@@ -52,7 +55,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.locale.Idioma
@@ -91,7 +93,7 @@ private val settingsItems = listOf(
 
 /** Colores de la tarjeta de "Cerrar sesión" del mockup. */
 private val LogoutBorder: Color get() = if (Tema.oscuro) Color(0xFF5C2626) else Color(0xFFFECACA)
-private val LogoutRed = Color(0xFFE65B5B)
+private val LogoutRed = KarsyCoral
 
 /** Pantalla de configuración (WebConfigView del mockup). */
 @Composable
@@ -149,7 +151,7 @@ fun SettingsScreen(
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(KarsyRadius.Md))
                                     .background(karsyTint(KarsyTeal, KarsyTealLight)),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -160,7 +162,7 @@ fun SettingsScreen(
                                     stringResource(item.labelRes),
                                     fontFamily = DmSans,
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 15.sp,
+                                    fontSize = KarsyTextSize.Subtitle,
                                     color = KarsyCharcoal
                                 )
                                 Spacer(Modifier.height(2.dp))
@@ -171,7 +173,7 @@ fun SettingsScreen(
                                         else -> stringResource(item.descRes)
                                     },
                                     fontFamily = DmSans,
-                                    fontSize = 13.sp,
+                                    fontSize = KarsyTextSize.Body,
                                     color = KarsyMid
                                 )
                             }
@@ -200,7 +202,7 @@ fun SettingsScreen(
                             stringResource(R.string.settings_logout),
                             fontFamily = DmSans,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 15.sp,
+                            fontSize = KarsyTextSize.Subtitle,
                             color = LogoutRed
                         )
                     }

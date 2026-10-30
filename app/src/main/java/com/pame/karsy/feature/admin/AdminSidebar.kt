@@ -43,20 +43,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyBlue
 import com.pame.karsy.core.theme.KarsyNavyDeep
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
 /** Secciones del panel de administración (barra lateral del mockup). */
 /** Opción activa del menú: azul fijo, con buen contraste para el texto blanco en ambos temas. */
-private val DrawerActive = Color(0xFF2563EB)
+private val DrawerActive = KarsyBlue
 
 enum class AdminSection(@StringRes val labelRes: Int) {
     Inicio(R.string.admin2_section_home),
@@ -88,7 +90,7 @@ enum class AdminSection(@StringRes val labelRes: Int) {
     }
 }
 
-private val AvatarBlue = Color(0xFF3B82F6)
+private val AvatarBlue = KarsyBlue
 
 /**
  * Contenido del menú lateral (ModalNavigationDrawer) en azul marino.
@@ -108,7 +110,7 @@ fun AdminDrawerContent(
         // Azul marino de la marca en ambos temas (el menú es una superficie de marca).
         drawerContainerColor = KarsyNavyDeep,
         drawerContentColor = KarsyWhite,
-        drawerShape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
+        drawerShape = RoundedCornerShape(topEnd = KarsyRadius.Xl, bottomEnd = KarsyRadius.Xl),
         modifier = Modifier.width(264.dp)
     ) {
         Column(
@@ -127,7 +129,7 @@ fun AdminDrawerContent(
                 Text(
                     "Karsy Admin",
                     fontFamily = Outfit,
-                    fontSize = 18.sp,
+                    fontSize = KarsyTextSize.TitleLarge,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.03.em,
                     color = KarsyWhite
@@ -164,7 +166,7 @@ fun AdminDrawerContent(
                     Text(
                         adminName.take(1).uppercase().ifEmpty { "A" },
                         fontFamily = DmSans,
-                        fontSize = 14.sp,
+                        fontSize = KarsyTextSize.BodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = KarsyWhite
                     )
@@ -174,14 +176,14 @@ fun AdminDrawerContent(
                     Text(
                         adminName.ifEmpty { stringResource(R.string.admin2_administrator) },
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         fontWeight = FontWeight.SemiBold,
                         color = KarsyWhite.copy(alpha = 0.85f)
                     )
                     Text(
                         stringResource(R.string.admin2_logout),
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         color = KarsyWhite.copy(alpha = 0.6f),
                         modifier = Modifier
                             .padding(top = 2.dp)
@@ -201,7 +203,7 @@ private fun DrawerItem(section: AdminSection, badge: Int?, active: Boolean, onCl
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(if (active) DrawerActive else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp)
@@ -224,7 +226,7 @@ private fun DrawerItem(section: AdminSection, badge: Int?, active: Boolean, onCl
         Text(
             stringResource(section.labelRes),
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
             color = contentColor,
             modifier = Modifier.weight(1f)
@@ -233,11 +235,11 @@ private fun DrawerItem(section: AdminSection, badge: Int?, active: Boolean, onCl
             Text(
                 count.toString(),
                 fontFamily = DmSans,
-                fontSize = 10.sp,
+                fontSize = KarsyTextSize.Tiny,
                 fontWeight = FontWeight.Bold,
                 color = KarsyWhite,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Sm))
                     .background(AdminColors.BadgeRed)
                     .padding(horizontal = 6.dp, vertical = 1.dp)
             )

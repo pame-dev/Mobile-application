@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -39,6 +40,8 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyCheckBorder
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 
 /**
@@ -54,7 +57,7 @@ fun TermsCheckbox(
     /** Borde rojo: se intentó enviar el formulario sin aceptarlos. */
     error: Boolean = false,
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -71,9 +74,9 @@ fun TermsCheckbox(
             modifier = Modifier
                 .padding(top = 1.dp)
                 .size(20.dp)
-                .clip(RoundedCornerShape(6.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Xs))
                 .background(if (checked) KarsyTeal else KarsySurface)
-                .border(2.dp, if (checked) KarsyTeal else KarsyCheckBorder, RoundedCornerShape(6.dp)),
+                .border(2.dp, if (checked) KarsyTeal else KarsyCheckBorder, RoundedCornerShape(KarsyRadius.Xs)),
             contentAlignment = Alignment.Center
         ) {
             if (checked) {
@@ -86,7 +89,7 @@ fun TermsCheckbox(
         Text(
             text = buildAnnotatedString {
                 append(termsPrefix)
-                val linkStyle = SpanStyle(color = KarsyTeal, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
+                val linkStyle = SpanStyle(color = KarsyTealText, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
                 if (onOpenTerms != null) {
                     withLink(LinkAnnotation.Clickable("terms", TextLinkStyles(linkStyle)) { onOpenTerms() }) {
                         append(termsLink)
@@ -97,7 +100,7 @@ fun TermsCheckbox(
                 append(termsSuffix)
             },
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             lineHeight = 18.sp,
             color = KarsyCharcoal
         )

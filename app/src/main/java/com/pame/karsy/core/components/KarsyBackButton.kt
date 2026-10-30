@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 
 /**
@@ -32,7 +33,7 @@ fun KarsyBackButton(
     modifier: Modifier = Modifier,
     contentDescription: String = stringResource(R.string.core_back),
 ) {
-    val forma = RoundedCornerShape(12.dp)
+    val forma = RoundedCornerShape(KarsyRadius.Md)
     Box(
         // Área táctil de 48dp (recomendación de Android); el cuadro se dibuja de 40dp.
         modifier = modifier

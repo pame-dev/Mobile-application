@@ -33,6 +33,7 @@ import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.feature.profile.ProfileAvatar
 
 /** Cuentas particulares y lotes en una sola lista (los lotes ya no tienen sección propia). */
@@ -175,7 +176,7 @@ fun AdminUserRowContent(user: AdminUser, action: (@Composable () -> Unit)? = nul
                 Text(
                     user.name,
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     maxLines = 1,
@@ -188,7 +189,7 @@ fun AdminUserRowContent(user: AdminUser, action: (@Composable () -> Unit)? = nul
             Text(
                 user.email,
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 color = AdminColors.Muted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

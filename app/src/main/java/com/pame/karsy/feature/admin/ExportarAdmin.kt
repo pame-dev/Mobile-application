@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.locale.texto
@@ -47,6 +46,7 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.Traductor
@@ -530,7 +530,7 @@ fun ExportarAdminBoton(vm: AdminViewModel) {
         Text(
             stringResource(if (exportando) R.string.admin3_exporting else R.string.admin3_export),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = KarsyInk
         )
@@ -568,11 +568,11 @@ fun ExportarAdminBoton(vm: AdminViewModel) {
             onDismissRequest = { dialogo = false },
             containerColor = KarsySurface,
             title = {
-                Text(stringResource(R.string.admin3_export_title), fontFamily = Outfit, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                Text(stringResource(R.string.admin3_export_title), fontFamily = Outfit, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(stringResource(R.string.admin3_export_sub), fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid)
+                    Text(stringResource(R.string.admin3_export_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid)
                     OutlinedButton(onClick = { elegir(false) }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.admin3_export_excel), fontFamily = DmSans, color = KarsyInk)
                     }

@@ -20,11 +20,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.KarsyCoral
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.Tema
 
 /** Rojo coral del corazón de favoritos guardado (igual en tema claro y oscuro). */
-val HeartCoral = Color(0xFFE65B5B)
+val HeartCoral = KarsyCoral
 
 /**
  * Ícono de corazón: relleno rojo coral cuando está guardado; si no, contorno en

@@ -45,6 +45,7 @@ import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavyDeep
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Tema
@@ -98,7 +99,7 @@ fun KarsyBottomBar(
     profileMenu: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Xxl)
     Box(
         modifier
             .fillMaxWidth()
@@ -170,7 +171,7 @@ private fun Pill(active: Boolean, icon: ImageVector, description: String, onClic
         Modifier
             .width(52.dp)
             .height(36.dp)
-            .clip(RoundedCornerShape(50))
+            .clip(CircleShape)
             .background(if (active) ActivePill else Color.Transparent)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

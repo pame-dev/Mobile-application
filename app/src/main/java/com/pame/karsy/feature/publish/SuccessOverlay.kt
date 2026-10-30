@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
@@ -28,11 +27,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -73,7 +73,7 @@ fun SuccessOverlay(
         Text(
             stringResource(if (resubmitted) R.string.publish_resubmit_success_title else R.string.publish_success_title),
             fontFamily = Outfit,
-            fontSize = 24.sp,
+            fontSize = KarsyTextSize.Display,
             fontWeight = FontWeight.Bold,
             color = KarsyWhite,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -88,21 +88,21 @@ fun SuccessOverlay(
                 title
             ),
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             color = KarsyWhite.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(start = 40.dp, end = 40.dp, bottom = 32.dp)
         )
         Button(
             onClick = onDone,
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+            shape = CircleShape,
+            colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
             contentPadding = PaddingValues(horizontal = 40.dp, vertical = 16.dp)
         ) {
             Text(
                 stringResource(if (resubmitted) R.string.publish_success_view_listing else R.string.publish_success_go_dashboard),
                 fontFamily = Outfit,
-                fontSize = 15.sp,
+                fontSize = KarsyTextSize.Subtitle,
                 fontWeight = FontWeight.Bold
             )
         }

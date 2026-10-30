@@ -15,6 +15,11 @@ val KarsyNavyLight: Color get() = tema(0xFF1A4A6E, 0xFF3D78A8)
 /** Títulos y textos fuertes: azul marino en claro, casi blanco en oscuro. */
 val KarsyInk: Color get() = tema(0xFF0D2B45, 0xFFE6EDF3)
 val KarsyTeal = Color(0xFF52A3AA)
+/**
+ * Turquesa para texto y para botones turquesa con texto blanco: en claro es más oscuro que
+ * [KarsyTeal] para llegar a contraste 4.5:1; en oscuro es el mismo (ya contrasta).
+ */
+val KarsyTealText: Color get() = tema(0xFF27737A, 0xFF52A3AA)
 val KarsyTealLight: Color get() = tema(0xFFEBF6F7, 0xFF16353A)
 val KarsyTealSoft: Color get() = tema(0xFFE8F4F5, 0xFF15312F)
 /** Fondo de las pantallas: gris azulado en claro (para que las tarjetas se distingan), casi negro en oscuro. */
@@ -24,7 +29,8 @@ val KarsySurface: Color get() = tema(0xFFFFFFFF, 0xFF1A232C)
 /** Borde de las tarjetas sobre [KarsyBg]. */
 val KarsyCardOutline: Color get() = tema(0xFFD9E1E8, 0xFF2A3540)
 val KarsyCharcoal: Color get() = tema(0xFF333333, 0xFFE2E7EC)
-val KarsyMid: Color get() = tema(0xFF8E9A8E, 0xFF97A3AE)
+/** Gris de textos secundarios. En claro, oscurecido para contraste 4.5:1 sobre blanco y [KarsyBg]. */
+val KarsyMid: Color get() = tema(0xFF626E62, 0xFF97A3AE)
 val KarsyTextSecondary: Color get() = tema(0xFF667085, 0xFFA6B1BC)
 /** Blanco fijo: texto e íconos sobre botones de color. Para fondos de tarjeta usar [KarsySurface]. */
 val KarsyWhite = Color(0xFFFFFFFF)
@@ -41,6 +47,27 @@ val KarsyErrorLight: Color get() = tema(0xFFFDECEA, 0xFF3B1919)
 val KarsyWarning = Color(0xFFF59E0B)
 val KarsyWarningLight: Color get() = tema(0xFFFFF7E6, 0xFF3A2D12)
 val KarsyStar = Color(0xFFF5B400)
+
+// Tonos compartidos de avisos, notificaciones y badges: color fuerte y su fondo suave.
+// El fondo suave se usa con karsyTint(color, fondo) para que en oscuro quede apagado.
+/** Coral de las acciones destructivas (cerrar sesión, eliminar) y alertas. */
+val KarsyCoral = Color(0xFFE65B5B)
+val KarsyRed = Color(0xFFDC2626)
+val KarsyRedSoft = Color(0xFFFEF2F2)
+val KarsyAmber = Color(0xFFD97706)
+val KarsyAmberSoft = Color(0xFFFFFBEB)
+val KarsyGreen = Color(0xFF16A34A)
+val KarsyGreenSoft = Color(0xFFF0FDF4)
+/** Verde oscuro de "Vendido" (texto sobre fondo suave). */
+val KarsyGreenDark = Color(0xFF027A48)
+val KarsyBlue = Color(0xFF2563EB)
+val KarsyBlueSoft = Color(0xFFEFF6FF)
+val KarsyPurple = Color(0xFF8B5CF6)
+val KarsyPurpleSoft = Color(0xFFF5F3FF)
+val KarsySlate = Color(0xFF64748B)
+val KarsySlateSoft = Color(0xFFF1F5F9)
+/** Azul de la insignia de verificado y de la constancia. */
+val KarsyVerifiedBlue = Color(0xFF3D7FC4)
 
 /**
  * Fondo suave de un color de acento (avisos, badges, notificaciones): el pastel [claro]

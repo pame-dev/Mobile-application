@@ -68,6 +68,7 @@ import com.pame.karsy.core.supabase.esDuplicado
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorderMuted
@@ -77,6 +78,8 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWarningLight
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
@@ -237,7 +240,7 @@ fun DestacarDialog(
             Text(
                 stringResource(R.string.profile_feature_dialog_title),
                 fontFamily = Outfit,
-                fontSize = 19.sp,
+                fontSize = KarsyTextSize.Headline,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 textAlign = TextAlign.Center,
@@ -248,12 +251,12 @@ fun DestacarDialog(
             Text(
                 carName,
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 fontWeight = FontWeight.SemiBold,
-                color = KarsyTeal,
+                color = KarsyTealText,
                 modifier = Modifier
                     .padding(bottom = 16.dp)
-                    .clip(RoundedCornerShape(50))
+                    .clip(CircleShape)
                     .background(KarsyTealSoft)
                     .padding(horizontal = 16.dp, vertical = 6.dp)
             )
@@ -268,13 +271,13 @@ fun DestacarDialog(
                     Text(
                         pago.errorCarga ?: stringResource(R.string.core_error_generic),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         color = KarsyError,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     TextButton(onClick = onRetry) {
-                        Text(stringResource(R.string.featured_pay_retry), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyTeal)
+                        Text(stringResource(R.string.featured_pay_retry), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyTealText)
                     }
                 }
                 else -> {
@@ -282,7 +285,7 @@ fun DestacarDialog(
                     Text(
                         stringResource(R.string.profile_feature_dialog_body, dias),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         lineHeight = 21.sp,
                         color = KarsyCharcoal,
                         textAlign = TextAlign.Center,
@@ -292,14 +295,14 @@ fun DestacarDialog(
                     Text(
                         stringResource(R.string.featured_pay_price, PagoDestacado.monto(datos.precio)),
                         fontFamily = Outfit,
-                        fontSize = 28.sp,
+                        fontSize = KarsyTextSize.DisplayLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = KarsyInk
                     )
                     Text(
                         dias,
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         fontWeight = FontWeight.SemiBold,
                         color = KarsyMid,
                         modifier = Modifier.padding(bottom = 20.dp)
@@ -312,12 +315,12 @@ fun DestacarDialog(
                         Text(
                             stringResource(R.string.featured_pay_unavailable),
                             fontFamily = DmSans,
-                            fontSize = 13.sp,
+                            fontSize = KarsyTextSize.Body,
                             lineHeight = 19.sp,
                             color = KarsyInk,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(KarsyRadius.Md))
                                 .background(KarsyWarningLight)
                                 .padding(12.dp)
                         )
@@ -339,7 +342,7 @@ fun DestacarDialog(
             ) {
                 if (datos != null && pago.disponible) {
                     pago.error?.let {
-                        Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyError, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyError, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     }
                     SheetPrimaryButton(
                         text = stringResource(if (pago.enviando) R.string.featured_pay_sending else R.string.profile_feature_dialog_confirm),
@@ -351,11 +354,11 @@ fun DestacarDialog(
                 TextButton(
                     onClick = onCancel,
                     enabled = !pago.enviando,
-                    shape = RoundedCornerShape(50),
+                    shape = CircleShape,
                     contentPadding = PaddingValues(vertical = 13.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.profile_cancel), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = KarsyMid)
+                    Text(stringResource(R.string.profile_cancel), fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = KarsyMid)
                 }
             }
         }
@@ -375,14 +378,14 @@ private fun PasosDePago(datos: DatosPagoDto, referencia: String, pago: DestacarP
                 Text(
                     stringResource(R.string.featured_pay_bank_value, datos.banco.orEmpty()),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     color = KarsyCharcoal
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(etiquetaClabe, fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+                        Text(etiquetaClabe, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyMid)
                         SelectionContainer {
-                            Text(datos.clabe.orEmpty(), fontFamily = FontFamily.Monospace, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                            Text(datos.clabe.orEmpty(), fontFamily = FontFamily.Monospace, fontSize = KarsyTextSize.Subtitle, fontWeight = FontWeight.Bold, color = KarsyInk)
                         }
                     }
                     BotonCopiar(stringResource(R.string.featured_pay_copy_cd, etiquetaClabe)) {
@@ -394,7 +397,7 @@ private fun PasosDePago(datos: DatosPagoDto, referencia: String, pago: DestacarP
             Text(
                 stringResource(R.string.featured_pay_holder_note),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 lineHeight = 17.sp,
                 color = KarsyMid,
                 modifier = Modifier.padding(top = 6.dp)
@@ -404,7 +407,7 @@ private fun PasosDePago(datos: DatosPagoDto, referencia: String, pago: DestacarP
             CajaDato {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     SelectionContainer(Modifier.weight(1f)) {
-                        Text(referencia, fontFamily = FontFamily.Monospace, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                        Text(referencia, fontFamily = FontFamily.Monospace, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
                     }
                     BotonCopiar(stringResource(R.string.featured_pay_copy_cd, etiquetaReferencia)) {
                         copiarAlPortapapeles(context, etiquetaReferencia, referencia, copiado)
@@ -427,12 +430,12 @@ private fun PasosDePago(datos: DatosPagoDto, referencia: String, pago: DestacarP
         Text(
             stringResource(R.string.featured_pay_no_refund_notice),
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             lineHeight = 17.sp,
             color = KarsyInk,
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Md))
                 .background(KarsyWarningLight)
                 .padding(12.dp)
         )
@@ -456,7 +459,7 @@ private fun PasosDePago(datos: DatosPagoDto, referencia: String, pago: DestacarP
             Text(
                 stringResource(R.string.featured_pay_no_refund_check),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.SemiBold,
                 color = KarsyInk,
                 modifier = Modifier.padding(start = 6.dp)
@@ -465,7 +468,7 @@ private fun PasosDePago(datos: DatosPagoDto, referencia: String, pago: DestacarP
         Text(
             stringResource(R.string.featured_pay_review_time),
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             color = KarsyMid,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -485,12 +488,12 @@ private fun Paso(numero: Int, texto: String, content: @Composable ColumnScope.()
                     .clip(CircleShape)
                     .background(KarsyNavy)
             ) {
-                Text(numero.toString(), fontFamily = Outfit, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = KarsyWhite)
+                Text(numero.toString(), fontFamily = Outfit, fontSize = KarsyTextSize.Small, fontWeight = FontWeight.Bold, color = KarsyWhite)
             }
             Text(
                 texto,
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.SemiBold,
                 color = KarsyInk,
                 modifier = Modifier.padding(start = 10.dp)
@@ -506,7 +509,7 @@ private fun CajaDato(content: @Composable ColumnScope.() -> Unit) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(KarsyBg)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         content = content
@@ -517,7 +520,7 @@ private fun CajaDato(content: @Composable ColumnScope.() -> Unit) {
 private fun BotonCopiar(descripcion: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
-        shape = RoundedCornerShape(50),
+        shape = CircleShape,
         // TalkBack dice "Copiar CLABE" o "Copiar referencia" en lugar de solo "Copiar".
         modifier = Modifier
             .padding(start = 8.dp)
@@ -526,9 +529,9 @@ private fun BotonCopiar(descripcion: String, onClick: () -> Unit) {
         Text(
             stringResource(R.string.featured_pay_copy),
             fontFamily = Outfit,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.Bold,
-            color = KarsyTeal
+            color = KarsyTealText
         )
     }
 }
@@ -554,8 +557,8 @@ internal fun DashboardSheet(onDismiss: () -> Unit, content: @Composable ColumnSc
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(24.dp, RoundedCornerShape(28.dp), ambientColor = KarsyNavy, spotColor = KarsyNavy)
-                .clip(RoundedCornerShape(28.dp))
+                .shadow(24.dp, RoundedCornerShape(KarsyRadius.Xxl), ambientColor = KarsyNavy, spotColor = KarsyNavy)
+                .clip(RoundedCornerShape(KarsyRadius.Xxl))
                 .background(KarsySurface)
                 // Evita que un toque dentro de la tarjeta la cierre.
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
@@ -566,7 +569,7 @@ internal fun DashboardSheet(onDismiss: () -> Unit, content: @Composable ColumnSc
                     .padding(top = 12.dp, bottom = 4.dp)
                     .width(40.dp)
                     .height(4.dp)
-                    .clip(RoundedCornerShape(50))
+                    .clip(CircleShape)
                     .background(KarsyBorderMuted)
             )
             content()
@@ -579,7 +582,7 @@ internal fun SheetPrimaryButton(text: String, onClick: () -> Unit, fontSize: Int
     Button(
         onClick = onClick,
         enabled = enabled,
-        shape = RoundedCornerShape(50),
+        shape = CircleShape,
         colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
         contentPadding = PaddingValues(vertical = if (fontSize >= 15) 15.dp else 14.dp),
         modifier = Modifier.fillMaxWidth()

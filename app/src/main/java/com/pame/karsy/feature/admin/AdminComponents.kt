@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -60,6 +61,12 @@ import androidx.compose.ui.unit.Dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyBlue
+import com.pame.karsy.core.theme.KarsyCoral
+import com.pame.karsy.core.theme.KarsyGreen
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyRed
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -74,13 +81,13 @@ import com.pame.karsy.core.theme.Outfit
 
 /** Colores propios del panel de administración (tomados del mockup). */
 internal object AdminColors {
-    val Blue: Color get() = if (Tema.oscuro) Color(0xFF60A5FA) else Color(0xFF2563EB)
+    val Blue: Color get() = if (Tema.oscuro) Color(0xFF60A5FA) else KarsyBlue
     val TableText: Color get() = if (Tema.oscuro) Color(0xFFD0D8E0) else Color(0xFF344054)
     val Muted = Color(0xFF98A2B3)
     val RowDivider: Color get() = if (Tema.oscuro) Color(0xFF26313B) else Color(0xFFF0F2F4)
-    val Danger = Color(0xFFE65B5B)
-    val BadgeRed = Color(0xFFEF4444)
-    val Green = Color(0xFF22C55E)
+    val Danger = KarsyCoral
+    val BadgeRed = KarsyRed
+    val Green = KarsyGreen
     val NeutralText: Color get() = if (Tema.oscuro) Color(0xFFB7C1CB) else Color(0xFF475467)
 }
 
@@ -121,12 +128,12 @@ fun AdminBadge(text: String, tone: BadgeTone = BadgeTone.Neutral, modifier: Modi
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.Bold,
         color = tone.fg,
         maxLines = 1,
         modifier = modifier
-            .clip(RoundedCornerShape(999.dp))
+            .clip(CircleShape)
             .background(tone.bg)
             .padding(horizontal = 9.dp, vertical = 5.dp)
     )
@@ -138,7 +145,7 @@ fun AdminSectionHeader(title: String, description: String, modifier: Modifier = 
         Text(
             text = title,
             fontFamily = Outfit,
-            fontSize = 24.sp,
+            fontSize = KarsyTextSize.Display,
             fontWeight = FontWeight.Bold,
             color = KarsyInk,
         )
@@ -146,7 +153,7 @@ fun AdminSectionHeader(title: String, description: String, modifier: Modifier = 
         Text(
             text = description,
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             color = KarsyMid,
             lineHeight = 20.sp,
         )
@@ -164,7 +171,7 @@ fun AdminSearchBar(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, color = KarsyCharcoal),
+        textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyCharcoal),
         cursorBrush = SolidColor(KarsyInk),
         modifier = modifier,
         decorationBox = { inner ->
@@ -173,9 +180,9 @@ fun AdminSearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 42.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(KarsySurface)
-                    .border(1.dp, KarsyBorder, RoundedCornerShape(10.dp))
+                    .border(1.dp, KarsyBorder, RoundedCornerShape(KarsyRadius.Md))
                     .padding(horizontal = 13.dp)
             ) {
                 Icon(
@@ -190,7 +197,7 @@ fun AdminSearchBar(
                         Text(
                             placeholder,
                             fontFamily = DmSans,
-                            fontSize = 13.sp,
+                            fontSize = KarsyTextSize.Body,
                             color = AdminColors.Muted,
                             maxLines = 1
                         )
@@ -216,13 +223,13 @@ fun AdminSelect(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .heightIn(min = 42.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Md))
                 .background(KarsySurface)
-                .border(1.dp, KarsyBorder, RoundedCornerShape(10.dp))
+                .border(1.dp, KarsyBorder, RoundedCornerShape(KarsyRadius.Md))
                 .clickable { expanded = true }
                 .padding(start = 12.dp, end = 8.dp)
         ) {
-            Text(value, fontFamily = DmSans, fontSize = 13.sp, color = AdminColors.TableText)
+            Text(value, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.TableText)
             Spacer(Modifier.width(4.dp))
             Icon(
                 Icons.Rounded.ExpandMore,
@@ -242,7 +249,7 @@ fun AdminSelect(
                         Text(
                             option,
                             fontFamily = DmSans,
-                            fontSize = 13.sp,
+                            fontSize = KarsyTextSize.Body,
                             fontWeight = if (option == value) FontWeight.Bold else FontWeight.Normal,
                             color = if (option == value) KarsyInk else AdminColors.TableText
                         )
@@ -260,7 +267,7 @@ fun AdminSelect(
 @Composable
 fun AdminCard(
     modifier: Modifier = Modifier,
-    shape: RoundedCornerShape = RoundedCornerShape(16.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(KarsyRadius.Lg),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -288,14 +295,14 @@ fun AdminActionButton(
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.Bold,
         color = tone.fg,
         maxLines = 1,
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Sm))
             .background(tone.bg)
-            .border(1.dp, tone.border, RoundedCornerShape(8.dp))
+            .border(1.dp, tone.border, RoundedCornerShape(KarsyRadius.Sm))
             .clickable(onClick = onClick, role = Role.Button)
             .padding(horizontal = 12.dp, vertical = 9.dp)
     )
@@ -314,7 +321,7 @@ fun AdminEmptyState(icon: ImageVector, title: String, description: String) {
         Text(
             title,
             fontFamily = Outfit,
-            fontSize = 17.sp,
+            fontSize = KarsyTextSize.TitleLarge,
             fontWeight = FontWeight.Bold,
             color = KarsyInk,
             textAlign = TextAlign.Center
@@ -323,7 +330,7 @@ fun AdminEmptyState(icon: ImageVector, title: String, description: String) {
         Text(
             description,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             lineHeight = 21.sp,
             color = KarsyTextSecondary,
             textAlign = TextAlign.Center
@@ -349,7 +356,7 @@ fun AdminField(label: String, value: String, modifier: Modifier = Modifier, bold
         Text(
             label.uppercase(),
             fontFamily = DmSans,
-            fontSize = 10.sp,
+            fontSize = KarsyTextSize.Tiny,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.04.em,
             color = KarsyTextSecondary
@@ -358,7 +365,7 @@ fun AdminField(label: String, value: String, modifier: Modifier = Modifier, bold
         Text(
             value,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
             color = AdminColors.TableText
         )
@@ -373,9 +380,9 @@ fun AdminField(label: String, value: String, modifier: Modifier = Modifier, bold
 fun AdminListHeader(title: String, count: String, filter: (@Composable () -> Unit)? = null) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontFamily = Outfit, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+            Text(title, fontFamily = Outfit, fontSize = KarsyTextSize.Subtitle, fontWeight = FontWeight.Bold, color = KarsyInk)
             Spacer(Modifier.height(3.dp))
-            Text(count, fontFamily = DmSans, fontSize = 12.sp, color = AdminColors.Muted)
+            Text(count, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = AdminColors.Muted)
         }
         filter?.invoke()
     }
@@ -417,7 +424,7 @@ fun DetailRow(label: String, value: String) {
         Text(
             label,
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             fontWeight = FontWeight.SemiBold,
             color = AdminColors.Muted,
             modifier = Modifier.width(120.dp)
@@ -425,7 +432,7 @@ fun DetailRow(label: String, value: String) {
         Text(
             value,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = AdminColors.TableText,
             modifier = Modifier.weight(1f)
@@ -450,7 +457,7 @@ fun AdminDetailModal(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = KarsySurface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = KarsyRadius.Xl, topEnd = KarsyRadius.Xl),
     ) {
         Column(
             modifier = Modifier
@@ -465,17 +472,17 @@ fun AdminDetailModal(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text(title, fontFamily = Outfit, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                    Text(title, fontFamily = Outfit, fontSize = KarsyTextSize.Headline, fontWeight = FontWeight.Bold, color = KarsyInk)
                     Spacer(Modifier.height(4.dp))
-                    Text(subtitle, fontFamily = DmSans, fontSize = 12.sp, color = AdminColors.Muted)
+                    Text(subtitle, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = AdminColors.Muted)
                 }
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(36.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(KarsyBg)
-                        .border(1.dp, KarsyBorder, RoundedCornerShape(10.dp))
+                        .border(1.dp, KarsyBorder, RoundedCornerShape(KarsyRadius.Md))
                         .clickable(onClick = onDismiss, role = Role.Button)
                 ) {
                     Icon(
@@ -501,7 +508,7 @@ fun AdminSheetButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     val (bg, fg, border) = when (style) {
         AdminButtonStyle.Primary -> Triple(KarsyNavy, KarsyWhite, KarsyNavy)
         AdminButtonStyle.Positive -> Triple(BadgeTone.Success.fg, KarsyWhite, BadgeTone.Success.fg)
@@ -522,7 +529,7 @@ fun AdminSheetButton(
         Text(
             text,
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             fontWeight = FontWeight.Bold,
             color = fg,
             maxLines = 1
@@ -564,7 +571,7 @@ fun AdminThumbnail(imageUrl: String?, modifier: Modifier = Modifier, size: Dp = 
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(size)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(KarsyBg)
     ) {
         if (imageUrl != null) {
@@ -596,7 +603,7 @@ fun AdminDetailImage(imageUrl: String?) {
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(16f / 10f)
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsyBg)
     )
     Spacer(Modifier.height(12.dp))

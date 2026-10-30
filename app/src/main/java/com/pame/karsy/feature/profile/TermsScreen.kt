@@ -26,6 +26,7 @@ import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 
 /** Sección de un documento legal (título + texto). */
@@ -87,14 +88,14 @@ internal fun LegalDocumentScreen(
                     Text(
                         stringResource(lastUpdateRes),
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         color = KarsyMid
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
                         stringResource(introRes),
                         fontFamily = DmSans,
-                        fontSize = 14.sp,
+                        fontSize = KarsyTextSize.BodyLarge,
                         lineHeight = 21.sp,
                         color = KarsyCharcoal
                     )
@@ -106,14 +107,14 @@ internal fun LegalDocumentScreen(
                             stringResource(section.titleRes),
                             fontFamily = Outfit,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
+                            fontSize = KarsyTextSize.Title,
                             color = KarsyInk
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
                             stringResource(section.bodyRes),
                             fontFamily = DmSans,
-                            fontSize = 14.sp,
+                            fontSize = KarsyTextSize.BodyLarge,
                             lineHeight = 21.sp,
                             color = KarsyCharcoal
                         )

@@ -33,16 +33,20 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConfirmDialog
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyCoral
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.feature.profile.ProfileAvatar
 
-private val MenuGray = Color(0xFF8E9A8E)
-private val LogoutCoral = Color(0xFFE65B5B)
+private val MenuGray: Color get() = KarsyMid
+private val LogoutCoral = KarsyCoral
 
 /**
  * Menú flotante del ícono de perfil (solo con sesión): datos de la cuenta,
@@ -68,7 +72,7 @@ internal fun AccountMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
         offset = DpOffset(0.dp, 8.dp),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(KarsyRadius.Lg),
         containerColor = KarsySurface,
         shadowElevation = 10.dp,
         modifier = Modifier.widthIn(min = 240.dp, max = 300.dp)
@@ -83,7 +87,7 @@ internal fun AccountMenu(
                 Text(
                     name,
                     fontFamily = Outfit,
-                    fontSize = 15.sp,
+                    fontSize = KarsyTextSize.Subtitle,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     maxLines = 1,
@@ -92,7 +96,7 @@ internal fun AccountMenu(
                 if (email.isNotBlank()) Text(
                     email,
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = MenuGray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -136,7 +140,7 @@ private fun MenuOption(icon: ImageVector, text: String, color: Color, onClick: (
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(19.dp))
-        Text(text, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = color)
+        Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = color)
     }
 }
 

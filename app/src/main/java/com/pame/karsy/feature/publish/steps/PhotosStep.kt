@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import com.pame.karsy.core.theme.KarsyCoral
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyRedSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.karsyTint
 import androidx.compose.material3.CircularProgressIndicator
 import com.pame.karsy.core.util.DetectorAutos
@@ -56,7 +60,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
@@ -73,7 +76,7 @@ import com.pame.karsy.feature.publish.PublishViewModel
 private data class PhotoSlot(val label: String, val image: Uri?)
 
 /** Rojo coral de los avisos de error de fotos. */
-private val AlertCoral = Color(0xFFE65B5B)
+private val AlertCoral = KarsyCoral
 
 private val slotLabels = PublishViewModel.ETIQUETAS_ANGULOS
 
@@ -119,7 +122,7 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         Text(
             stringResource(R.string.publish_photos_plates_hint),
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             color = KarsyMid,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
@@ -197,7 +200,7 @@ private fun ExtraPhotosCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsySurface)
             .padding(12.dp)
     ) {
@@ -205,7 +208,7 @@ private fun ExtraPhotosCard(
             Text(
                 stringResource(R.string.publish_extra_photos),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.SemiBold,
                 color = KarsyCharcoal,
                 modifier = Modifier.weight(1f)
@@ -213,7 +216,7 @@ private fun ExtraPhotosCard(
             Text(
                 stringResource(R.string.publish_photos_count, total, PublishViewModel.MAX_FOTOS),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid
             )
         }
@@ -242,8 +245,8 @@ private fun ExtraPhotosCard(
             modifier = Modifier
                 .padding(top = 12.dp)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Md))
+                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                 .clickable(enabled = canAdd, onClick = onAdd)
                 .padding(vertical = 10.dp),
             horizontalArrangement = Arrangement.Center,
@@ -253,7 +256,7 @@ private fun ExtraPhotosCard(
             Text(
                 stringResource(if (canAdd) R.string.publish_add_more_photos else R.string.publish_photos_limit, PublishViewModel.MAX_FOTOS),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Medium,
                 color = if (canAdd) KarsyCharcoal else KarsyMid,
                 modifier = Modifier.padding(start = 8.dp)
@@ -264,7 +267,7 @@ private fun ExtraPhotosCard(
 
 @Composable
 private fun ExtraPhotoThumb(uri: Uri, size: Dp, isDuplicate: Boolean, processing: Boolean, onRemove: () -> Unit) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
             .size(size)
@@ -315,13 +318,13 @@ private fun PhotoAlertBanner(message: String) {
     Text(
         message,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         fontWeight = FontWeight.Bold,
         color = AlertCoral,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(karsyTint(AlertCoral, Color(0xFFFDF2F2)))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
+            .background(karsyTint(AlertCoral, KarsyRedSoft))
             .padding(horizontal = 16.dp, vertical = 12.dp)
     )
 }
@@ -338,7 +341,7 @@ private fun PhotoSlotCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsySurface)
             .drawBehind {
                 val stroke = 1.5.dp.toPx()
@@ -363,7 +366,7 @@ private fun PhotoSlotCard(
             Box(
                 modifier = Modifier
                     .size(width = 56.dp, height = 48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(KarsyBg),
                 contentAlignment = Alignment.Center
             ) {
@@ -377,7 +380,7 @@ private fun PhotoSlotCard(
             Text(
                 slot.label,
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.SemiBold,
                 color = KarsyCharcoal,
                 modifier = Modifier.weight(1f)
@@ -385,7 +388,7 @@ private fun PhotoSlotCard(
             Box(
                 modifier = Modifier
                     .size(width = 56.dp, height = 48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(KarsyBg),
                 contentAlignment = Alignment.Center
             ) {
@@ -433,7 +436,7 @@ private fun PhotoSlotCard(
             Text(
                 it,
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 fontWeight = if (hasError) FontWeight.SemiBold else FontWeight.Normal,
                 color = if (hasError) AlertCoral else KarsyMid,
                 modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
@@ -442,9 +445,9 @@ private fun PhotoSlotCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Md))
                 .background(KarsySurface)
-                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
+                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                 .clickable(onClick = onPick)
                 .padding(vertical = 10.dp),
             horizontalArrangement = Arrangement.Center,
@@ -454,7 +457,7 @@ private fun PhotoSlotCard(
             Text(
                 stringResource(R.string.publish_pick_from_gallery),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Medium,
                 color = KarsyCharcoal,
                 modifier = Modifier.padding(start = 8.dp)
@@ -464,7 +467,7 @@ private fun PhotoSlotCard(
             Text(
                 stringResource(R.string.publish_remove_photo),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Medium,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,

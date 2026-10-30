@@ -44,10 +44,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyTextSize
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -109,7 +109,7 @@ fun ImageViewer(
                 stringResource(R.string.detail_photo_counter, pager.currentPage + 1, images.size),
                 color = Color.White,
                 fontFamily = DmSans,
-                fontSize = 15.sp,
+                fontSize = KarsyTextSize.Subtitle,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.align(Alignment.Center)
             )

@@ -79,8 +79,11 @@ import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavyDeep
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.theme.Tema
 import com.pame.karsy.data.model.Lot
@@ -96,7 +99,7 @@ import com.pame.karsy.feature.profile.ZoomableProfileAvatar
 
 // Paleta del módulo de Lotes; en tema oscuro se usan equivalentes con el mismo contraste.
 private val LotIce: Color get() = if (Tema.oscuro) Color(0xFF1F3A4F) else Color(0xFFE2F1F8)
-private val LotOutline: Color get() = if (Tema.oscuro) KarsyBorder else Color(0xFFE5E9EC)
+private val LotOutline: Color get() = KarsyBorder
 private val SoftShadow = KarsyNavyDeep.copy(alpha = 0.06f)
 
 // ── Directorio ───────────────────────────────────────────────────────────────
@@ -162,7 +165,7 @@ fun LotsScreen(
                 }
                 when {
                     vm.loading && vm.lots.isEmpty() -> items(4) {
-                        SkeletonBlock(104.dp, shape = RoundedCornerShape(16.dp))
+                        SkeletonBlock(104.dp, shape = RoundedCornerShape(KarsyRadius.Lg))
                     }
                     vm.error != null && vm.lots.isEmpty() -> item {
                         EmptyMessage(vm.error!!, Icons.Outlined.Business, action = stringResource(R.string.home_retry), onAction = { vm.load() })
@@ -184,7 +187,7 @@ fun LotsScreen(
 
 @Composable
 private fun LotsBanner() {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
         Modifier
             .fillMaxWidth()
@@ -197,28 +200,28 @@ private fun LotsBanner() {
             Box(
                 Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(LotIce),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Outlined.Business, contentDescription = null, tint = KarsyInk, modifier = Modifier.size(24.dp))
             }
             Column(Modifier.padding(start = 14.dp)) {
-                Text(stringResource(R.string.lots_banner_title), fontFamily = Outfit, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                Text(stringResource(R.string.lots_banner_title), fontFamily = Outfit, fontSize = KarsyTextSize.HeadlineLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
                 Text(
                     stringResource(R.string.lots_banner_subtitle),
                     fontFamily = DmSans,
-                    fontSize = 11.sp,
+                    fontSize = KarsyTextSize.Caption,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.06.em,
-                    color = KarsyTeal
+                    color = KarsyTealText
                 )
             }
         }
         Text(
             stringResource(R.string.lots_banner_description),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             lineHeight = 19.sp,
             color = KarsyMid,
             modifier = Modifier.padding(top = 12.dp)
@@ -228,7 +231,7 @@ private fun LotsBanner() {
 
 @Composable
 private fun LotCard(lot: Lot, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Row(
         Modifier
             .fillMaxWidth()
@@ -250,7 +253,7 @@ private fun LotCard(lot: Lot, onClick: () -> Unit) {
             Text(
                 lot.name,
                 fontFamily = Outfit,
-                fontSize = 16.sp,
+                fontSize = KarsyTextSize.Title,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 maxLines = 1,
@@ -259,7 +262,7 @@ private fun LotCard(lot: Lot, onClick: () -> Unit) {
             Text(
                 "${lot.city} · " + pluralStringResource(R.plurals.lots_vehicle_count, lot.vehicleCount, lot.vehicleCount),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyMid,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -268,7 +271,7 @@ private fun LotCard(lot: Lot, onClick: () -> Unit) {
             if (lot.description.isNotBlank()) Text(
                 rememberTraduccion(lot.description),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 lineHeight = 18.sp,
                 color = KarsyMid,
                 maxLines = 2,
@@ -324,7 +327,7 @@ fun LotProfileScreen(
                 ) {
                     when {
                         vm.loading && lot == null -> {
-                            item { SkeletonBlock(230.dp, shape = RoundedCornerShape(16.dp)) }
+                            item { SkeletonBlock(230.dp, shape = RoundedCornerShape(KarsyRadius.Lg)) }
                             items(2) { SkeletonCarCard() }
                         }
                         lot == null -> item {
@@ -373,7 +376,7 @@ fun LotProfileScreen(
                                     Text(
                                         stringResource(R.string.lot_inventory_title),
                                         fontFamily = Outfit,
-                                        fontSize = 18.sp,
+                                        fontSize = KarsyTextSize.TitleLarge,
                                         fontWeight = FontWeight.Bold,
                                         color = KarsyInk,
                                         modifier = Modifier.padding(bottom = 10.dp)
@@ -459,7 +462,7 @@ private fun LotIdentityCard(
     onWhatsapp: () -> Unit,
     onDirections: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
         Modifier
             .fillMaxWidth()
@@ -484,7 +487,7 @@ private fun LotIdentityCard(
                     Text(
                         lot.name,
                         fontFamily = Outfit,
-                        fontSize = 20.sp,
+                        fontSize = KarsyTextSize.Headline,
                         fontWeight = FontWeight.Bold,
                         color = KarsyInk,
                         maxLines = 1,
@@ -495,14 +498,14 @@ private fun LotIdentityCard(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(15.dp))
-                    Text(lot.city, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(start = 4.dp))
+                    Text(lot.city, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid, modifier = Modifier.padding(start = 4.dp))
                 }
                 Text(
                     pluralStringResource(R.plurals.home_vehicles_available, lot.vehicleCount, lot.vehicleCount),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     fontWeight = FontWeight.SemiBold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -510,7 +513,7 @@ private fun LotIdentityCard(
         if (lot.description.isNotBlank()) Text(
             rememberTraduccion(lot.description),
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             lineHeight = 20.sp,
             color = KarsyMid,
             modifier = Modifier.padding(top = 14.dp)
@@ -533,7 +536,7 @@ private fun ActionPill(icon: ImageVector, text: String, enabled: Boolean, onClic
     Row(
         modifier
             .height(40.dp)
-            .clip(RoundedCornerShape(50))
+            .clip(CircleShape)
             .background(LotIce)
             .clickable(enabled = enabled, onClick = onClick)
             .alpha(if (enabled) 1f else 0.4f)
@@ -545,7 +548,7 @@ private fun ActionPill(icon: ImageVector, text: String, enabled: Boolean, onClic
         Text(
             text,
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             fontWeight = FontWeight.SemiBold,
             color = KarsyInk,
             maxLines = 1,
@@ -559,7 +562,7 @@ private fun ActionPill(icon: ImageVector, text: String, enabled: Boolean, onClic
 
 @Composable
 private fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Row(
         modifier
             .fillMaxWidth()
@@ -575,14 +578,14 @@ private fun SearchField(value: String, onChange: (String) -> Unit, placeholder: 
             value = value,
             onValueChange = onChange,
             singleLine = true,
-            textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyInk),
+            textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyInk),
             cursorBrush = SolidColor(KarsyTeal),
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 10.dp),
             decorationBox = { inner ->
                 Box {
-                    if (value.isEmpty()) Text(placeholder, fontFamily = DmSans, fontSize = 14.sp, color = KarsyMid, maxLines = 1)
+                    if (value.isEmpty()) Text(placeholder, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyMid, maxLines = 1)
                     inner()
                 }
             }
@@ -593,7 +596,7 @@ private fun SearchField(value: String, onChange: (String) -> Unit, placeholder: 
 /** Botón cuadrado del encabezado (mismo estilo que la flecha de regreso). */
 @Composable
 private fun HeaderSquareButton(icon: ImageVector, description: String, onClick: () -> Unit, active: Boolean = false) {
-    val shape = RoundedCornerShape(10.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
             .size(38.dp)
@@ -610,7 +613,7 @@ private fun HeaderSquareButton(icon: ImageVector, description: String, onClick: 
 /** Botón cuadrado de filtros junto al buscador; turquesa cuando hay filtros aplicados. */
 @Composable
 private fun FilterButton(active: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
             .size(46.dp)
@@ -650,14 +653,14 @@ private fun EmptyMessage(text: String, icon: ImageVector, action: String? = null
         Text(
             text,
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             lineHeight = 20.sp,
             color = KarsyMid,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 14.dp)
         )
         if (action != null) OutlinedButton(onClick = onAction, modifier = Modifier.padding(top = 12.dp)) {
-            Text(action, fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = KarsyInk)
+            Text(action, fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold, color = KarsyInk)
         }
     }
 }

@@ -50,8 +50,10 @@ import com.pame.karsy.core.components.SkeletonListRow
 import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.Constancia
 
@@ -228,10 +230,10 @@ private fun VerificationRow(
         }
     }
     Column {
-        Text(verification.name, fontFamily = DmSans, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+        Text(verification.name, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
         if (verification.email.isNotBlank()) {
             Spacer(Modifier.height(2.dp))
-            Text(verification.email, fontFamily = DmSans, fontSize = 12.sp, color = AdminColors.TableText)
+            Text(verification.email, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = AdminColors.TableText)
         }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -306,28 +308,28 @@ private fun RevisarCurpDialog(
             Text(
                 stringResource(R.string.admin2_curp_review_title, verification.name),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
         },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_curp_review_sub), fontFamily = DmSans, fontSize = 13.sp, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_curp_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
                 Text(
                     stringResource(R.string.admin2_curp_steps),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 19.sp,
                     color = KarsyInk,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(KarsyTealSoft)
                         .padding(12.dp)
                 )
                 SelectionContainer {
-                    Text(curp, fontFamily = FontFamily.Monospace, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                    Text(curp, fontFamily = FontFamily.Monospace, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (curp.isNotBlank()) AdminActionButton(stringResource(R.string.admin2_curp_copy)) {
@@ -353,7 +355,7 @@ private fun RevisarCurpDialog(
                 AdminField(stringResource(R.string.admin2_curp_profile_name), verification.name)
                 CasillaRevision(existe, stringResource(R.string.admin2_curp_check_exists)) { existe = it }
                 CasillaRevision(nombre, stringResource(R.string.admin2_curp_check_name)) { nombre = it }
-                error?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg) }
+                error?.let { Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg) }
             }
         },
         confirmButton = {
@@ -399,23 +401,23 @@ private fun RevisarConstanciaDialog(
             Text(
                 stringResource(R.string.admin2_csf_review_title, verification.name),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
         },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_csf_review_sub), fontFamily = DmSans, fontSize = 13.sp, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_csf_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
                 Text(
                     stringResource(R.string.admin2_csf_steps),
                     fontFamily = DmSans,
-                    fontSize = 13.sp,
+                    fontSize = KarsyTextSize.Body,
                     lineHeight = 19.sp,
                     color = KarsyInk,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
                         .background(KarsyTealSoft)
                         .padding(12.dp)
                 )
@@ -425,7 +427,7 @@ private fun RevisarConstanciaDialog(
                 }
                 CasillaRevision(documento, stringResource(R.string.admin2_csf_check_document)) { documento = it }
                 CasillaRevision(nombre, stringResource(R.string.admin2_csf_check_name)) { nombre = it }
-                error?.let { Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg) }
+                error?.let { Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg) }
             }
         },
         confirmButton = {
@@ -456,6 +458,6 @@ internal fun CasillaRevision(marcada: Boolean, texto: String, onCambio: (Boolean
             .toggleable(value = marcada, role = Role.Checkbox, onValueChange = onCambio)
     ) {
         Checkbox(checked = marcada, onCheckedChange = null)
-        Text(texto, fontFamily = DmSans, fontSize = 13.sp, color = KarsyInk, modifier = Modifier.padding(start = 6.dp))
+        Text(texto, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyInk, modifier = Modifier.padding(start = 6.dp))
     }
 }

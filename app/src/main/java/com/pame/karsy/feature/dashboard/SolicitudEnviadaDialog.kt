@@ -28,6 +28,7 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
@@ -60,7 +61,7 @@ fun SolicitudEnviadaDialog(carName: String, onClose: () -> Unit) {
             Text(
                 stringResource(R.string.profile_dashboard_request_sent),
                 fontFamily = Outfit,
-                fontSize = 18.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -76,7 +77,7 @@ fun SolicitudEnviadaDialog(carName: String, onClose: () -> Unit) {
                     }
                 },
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 lineHeight = 21.sp,
                 color = KarsyCharcoal,
                 textAlign = TextAlign.Center,

@@ -39,6 +39,10 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyGreenSoft
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
+import com.pame.karsy.core.theme.KarsyWarning
 import com.pame.karsy.core.theme.karsyTint
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
@@ -78,7 +82,7 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection, String?) -> 
                 SessionManager.account?.nombre ?: stringResource(R.string.admin2_administrator)
             ),
             fontFamily = Outfit,
-            fontSize = 24.sp,
+            fontSize = KarsyTextSize.Display,
             fontWeight = FontWeight.Bold,
             letterSpacing = (-0.01).em,
             color = KarsyInk
@@ -87,7 +91,7 @@ fun AdminHomeSection(vm: AdminViewModel, onNavigate: (AdminSection, String?) -> 
         Text(
             stringResource(R.string.admin2_home_subtitle),
             fontFamily = DmSans,
-            fontSize = 14.sp,
+            fontSize = KarsyTextSize.BodyLarge,
             color = KarsyMid
         )
         Spacer(Modifier.height(14.dp))
@@ -136,9 +140,9 @@ private fun RangeChips(range: String, onSelect: (String) -> Unit) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(KarsySurface)
-            .border(1.dp, KarsyBorder, RoundedCornerShape(12.dp))
+            .border(1.dp, KarsyBorder, RoundedCornerShape(KarsyRadius.Md))
             .padding(4.dp)
     ) {
         rangeOptions.forEach { r ->
@@ -146,11 +150,11 @@ private fun RangeChips(range: String, onSelect: (String) -> Unit) {
             Text(
                 stringResource(R.string.admin2_range_days, r.toInt()),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 fontWeight = FontWeight.SemiBold,
                 color = if (active) KarsyWhite else KarsyTextSecondary,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(9.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Sm))
                     .background(if (active) KarsyNavy else Color.Transparent)
                     .clickable(role = Role.Tab) { onSelect(r) }
                     .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -165,7 +169,7 @@ private fun KpiIcon(icon: ImageVector, color: Color, bg: Color) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(32.dp)
-            .clip(RoundedCornerShape(9.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Sm))
             .background(bg)
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(17.dp))
@@ -174,7 +178,7 @@ private fun KpiIcon(icon: ImageVector, color: Color, bg: Color) {
 
 @Composable
 private fun KpiCard(kpi: AdminKpi, modifier: Modifier = Modifier) {
-    AdminCard(modifier = modifier, shape = RoundedCornerShape(14.dp)) {
+    AdminCard(modifier = modifier, shape = RoundedCornerShape(KarsyRadius.Lg)) {
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 KpiIcon(kpi.icon, kpi.color, karsyTint(kpi.color, kpi.bg))
@@ -183,12 +187,12 @@ private fun KpiCard(kpi: AdminKpi, modifier: Modifier = Modifier) {
                     Text(
                         change,
                         fontFamily = DmSans,
-                        fontSize = 11.sp,
+                        fontSize = KarsyTextSize.Caption,
                         fontWeight = FontWeight.Bold,
                         color = BadgeTone.Success.fg,
                         maxLines = 1,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
+                            .clip(CircleShape)
                             .background(BadgeTone.Success.bg)
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     )
@@ -198,7 +202,7 @@ private fun KpiCard(kpi: AdminKpi, modifier: Modifier = Modifier) {
             Text(
                 kpi.value,
                 fontFamily = Outfit,
-                fontSize = 22.sp,
+                fontSize = KarsyTextSize.HeadlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
@@ -206,7 +210,7 @@ private fun KpiCard(kpi: AdminKpi, modifier: Modifier = Modifier) {
             Text(
                 kpi.label,
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 lineHeight = 15.sp,
                 color = KarsyMid
             )
@@ -219,14 +223,14 @@ private fun KpiCard(kpi: AdminKpi, modifier: Modifier = Modifier) {
 private fun PublicationStatusCard(stats: AdminStats, modifier: Modifier = Modifier) {
     val total = stats.activas + stats.deshabilitadas
     val fraction = if (total == 0) 0f else stats.activas.toFloat() / total
-    AdminCard(modifier = modifier, shape = RoundedCornerShape(14.dp)) {
+    AdminCard(modifier = modifier, shape = RoundedCornerShape(KarsyRadius.Lg)) {
         Column(Modifier.padding(14.dp)) {
-            KpiIcon(Icons.Outlined.CheckCircle, AdminColors.Green, karsyTint(AdminColors.Green, Color(0xFFF0FDF4)))
+            KpiIcon(Icons.Outlined.CheckCircle, AdminColors.Green, karsyTint(AdminColors.Green, KarsyGreenSoft))
             Spacer(Modifier.height(12.dp))
             Text(
                 stringResource(R.string.admin2_percent, Math.round(fraction * 100)),
                 fontFamily = Outfit,
-                fontSize = 22.sp,
+                fontSize = KarsyTextSize.HeadlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
@@ -234,7 +238,7 @@ private fun PublicationStatusCard(stats: AdminStats, modifier: Modifier = Modifi
             Text(
                 stringResource(R.string.admin2_kpi_active),
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 lineHeight = 15.sp,
                 color = KarsyMid
             )
@@ -243,14 +247,14 @@ private fun PublicationStatusCard(stats: AdminStats, modifier: Modifier = Modifi
                 Modifier
                     .fillMaxWidth()
                     .height(6.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(if (total == 0) KarsyBg else Color(0xFFF59E0B).copy(alpha = 0.35f))
+                    .clip(CircleShape)
+                    .background(if (total == 0) KarsyBg else KarsyWarning.copy(alpha = 0.35f))
             ) {
                 Box(
                     Modifier
                         .fillMaxWidth(fraction)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(999.dp))
+                        .clip(CircleShape)
                         .background(AdminColors.Green)
                 )
             }
@@ -262,7 +266,7 @@ private fun PublicationStatusCard(stats: AdminStats, modifier: Modifier = Modifi
                     Formato.entero(stats.deshabilitadas)
                 ),
                 fontFamily = DmSans,
-                fontSize = 10.sp,
+                fontSize = KarsyTextSize.Tiny,
                 lineHeight = 14.sp,
                 color = KarsyTextSecondary
             )
@@ -272,9 +276,9 @@ private fun PublicationStatusCard(stats: AdminStats, modifier: Modifier = Modifi
 
 @Composable
 private fun CardTitle(title: String, subtitle: String) {
-    Text(title, fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+    Text(title, fontFamily = Outfit, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.Bold, color = KarsyInk)
     Spacer(Modifier.height(2.dp))
-    Text(subtitle, fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+    Text(subtitle, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyMid)
 }
 
 @Composable
@@ -287,7 +291,7 @@ private fun LegendItem(label: String, color: Color, square: Boolean = false) {
                 .background(color)
         )
         Spacer(Modifier.width(6.dp))
-        Text(label, fontFamily = DmSans, fontSize = 12.sp, color = KarsyTextSecondary)
+        Text(label, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyTextSecondary)
     }
 }
 
@@ -350,11 +354,11 @@ private fun InteractionsCard(stats: AdminStats) {
             Text(
                 stringResource(R.string.admin2_conversion_badge, porcentaje),
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Sm))
                     .background(KarsyTealLight)
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             )
@@ -377,7 +381,7 @@ private fun InteractionsCard(stats: AdminStats) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SummaryTile(stringResource(R.string.admin2_views), totalVia.toString(), KarsyTealLight, KarsyInk, Modifier.weight(1f))
                 SummaryTile(stringResource(R.string.admin2_contacts), totalFuera.toString(), KarsyBg, KarsyInk, Modifier.weight(1f))
-                SummaryTile(stringResource(R.string.admin2_conversion), stringResource(R.string.admin2_percent, porcentaje), karsyTint(AdminColors.Green, Color(0xFFF0FDF4)), AdminColors.Green, Modifier.weight(1f))
+                SummaryTile(stringResource(R.string.admin2_conversion), stringResource(R.string.admin2_percent, porcentaje), karsyTint(AdminColors.Green, KarsyGreenSoft), AdminColors.Green, Modifier.weight(1f))
             }
         }
     }
@@ -387,32 +391,32 @@ private fun InteractionsCard(stats: AdminStats) {
 private fun SummaryTile(label: String, value: String, bg: Color, valueColor: Color, modifier: Modifier) {
     Column(
         modifier
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Md))
             .background(bg)
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        Text(label, fontFamily = DmSans, fontSize = 11.sp, color = KarsyTextSecondary, maxLines = 1)
+        Text(label, fontFamily = DmSans, fontSize = KarsyTextSize.Caption, color = KarsyTextSecondary, maxLines = 1)
         Spacer(Modifier.height(4.dp))
-        Text(value, fontFamily = Outfit, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = valueColor)
+        Text(value, fontFamily = Outfit, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = valueColor)
     }
 }
 
 @Composable
 private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, onSeeAll: () -> Unit) {
-    AdminCard(shape = RoundedCornerShape(14.dp)) {
+    AdminCard(shape = RoundedCornerShape(KarsyRadius.Lg)) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
                 Icon(
                     Icons.Rounded.WarningAmber,
                     contentDescription = null,
-                    tint = Color(0xFFF59E0B),
+                    tint = KarsyWarning,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
                     stringResource(R.string.admin2_needs_attention),
                     fontFamily = Outfit,
-                    fontSize = 15.sp,
+                    fontSize = KarsyTextSize.Subtitle,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     modifier = Modifier.weight(1f)
@@ -420,7 +424,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, o
                 Text(
                     stringResource(R.string.admin2_see_all),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     fontWeight = FontWeight.SemiBold,
                     color = AdminColors.Blue,
                     modifier = Modifier.clickable(onClick = onSeeAll)
@@ -432,8 +436,8 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, o
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(karsyTint(AdminColors.Green, Color(0xFFF0FDF4)))
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
+                        .background(karsyTint(AdminColors.Green, KarsyGreenSoft))
                         .padding(horizontal = 14.dp, vertical = 12.dp)
                 ) {
                     Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = AdminColors.Green, modifier = Modifier.size(18.dp))
@@ -441,7 +445,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, o
                     Text(
                         stringResource(R.string.admin2_all_caught_up),
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         fontWeight = FontWeight.Medium,
                         color = KarsyCharcoal
                     )
@@ -453,7 +457,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, o
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(KarsyRadius.Md))
                             .background(karsyTint(alert.color, alert.bg))
                             .clickable { onOpen(alert) }
                             .padding(horizontal = 14.dp, vertical = 12.dp)
@@ -462,7 +466,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, o
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(30.dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(KarsyRadius.Sm))
                                 .background(KarsySurface)
                         ) {
                             Icon(alert.icon, contentDescription = null, tint = alert.color, modifier = Modifier.size(16.dp))
@@ -471,7 +475,7 @@ private fun AlertsCard(alerts: List<AdminAlert>, onOpen: (AdminAlert) -> Unit, o
                         Text(
                             alert.text,
                             fontFamily = DmSans,
-                            fontSize = 12.sp,
+                            fontSize = KarsyTextSize.Small,
                             fontWeight = FontWeight.Medium,
                             lineHeight = 17.sp,
                             color = KarsyCharcoal

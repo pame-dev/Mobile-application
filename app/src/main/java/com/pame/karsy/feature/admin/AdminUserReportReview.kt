@@ -32,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
@@ -41,6 +40,7 @@ import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.Outfit
 
 /**
@@ -75,7 +75,7 @@ fun UserReportReviewScreen(
                 stringResource(R.string.admin2_review_account_title),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
+                fontSize = KarsyTextSize.TitleLarge,
                 color = KarsyInk,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -96,7 +96,7 @@ fun UserReportReviewScreen(
                     Text(
                         stringResource(R.string.admin2_msg_owner_not_found),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         color = KarsyMid
                     )
                 } else {
@@ -118,7 +118,7 @@ fun UserReportReviewScreen(
                 Text(
                     stringResource(R.string.admin2_account_listings, listings.size),
                     fontFamily = Outfit,
-                    fontSize = 15.sp,
+                    fontSize = KarsyTextSize.Subtitle,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk
                 )
@@ -128,7 +128,7 @@ fun UserReportReviewScreen(
                         Text(
                             stringResource(R.string.admin2_account_no_listings),
                             fontFamily = DmSans,
-                            fontSize = 13.sp,
+                            fontSize = KarsyTextSize.Body,
                             color = KarsyMid,
                             modifier = Modifier.padding(16.dp)
                         )
@@ -174,14 +174,14 @@ private fun ListingRow(vehicle: AdminVehicle, reported: Boolean, onClick: () -> 
             Text(
                 vehicle.name,
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(2.dp))
-            Text("${vehicle.year} · ${vehicle.price}", fontFamily = DmSans, fontSize = 12.sp, color = AdminColors.TableText)
+            Text("${vehicle.year} · ${vehicle.price}", fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = AdminColors.TableText)
         }
         Spacer(Modifier.width(8.dp))
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -214,7 +214,7 @@ private fun UserReportReviewBar(
                 .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
         ) {
             if (acted && dialog == null && !vm.working) vm.message?.let {
-                Text(it, fontFamily = DmSans, fontSize = 12.sp, color = BadgeTone.Danger.fg)
+                Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 AdminSheetButton(

@@ -8,6 +8,13 @@ import com.pame.karsy.core.components.VerifiedShield
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.rounded.Translate
 import com.pame.karsy.core.locale.rememberTraduccion
+import com.pame.karsy.core.theme.KarsyAmberSoft
+import com.pame.karsy.core.theme.KarsyGreenDark
+import com.pame.karsy.core.theme.KarsyGreenSoft
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyRedSoft
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.CarRepository
 import com.pame.karsy.data.repository.UserRepository
@@ -107,7 +114,6 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
-import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
@@ -163,8 +169,8 @@ fun CarDetailScreen(
                     SkeletonBlock(28.dp, width = 150.dp)
                     repeat(3) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            SkeletonBlock(52.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp))
-                            SkeletonBlock(52.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp))
+                            SkeletonBlock(52.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(KarsyRadius.Md))
+                            SkeletonBlock(52.dp, modifier = Modifier.weight(1f), shape = RoundedCornerShape(KarsyRadius.Md))
                         }
                     }
                 }
@@ -386,7 +392,7 @@ fun CarDetailScreen(
                 onDismissRequest = { if (!vm.updatingStatus) confirmPause = false },
                 containerColor = KarsySurface,
                 title = { Text(stringResource(R.string.detail_owner_pause_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_pause_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                text = { Text(stringResource(R.string.detail_owner_pause_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
                 confirmButton = {
                     TextButton(onClick = { setPaused(true) }, enabled = !vm.updatingStatus) {
                         Text(stringResource(R.string.detail_owner_pause), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyError)
@@ -405,13 +411,13 @@ fun CarDetailScreen(
                 onDismissRequest = { confirmSold = false },
                 containerColor = KarsySurface,
                 title = { Text(stringResource(R.string.detail_owner_sold_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_sold_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                text = { Text(stringResource(R.string.detail_owner_sold_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
                 confirmButton = {
                     TextButton(onClick = {
                         confirmSold = false
                         askSoldVia = true
                     }) {
-                        Text(stringResource(R.string.detail_owner_sold_confirm), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyTeal)
+                        Text(stringResource(R.string.detail_owner_sold_confirm), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyTealText)
                     }
                 },
                 dismissButton = {
@@ -433,7 +439,7 @@ fun CarDetailScreen(
                         Text(
                             stringResource(R.string.detail_owner_sold_via_desc),
                             fontFamily = DmSans,
-                            fontSize = 14.sp,
+                            fontSize = KarsyTextSize.BodyLarge,
                             color = KarsyCharcoal,
                             modifier = Modifier.padding(bottom = 6.dp)
                         )
@@ -442,7 +448,7 @@ fun CarDetailScreen(
                             onClick = { setSold(true, SOLD_INSIDE_APP) },
                             enabled = !vm.updatingStatus,
                             filled = true,
-                            color = KarsyTeal,
+                            color = KarsyTealText,
                             modifier = Modifier.fillMaxWidth()
                         )
                         OwnerButton(
@@ -468,10 +474,10 @@ fun CarDetailScreen(
                 onDismissRequest = { if (!vm.updatingStatus) confirmAvailable = false },
                 containerColor = KarsySurface,
                 title = { Text(stringResource(R.string.detail_owner_available_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_available_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                text = { Text(stringResource(R.string.detail_owner_available_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
                 confirmButton = {
                     TextButton(onClick = { setSold(false) }, enabled = !vm.updatingStatus) {
-                        Text(stringResource(R.string.detail_owner_mark_available), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyTeal)
+                        Text(stringResource(R.string.detail_owner_mark_available), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyTealText)
                     }
                 },
                 dismissButton = {
@@ -487,7 +493,7 @@ fun CarDetailScreen(
                 onDismissRequest = { confirmHide = false },
                 containerColor = KarsySurface,
                 title = { Text(stringResource(R.string.detail_owner_hide_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_hide_desc), fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal) },
+                text = { Text(stringResource(R.string.detail_owner_hide_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
                 confirmButton = {
                     TextButton(onClick = {
                         confirmHide = false
@@ -623,7 +629,7 @@ private fun OwnerActionsBar(
                 onClick = onMarkAvailable,
                 enabled = !updating,
                 filled = true,
-                color = KarsyTeal,
+                color = KarsyTealText,
                 modifier = Modifier.fillMaxWidth()
             )
             if (canToggle || showFeature || canEdit) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -634,7 +640,7 @@ private fun OwnerActionsBar(
                         onClick = if (paused) onResume else onPause,
                         enabled = !updating,
                         filled = paused,
-                        color = if (paused) KarsyTeal else KarsyError,
+                        color = if (paused) KarsyTealText else KarsyError,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -653,7 +659,7 @@ private fun OwnerActionsBar(
                     // Una solicitud a la vez; un destacado vigente solo se renueva si está por terminar.
                     enabled = puedeDestacar && !car.featuredPending && (!car.featured || renovar),
                     filled = renovar,
-                    color = if (renovar) KarsyTeal else FeatureGold,
+                    color = if (renovar) KarsyTealText else FeatureGold,
                     modifier = Modifier.weight(1f)
                 )
                 if (canEdit) OwnerButton(
@@ -693,7 +699,7 @@ private fun OwnerActionsBar(
 }
 
 private val FeatureGold = Color(0xFFB7791F)
-private val SoldGreen = Color(0xFF027A48)
+private val SoldGreen = KarsyGreenDark
 
 /** Botón compacto de la barra del dueño: relleno o con borde del color dado. */
 @Composable
@@ -705,12 +711,12 @@ private fun OwnerButton(
     filled: Boolean = false,
     color: Color = KarsyNavy,
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     val content = @Composable {
         Text(
             text,
             fontFamily = Outfit,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -749,13 +755,13 @@ private fun OwnerButton(
 /** Aviso de publicación vendida: para el comprador ya no está disponible; el dueño ve dónde la vendió. */
 @Composable
 private fun SoldNotice(isOwner: Boolean, via: String?) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
         Modifier
             .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
             .fillMaxWidth()
             .clip(shape)
-            .background(karsyTint(SoldGreen, Color(0xFFECFDF3)))
+            .background(karsyTint(SoldGreen, KarsyGreenSoft))
             .border(1.dp, SoldGreen.copy(alpha = 0.25f), shape)
             .padding(14.dp)
     ) {
@@ -765,7 +771,7 @@ private fun SoldNotice(isOwner: Boolean, via: String?) {
             Text(
                 stringResource(if (isOwner) R.string.detail_sold_owner_title else R.string.detail_sold_title),
                 fontFamily = Outfit,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = SoldGreen
             )
@@ -774,7 +780,7 @@ private fun SoldNotice(isOwner: Boolean, via: String?) {
         Text(
             stringResource(if (isOwner) R.string.detail_sold_owner_desc else R.string.detail_sold_desc),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             lineHeight = 18.sp,
             color = KarsyCharcoal
         )
@@ -783,7 +789,7 @@ private fun SoldNotice(isOwner: Boolean, via: String?) {
             Text(
                 it,
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 fontWeight = FontWeight.SemiBold,
                 color = SoldGreen,
                 modifier = Modifier.padding(top = 6.dp)
@@ -797,22 +803,22 @@ private fun SoldNotice(isOwner: Boolean, via: String?) {
 private fun ReviewNotice(@StringRes title: Int, @StringRes desc: Int) {
     // En oscuro, un ámbar claro para que el título y el candado se lean sobre el fondo oscuro.
     val amber = if (Tema.oscuro) Color(0xFFFEC84B) else Color(0xFFB54708)
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Row(
         Modifier
             .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
             .fillMaxWidth()
             .clip(shape)
-            .background(karsyTint(amber, Color(0xFFFFFAEB)))
+            .background(karsyTint(amber, KarsyAmberSoft))
             .border(1.dp, amber.copy(alpha = 0.3f), shape)
             .padding(14.dp)
     ) {
         Icon(Icons.Rounded.Lock, contentDescription = null, tint = amber, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(10.dp))
         Column {
-            Text(stringResource(title), fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = amber)
+            Text(stringResource(title), fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.Bold, color = amber)
             Spacer(Modifier.height(4.dp))
-            Text(stringResource(desc), fontFamily = DmSans, fontSize = 13.sp, lineHeight = 18.sp, color = KarsyCharcoal)
+            Text(stringResource(desc), fontFamily = DmSans, fontSize = KarsyTextSize.Body, lineHeight = 18.sp, color = KarsyCharcoal)
         }
     }
 }
@@ -829,9 +835,9 @@ private fun DisabledNotice(
         Modifier
             .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(karsyTint(danger, Color(0xFFFEF3F2)))
-            .border(1.dp, danger.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
+            .background(karsyTint(danger, KarsyRedSoft))
+            .border(1.dp, danger.copy(alpha = 0.25f), RoundedCornerShape(KarsyRadius.Lg))
             .padding(14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -840,7 +846,7 @@ private fun DisabledNotice(
             Text(
                 title,
                 fontFamily = Outfit,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = danger
             )
@@ -850,21 +856,21 @@ private fun DisabledNotice(
             if (reason != null) stringResource(R.string.detail_disabled_reason, rememberTraduccion(reason))
             else stringResource(R.string.detail_disabled_no_reason),
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             lineHeight = 18.sp,
             color = KarsyCharcoal
         )
         if (actionLabel != null) {
             Button(
                 onClick = onAction,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = KarsyTeal, contentColor = KarsyWhite),
+                shape = RoundedCornerShape(KarsyRadius.Md),
+                colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
                 modifier = Modifier
                     .padding(top = 12.dp)
                     .fillMaxWidth()
                     .height(42.dp)
             ) {
-                Text(actionLabel, fontFamily = Outfit, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(actionLabel, fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -891,7 +897,7 @@ private fun DetailHeader(
             stringResource(R.string.detail_title),
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
-            fontSize = 17.sp,
+            fontSize = KarsyTextSize.TitleLarge,
             color = KarsyInk,
             modifier = Modifier.align(Alignment.Center)
         )
@@ -927,7 +933,7 @@ private fun DetailHeader(
 
 @Composable
 private fun HeaderSquareButton(onClick: () -> Unit, content: @Composable () -> Unit) {
-    val shape = RoundedCornerShape(10.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(
         Modifier
             .size(36.dp)
@@ -975,12 +981,12 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
             "${activeImg + 1}/${gallery.size}",
             color = KarsyWhite,
             fontFamily = DmSans,
-            fontSize = 11.sp,
+            fontSize = KarsyTextSize.Caption,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 14.dp, bottom = 12.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Xl))
                 .background(Color.Black.copy(alpha = 0.55f))
                 .padding(horizontal = 9.dp, vertical = 3.dp)
         )
@@ -995,7 +1001,7 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
             .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 16.dp)
     ) {
         gallery.forEachIndexed { i, src ->
-            val shape = RoundedCornerShape(10.dp)
+            val shape = RoundedCornerShape(KarsyRadius.Md)
             AsyncImage(
                 model = src,
                 contentDescription = stringResource(R.string.detail_photo_n, i + 1),
@@ -1048,7 +1054,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
             Text(
                 "${car.brand} ${car.model} ${car.year}",
                 fontFamily = Outfit,
-                fontSize = 20.sp,
+                fontSize = KarsyTextSize.Headline,
                 fontWeight = FontWeight.Bold,
                 color = KarsyCharcoal
             )
@@ -1058,14 +1064,14 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
             buildAnnotatedString {
                 append(car.price)
                 append(" ")
-                withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = KarsyMid)) {
+                withStyle(SpanStyle(fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.Medium, color = KarsyMid)) {
                     append(car.currency)
                 }
             },
             fontFamily = Outfit,
-            fontSize = 26.sp,
+            fontSize = KarsyTextSize.Display,
             fontWeight = FontWeight.Bold,
-            color = KarsyTeal,
+            color = KarsyTealText,
         )
         Spacer(Modifier.height(18.dp))
 
@@ -1107,7 +1113,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
         TextCard(mostrar?.problemas ?: detail.detalles)
 
         SectionLabel(stringResource(R.string.detail_section_seller_contact))
-        val shape = RoundedCornerShape(14.dp)
+        val shape = RoundedCornerShape(KarsyRadius.Lg)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -1133,7 +1139,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                     Text(
                         detail.contactoNombre,
                         fontFamily = DmSans,
-                        fontSize = 14.sp,
+                        fontSize = KarsyTextSize.BodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = KarsyInk,
                         maxLines = 1,
@@ -1145,9 +1151,9 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                 Text(
                     if (detail.sellerType == "lote") stringResource(R.string.detail_dealer_view_profile) else stringResource(R.string.detail_private_view_profile),
                     fontFamily = DmSans,
-                    fontSize = 11.5.sp,
+                    fontSize = KarsyTextSize.Small,
                     fontWeight = FontWeight.SemiBold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     modifier = Modifier
                         .padding(top = 3.dp)
                         .clickable(onClick = onOpenSeller)
@@ -1159,7 +1165,7 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
 
 @Composable
 private fun FichaCell(label: String, value: String, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Column(
         modifier
             .clip(shape)
@@ -1167,11 +1173,11 @@ private fun FichaCell(label: String, value: String, modifier: Modifier = Modifie
             .border(1.dp, KarsyBorder, shape)
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        Text(label, fontFamily = DmSans, fontSize = 11.sp, color = KarsyMid)
+        Text(label, fontFamily = DmSans, fontSize = KarsyTextSize.Caption, color = KarsyMid)
         Text(
             value,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(top = 2.dp)
@@ -1193,16 +1199,16 @@ private fun TranslationNote(viendoTraduccion: Boolean, onToggle: () -> Unit) {
         Text(
             stringResource(if (viendoTraduccion) R.string.detail_translated else R.string.detail_original_text),
             fontFamily = DmSans,
-            fontSize = 11.sp,
+            fontSize = KarsyTextSize.Caption,
             color = KarsyMid
         )
         Spacer(Modifier.width(6.dp))
         Text(
             stringResource(if (viendoTraduccion) R.string.detail_see_original else R.string.detail_see_translation),
             fontFamily = DmSans,
-            fontSize = 11.sp,
+            fontSize = KarsyTextSize.Caption,
             fontWeight = FontWeight.SemiBold,
-            color = KarsyTeal,
+            color = KarsyTealText,
             modifier = Modifier.clickable(onClick = onToggle)
         )
     }
@@ -1210,11 +1216,11 @@ private fun TranslationNote(viendoTraduccion: Boolean, onToggle: () -> Unit) {
 
 @Composable
 private fun TextCard(text: String) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Text(
         text,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         lineHeight = 21.sp,
         color = KarsyCharcoal,
         modifier = Modifier
@@ -1249,12 +1255,12 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
                 Text(
                     if (message == null) stringResource(R.string.detail_not_found) else stringResource(R.string.detail_load_error),
                     fontFamily = Outfit,
-                    fontSize = 19.sp,
+                    fontSize = KarsyTextSize.Headline,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk
                 )
                 message?.let {
-                    Text(it, fontFamily = DmSans, fontSize = 13.sp, color = KarsyMid, modifier = Modifier.padding(top = 8.dp))
+                    Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid, modifier = Modifier.padding(top = 8.dp))
                 }
                 Spacer(Modifier.height(20.dp))
                 if (onRetry != null) {

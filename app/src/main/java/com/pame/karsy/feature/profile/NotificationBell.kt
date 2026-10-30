@@ -20,10 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.pame.karsy.core.theme.KarsyTextSize
 import kotlinx.coroutines.delay
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyError
@@ -90,7 +90,7 @@ fun BoxScope.UnreadBadge(count: Int) {
         Text(
             if (count > 99) "99+" else count.toString(),
             fontFamily = DmSans,
-            fontSize = 11.sp,
+            fontSize = KarsyTextSize.Caption,
             fontWeight = FontWeight.Bold,
             color = KarsyWhite
         )

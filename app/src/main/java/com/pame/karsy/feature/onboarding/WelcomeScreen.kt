@@ -62,10 +62,12 @@ import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyNavyDeep
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
-import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.repository.CarRepository
@@ -138,7 +140,7 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
                     "Karsy",
                     fontFamily = Outfit,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
+                    fontSize = KarsyTextSize.HeadlineLarge,
                     color = KarsyWhite,
                     letterSpacing = 0.04.em
                 )
@@ -164,7 +166,7 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
                 stringResource(R.string.welcome_headline),
                 fontFamily = Outfit,
                 fontWeight = FontWeight.Bold,
-                fontSize = 28.sp,
+                fontSize = KarsyTextSize.DisplayLarge,
                 lineHeight = 34.sp,
                 letterSpacing = (-0.01).em,
                 color = KarsyWhite,
@@ -178,11 +180,11 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
             Text(
                 stringResource(R.string.welcome_guest),
                 fontFamily = DmSans,
-                fontSize = 14.sp,
+                fontSize = KarsyTextSize.BodyLarge,
                 color = KarsyMid,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Sm))
                     .clickable(onClick = onGuest)
                     .padding(horizontal = 8.dp, vertical = 8.dp)
             )
@@ -192,12 +194,12 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
             Text(
                 buildAnnotatedString {
                     append(termsPrefix)
-                    withStyle(SpanStyle(color = KarsyTeal, textDecoration = TextDecoration.Underline)) {
+                    withStyle(SpanStyle(color = KarsyTealText, textDecoration = TextDecoration.Underline)) {
                         append(termsLink)
                     }
                 },
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 lineHeight = 16.sp,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
@@ -208,12 +210,12 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
             Text(
                 buildAnnotatedString {
                     append(privacyPrefix)
-                    withStyle(SpanStyle(color = KarsyTeal, textDecoration = TextDecoration.Underline)) {
+                    withStyle(SpanStyle(color = KarsyTealText, textDecoration = TextDecoration.Underline)) {
                         append(privacyLink)
                     }
                 },
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 lineHeight = 16.sp,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
@@ -227,7 +229,7 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onGuest: () -> Un
 private fun WelcomeButton(text: String, container: Color, borderWidth: Float, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(KarsyRadius.Lg),
         border = BorderStroke(borderWidth.dp, KarsyWhite),
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = KarsyWhite),
         contentPadding = PaddingValues(0.dp),
@@ -235,7 +237,7 @@ private fun WelcomeButton(text: String, container: Color, borderWidth: Float, on
             .fillMaxWidth()
             .height(54.dp)
     ) {
-        Text(text, fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.01.em)
+        Text(text, fontFamily = Outfit, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.SemiBold, letterSpacing = 0.01.em)
     }
 }
 
@@ -249,7 +251,7 @@ private fun CarouselDots(count: Int, current: Int, onSelect: (Int) -> Unit) {
                 Modifier
                     .width(width)
                     .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Xs))
                     .background(if (active) KarsySurface else KarsySurface.copy(alpha = 0.45f))
                     .clickable { onSelect(i) }
             )
@@ -265,7 +267,7 @@ private fun CarouselDots(count: Int, current: Int, onSelect: (Int) -> Unit) {
 private fun LanguageToggle(lang: String, onChange: (String) -> Unit) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Xl))
             .background(KarsySurface.copy(alpha = 0.12f))
             .clickable { onChange(if (lang == Idioma.ES) Idioma.EN else Idioma.ES) }
             .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -275,12 +277,12 @@ private fun LanguageToggle(lang: String, onChange: (String) -> Unit) {
         if (lang == Idioma.EN) UkFlag() else SpainFlag()
         Row(verticalAlignment = Alignment.CenterVertically) {
             listOf(Idioma.ES, Idioma.EN).forEachIndexed { i, code ->
-                if (i > 0) Text("|", color = KarsyWhite.copy(alpha = 0.3f), fontSize = 11.sp)
+                if (i > 0) Text("|", color = KarsyWhite.copy(alpha = 0.3f), fontSize = KarsyTextSize.Caption)
                 val active = lang == code
                 Text(
                     code.uppercase(),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
                     color = if (active) KarsyWhite else KarsyWhite.copy(alpha = 0.5f),
                     modifier = Modifier

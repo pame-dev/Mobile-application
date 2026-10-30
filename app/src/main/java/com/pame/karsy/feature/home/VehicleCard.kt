@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,13 +36,16 @@ import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyCardOutline
 import com.pame.karsy.core.theme.KarsyNavy
-import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSecondary
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
@@ -60,7 +62,7 @@ fun VehicleCard(
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -102,7 +104,7 @@ fun VehicleCard(
                         Text(
                             car.title,
                             fontFamily = Outfit,
-                            fontSize = 15.sp,
+                            fontSize = KarsyTextSize.Subtitle,
                             fontWeight = FontWeight.Bold,
                             color = KarsyInk,
                             maxLines = 1,
@@ -114,7 +116,7 @@ fun VehicleCard(
                     Text(
                         "${car.year} · ${car.kilometraje}",
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         color = KarsyMid,
                         modifier = Modifier.padding(top = 1.dp)
                     )
@@ -124,17 +126,17 @@ fun VehicleCard(
                     Text(
                         car.price,
                         fontFamily = Outfit,
-                        fontSize = 15.sp,
+                        fontSize = KarsyTextSize.Subtitle,
                         fontWeight = FontWeight.Bold,
-                        color = KarsyTeal
+                        color = KarsyTealText
                     )
-                    Text(car.currency, fontFamily = DmSans, fontSize = 10.sp, color = KarsyMid)
+                    Text(car.currency, fontFamily = DmSans, fontSize = KarsyTextSize.Tiny, color = KarsyMid)
                 }
             }
             Text(
                 rememberTraduccion(car.description, corto = true),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 lineHeight = 18.sp,
                 color = KarsyTextSecondary,
                 maxLines = 2,
@@ -158,7 +160,7 @@ fun VehicleCard(
                     Text(
                         ubicacion,
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         color = KarsyMid,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -175,11 +177,11 @@ internal fun EtiquetaVendido(modifier: Modifier = Modifier) {
     Text(
         stringResource(R.string.profile_status_sold),
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.Bold,
         color = KarsyWhite,
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Sm))
             .background(KarsyNavy.copy(alpha = 0.85f))
             .padding(horizontal = 8.dp, vertical = 3.dp)
     )

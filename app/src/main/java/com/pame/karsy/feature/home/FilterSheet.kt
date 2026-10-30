@@ -67,6 +67,7 @@ import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
@@ -76,6 +77,7 @@ import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
 import com.pame.karsy.core.theme.KarsyTextSecondary
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.core.util.FormRules
@@ -195,7 +197,7 @@ private fun FilterPanel(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            KarsyBrand(logoSize = 30.dp, fontSize = 17.sp)
+            KarsyBrand(logoSize = 30.dp, fontSize = KarsyTextSize.TitleLarge)
             IconButton(onClick = onDismiss) {
                 Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.home_close), tint = KarsyMid, modifier = Modifier.size(20.dp))
             }
@@ -216,7 +218,7 @@ private fun FilterPanel(
                 Text(
                     stringResource(R.string.home_filters_title),
                     fontFamily = DmSans,
-                    fontSize = 10.sp,
+                    fontSize = KarsyTextSize.Tiny,
                     fontWeight = FontWeight.Bold,
                     color = KarsyMid,
                     letterSpacing = 0.08.em,
@@ -249,25 +251,25 @@ private fun FilterPanel(
                                 tipo = limpio.tipo; precioMin = ""; precioMax = ""; orden = limpio.orden
                                 onClear()
                             },
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(KarsyRadius.Md),
                             border = BorderStroke(1.5.dp, KarsyBorder),
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = KarsySurface, contentColor = KarsyTextSecondary),
                             contentPadding = PaddingValues(vertical = 10.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(stringResource(R.string.home_clear), fontFamily = DmSans, fontSize = 13.sp)
+                            Text(stringResource(R.string.home_clear), fontFamily = DmSans, fontSize = KarsyTextSize.Body)
                         }
                         Button(
                             onClick = {
                                 onApply(HomeFilters(marca, modelo, anio, tipo, precioMin, precioMax, orden))
                                 onDismiss()
                             },
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(KarsyRadius.Md),
                             colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
                             contentPadding = PaddingValues(vertical = 10.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(stringResource(R.string.home_apply), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.home_apply), fontFamily = Outfit, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -275,27 +277,27 @@ private fun FilterPanel(
                 Column(
                     Modifier
                         .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(KarsyRadius.Lg))
                         .background(KarsyTealLight)
-                        .border(1.dp, KarsyTeal, RoundedCornerShape(14.dp))
+                        .border(1.dp, KarsyTeal, RoundedCornerShape(KarsyRadius.Lg))
                         .padding(16.dp)
                 ) {
                     Text(
                         stringResource(R.string.home_filters_visitor_message),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         lineHeight = 19.5.sp,
                         color = KarsyInk,
                         modifier = Modifier.padding(bottom = 10.dp)
                     )
                     Button(
                         onClick = onRegister,
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(KarsyRadius.Md),
                         colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
                         contentPadding = PaddingValues(vertical = 10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.home_register_free), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.home_register_free), fontFamily = Outfit, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -309,7 +311,7 @@ private fun FilterField(label: String, bottom: Int = 12, content: @Composable ()
         Text(
             label,
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             fontWeight = FontWeight.SemiBold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 5.dp)
@@ -320,14 +322,14 @@ private fun FilterField(label: String, bottom: Int = 12, content: @Composable ()
 
 @Composable
 private fun PriceInput(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier) {
-    val shape = RoundedCornerShape(10.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     BasicTextField(
         value = value,
         // Precio: solo dígitos, también si pegan texto.
         onValueChange = { onValueChange(FormRules.soloDigitos(it, 10)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        textStyle = TextStyle(fontFamily = DmSans, fontSize = 12.sp, color = KarsyCharcoal),
+        textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyCharcoal),
         cursorBrush = SolidColor(KarsyTeal),
         modifier = modifier,
         decorationBox = { inner ->
@@ -339,7 +341,7 @@ private fun PriceInput(value: String, onValueChange: (String) -> Unit, placehold
                     .border(1.5.dp, KarsyBorder, shape)
                     .padding(horizontal = 10.dp, vertical = 10.dp)
             ) {
-                if (value.isEmpty()) Text(placeholder, fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+                if (value.isEmpty()) Text(placeholder, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyMid)
                 inner()
             }
         }
@@ -362,7 +364,7 @@ internal fun KarsySelect(
     label: (String) -> String = { it },
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(10.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
     Box(modifier) {
         Row(
             Modifier
@@ -379,7 +381,7 @@ internal fun KarsySelect(
             Text(
                 label(selected),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 color = textColor,
                 maxLines = 1,
                 modifier = if (fillWidth) Modifier.weight(1f) else Modifier
@@ -397,7 +399,7 @@ internal fun KarsySelect(
                         Text(
                             label(opt),
                             fontFamily = DmSans,
-                            fontSize = 13.sp,
+                            fontSize = KarsyTextSize.Body,
                             color = if (opt == selected) KarsyTeal else KarsyCharcoal,
                             fontWeight = if (opt == selected) FontWeight.SemiBold else FontWeight.Normal
                         )

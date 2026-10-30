@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.components.EstadoMunicipioPickers
 import com.pame.karsy.core.components.BackTopBar
@@ -106,7 +107,7 @@ fun RegisterParticularScreen(
             Text(
                 stringResource(R.string.auth_curp_hint),
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 lineHeight = 17.sp,
                 color = KarsyMid,
                 modifier = Modifier.padding(bottom = 16.dp)

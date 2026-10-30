@@ -48,10 +48,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.R
 import com.pame.karsy.core.components.rememberFilteredFieldValue
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.FormRules
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -84,7 +85,7 @@ fun PublishHeader(title: String, onBack: () -> Unit) {
             text = title,
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
-            fontSize = 17.sp,
+            fontSize = KarsyTextSize.TitleLarge,
             color = KarsyInk,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -140,7 +141,7 @@ fun PublishStepper(step: Int) {
                             Text(
                                 text = num.toString(),
                                 fontFamily = DmSans,
-                                fontSize = 11.sp,
+                                fontSize = KarsyTextSize.Caption,
                                 fontWeight = FontWeight.Bold,
                                 color = if (active) KarsyWhite else KarsyMid
                             )
@@ -149,7 +150,7 @@ fun PublishStepper(step: Int) {
                     Text(
                         text = label,
                         fontFamily = DmSans,
-                        fontSize = 10.sp,
+                        fontSize = KarsyTextSize.Tiny,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                         color = if (inactive) KarsyMid else KarsyInk,
                         maxLines = 1,
@@ -182,7 +183,7 @@ fun FieldLabel(text: String) {
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 11.sp,
+        fontSize = KarsyTextSize.Caption,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.05.em,
         color = KarsyMid,
@@ -196,7 +197,7 @@ fun SectionTitle(text: String) {
     Text(
         text = text,
         fontFamily = DmSans,
-        fontSize = 12.sp,
+        fontSize = KarsyTextSize.Small,
         fontWeight = FontWeight.Bold,
         color = KarsyInk
     )
@@ -224,7 +225,7 @@ fun PublishTextInput(
         value = fieldValue,
         onValueChange = onFieldChange,
         singleLine = true,
-        textStyle = TextStyle(fontFamily = DmSans, fontSize = 14.sp, color = KarsyCharcoal),
+        textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal),
         cursorBrush = SolidColor(KarsyInk),
         keyboardOptions = KeyboardOptions(
             keyboardType = if (numeric) KeyboardType.Number else KeyboardType.Text
@@ -235,13 +236,13 @@ fun PublishTextInput(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(background)
-                    .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(12.dp))
+                    .border(1.5.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 if (value.isEmpty()) {
-                    Text(placeholder, fontFamily = DmSans, fontSize = 14.sp, color = KarsyMid)
+                    Text(placeholder, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyMid)
                 }
                 inner()
             }
@@ -255,8 +256,8 @@ fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(3.dp, RoundedCornerShape(16.dp), ambientColor = KarsyNavy.copy(alpha = 0.2f), spotColor = KarsyNavy.copy(alpha = 0.2f))
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(3.dp, RoundedCornerShape(KarsyRadius.Lg), ambientColor = KarsyNavy.copy(alpha = 0.2f), spotColor = KarsyNavy.copy(alpha = 0.2f))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsySurface)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -271,7 +272,7 @@ fun PublishPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier =
         onClick = onClick,
         // Mientras trabaja (revisar fotos, subirlas) no se puede volver a tocar.
         enabled = !loading,
-        shape = RoundedCornerShape(50),
+        shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = KarsyNavy,
             contentColor = KarsyWhite,
@@ -285,7 +286,7 @@ fun PublishPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier =
             CircularProgressIndicator(color = KarsyWhite, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(10.dp))
         }
-        Text(text, fontFamily = Outfit, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+        Text(text, fontFamily = Outfit, fontWeight = FontWeight.SemiBold, fontSize = KarsyTextSize.Subtitle)
     }
 }
 

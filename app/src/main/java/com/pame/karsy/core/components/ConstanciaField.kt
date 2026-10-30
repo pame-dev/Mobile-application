@@ -39,9 +39,12 @@ import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealLight
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.ArchivoConstancia
 import com.pame.karsy.core.util.Constancia
 
@@ -67,13 +70,13 @@ fun ConstanciaField(
         if (uri != null) onPick(uri)
     }
     val abrir = { picker.launch(Constancia.TIPOS_SELECTOR) }
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Md)
 
     Column(modifier.padding(bottom = 16.dp)) {
         Text(
             label,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.SemiBold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 4.dp)
@@ -81,7 +84,7 @@ fun ConstanciaField(
         if (showHelp) Text(
             stringResource(R.string.form_constancia_help),
             fontFamily = DmSans,
-            fontSize = 12.sp,
+            fontSize = KarsyTextSize.Small,
             lineHeight = 17.sp,
             color = KarsyMid,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -104,7 +107,7 @@ fun ConstanciaField(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
                     .background(KarsyTealLight)
             ) {
                 Icon(
@@ -118,9 +121,9 @@ fun ConstanciaField(
                 Text(
                     stringResource(R.string.form_constancia_pick),
                     fontFamily = DmSans,
-                    fontSize = 14.sp,
+                    fontSize = KarsyTextSize.BodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = KarsyTeal,
+                    color = KarsyTealText,
                     modifier = Modifier.weight(1f)
                 )
             } else {
@@ -128,7 +131,7 @@ fun ConstanciaField(
                     Text(
                         archivo.nombre,
                         fontFamily = DmSans,
-                        fontSize = 14.sp,
+                        fontSize = KarsyTextSize.BodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = KarsyCharcoal,
                         maxLines = 1,
@@ -137,7 +140,7 @@ fun ConstanciaField(
                     Text(
                         Formatter.formatShortFileSize(context, archivo.tamano),
                         fontFamily = DmSans,
-                        fontSize = 12.sp,
+                        fontSize = KarsyTextSize.Small,
                         color = KarsyMid
                     )
                 }
@@ -150,7 +153,7 @@ fun ConstanciaField(
             Text(
                 error,
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 color = KarsyError,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
             )
@@ -163,12 +166,12 @@ private fun FieldAction(text: String, enabled: Boolean, onClick: () -> Unit) {
     Text(
         text,
         fontFamily = DmSans,
-        fontSize = 13.sp,
+        fontSize = KarsyTextSize.Body,
         fontWeight = FontWeight.Bold,
-        color = KarsyTeal,
+        color = KarsyTealText,
         textDecoration = TextDecoration.Underline,
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Xs))
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 6.dp)
     )

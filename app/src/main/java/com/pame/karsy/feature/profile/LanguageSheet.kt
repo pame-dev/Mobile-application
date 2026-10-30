@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.karsyTint
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
@@ -35,7 +38,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.locale.Idioma
 import com.pame.karsy.core.theme.Tema
@@ -68,7 +70,7 @@ fun LanguageSheet(selected: String, onSelect: (String) -> Unit, onDismiss: () ->
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = KarsySurface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = KarsyRadius.Xl, topEnd = KarsyRadius.Xl),
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -80,14 +82,14 @@ fun LanguageSheet(selected: String, onSelect: (String) -> Unit, onDismiss: () ->
             Text(
                 stringResource(R.string.settings_language),
                 fontFamily = Outfit,
-                fontSize = 20.sp,
+                fontSize = KarsyTextSize.Headline,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
             Text(
                 stringResource(R.string.settings_language_sheet_desc),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 color = KarsyMid,
                 modifier = Modifier.padding(bottom = 6.dp)
             )
@@ -100,7 +102,7 @@ fun LanguageSheet(selected: String, onSelect: (String) -> Unit, onDismiss: () ->
 
 @Composable
 internal fun LanguageOption(flag: String, label: String, description: String?, selected: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -112,12 +114,12 @@ internal fun LanguageOption(flag: String, label: String, description: String?, s
             .clickable(role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
-        Text(flag, fontSize = 22.sp)
+        Text(flag, fontSize = KarsyTextSize.HeadlineLarge)
         Column(Modifier.weight(1f)) {
-            Text(label, fontFamily = DmSans, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
+            Text(label, fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
             if (description != null) {
                 Spacer(Modifier.height(2.dp))
-                Text(description, fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+                Text(description, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyMid)
             }
         }
         // Botón de opción (radio)
@@ -144,7 +146,7 @@ fun ThemeSheet(selected: String, phoneIsDark: Boolean, onSelect: (String) -> Uni
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = KarsySurface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = KarsyRadius.Xl, topEnd = KarsyRadius.Xl),
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -156,14 +158,14 @@ fun ThemeSheet(selected: String, phoneIsDark: Boolean, onSelect: (String) -> Uni
             Text(
                 stringResource(R.string.settings_theme),
                 fontFamily = Outfit,
-                fontSize = 20.sp,
+                fontSize = KarsyTextSize.Headline,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
             )
             Text(
                 stringResource(R.string.settings_theme_sheet_desc),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 color = KarsyMid,
                 modifier = Modifier.padding(bottom = 6.dp)
             )
@@ -189,24 +191,24 @@ fun ThemeSheet(selected: String, phoneIsDark: Boolean, onSelect: (String) -> Uni
  */
 @Composable
 private fun ThemeOption(icon: ImageVector, label: String, description: String?, selected: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(if (selected) karsyTint(KarsyTeal, Color(0xFFE2F1F8)) else KarsySurface)
+            .background(if (selected) karsyTint(KarsyTeal, KarsyTealSoft) else KarsySurface)
             .border(if (selected) 1.5.dp else 1.dp, if (selected) KarsyTeal else ThemeOptionBorder, shape)
             .clickable(role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Icon(icon, contentDescription = null, tint = if (selected) KarsyTeal else KarsyMid, modifier = Modifier.size(22.dp))
         Column(Modifier.weight(1f)) {
-            Text(label, fontFamily = DmSans, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
+            Text(label, fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, fontWeight = FontWeight.SemiBold, color = KarsyCharcoal)
             if (description != null) {
                 Spacer(Modifier.height(2.dp))
-                Text(description, fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+                Text(description, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyMid)
             }
         }
         // Botón de opción (radio)
@@ -223,4 +225,4 @@ private fun ThemeOption(icon: ImageVector, label: String, description: String?, 
 }
 
 /** Borde fino de las opciones de tema no elegidas (#E5E9EC en claro). */
-private val ThemeOptionBorder: Color get() = if (Tema.oscuro) KarsyBorder else Color(0xFFE5E9EC)
+private val ThemeOptionBorder: Color get() = KarsyBorder

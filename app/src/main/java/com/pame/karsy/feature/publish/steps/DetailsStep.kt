@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
+import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBorderMuted
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -41,6 +42,7 @@ import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.util.Formato
 import com.pame.karsy.core.util.PrecioSugerido
@@ -80,9 +82,9 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Lg))
                 .background(KarsyTealSoft)
-                .border(1.dp, KarsyTeal.copy(alpha = 0.13f), RoundedCornerShape(16.dp))
+                .border(1.dp, KarsyTeal.copy(alpha = 0.13f), RoundedCornerShape(KarsyRadius.Lg))
                 .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top
@@ -95,7 +97,7 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
                     .background(KarsyTeal),
                 contentAlignment = Alignment.Center
             ) {
-                Text("i", fontFamily = DmSans, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = KarsyWhite)
+                Text("i", fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.Bold, color = KarsyWhite)
             }
             Text(
                 text = buildAnnotatedString {
@@ -106,7 +108,7 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
                     }
                 },
                 fontFamily = DmSans,
-                fontSize = 12.sp,
+                fontSize = KarsyTextSize.Small,
                 lineHeight = 19.sp,
                 color = KarsyInk
             )
@@ -127,12 +129,12 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
 private fun SugerenciaPrecioCard(form: PublishViewModel) {
     val s = form.sugerenciaPrecio
     if (form.buscandoPrecio) {
-        Text(stringResource(R.string.publish_price_loading), fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+        Text(stringResource(R.string.publish_price_loading), fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyMid)
         return
     }
     if (s == null) {
         if (form.idModelo != null && !form.modeloEsOtro && !form.errorPrecio) {
-            Text(stringResource(R.string.publish_price_no_data), fontFamily = DmSans, fontSize = 12.sp, color = KarsyMid)
+            Text(stringResource(R.string.publish_price_no_data), fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = KarsyMid)
         }
         return
     }
@@ -144,9 +146,9 @@ private fun SugerenciaPrecioCard(form: PublishViewModel) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(KarsyRadius.Lg))
             .background(KarsyTealSoft)
-            .border(1.dp, KarsyTeal.copy(alpha = 0.13f), RoundedCornerShape(16.dp))
+            .border(1.dp, KarsyTeal.copy(alpha = 0.13f), RoundedCornerShape(KarsyRadius.Lg))
             .padding(16.dp)
     ) {
         Text(
@@ -159,7 +161,7 @@ private fun SugerenciaPrecioCard(form: PublishViewModel) {
                 Formato.precio(s.rango.tipico.toDouble()),
             ),
             fontFamily = DmSans,
-            fontSize = 12.5.sp,
+            fontSize = KarsyTextSize.Body,
             lineHeight = 19.sp,
             color = KarsyInk
         )
@@ -173,7 +175,7 @@ private fun SugerenciaPrecioCard(form: PublishViewModel) {
                     }
                 ),
                 fontFamily = DmSans,
-                fontSize = 12.5.sp,
+                fontSize = KarsyTextSize.Body,
                 lineHeight = 19.sp,
                 fontWeight = FontWeight.Bold,
                 color = KarsyInk
@@ -183,7 +185,7 @@ private fun SugerenciaPrecioCard(form: PublishViewModel) {
             Text(
                 stringResource(R.string.publish_price_use_typical, Formato.precio(s.rango.tipico.toDouble())),
                 fontFamily = DmSans,
-                fontSize = 13.sp,
+                fontSize = KarsyTextSize.Body,
                 fontWeight = FontWeight.SemiBold,
                 color = KarsyInk,
                 textDecoration = TextDecoration.Underline,
@@ -208,7 +210,7 @@ private fun LimitedTextArea(
         Text(
             title,
             fontFamily = DmSans,
-            fontSize = 13.sp,
+            fontSize = KarsyTextSize.Body,
             fontWeight = FontWeight.Bold,
             color = KarsyCharcoal,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -216,15 +218,15 @@ private fun LimitedTextArea(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(KarsyRadius.Lg))
                 .background(KarsySurface)
-                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(16.dp))
+                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Lg))
         ) {
             BasicTextField(
                 value = value,
                 onValueChange = { onValueChange(it.take(maxChars)) },
                 minLines = 5,
-                textStyle = TextStyle(fontFamily = DmSans, fontSize = 13.sp, lineHeight = 19.sp, color = KarsyCharcoal),
+                textStyle = TextStyle(fontFamily = DmSans, fontSize = KarsyTextSize.Body, lineHeight = 19.sp, color = KarsyCharcoal),
                 cursorBrush = SolidColor(KarsyInk),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -235,7 +237,7 @@ private fun LimitedTextArea(
                             Text(
                                 placeholder,
                                 fontFamily = DmSans,
-                                fontSize = 13.sp,
+                                fontSize = KarsyTextSize.Body,
                                 lineHeight = 19.sp,
                                 color = KarsyCharcoal.copy(alpha = 0.6f)
                             )
@@ -247,7 +249,7 @@ private fun LimitedTextArea(
             Text(
                 "${value.length} / $maxChars",
                 fontFamily = DmSans,
-                fontSize = 11.sp,
+                fontSize = KarsyTextSize.Caption,
                 color = KarsyMid,
                 modifier = Modifier
                     .align(Alignment.End)

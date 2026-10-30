@@ -9,6 +9,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.components.VerifiedBadge
 import com.pame.karsy.core.locale.rememberTraduccion
+import com.pame.karsy.core.theme.KarsyRadius
+import com.pame.karsy.core.theme.KarsyTealText
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.UserRepository
@@ -119,7 +122,7 @@ internal fun SellerProfileView(
                 Text(
                     stringResource(R.string.detail_profile_title),
                     fontFamily = Outfit,
-                    fontSize = 17.sp,
+                    fontSize = KarsyTextSize.TitleLarge,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     modifier = Modifier.align(Alignment.Center)
@@ -135,7 +138,7 @@ internal fun SellerProfileView(
                 .navigationBarsPadding()
                 .padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 40.dp)
         ) {
-            val cardShape = RoundedCornerShape(18.dp)
+            val cardShape = RoundedCornerShape(KarsyRadius.Xl)
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -183,7 +186,7 @@ internal fun SellerProfileView(
                         Text(
                             detail.contactoNombre,
                             fontFamily = Outfit,
-                            fontSize = 19.sp,
+                            fontSize = KarsyTextSize.Headline,
                             fontWeight = FontWeight.Bold,
                             color = KarsyInk,
                             maxLines = 1,
@@ -195,15 +198,15 @@ internal fun SellerProfileView(
                     Text(
                         pluralStringResource(R.plurals.detail_seller_listings, cars.size, tipo, cars.size),
                         fontFamily = DmSans,
-                        fontSize = 13.sp,
+                        fontSize = KarsyTextSize.Body,
                         fontWeight = FontWeight.SemiBold,
-                        color = KarsyTeal,
+                        color = KarsyTealText,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     if (bio.isNotEmpty()) Text(
                         bio,
                         fontFamily = DmSans,
-                        fontSize = 12.5.sp,
+                        fontSize = KarsyTextSize.Body,
                         lineHeight = 19.sp,
                         color = KarsyTextSecondary,
                     )
@@ -222,7 +225,7 @@ internal fun SellerProfileView(
                 Text(
                     stringResource(R.string.detail_listings_title),
                     fontFamily = Outfit,
-                    fontSize = 15.sp,
+                    fontSize = KarsyTextSize.Subtitle,
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk,
                     modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 12.dp)
@@ -236,7 +239,7 @@ internal fun SellerProfileView(
                         Text(
                             stringResource(R.string.detail_no_active_listings),
                             fontFamily = DmSans,
-                            fontSize = 12.5.sp,
+                            fontSize = KarsyTextSize.Body,
                             color = KarsyTextSecondary,
                             modifier = Modifier.padding(15.dp)
                         )

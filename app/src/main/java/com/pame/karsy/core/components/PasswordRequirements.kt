@@ -15,10 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.PasswordRules
 
 /** Lista de requisitos de la contraseña; cada uno se marca en cuanto se cumple. */
@@ -37,7 +37,7 @@ fun PasswordRequirements(password: String, modifier: Modifier = Modifier) {
                 Text(
                     stringResource(rule.label),
                     fontFamily = DmSans,
-                    fontSize = 12.sp,
+                    fontSize = KarsyTextSize.Small,
                     color = if (ok) KarsyTeal else KarsyMid,
                     modifier = Modifier.padding(start = 6.dp)
                 )
