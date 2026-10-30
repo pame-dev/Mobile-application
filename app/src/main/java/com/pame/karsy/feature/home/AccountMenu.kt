@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -44,7 +46,8 @@ private val LogoutCoral = Color(0xFFE65B5B)
 
 /**
  * Menú flotante del ícono de perfil (solo con sesión): datos de la cuenta,
- * "Mi perfil", "Idioma" y "Cerrar sesión". Se ancla debajo del ícono y se cierra al tocar fuera.
+ * "Mi perfil", "Mi panel", "Panel de administración" (admin o moderador), "Idioma" y
+ * "Cerrar sesión". Se ancla debajo del ícono y se cierra al tocar fuera.
  */
 @Composable
 internal fun AccountMenu(
@@ -54,6 +57,10 @@ internal fun AccountMenu(
     avatarUrl: String?,
     onDismiss: () -> Unit,
     onProfile: () -> Unit,
+    showPanel: Boolean,
+    onPanel: () -> Unit,
+    showAdminPanel: Boolean,
+    onAdminPanel: () -> Unit,
     onLanguage: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -96,6 +103,14 @@ internal fun AccountMenu(
         MenuOption(Icons.Outlined.Person, stringResource(R.string.home_my_profile), KarsyInk) {
             onDismiss()
             onProfile()
+        }
+        if (showPanel) MenuOption(Icons.Outlined.SpaceDashboard, stringResource(R.string.profile_panel_seller), KarsyInk) {
+            onDismiss()
+            onPanel()
+        }
+        if (showAdminPanel) MenuOption(Icons.Outlined.AdminPanelSettings, stringResource(R.string.home_admin_panel), KarsyInk) {
+            onDismiss()
+            onAdminPanel()
         }
         // A la vista (antes solo estaba en Ajustes): los usuarios no lo encontraban.
         MenuOption(Icons.Outlined.Language, stringResource(R.string.settings_language), KarsyInk) {

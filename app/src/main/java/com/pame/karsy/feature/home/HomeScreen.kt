@@ -69,7 +69,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
@@ -141,7 +140,6 @@ fun HomeScreen(
     userMode: UserMode,
     onCarClick: (Long) -> Unit,
     onNotifications: () -> Unit,
-    onAdminPanel: () -> Unit,
     onRegister: () -> Unit,
     onLogin: () -> Unit,
     vm: HomeViewModel = viewModel(),
@@ -232,7 +230,6 @@ fun HomeScreen(
                     onLogin()
                 },
                 onNotifications = onNotifications,
-                onAdminPanel = onAdminPanel,
                 heroHeightPx = heroHeightPx,
                 onHeight = { headerHeightPx = it }
             )
@@ -476,7 +473,6 @@ internal fun HomeHeader(
     onToggleMenu: () -> Unit,
     onLogin: () -> Unit,
     onNotifications: () -> Unit,
-    onAdminPanel: () -> Unit,
     /** Alto del banner de abajo, para continuar el mismo degradado. */
     heroHeightPx: Float,
     onHeight: (Float) -> Unit,
@@ -515,11 +511,6 @@ internal fun HomeHeader(
                         Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                     else -> {
-                        if (SessionManager.hasPanel) {
-                            HeaderIconButton(p, onClick = onAdminPanel) {
-                                Icon(Icons.Outlined.SpaceDashboard, contentDescription = stringResource(R.string.home_admin_panel), tint = p.headerContent, modifier = Modifier.size(18.dp))
-                            }
-                        }
                         // Número de avisos sin leer, como en la web.
                         Box {
                             HeaderIconButton(p, onClick = onNotifications) {

@@ -381,7 +381,6 @@ fun KarsyNavGraph(
                         userMode = userMode,
                         onCarClick = ::openCar,
                         onNotifications = { navController.navigate(Routes.Notifications.route) },
-                        onAdminPanel = { goTab(Routes.AdminDashboard.route) },
                         onRegister = ::goRegister,
                         onLogin = { navController.navigate(Routes.Login.route) }
                     )
@@ -644,6 +643,10 @@ fun KarsyNavGraph(
                         avatarUrl = avatarUrl,
                         onDismiss = { accountMenuOpen = false },
                         onProfile = { goSection(Routes.Profile.route) },
+                        showPanel = userMode.isSeller,
+                        onPanel = { goSection(Routes.Dashboard.route) },
+                        showAdminPanel = SessionManager.hasPanel,
+                        onAdminPanel = { goSection(Routes.AdminDashboard.route) },
                         onLanguage = { languageOpen = true },
                         onLogout = { confirmLogout = true }
                     )
