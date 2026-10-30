@@ -193,6 +193,7 @@ fun DashboardScreen(
                     MyListingsSection(
                         listings = visible,
                         favoriteCounts = vm.favoriteCounts,
+                        puedeDestacar = vm.puedeDestacar,
                         onDestacar = vm::askDestacar,
                         onEdit = onEditPublication,
                         onNewPublication = onNewPublication,
@@ -213,7 +214,10 @@ fun DashboardScreen(
             if (car != null) {
                 DestacarDialog(
                     carName = "${car.title} ${car.year}",
-                    onConfirm = vm::confirmDestacar,
+                    idPublicacion = car.id,
+                    pago = vm.pago,
+                    onRetry = vm::retryDatosPago,
+                    onSend = { vm.confirmDestacar(context) },
                     onCancel = vm::cancelDestacar
                 )
             }
@@ -523,6 +527,7 @@ private fun PerformanceCard(stats: SellerStats, listings: List<Car>, loading: Bo
 private fun MyListingsSection(
     listings: List<Car>,
     favoriteCounts: Map<Long, Int>,
+    puedeDestacar: Boolean,
     onDestacar: (Car) -> Unit,
     onEdit: (Long) -> Unit,
     onNewPublication: () -> Unit,
@@ -566,7 +571,7 @@ private fun MyListingsSection(
                 )
             }
             ListingsGrid(listings) { car, modifier ->
-                ListingCard(car, favoriteCounts[car.id] ?: 0, onDestacar, onEdit, onCarClick, modifier)
+                ListingCard(car, favoriteCounts[car.id] ?: 0, onDestacar, onEdit, onCarClick, modifier, puedeDestacar = puedeDestacar)
             }
         }
     }
@@ -629,6 +634,8 @@ private fun ListingCard(
     modifier: Modifier,
     /** Si no es null, la tarjeta está en "Publicaciones ocultas" y su botón la vuelve a mostrar. */
     onUnhide: (() -> Unit)? = null,
+    /** Solo los lotes ven Destacar y Renovar; un particular solo ve el estado de su destacado vigente. */
+    puedeDestacar: Boolean = false,
 ) {
     Column(
         modifier = modifier
@@ -765,14 +772,14 @@ private fun ListingCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
-            } else {
+            } else if (puedeDestacar || car.featured || car.featuredPending) {
                 // Solo un anuncio activo puede destacarse, y una solicitud a la vez.
-                // Si el destacado termina en 3 días o menos, se puede renovar.
-                val renovar = car.featured && car.featuredEndsSoon && !car.featuredPending
-                val puedeDestacar = car.status == EstadoAuto.ACTIVO && !car.featuredPending && (!car.featured || renovar)
+                // Si el destacado termina en 3 días o menos, se puede renovar (solo lotes).
+                val renovar = puedeDestacar && car.featured && car.featuredEndsSoon && !car.featuredPending
+                val activo = puedeDestacar && car.status == EstadoAuto.ACTIVO && !car.featuredPending && (!car.featured || renovar)
                 Button(
                     onClick = { onDestacar(car) },
-                    enabled = puedeDestacar,
+                    enabled = activo,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = if (renovar) KarsyTeal else KarsyNavy, contentColor = KarsyWhite),
                     contentPadding = PaddingValues(vertical = 8.dp),

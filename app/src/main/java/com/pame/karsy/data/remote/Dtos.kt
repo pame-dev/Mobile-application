@@ -178,9 +178,16 @@ data class DestacadoFinDto(
     @SerialName("fecha_fin_destacado") val fechaFin: String? = null,
 )
 
+/**
+ * Fila de datos_pago_destacado(): precio y días del destacado y la cuenta donde se paga
+ * (banco y CLABE, sin el titular). Sin banco o sin CLABE todavía no se puede pedir.
+ */
 @Serializable
-data class SolicitudDestacadoInsert(
-    @SerialName("id_publicacion") val idPublicacion: Long,
+data class DatosPagoDto(
+    val precio: Double,
+    val dias: Int,
+    val banco: String? = null,
+    val clabe: String? = null,
 )
 
 @Serializable
@@ -294,6 +301,10 @@ data class DestacadoAdminDto(
     @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
     val solicitante: String,
     @SerialName("solicitante_foto") val solicitanteFoto: String? = null,
+    /** Monto, referencia y comprobante del pago; null en las solicitudes de prueba (sin pago). */
+    val monto: Double? = null,
+    val referencia: String? = null,
+    @SerialName("comprobante_path") val comprobantePath: String? = null,
 )
 
 /** Fila de admin_listar_verificaciones_usuario(): documento que envió un usuario (lote o particular). */

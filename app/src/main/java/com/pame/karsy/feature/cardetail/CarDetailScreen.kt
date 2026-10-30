@@ -332,11 +332,11 @@ fun CarDetailScreen(
                 onEdit = ::editPublication,
                 onPause = { confirmPause = true },
                 onResume = { setPaused(false) },
+                puedeDestacar = vm.puedeDestacar,
                 onFeature = {
-                    // Renovar va directo (un toque); destacar por primera vez pide confirmación.
-                    if (detail.car.featured && detail.car.featuredEndsSoon) {
-                        vm.requestFeatured { error -> if (error == null) featureSent = true else toastMessage = error }
-                    } else askFeature = true
+                    // Destacar y renovar abren la misma ventana: los dos se pagan con comprobante.
+                    vm.openFeature()
+                    askFeature = true
                 },
                 onMarkSold = { confirmSold = true },
                 onMarkAvailable = { confirmAvailable = true },
@@ -346,6 +346,8 @@ fun CarDetailScreen(
                     toastUndo = null
                     toastMessage = msgUnhidden
                 },
+                // Destacar y duplicar son solo para lotes.
+                puedeDuplicar = vm.puedeDestacar,
                 onDuplicate = { onDuplicatePublication(detail.car.id) },
             )
             else Column(Modifier.background(KarsyBg)) {
@@ -505,15 +507,20 @@ fun CarDetailScreen(
             )
         }
 
-        // Mismos diálogos que en Mi Panel para pedir que se destaque.
-        if (askFeature) {
+        // Mismos diálogos que en Mi Panel para pedir que se destaque (solo lotes).
+        if (askFeature && vm.puedeDestacar) {
             DestacarDialog(
                 carName = "${detail.car.title} ${detail.car.year}",
-                onConfirm = {
-                    askFeature = false
-                    vm.requestFeatured { error -> if (error == null) featureSent = true else toastMessage = error }
+                idPublicacion = detail.car.id,
+                pago = vm.pago,
+                onRetry = vm::retryDatosPago,
+                onSend = {
+                    vm.requestFeatured(context) {
+                        askFeature = false
+                        featureSent = true
+                    }
                 },
-                onCancel = { askFeature = false }
+                onCancel = { if (!vm.pago.enviando) askFeature = false }
             )
         }
         if (featureSent) {
@@ -581,23 +588,26 @@ private fun OwnerActionsBar(
     onEdit: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
+    /** Solo los lotes ven Destacar y Renovar; un particular solo ve el estado de su destacado vigente. */
+    puedeDestacar: Boolean,
     onFeature: () -> Unit,
     onMarkSold: () -> Unit,
     onMarkAvailable: () -> Unit,
     onHide: () -> Unit,
     onUnhide: () -> Unit,
+    /** Duplicar es solo para lotes (autos parecidos del mismo lote). */
+    puedeDuplicar: Boolean,
     onDuplicate: () -> Unit,
 ) {
     // Pausar, destacar y marcar como vendida solo aplican a una publicación aprobada que el dueño controla.
     // Marcar como vendida, además, solo cuando está activa.
     val canToggle = car.approved && car.status in listOf(EstadoAuto.ACTIVO, EstadoAuto.PAUSADO)
-    val showFeature = car.approved && car.status == EstadoAuto.ACTIVO
+    val showFeature = car.approved && car.status == EstadoAuto.ACTIVO && (puedeDestacar || car.featured || car.featuredPending)
     // Una rechazada se corrige desde el aviso de arriba.
     val canEdit = car.status != EstadoAuto.VENDIDO && car.rejectedReason == null
     val isSold = car.status == EstadoAuto.VENDIDO
     // Rechazada o deshabilitada: el dueño puede quitarla de su perfil (se guarda en su cuenta).
     val canHide = PublicacionesOcultas.sePuedeOcultar(car)
-    // Duplicar siempre está disponible, así que la barra siempre se muestra al dueño.
 
     Column(Modifier.background(KarsyBg)) {
         HorizontalDivider(color = KarsyBorder, thickness = 1.dp)
@@ -628,7 +638,7 @@ private fun OwnerActionsBar(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                val renovar = car.featured && car.featuredEndsSoon && !car.featuredPending
+                val renovar = puedeDestacar && car.featured && car.featuredEndsSoon && !car.featuredPending
                 if (showFeature) OwnerButton(
                     text = when {
                         renovar -> stringResource(R.string.detail_owner_renew)
@@ -641,7 +651,7 @@ private fun OwnerActionsBar(
                     },
                     onClick = onFeature,
                     // Una solicitud a la vez; un destacado vigente solo se renueva si está por terminar.
-                    enabled = !car.featuredPending && (!car.featured || renovar),
+                    enabled = puedeDestacar && !car.featuredPending && (!car.featured || renovar),
                     filled = renovar,
                     color = if (renovar) KarsyTeal else FeatureGold,
                     modifier = Modifier.weight(1f)
@@ -672,7 +682,7 @@ private fun OwnerActionsBar(
                 )
             }
             // Publicación nueva con estos mismos datos (útil para lotes con autos parecidos).
-            OwnerButton(
+            if (puedeDuplicar) OwnerButton(
                 text = stringResource(R.string.detail_owner_duplicate),
                 onClick = onDuplicate,
                 color = KarsyMid,

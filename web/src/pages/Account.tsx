@@ -99,6 +99,7 @@ function estiloDe(tipo: string): [IconName, string, string] {
     case 'destacado_aprobado':
     case 'destacado_por_vencer':
     case 'destacado_rechazado':
+    case 'pago_destacado':
       return ['star', 'var(--warning-l)', 'var(--warning)']
     case 'publicacion_rechazada':
     case 'edicion_rechazada':

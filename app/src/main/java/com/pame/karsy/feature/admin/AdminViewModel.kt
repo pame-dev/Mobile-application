@@ -27,11 +27,13 @@ import com.pame.karsy.core.supabase.Supabase
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.core.util.Constancia
 import com.pame.karsy.core.util.Formato
+import com.pame.karsy.core.util.PagoDestacado
 import com.pame.karsy.core.util.UserFacingException
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.CuentaAdminDto
+import com.pame.karsy.data.remote.DatosPagoDto
 import com.pame.karsy.data.remote.DestacadoAdminDto
 import com.pame.karsy.data.remote.DocumentoVehiculoDto
 import com.pame.karsy.data.remote.ReporteAdminDto
@@ -58,6 +60,9 @@ class AdminViewModel : ViewModel() {
     private var reportRows by mutableStateOf<List<ReporteAdminDto>>(emptyList())
     private var featuredRows by mutableStateOf<List<DestacadoAdminDto>>(emptyList())
     private var verificationRows by mutableStateOf<List<VerificacionAdminDto>>(emptyList())
+    /** Precio, días, banco y CLABE de los destacados (config_pagos); null si no se pudieron leer. */
+    var paymentSettings by mutableStateOf<DatosPagoDto?>(null)
+        private set
 
 
     var loading by mutableStateOf(true)
@@ -87,8 +92,15 @@ class AdminViewModel : ViewModel() {
             safeCall { AdminRepository.reports() }.onSuccess { reportRows = it }.onFailure { errores += it.mensajeUsuario() }
             safeCall { AdminRepository.featuredRequests() }.onSuccess { featuredRows = it }.onFailure { errores += it.mensajeUsuario() }
             safeCall { AdminRepository.verifications() }.onSuccess { verificationRows = it }.onFailure { errores += it.mensajeUsuario() }
-            // Aparte, para no retrasar la lista: borra los documentos que ya nadie usa.
+            safeCall { CarRepository.datosPagoDestacado() }.onSuccess { paymentSettings = it }
+                .onFailure {
+                    // Sin datos frescos no se deja editar sobre los viejos: la tarjeta muestra el error.
+                    paymentSettings = null
+                    errores += it.mensajeUsuario()
+                }
+            // Aparte, para no retrasar la lista: borra los documentos y comprobantes que ya nadie usa.
             viewModelScope.launch { AdminRepository.borrarDocumentosSinUso() }
+            viewModelScope.launch { AdminRepository.borrarComprobantesSinUso() }
             if (errores.isNotEmpty()) message = errores.first()
             loading = false
             onDone()
@@ -221,6 +233,9 @@ class AdminViewModel : ViewModel() {
                     color = a?.color ?: "—",
                     combustible = a?.combustible ?: "—",
                     description = a?.descripcion.orEmpty(),
+                    amount = s.monto?.let { texto(R.string.featured_pay_price, PagoDestacado.monto(it)) },
+                    reference = s.referencia,
+                    receiptPath = s.comprobantePath,
                 )
             }
         }
@@ -396,10 +411,37 @@ class AdminViewModel : ViewModel() {
         }
     }
 
-    fun resolveFeatured(request: FeaturedRequest, approve: Boolean, reason: String? = null) = perform(
-        texto(if (approve) R.string.admin2_msg_featured_approved else R.string.admin2_msg_featured_rejected)
+    fun resolveFeatured(request: FeaturedRequest, approve: Boolean, reason: String? = null, onSuccess: () -> Unit = {}) = perform(
+        texto(if (approve) R.string.admin2_msg_featured_approved else R.string.admin2_msg_featured_rejected),
+        onSuccess
     ) {
         AdminRepository.resolveFeatured(request.id, approve, reason)
+    }
+
+    /** URL firmada (10 min) del comprobante de pago de un destacado, para abrirlo. */
+    fun openReceipt(request: FeaturedRequest, onUrl: (String) -> Unit) {
+        val ruta = request.receiptPath ?: return
+        viewModelScope.launch {
+            safeCall { AdminRepository.comprobanteSignedUrl(ruta) }
+                .onSuccess(onUrl)
+                .onFailure { message = it.mensajeUsuario() }
+        }
+    }
+
+    /**
+     * Guarda precio, días, banco y CLABE de los destacados (admin_guardar_config_pagos).
+     * Revisa antes con las mismas reglas que la BD; banco y CLABE vacíos se guardan como null.
+     */
+    fun savePaymentSettings(precio: String, dias: String, banco: String, clabe: String, onSuccess: () -> Unit = {}) {
+        PagoDestacado.errorConfig(precio, dias, banco, clabe)?.let { message = texto(it); return }
+        perform(texto(R.string.admin2_pay_saved), onSuccess) {
+            AdminRepository.guardarConfigPagos(
+                precio = requireNotNull(PagoDestacado.leerPrecio(precio)),
+                dias = dias.trim().toInt(),
+                banco = banco.trim().ifEmpty { null },
+                clabe = clabe.ifEmpty { null },
+            )
+        }
     }
 }
 

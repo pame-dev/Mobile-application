@@ -9,8 +9,9 @@ const tamano = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1
 /**
  * Campo para subir la Constancia de Situación Fiscal (registro de lote y perfil).
  * Acepta PDF, JPG o PNG de hasta 5 MB, con clic o arrastrando; un archivo no válido no se acepta.
+ * [help] cambia el texto de ayuda (p. ej. para el comprobante de pago de un destacado).
  */
-export function ConstanciaField({ file, onChange, showLabel = true }: { file: File | null; onChange: (f: File | null) => void; showLabel?: boolean }) {
+export function ConstanciaField({ file, onChange, showLabel = true, help }: { file: File | null; onChange: (f: File | null) => void; showLabel?: boolean; help?: string }) {
   const { t } = useI18n()
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<Clave | null>(null)
@@ -32,7 +33,7 @@ export function ConstanciaField({ file, onChange, showLabel = true }: { file: Fi
     <div className="field" data-field="constancia">
       {showLabel && <label htmlFor="constancia">{t('auth.csf.label')}</label>}
       <span className="muted text-xs">
-        {t('auth.csf.help')}
+        {help ?? t('auth.csf.help')}
       </span>
       {file ? (
         <div className="filechip">

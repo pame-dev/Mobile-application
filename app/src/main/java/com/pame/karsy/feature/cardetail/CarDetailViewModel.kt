@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.cardetail
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,11 +11,13 @@ import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.supabase.esDuplicado
 import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.PagoDestacado
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.data.model.SellerContact
 import com.pame.karsy.data.repository.CarRepository
+import com.pame.karsy.feature.dashboard.DestacarPago
 import kotlinx.coroutines.launch
 
 /** Detalle de un anuncio: ficha, favorito, contacto, perfil del vendedor y reportes. */
@@ -97,18 +100,23 @@ class CarDetailViewModel : ViewModel() {
         }
     }
 
-    /** El dueño pide destacar su publicación (lo aprueba un admin). */
-    fun requestFeatured(onDone: (error: String?) -> Unit) {
+    /** Solo los lotes pueden destacar o renovar (cuentas.tipo_cuenta). */
+    val puedeDestacar: Boolean get() = PagoDestacado.puedeDestacar(SessionManager.account?.tipoCuenta)
+
+    /** Datos de pago, comprobante y casilla de la ventana "Destacar tu auto". */
+    val pago = DestacarPago()
+
+    /** Al abrir la ventana de destacar (o renovar): vuelve a leer precio, días y cuenta. */
+    fun openFeature() = pago.abrir(this)
+
+    fun retryDatosPago() = pago.cargar(this)
+
+    /** El dueño (lote) sube su comprobante y pide destacar su publicación (lo aprueba un admin). */
+    fun requestFeatured(context: Context, onSent: () -> Unit) {
         val current = detail ?: return
-        viewModelScope.launch {
-            safeCall { CarRepository.requestFeatured(current.car.id) }
-                .onSuccess {
-                    detail = current.copy(car = current.car.copy(featuredPending = true))
-                    onDone(null)
-                }
-                .onFailure {
-                    onDone(if (it.esDuplicado()) texto(R.string.profile_dashboard_request_already_pending) else it.mensajeUsuario())
-                }
+        pago.enviar(this, context, current.car.id) {
+            detail = current.copy(car = current.car.copy(featuredPending = true))
+            onSent()
         }
     }
 

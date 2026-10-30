@@ -40,11 +40,13 @@
     <string name="help_q_rejected">Why was my listing rejected?</string>
     <string name="help_a_rejected">You will see the reason in My dashboard. Tap “Fix and resubmit”, change what is indicated and send it again.</string>
     <string name="help_q_featured">What is a featured listing?</string>
-    <string name="help_a_featured">Featuring makes your car appear in the Featured section, at the top of Karsy, for 1 month. You request it from My dashboard or from your listing, and the Karsy team approves it.</string>
+    <string name="help_a_featured">Featuring makes your car appear in the Featured section, at the top of Karsy, for 30 days. It\'s only for dealerships: you request it from My dashboard or from your listing, and the Karsy team turns it on once it confirms your payment.</string>
+    <string name="help_q_featured_cost">How much does featuring cost and how do I pay?</string>
+    <string name="help_a_featured_cost">Featuring is only for dealerships. When you request it you\'ll see the price, the account (bank and CLABE) and your reference. Transfer from your bank, write the reference in the payment concept and upload the receipt. We review your payment within 24 business hours. The payment is non-refundable.</string>
     <string name="help_q_verify">How do I verify my account?</string>
     <string name="help_a_verify">Private sellers send their CURP and dealerships their tax status certificate from their profile. Once the team reviews it, the verified account badge will appear.</string>
     <string name="help_q_contact">How do I contact a seller?</string>
-    <string name="help_a_contact">Karsy has no chat or payments: on the listing tap “Contact seller” to call, message on WhatsApp or email the seller.</string>
+    <string name="help_a_contact">Karsy has no chat and does not handle the car payment: on the listing tap “Contact seller” to call, message on WhatsApp or email the seller.</string>
     <string name="help_q_safe">How do I buy safely?</string>
     <string name="help_a_safe">Check the car in person in a public place, such as a shopping mall parking lot, and do not pay anything in advance. When you tap “Contact seller” you will see a guide with more tips.</string>
     <string name="help_q_report">How do I report a listing?</string>
@@ -553,14 +555,35 @@
     </plurals>
     <string name="profile_dashboard_request_already_pending">There\'s already a pending request for this vehicle.</string>
     <!-- Feature dialog -->
-    <string name="profile_feature_dialog_title">Want to feature your vehicle?</string>
-    <string name="profile_feature_dialog_body">Your car will appear in the Featured section, at the top of Karsy and before the others, for 1 month, so more buyers see it.</string>
-    <string name="profile_feature_dialog_note">Before it can be featured, an administrator must review and approve your request. Once approved, your vehicle will appear as a featured listing for 1 month; after that it goes back to a regular listing and you can request it again.</string>
-    <string name="profile_feature_dialog_confirm">Request feature</string>
+    <string name="profile_feature_dialog_title">Feature your car</string>
+    <string name="profile_feature_dialog_body">Your car will appear in the Featured section, at the top of Karsy and before the others, for %1$s.</string>
+    <string name="profile_feature_dialog_confirm">Send request</string>
+    <plurals name="featured_pay_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="featured_pay_price">%1$s MXN</string>
+    <string name="featured_pay_step1">Transfer %1$s to this account:</string>
+    <string name="featured_pay_bank_value">Bank: %1$s</string>
+    <string name="featured_pay_clabe">CLABE</string>
+    <string name="featured_pay_reference">Reference</string>
+    <string name="featured_pay_holder_note">Your bank will show you the account holder\'s name when you enter the CLABE.</string>
+    <string name="featured_pay_step2">Write your reference in the payment concept:</string>
+    <string name="featured_pay_step3">Upload the photo or PDF of the receipt.</string>
+    <string name="featured_pay_receipt_label">Receipt (JPG, PNG or PDF, max. %1$d MB)</string>
+    <string name="featured_pay_copy">Copy</string>
+    <string name="featured_pay_copy_cd">Copy %1$s</string>
+    <string name="featured_pay_copied">Copied</string>
+    <string name="featured_pay_no_refund_notice">The payment is non-refundable in every case, even if you sell or pause your car or the listing is disabled before the feature ends.</string>
+    <string name="featured_pay_no_refund_check">I accept that the payment is non-refundable.</string>
+    <string name="featured_pay_review_time">We\'ll review your payment within 24 business hours.</string>
+    <string name="featured_pay_sending">Sending…</string>
+    <string name="featured_pay_unavailable">Payments for featured listings aren\'t available yet. Try again later.</string>
+    <string name="featured_pay_retry">Try again</string>
+    <string name="featured_pay_error_login">Log in to feature your car.</string>
     <string name="profile_cancel">Cancel</string>
     <!-- Request sent -->
-    <string name="profile_request_sent_body">Your request to feature %1$s was sent successfully. If approved, it will be featured for 1 month.</string>
-    <string name="profile_request_sent_review">The Karsy team will review it soon.</string>
+    <string name="profile_request_sent_body">We received your receipt to feature %1$s. We\'ll review your payment within 24 business hours and let you know when your car is featured.</string>
     <string name="profile_request_sent_ok">Got it</string>
     <!-- Edit profile -->
     <string name="profile_edit_profile">Edit profile</string>
@@ -929,7 +952,7 @@
     <string name="admin2_msg_report_resolved_disabled">Report resolved and listing disabled.</string>
     <string name="admin2_msg_report_resolved">Report marked as resolved.</string>
     <string name="admin2_msg_report_dismissed">Report dismissed.</string>
-    <string name="admin2_msg_featured_approved">Listing featured for 1 month.</string>
+    <string name="admin2_msg_featured_approved">Listing featured.</string>
     <string name="admin2_msg_featured_rejected">Request rejected.</string>
     <string name="admin2_msg_verification_approved">User verified.</string>
     <string name="admin2_msg_verification_rejected">Document rejected.</string>
@@ -977,6 +1000,37 @@
     <string name="admin2_csf_lot_name">Dealership name</string>
     <string name="admin2_csf_check_document">It is a SAT certificate, fully readable, and the status says “ACTIVO”</string>
     <string name="admin2_csf_check_name">The name or company name matches the dealership’s name</string>
+    <!-- Featured payments -->
+    <string name="admin2_pay_title">Payment details</string>
+    <string name="admin2_pay_desc">This is what dealerships see when they request a feature (without the account holder\'s name).</string>
+    <string name="admin2_pay_price">Price (MXN)</string>
+    <string name="admin2_pay_days">Days</string>
+    <string name="admin2_pay_bank">Bank</string>
+    <string name="admin2_pay_clabe">CLABE (18 digits)</string>
+    <string name="admin2_pay_save">Save</string>
+    <string name="admin2_pay_missing">Until you save your bank and CLABE, nobody can request a feature.</string>
+    <string name="admin2_pay_saved">Payment details saved.</string>
+    <string name="admin2_pay_load_error">Couldn\'t load the payment details.</string>
+    <string name="admin2_pay_error_price">The price must be greater than 0 and at most $100,000.</string>
+    <string name="admin2_pay_error_days">Days must be between 1 and 365.</string>
+    <string name="admin2_pay_error_bank">The bank name can be at most 60 characters.</string>
+    <string name="admin2_pay_error_clabe">The CLABE must have 18 digits.</string>
+    <string name="admin2_pay_trial">No payment (trial period)</string>
+    <string name="admin2_pay_section">Payment</string>
+    <string name="admin2_pay_amount">Amount</string>
+    <string name="admin2_pay_reference">Reference</string>
+    <string name="admin2_pay_review">Review payment</string>
+    <string name="admin2_pay_review_title">Review payment for %1$s</string>
+    <string name="admin2_pay_review_sub">Confirm in your bank that the payment arrived before featuring the car.</string>
+    <string name="admin2_pay_view_receipt">View receipt</string>
+    <string name="admin2_pay_expected_amount">Expected amount</string>
+    <string name="admin2_pay_expected_reference">Expected reference</string>
+    <string name="admin2_pay_lot">Dealership</string>
+    <string name="admin2_pay_vehicle">Car</string>
+    <string name="admin2_pay_steps">1. Open your online banking.\n2. Look for a transfer of %1$s with the reference %2$s (or from the dealership).\n3. Confirm the money is already in your account: don\'t rely only on the image, it can be altered.\n4. If everything matches, approve it; if not, reject it and write the reason.</string>
+    <string name="admin2_pay_check_amount">The amount matches</string>
+    <string name="admin2_pay_check_found">I found the payment (by reference or name)</string>
+    <string name="admin2_pay_check_received">The money is already in my account</string>
     <plurals name="admin2_notifications_unread">
         <item quantity="one">Notifications (%1$d unread)</item>
         <item quantity="other">Notifications (%1$d unread)</item>
@@ -1247,8 +1301,8 @@
     <string name="terms_s2_body">You can sign up as an Individual or as a Dealer. You agree to provide real, up-to-date information and to keep your password private. You are responsible for all activity on your account.</string>
     <string name="terms_s3_title">3. Listings</string>
     <string name="terms_s3_body">Listings must describe the vehicle truthfully: price, mileage, condition and real photos of the vehicle. Every listing is reviewed by the admin team before buyers can see it and may be rejected if it does not follow these rules.</string>
-    <string name="terms_s4_title">4. Featured listings</string>
-    <string name="terms_s4_body">You can request that your vehicle appear in the featured section. An administrator will review the request and may approve or reject it, stating the reason. An approved feature lasts 1 month from approval; when it ends, the listing stays active as a regular listing and you can request it again.</string>
+    <string name="terms_s4_title">4. Featured listings and payments</string>
+    <string name="terms_s4_body">Only Dealership accounts can request that a vehicle appear in the featured section. Featuring is paid by transfer to the account (bank and CLABE) shown when you request it, with the reference provided, and you attach the receipt. The feature starts when an administrator confirms the payment and lasts the number of days shown when you request it; if the payment can\'t be confirmed, the request is rejected stating the reason. The payment is non-refundable in every case, including if the listing is sold, paused or disabled before the feature ends.</string>
     <string name="terms_s5_title">5. Contact and deals between users</string>
     <string name="terms_s5_body">Agreements, payments and deliveries happen directly between buyer and seller. We recommend checking the vehicle\'s paperwork, verifying the seller\'s identity and not paying in advance before seeing the vehicle.</string>
     <string name="terms_s6_title">6. Prohibited conduct</string>
@@ -1301,7 +1355,7 @@
     <string name="notif_favorite">Someone liked your listing \"%1$s\" and added it to their favorites.</string>
     <string name="notif_sent">Your listing \"%1$s\" was sent to the administrator and is being reviewed.</string>
     <string name="notif_approved">Your listing \"%1$s\" was approved! It is now visible to everyone.</string>
-    <string name="notif_featured_mine">Your listing \"%1$s\" is now featured for 1 month.</string>
+    <string name="notif_featured_mine">Your listing \"%1$s\" is now featured. It appears in the Featured section of Karsy.</string>
     <string name="notif_featured_expiring">The feature for \"%1$s\" ends in less than 3 days. Renew it to keep appearing in featured listings.</string>
     <string name="notif_account_suspended">Your Karsy account was suspended by an administrator. You will not be able to sign in while it is suspended.</string>
     <string name="notif_account_reactivated">Your Karsy account was reactivated. You can sign in again.</string>
@@ -1318,6 +1372,7 @@
     <string name="notif_verification_pending_curp">A private seller sent their CURP to verify their account. Review it in Verification.</string>
     <string name="notif_verification_approved">Your Karsy account was verified! The badge now shows on your profile.</string>
     <string name="notif_verification_rejected">We couldn\'t verify your account. Check the reason and send it again from your profile.</string>
+    <string name="notif_payment_featured">A payment arrived to feature “%1$s”. Review it in Featured.</string>
     <string name="notif_prefs_title">Choose which notifications to get</string>
     <string name="notif_prefs_system_off">Karsy notifications are turned off on your phone. Tap here to turn them on.</string>
     <string name="notif_prefs_prices">Prices of your favorites</string>

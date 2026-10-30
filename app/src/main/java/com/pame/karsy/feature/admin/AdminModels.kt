@@ -79,6 +79,12 @@ data class FeaturedRequest(
     val color: String,
     val combustible: String,
     val description: String,
+    /** Monto a transferir ya con formato ("$300.00 MXN"); null en las solicitudes de prueba (sin pago). */
+    val amount: String? = null,
+    /** Referencia del pago (KAR-<id_publicacion>). */
+    val reference: String? = null,
+    /** Ruta del comprobante en el bucket privado comprobantes-pago. */
+    val receiptPath: String? = null,
 )
 
 enum class VerificationStatus { Pendiente, Verificado, Rechazado }

@@ -24,8 +24,8 @@ export const TERMINOS: LegalDoc = {
       "Las publicaciones deben describir el vehículo de forma veraz: precio, kilometraje, estado y fotos reales del vehículo. Toda publicación pasa por una revisión del equipo de administración antes de mostrarse a los compradores y puede ser rechazada si no cumple con estas reglas."
     ],
     [
-      "4. Publicaciones destacadas",
-      "Puedes solicitar que tu vehículo aparezca en la sección de destacados. La solicitud será revisada por un administrador, quien puede aprobarla o rechazarla indicando el motivo. Un destacado aprobado dura 1 mes a partir de la aprobación; al terminar, la publicación sigue activa como una publicación normal y puedes volver a solicitarlo."
+      "4. Destacados y pagos",
+      "Solo las cuentas de Lote pueden solicitar que un vehículo aparezca en la sección de destacados. El destacado tiene el precio y la duración que se muestran al pedirlo, y se paga por transferencia a la cuenta (banco y CLABE) que indica Karsy, con la referencia indicada y subiendo el comprobante. Un administrador revisa el pago y aprueba la solicitud o la rechaza indicando el motivo. El destacado empieza cuando un administrador confirma el pago; al terminar, la publicación sigue activa como una publicación normal y puedes volver a solicitarlo. El pago no es reembolsable en ningún caso, incluido si la publicación se vende, se pausa o se deshabilita antes de que termine el destacado."
     ],
     [
       "5. Contacto y tratos entre usuarios",
@@ -100,8 +100,8 @@ export const TERMS_EN: LegalDoc = {
       "Listings must describe the vehicle truthfully: price, mileage, condition and real photos of the vehicle. Every listing is reviewed by the admin team before buyers can see it and may be rejected if it does not follow these rules."
     ],
     [
-      "4. Featured listings",
-      "You can request that your vehicle appear in the featured section. An administrator will review the request and may approve or reject it, stating the reason. An approved feature lasts 1 month from approval; when it ends, the listing stays active as a regular listing and you can request it again."
+      "4. Featured listings and payments",
+      "Only Dealer accounts can request that a vehicle appear in the featured section. A feature has the price and duration shown when you request it, and it is paid by bank transfer to the account (bank and CLABE) shown by Karsy, using the given reference and uploading the receipt. An administrator reviews the payment and approves the request or rejects it, stating the reason. The feature starts when an administrator confirms the payment; when it ends, the listing stays active as a regular listing and you can request it again. The payment is non-refundable in every case, including if the listing is sold, paused or disabled before the feature ends."
     ],
     [
       "5. Contact and deals between users",

@@ -1,5 +1,16 @@
 package com.pame.karsy.feature.admin
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.core.net.toUri
+import com.pame.karsy.core.locale.texto
+import com.pame.karsy.core.util.PagoDestacado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -92,6 +103,10 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
     var selectedId by rememberSaveable { mutableStateOf<Long?>(null) }
     var showApproved by remember { mutableStateOf(false) }
     var showReject by remember { mutableStateOf(false) }
+    var reviewingPayment by remember { mutableStateOf(false) }
+    // Se tocó Aprobar o Ver comprobante en "Revisar pago": su error se ve dentro de la ventana.
+    var acted by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val selected = requests.firstOrNull { it.id == selectedId }
 
@@ -102,11 +117,50 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
             onBackToList = { selectedId = null },
             onReject = { showReject = true },
             onApprove = {
-                // admin_resolver_destacado: destaca 1 mes desde hoy y registra la acción.
+                // admin_resolver_destacado: destaca los días de config_pagos y registra la acción.
                 vm.resolveFeatured(selected, approve = true)
                 showApproved = true
+            },
+            // Con comprobante: antes de aprobar se revisa que el pago haya llegado.
+            onReviewPayment = {
+                acted = false
+                vm.dismissMessage()
+                reviewingPayment = true
             }
         )
+
+        if (reviewingPayment) {
+            RevisarPagoDialog(
+                request = selected,
+                working = vm.working,
+                error = vm.message.takeIf { acted },
+                onOpenReceipt = {
+                    acted = true
+                    vm.dismissMessage()
+                    vm.openReceipt(selected) { url ->
+                        try {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+                        } catch (e: ActivityNotFoundException) {
+                            vm.message = texto(R.string.admin2_verif_open_error)
+                        }
+                    }
+                },
+                onApprove = {
+                    acted = true
+                    vm.dismissMessage()
+                    vm.resolveFeatured(selected, approve = true, onSuccess = {
+                        reviewingPayment = false
+                        showApproved = true
+                    })
+                },
+                onReject = {
+                    reviewingPayment = false
+                    vm.dismissMessage()
+                    showReject = true
+                },
+                onDismiss = { if (!vm.working) reviewingPayment = false }
+            )
+        }
 
         if (showApproved) {
             ApprovedDialog(
@@ -140,6 +194,9 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
             title = stringResource(R.string.admin1_featured_title),
             description = stringResource(R.string.admin1_featured_desc)
         )
+
+        PaymentSettingsCard(vm)
+        Spacer(Modifier.height(16.dp))
 
         AdminCard {
             AdminFilterBar {
@@ -224,6 +281,20 @@ private fun FeaturedRequestRow(request: FeaturedRequest, onClick: () -> Unit) {
         AdminField(stringResource(R.string.admin2_requested_by), request.user, Modifier.weight(1f))
         AdminActionButton(stringResource(R.string.admin2_review), onClick = onClick)
     }
+    PaymentSummary(request)
+}
+
+/** Monto y referencia del pago; las solicitudes viejas sin pago llevan la etiqueta de prueba. */
+@Composable
+private fun PaymentSummary(request: FeaturedRequest) {
+    if (request.amount == null) {
+        AdminBadge(stringResource(R.string.admin2_pay_trial), BadgeTone.Warning)
+        return
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+        AdminField(stringResource(R.string.admin2_pay_amount), request.amount, Modifier.weight(1f))
+        AdminField(stringResource(R.string.admin2_pay_reference), request.reference ?: "—", Modifier.weight(1f))
+    }
 }
 
 @Composable
@@ -232,6 +303,7 @@ private fun FeaturedRequestDetail(
     onBackToList: () -> Unit,
     onReject: () -> Unit,
     onApprove: () -> Unit,
+    onReviewPayment: () -> Unit,
 ) {
     val noDescription = stringResource(R.string.admin1_no_description)
     Column(Modifier.fillMaxSize()) {
@@ -337,6 +409,9 @@ private fun FeaturedRequestDetail(
                         color = KarsyTextSecondary
                     )
 
+                    SectionLabel(stringResource(R.string.admin2_pay_section))
+                    PaymentSummary(request)
+
                     SectionLabel(stringResource(R.string.admin1_requester))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -388,7 +463,12 @@ private fun FeaturedRequestDetail(
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 BottomActionButton(stringResource(R.string.admin1_reject), AdminColors.Danger, Modifier.weight(1f), onReject)
-                BottomActionButton(stringResource(R.string.admin1_approve_and_feature), KarsyNavy, Modifier.weight(1f), onApprove)
+                // Con comprobante se aprueba desde "Revisar pago"; las de prueba (sin pago), directo como antes.
+                if (request.receiptPath != null) {
+                    BottomActionButton(stringResource(R.string.admin2_pay_review), KarsyNavy, Modifier.weight(1f), onReviewPayment)
+                } else {
+                    BottomActionButton(stringResource(R.string.admin1_approve_and_feature), KarsyNavy, Modifier.weight(1f), onApprove)
+                }
             }
         }
     }
@@ -633,4 +713,99 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
             }
         }
     }
+}
+
+/**
+ * "Datos para recibir pagos": precio, días, banco y CLABE (config_pagos). Es lo que ven los
+ * lotes al pedir un destacado; sin banco o CLABE nadie puede pedirlo.
+ */
+@Composable
+private fun PaymentSettingsCard(vm: AdminViewModel) {
+    val datos = vm.paymentSettings
+    AdminCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column {
+                Text(stringResource(R.string.admin2_pay_title), fontFamily = Outfit, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = KarsyInk)
+                Spacer(Modifier.height(2.dp))
+                Text(stringResource(R.string.admin2_pay_desc), fontFamily = DmSans, fontSize = 12.sp, lineHeight = 17.sp, color = AdminColors.NeutralText)
+            }
+            if (datos == null) {
+                if (vm.loading) SkeletonListRow(circle = false)
+                else Text(stringResource(R.string.admin2_pay_load_error), fontFamily = DmSans, fontSize = 13.sp, color = BadgeTone.Danger.fg)
+                return@Column
+            }
+            // Se vuelven a llenar cuando cambian los datos guardados (p. ej. después de Guardar).
+            var precio by rememberSaveable(datos) { mutableStateOf(PagoDestacado.monto(datos.precio).removePrefix("$").replace(",", "")) }
+            var dias by rememberSaveable(datos) { mutableStateOf(datos.dias.toString()) }
+            var banco by rememberSaveable(datos) { mutableStateOf(datos.banco.orEmpty()) }
+            var clabe by rememberSaveable(datos) { mutableStateOf(datos.clabe.orEmpty()) }
+
+            if (!PagoDestacado.disponible(datos.banco, datos.clabe)) {
+                Text(
+                    stringResource(R.string.admin2_pay_missing),
+                    fontFamily = DmSans,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                    color = BadgeTone.Warning.fg,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BadgeTone.Warning.bg)
+                        .padding(12.dp)
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PaymentField(stringResource(R.string.admin2_pay_price), precio, KeyboardType.Decimal, !vm.working, Modifier.weight(1f)) {
+                    precio = it.filter { c -> c.isDigit() || c == '.' }.take(9)
+                }
+                PaymentField(stringResource(R.string.admin2_pay_days), dias, KeyboardType.Number, !vm.working, Modifier.weight(1f)) {
+                    dias = it.filter(Char::isDigit).take(3)
+                }
+            }
+            PaymentField(stringResource(R.string.admin2_pay_bank), banco, KeyboardType.Text, !vm.working) {
+                banco = it.uppercase().take(PagoDestacado.MAX_BANCO)
+            }
+            PaymentField(stringResource(R.string.admin2_pay_clabe), clabe, KeyboardType.Number, !vm.working, monospace = true) {
+                clabe = PagoDestacado.limpiarClabe(it)
+            }
+            BottomActionButton(
+                stringResource(R.string.admin2_pay_save),
+                KarsyNavy,
+                Modifier.fillMaxWidth(),
+                onClick = { vm.savePaymentSettings(precio, dias, banco, clabe) },
+                enabled = !vm.working
+            )
+        }
+    }
+}
+
+@Composable
+private fun PaymentField(
+    label: String,
+    value: String,
+    keyboardType: KeyboardType,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    monospace: Boolean = false,
+    onChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(label, fontFamily = DmSans, fontSize = 12.sp) },
+        singleLine = true,
+        enabled = enabled,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        textStyle = TextStyle(
+            fontFamily = if (monospace) FontFamily.Monospace else DmSans,
+            fontSize = 14.sp,
+            color = KarsyCharcoal
+        ),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = KarsyNavy,
+            unfocusedBorderColor = KarsyBorder,
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
 }

@@ -25,14 +25,13 @@ import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyCharcoal
-import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
 import com.pame.karsy.core.theme.KarsyTealSoft
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
 
-/** Confirmación "Solicitud enviada" tras pedir destacar un vehículo. */
+/** Confirmación "Solicitud enviada" tras pedir destacar un vehículo con su comprobante de pago. */
 @Composable
 fun SolicitudEnviadaDialog(carName: String, onClose: () -> Unit) {
     DashboardSheet(onDismiss = onClose) {
@@ -80,14 +79,6 @@ fun SolicitudEnviadaDialog(carName: String, onClose: () -> Unit) {
                 fontSize = 13.sp,
                 lineHeight = 21.sp,
                 color = KarsyCharcoal,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-            Text(
-                stringResource(R.string.profile_request_sent_review),
-                fontFamily = DmSans,
-                fontSize = 12.sp,
-                color = KarsyMid,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 28.dp)
             )

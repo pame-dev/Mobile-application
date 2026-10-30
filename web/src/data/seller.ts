@@ -27,7 +27,7 @@ async function uid(): Promise<string> {
 /** Publicación propia con los datos que solo ve su dueño (Car.kt de la app). */
 export interface OwnCar extends Car {
   featuredPending: boolean
-  /** Fin del destacado vigente (dura 1 mes desde que el admin lo aprueba). */
+  /** Fin del destacado vigente (dura los días de config_pagos desde que el admin lo aprueba). */
   featuredUntil: string | null
   /** El destacado termina en 3 días o menos: se puede renovar. */
   featuredEndsSoon: boolean
@@ -175,11 +175,49 @@ export async function setSold(id: number, sold: boolean, via: string | null = nu
   check(await supabase.rpc('marcar_publicacion_vendida', { p_id_publicacion: id, p_vendida: sold, p_medio_venta: via }))
 }
 
-/** Solicita destacar la publicación; un admin la revisa. */
-export async function requestFeatured(id: number): Promise<void> {
-  const { error } = await supabase.from('solicitudes_destacado').insert({ id_publicacion: id })
+// ── Destacar (solo lotes, pago por transferencia) ──────────────────────────
+
+/** Precio, días y cuenta para pagar un destacado. Sin banco o CLABE todavía no se puede pedir. */
+export interface DatosPago {
+  precio: number
+  dias: number
+  banco: string | null
+  clabe: string | null
+}
+
+/** Datos para pagar un destacado (datos_pago_destacado; también los lee el admin). */
+export async function datosPagoDestacado(): Promise<DatosPago> {
+  const rows = check(await supabase.rpc('datos_pago_destacado')) as { precio: number | string; dias: number; banco: string | null; clabe: string | null }[] | null
+  const r = rows?.[0]
+  return { precio: Number(r?.precio ?? 0), dias: Number(r?.dias ?? 30), banco: r?.banco ?? null, clabe: r?.clabe ?? null }
+}
+
+/** Referencia que va en el concepto de la transferencia (la misma que guarda solicitar_destacado). */
+export const referenciaPago = (idPublicacion: number) => `KAR-${idPublicacion}`
+
+/** Bucket privado de los comprobantes de pago de destacados. */
+const BUCKET_COMPROBANTES = 'comprobantes-pago'
+
+/**
+ * Sube la foto (JPG o PNG) o el PDF del comprobante, tal cual, a <id_cuenta>/<uuid>.<ext> y devuelve
+ * su ruta. El archivo ya se revisó con errorConstancia (mismo tipo y tamaño máximo).
+ */
+export async function subirComprobante(f: File): Promise<string> {
+  const tipo = tipoConstancia(f)
+  const ruta = `${await uid()}/${crypto.randomUUID()}.${EXT_CONSTANCIA[tipo]}`
+  const { error } = await supabase.storage.from(BUCKET_COMPROBANTES).upload(ruta, f, { upsert: false, contentType: tipo })
+  if (error) throw new Error(error.message)
+  return ruta
+}
+
+/**
+ * Pide destacar la publicación con el comprobante ya subido (solicitar_destacado); un admin
+ * revisa el pago. Si no se envía, el archivo lo borra después la limpieza del panel admin.
+ */
+export async function requestFeatured(id: number, comprobante: string): Promise<void> {
+  const { error } = await supabase.rpc('solicitar_destacado', { p_id_publicacion: id, p_comprobante: comprobante })
   if (error) {
-    if (error.message.includes('uq_solicitudes_pendiente') || error.code === '23505') throw new UserError(traducir('publicar.errFeaturedPending'))
+    if (error.code === '23505') throw new UserError(traducir('publicar.errFeaturedPending'))
     check({ data: null, error })
   }
 }

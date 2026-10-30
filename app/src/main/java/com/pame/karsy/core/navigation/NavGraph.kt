@@ -486,6 +486,10 @@ fun KarsyNavGraph(
                             AdminPanelRequest.section = AdminSection.Verificaciones
                             goSection(Routes.AdminDashboard.route)
                         },
+                        onAdminFeatured = {
+                            AdminPanelRequest.section = AdminSection.Destacados
+                            goSection(Routes.AdminDashboard.route)
+                        },
                         onProfile = { goSection(Routes.Profile.route) }
                     )
                 }
