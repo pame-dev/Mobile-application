@@ -204,11 +204,10 @@ fun AdminFeaturedSection(vm: AdminViewModel) {
             description = stringResource(R.string.admin1_featured_desc)
         )
 
-        // Precio, días y cuenta bancaria: solo el administrador (admin_guardar_config_pagos).
-        if (SessionManager.isAdmin) {
-            PaymentSettingsCard(vm)
-            Spacer(Modifier.height(16.dp))
-        }
+        // Precio, días y cuenta bancaria: los edita solo el administrador (admin_guardar_config_pagos);
+        // el moderador ve lo que configuró, sin poder cambiarlo.
+        if (SessionManager.isAdmin) PaymentSettingsCard(vm) else PaymentSettingsReadOnly(vm)
+        Spacer(Modifier.height(16.dp))
 
         AdminCard {
             AdminFilterBar {
@@ -921,6 +920,61 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                     onClick = { vm.savePaymentSettings(precio, dias, bancoFinal, clabe) },
                     enabled = cambios && valido && !vm.working
                 )
+            }
+        }
+    }
+}
+
+/** "Datos para recibir pagos" en solo lectura: lo que configuró el administrador (para el moderador). */
+@Composable
+private fun PaymentSettingsReadOnly(vm: AdminViewModel) {
+    val datos = vm.paymentSettings
+    AdminCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            val completo = datos != null && PagoDestacado.disponible(datos.banco, datos.clabe)
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.admin2_pay_title),
+                        fontFamily = Outfit, fontSize = KarsyTextSize.Title, fontWeight = FontWeight.Bold, color = KarsyInk,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (datos != null) {
+                        AdminBadge(
+                            stringResource(if (completo) R.string.admin2_pay_active else R.string.admin2_pay_incomplete),
+                            if (completo) BadgeTone.Success else BadgeTone.Warning
+                        )
+                    }
+                }
+                Spacer(Modifier.height(2.dp))
+                Text(stringResource(R.string.admin2_pay_readonly), fontFamily = DmSans, fontSize = KarsyTextSize.Small, lineHeight = 17.sp, color = AdminColors.NeutralText)
+            }
+            if (datos == null) {
+                if (vm.loading) SkeletonListRow(circle = false)
+                else Text(stringResource(R.string.admin2_pay_load_error), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = BadgeTone.Danger.fg)
+                return@Column
+            }
+            if (!completo) {
+                Text(
+                    stringResource(R.string.admin2_pay_missing_readonly),
+                    fontFamily = DmSans,
+                    fontSize = KarsyTextSize.Body,
+                    lineHeight = 19.sp,
+                    color = BadgeTone.Warning.fg,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
+                        .background(BadgeTone.Warning.bg)
+                        .padding(12.dp)
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "${PagoDestacado.monto(datos.precio)} MXN · ${datos.dias} ${stringResource(R.string.admin2_pay_days_suffix)}",
+                    fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.Bold, color = KarsyInk
+                )
+                datos.banco?.takeIf { it.isNotBlank() }?.let { PaymentPreviewLine(stringResource(R.string.admin2_pay_bank), it) }
+                datos.clabe?.takeIf { it.isNotBlank() }?.let { PaymentPreviewLine("CLABE", PagoDestacado.clabeAgrupada(it), monospace = true) }
             }
         }
     }

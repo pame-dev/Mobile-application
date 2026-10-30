@@ -1009,6 +1009,8 @@
     <string name="admin2_pay_bank">Bank</string>
     <string name="admin2_pay_clabe">CLABE (18 digits)</string>
     <string name="admin2_pay_missing">Until you save your bank and CLABE, nobody can request a feature.</string>
+    <string name="admin2_pay_missing_readonly">The administrator hasn\'t saved the bank and CLABE yet: nobody can request a feature.</string>
+    <string name="admin2_pay_readonly">Only the administrator can change these details.</string>
     <string name="admin2_pay_saved">Payment details saved.</string>
     <string name="admin2_pay_load_error">Couldn\'t load the payment details.</string>
     <string name="admin2_pay_error_price">The price must be greater than 0 and at most $100,000.</string>

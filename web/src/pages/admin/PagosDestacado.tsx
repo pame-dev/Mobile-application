@@ -144,6 +144,67 @@ export const bancoDeClabe = (clabe: string): string | null => (clabe.length >= 3
 export const clabeAgrupada = (clabe: string) =>
   clabe.length === 18 ? `${clabe.slice(0, 3)} ${clabe.slice(3, 6)} ${clabe.slice(6, 17)} ${clabe[17]}` : clabe
 
+/** "Datos para recibir pagos" en solo lectura: lo que configuró el administrador (para el moderador). */
+export function ConfigPagosLectura() {
+  const { t } = useI18n()
+  // undefined: cargando; null: no se pudo leer.
+  const [datos, setDatos] = useState<{ precio: number; dias: number; banco: string; clabe: string } | null | undefined>(undefined)
+  const [intento, setIntento] = useState(0)
+
+  useEffect(() => {
+    let vivo = true
+    setDatos(undefined)
+    datosPagoDestacado()
+      .then((d) => vivo && setDatos({ precio: Number(d.precio), dias: Number(d.dias), banco: d.banco ?? '', clabe: d.clabe ?? '' }))
+      .catch(() => vivo && setDatos(null))
+    return () => {
+      vivo = false
+    }
+  }, [intento])
+
+  const activo = !!datos && datos.banco !== '' && datos.clabe !== ''
+  return (
+    <div className="card card-pad col gap-4" style={{ marginBottom: 'var(--s-4)' }}>
+      <div className="row gap-3" style={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <h2 className="card-title tight">{t('admin.payCfgTitle')}</h2>
+          <p className="muted text-sm">{t('admin.payCfgReadOnly')}</p>
+        </div>
+        {datos && <span className={`badge ${activo ? 'b-succ' : 'b-warn'}`}>{t(activo ? 'admin.payCfgActive' : 'admin.payCfgIncomplete')}</span>}
+      </div>
+      {datos === null ? (
+        <div className="note error ink" style={{ display: 'flex', gap: 'var(--s-3)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className="grow">{t('admin.payCfgLoadError')}</span>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIntento((n) => n + 1)}>
+            {t('common.retry')}
+          </button>
+        </div>
+      ) : datos === undefined ? (
+        <div className="skeleton" style={{ height: 90 }} />
+      ) : (
+        <>
+          {!activo && <div className="note warn ink">{t('admin.payCfgMissingReadOnly')}</div>}
+          <div className="col gap-1">
+            <span>
+              <b>{montoPago(datos.precio)}</b> · {datos.dias} {t('admin.payCfgDaysUnit')}
+            </span>
+            {datos.banco && (
+              <span>
+                {t('admin.payCfgBank')}: <b>{datos.banco}</b>
+              </span>
+            )}
+            {datos.clabe && (
+              <span>
+                CLABE: <b className="num" style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{clabeAgrupada(datos.clabe)}</b>
+              </span>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 interface ConfigGuardada {
   precio: string
   dias: string
