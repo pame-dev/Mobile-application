@@ -763,7 +763,7 @@ private fun PaymentSettingsCard(vm: AdminViewModel) {
                 }
             }
             PaymentField(stringResource(R.string.admin2_pay_bank), banco, KeyboardType.Text, !vm.working) {
-                banco = it.take(PagoDestacado.MAX_BANCO)
+                banco = it.uppercase().take(PagoDestacado.MAX_BANCO)
             }
             PaymentField(stringResource(R.string.admin2_pay_clabe), clabe, KeyboardType.Number, !vm.working, monospace = true) {
                 clabe = PagoDestacado.limpiarClabe(it)

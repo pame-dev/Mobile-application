@@ -203,7 +203,7 @@ export function ConfigPagos() {
             </div>
             <div className="field">
               <label htmlFor="pago-banco">{t('admin.payCfgBank')}</label>
-              <input id="pago-banco" className="input" maxLength={60} value={banco} onChange={(e) => setBanco(e.target.value)} />
+              <input id="pago-banco" className="input" maxLength={60} value={banco} onChange={(e) => setBanco(e.target.value.toUpperCase())} />
             </div>
             <div className="field">
               <label htmlFor="pago-clabe">{t('admin.payCfgClabe')}</label>
