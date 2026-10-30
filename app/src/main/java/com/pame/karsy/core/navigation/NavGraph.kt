@@ -1,6 +1,11 @@
 package com.pame.karsy.core.navigation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.mutableStateListOf
+import com.pame.karsy.core.components.AvisoKarsy
+import com.pame.karsy.core.theme.KarsyCoral
 import com.pame.karsy.feature.profile.NotificationPreferencesScreen
 import com.pame.karsy.feature.profile.SavedSearchesScreen
 import androidx.activity.compose.BackHandler
@@ -81,7 +86,6 @@ import com.pame.karsy.feature.register.RegisterParticularScreen
 import com.pame.karsy.feature.register.RegisterTypeScreen
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
-import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -204,7 +208,7 @@ fun KarsyNavGraph(
             // Este teléfono es el que pidió cerrar en todos lados: lo maneja Privacidad.
             if (cerrada || AuthRepository.closingEverywhere) return
             cerrada = true
-            Toast.makeText(context, revokedText, Toast.LENGTH_LONG).show()
+            AvisoKarsy.mostrar(revokedText)
             logout()
         }
         launch { AuthRepository.closedElsewhere.collect { cerrar() } }
@@ -664,6 +668,22 @@ fun KarsyNavGraph(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = BOTTOM_BAR_SPACE)
+            )
+        }
+
+        // Avisos de toda la app (AvisoKarsy), con el mismo estilo que el de arriba.
+        AvisoKarsy.actual?.let { aviso ->
+            RegisterToast(
+                message = aviso.texto,
+                onClose = AvisoKarsy::cerrar,
+                onRegister = {},
+                showRegister = false,
+                key = aviso.id,
+                icon = if (aviso.error) Icons.Rounded.ErrorOutline else Icons.Outlined.Info,
+                iconBackground = if (aviso.error) KarsyCoral else KarsyTeal,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = if (showBottomBar) BOTTOM_BAR_SPACE else 0.dp)
             )
         }
 

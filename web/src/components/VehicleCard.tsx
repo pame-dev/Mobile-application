@@ -7,7 +7,7 @@ import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
 import { CarPhoto } from './CarPhoto'
 import { ConditionTag } from './ConditionTag'
-import { VerifiedBadge } from './ConstanciaField'
+import { VerifiedShield } from './ConstanciaField'
 import { Icon } from './Icon'
 import { Traducido } from './Traducido'
 import { STATUS_BADGE, statusLabel } from './OwnerActions'
@@ -81,10 +81,10 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
                   {car.city}
                 </>
               )}
-              {/* Vendedor con documento aprobado por un admin (cuentas.verificado). */}
+              {/* Vendedor con documento aprobado por un admin (cuentas.verificado): solo el escudo, sin la palabra. */}
               {car.ownerVerified && (
                 <span className="loc-verified">
-                  <VerifiedBadge compact />
+                  <VerifiedShield />
                 </span>
               )}
             </div>

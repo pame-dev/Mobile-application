@@ -13,6 +13,8 @@ data class AnuncioDto(
     @SerialName("id_propietario") val idPropietario: String,
     @SerialName("propietario_nombre") val propietarioNombre: String,
     @SerialName("propietario_tipo") val propietarioTipo: String,
+    /** cuentas.verificado del dueño (20261103120000_verificado_en_anuncios); false si la vista aún no lo trae. */
+    @SerialName("propietario_verificado") val propietarioVerificado: Boolean = false,
     @SerialName("propietario_foto") val propietarioFoto: String? = null,
     val titulo: String? = null,
     val descripcion: String? = null,
@@ -105,10 +107,6 @@ data class PortadaDto(@SerialName("foto_portada") val fotoPortada: String? = nul
 /** Solo cuentas.verificado (insignia en el perfil público del vendedor, UserRepository.verifiedOf). */
 @Serializable
 data class VerificadoDto(val verificado: Boolean = false)
-
-/** Solo el id de una cuenta verificada (insignia en las tarjetas de la lista, CarRepository.visibleCars). */
-@Serializable
-data class CuentaIdDto(@SerialName("id_cuenta") val idCuenta: String)
 
 /** Columnas públicas de public.cuentas que usa el directorio de lotes. */
 @Serializable

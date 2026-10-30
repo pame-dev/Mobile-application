@@ -34,7 +34,7 @@ import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
-import com.pame.karsy.core.components.VerifiedBadge
+import com.pame.karsy.core.components.VerifiedShield
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBorder
@@ -158,8 +158,8 @@ fun VehicleCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
-                    // Alto de la insignia de verificado: todas las tarjetas miden lo mismo, la tengan o no.
-                    .heightIn(min = 24.dp)
+                    // Alto del escudo de verificado: todas las tarjetas miden lo mismo, lo tengan o no.
+                    .heightIn(min = 22.dp)
             ) {
                 if (ubicacion.isNotEmpty()) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = KarsyMid, modifier = Modifier.size(14.dp))
@@ -174,10 +174,11 @@ fun VehicleCard(
                         modifier = Modifier.weight(1f, fill = false)
                     )
                 }
-                // Vendedor con documento aprobado por un admin (cuentas.verificado).
+                // Vendedor con documento aprobado por un admin (cuentas.verificado): solo el escudo,
+                // sin la palabra, para no saturar la tarjeta.
                 if (car.ownerVerified) {
                     Spacer(Modifier.weight(1f))
-                    VerifiedBadge(compact = true, modifier = Modifier.padding(start = 8.dp))
+                    VerifiedShield(modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }

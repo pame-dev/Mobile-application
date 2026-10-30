@@ -43,7 +43,7 @@ import { EVENTO_CAMBIOS, useRecargar, type Tabla } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
 import { Verificaciones } from './Verificaciones'
 import { RevisarRepuveModal } from './RevisarRepuve'
-import { ConfigPagos, montoPago, RevisarPagoModal, useVerComprobante } from './PagosDestacado'
+import { ConfigPagos, ConfigPagosLectura, montoPago, RevisarPagoModal, useVerComprobante } from './PagosDestacado'
 import { AdminHead, Badge, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
@@ -1254,8 +1254,8 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
   return (
     <>
       <AdminHead title={t('admin.featTitle')} desc={t('admin.featDesc')} />
-      {/* Precio, días y cuenta bancaria: solo el administrador (admin_guardar_config_pagos). */}
-      {esAdmin && <ConfigPagos />}
+      {/* Precio, días y cuenta bancaria: los edita solo el administrador (admin_guardar_config_pagos); el moderador solo los ve. */}
+      {esAdmin ? <ConfigPagos /> : <ConfigPagosLectura />}
       <Tabs
         value={tab}
         onChange={setTab}

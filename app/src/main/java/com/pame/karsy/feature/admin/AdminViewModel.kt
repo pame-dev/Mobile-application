@@ -105,7 +105,8 @@ class AdminViewModel : ViewModel() {
             if (AdminSection.Verificaciones in ver) {
                 safeCall { AdminRepository.verifications() }.onSuccess { verificationRows = it }.onFailure { errores += it.mensajeUsuario() }
             }
-            if (SessionManager.isAdmin) {
+            // El administrador los edita; el moderador de Destacados solo los ve.
+            if (AdminSection.Destacados in ver) {
                 safeCall { CarRepository.datosPagoDestacado() }.onSuccess { paymentSettings = it }
                     .onFailure {
                         // Sin datos frescos no se deja editar sobre los viejos: la tarjeta muestra el error.

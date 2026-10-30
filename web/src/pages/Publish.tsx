@@ -192,11 +192,20 @@ async function huella(f: Foto): Promise<string> {
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-function Campo({ id, label, children }: { id?: string; label: string; children: ReactNode }) {
+/**
+ * Campo del formulario. Con [campo] participa en la validación por campo: muestra [error] debajo
+ * (y el borde en rojo) y, con [onSalir], avisa al perder el foco para validar al salir.
+ */
+function Campo({ id, label, children, campo, error, onSalir }: { id?: string; label: string; children: ReactNode; campo?: string; error?: string | null; onSalir?: () => void }) {
   return (
-    <div className="field">
+    <div className={`field ${error ? 'invalid' : ''}`} data-campo={campo} onBlur={onSalir}>
       <label htmlFor={id}>{label}</label>
       {children}
+      {error && (
+        <span className="ferror" role="alert">
+          {error}
+        </span>
+      )}
     </div>
   )
 }
@@ -218,6 +227,9 @@ export function Publish() {
 
   const [cat, setCat] = useState<Catalogs | null>(null)
   const [d, setD] = useState<Datos>(VACIO)
+  /** Campos que ya muestran su error: al salir de ellos o al tocar Siguiente. */
+  const [marcados, setMarcados] = useState<Set<string>>(() => new Set())
+  const marcar = (campo: string) => setMarcados((m) => (m.has(campo) ? m : new Set(m).add(campo)))
   const [angulos, setAngulos] = useState<(Foto | null)[]>([null, null, null, null, null])
   const [extras, setExtras] = useState<Foto[]>([])
   /** Foto del motor: recomendada, no obligatoria. Se sube después de los 5 ángulos. */
@@ -468,27 +480,52 @@ export function Publish() {
   /** Ya no cabe la foto del motor: entre ángulos y adicionales se llegó a MAX_FOTOS. */
   const motorSinLugar = !motor && fotos.length >= MAX_FOTOS
 
-  const validar = (paso: number): string | null => {
-    if (paso === 0) {
-      const anio = Number(d.anio)
-      const max = new Date().getFullYear() + 1
-      // El primer campo vacío, en el mismo orden del formulario.
-      const falta = ordenCampos.find((o) => !o.lleno)
-      if (falta) return t(falta.error)
-      if (!Number.isInteger(anio) || anio < 1900 || anio > max) return t('publicar.errYear')
-      if (Number(d.cilindros || 0) > MAX_CILINDROS) return t('publicar.errCylinders', { n: MAX_CILINDROS })
-      const errDoc = errorDocumento(d.tipoDocumento, d.documentoTexto, !!docFoto)
-      return errDoc ? t(errDoc) : null
+  /** Mensaje de error de [campo] con lo que tiene ahora, o null si está bien (como PublishViewModel.errorDe). */
+  const errorDe = (campo: string): string | null => {
+    switch (campo) {
+      case 'anio': {
+        const anio = Number(d.anio)
+        const max = new Date().getFullYear() + 1
+        return !Number.isInteger(anio) || anio < 1900 || anio > max ? t('publicar.errYear') : null
+      }
+      case 'cilindros':
+        if (!esElectrico && !d.cilindros) return t('publicar.errCylindersRequired')
+        return Number(d.cilindros || 0) > MAX_CILINDROS ? t('publicar.errCylinders', { n: MAX_CILINDROS }) : null
+      case 'tipoDocumento':
+        return d.tipoDocumento ? null : t('publicar.errDocumentType')
+      case 'documentoTexto': {
+        if (!d.tipoDocumento) return null
+        const errDoc = errorDocumento(d.tipoDocumento, d.documentoTexto, !!docFoto)
+        return errDoc ? t(errDoc) : null
+      }
+      case 'descripcion':
+        return d.descripcion.trim() ? null : t('publicar.errDescription')
+      // El precio va al final del formulario, junto con la sugerencia de autos similares.
+      case 'precio':
+        return Number(d.precio) > 0 ? null : t('publicar.errPrice')
+      default: {
+        // El primer campo vacío, en el mismo orden del formulario.
+        const o = ordenCampos.find((x) => x.campo === campo)
+        return o && !o.lleno ? t(o.error) : null
+      }
     }
+  }
+  /** Campos con validación de cada paso, en el orden del formulario (el 1 son las fotos). */
+  const camposDelPaso = (paso: number): string[] =>
+    paso === 0 ? [...ordenCampos.map((o) => o.campo as string), 'tipoDocumento', 'documentoTexto'] : paso === 2 ? ['descripcion', 'precio'] : []
+  /** Error visible de un campo: solo si ya se marcó (al salir o al tocar Siguiente). */
+  const errorVisible = (campo: string) => (marcados.has(campo) ? errorDe(campo) : null)
+  /** Props de validación para <Campo>; con [alSalir] valida al perder el foco (campos de texto). */
+  const validacion = (campo: string, alSalir = false) => ({ campo, error: errorVisible(campo), onSalir: alSalir ? () => marcar(campo) : undefined })
+
+  const validar = (paso: number): string | null => {
     if (paso === 1) {
       const faltan = angulos.flatMap((f, i) => (f ? [] : [i]))
       return faltan.length ? t('publicar.errRequiredPhotos', { fotos: nombresFotos(faltan) }) : null
     }
-    if (paso === 2) {
-      if (!d.descripcion.trim()) return t('publicar.errDescription')
-      // El precio va al final del formulario, junto con la sugerencia de autos similares.
-      if (!(Number(d.precio) > 0)) return t('publicar.errPrice')
-      return null
+    for (const campo of camposDelPaso(paso)) {
+      const e = errorDe(campo)
+      if (e) return e
     }
     return null
   }
@@ -559,6 +596,16 @@ export function Publish() {
 
   const siguiente = () => {
     if (step === 1) return void siguienteDesdeFotos()
+    // Un error de campo se muestra debajo del campo (y se lleva la vista ahí), no arriba.
+    const campo = camposDelPaso(step).find((c) => errorDe(c) != null)
+    if (campo) {
+      marcar(campo)
+      setError(null)
+      const el = document.querySelector<HTMLElement>(`[data-campo="${campo}"]`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el?.querySelector<HTMLElement>('input, select, textarea, button:not([disabled])')?.focus({ preventScroll: true })
+      return
+    }
     const e = validar(step)
     setError(e)
     if (e) arriba.current?.scrollIntoView({ behavior: 'smooth' })
@@ -970,20 +1017,20 @@ export function Publish() {
               </p>
               <div className="label">{t('publicar.sectionVehicleInfo')}</div>
               <div className="grid3">
-                <Campo id="idMarca" label={t('publicar.brand')}>
+                <Campo id="idMarca" label={t('publicar.brand')} {...validacion('idMarca')}>
                   {select('idMarca', cat.marcas, t('publicar.selectBrand'))}
                   {marcaSel?.esOtro && <input className="input" disabled={bloqueado('idMarca')} placeholder={t('publicar.enterBrand')} maxLength={60} value={d.marcaOtra} onChange={(e) => set('marcaOtra', e.target.value)} />}
                 </Campo>
-                <Campo id="idModelo" label={t('publicar.model')}>
+                <Campo id="idModelo" label={t('publicar.model')} {...validacion('idModelo')}>
                   {select('idModelo', cat.modelos.filter((m) => String(m.idMarca) === d.idMarca), marcaSel ? t('publicar.selectModel') : t('publicar.chooseBrandFirst'), !marcaSel)}
                   {modeloSel?.esOtro && <input className="input" disabled={bloqueado('idModelo')} placeholder={t('publicar.enterModel')} maxLength={60} value={d.modeloOtro} onChange={(e) => set('modeloOtro', e.target.value)} />}
                 </Campo>
-                <Campo id="anio" label={t('publicar.year')}>
+                <Campo id="anio" label={t('publicar.year')} {...validacion('anio')}>
                   {opciones('anio', anios.map((a) => ({ valor: String(a), texto: String(a) })), t('publicar.selectYear'))}
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo label={t('publicar.transmission')}>
+                <Campo label={t('publicar.transmission')} {...validacion('idTransmision')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {cat.transmisiones.map((t) => (
                       <button type="button" key={t.id} disabled={bloqueado('idTransmision')} className={d.idTransmision === String(t.id) ? 'on' : ''} aria-pressed={d.idTransmision === String(t.id)} onClick={() => set('idTransmision', String(t.id))}>
@@ -992,7 +1039,7 @@ export function Publish() {
                     ))}
                   </div>
                 </Campo>
-                <Campo id="kilometraje" label={t('publicar.mileage')}>
+                <Campo id="kilometraje" label={t('publicar.mileage')} {...validacion('kilometraje', true)}>
                   <input className="input" id="kilometraje" disabled={bloqueado('kilometraje')} inputMode="numeric" placeholder="45,000" value={d.kilometraje ? entero(Number(d.kilometraje)) : ''} onChange={(e) => set('kilometraje', digitos(e.target.value, 7))} />
                 </Campo>
               </div>
@@ -1000,13 +1047,13 @@ export function Publish() {
                 {t('publicar.sectionClassification')}
               </div>
               <div className="grid3">
-                <Campo id="idCarroceria" label={t('publicar.bodyType')}>
+                <Campo id="idCarroceria" label={t('publicar.bodyType')} {...validacion('idCarroceria')}>
                   {select('idCarroceria', cat.carrocerias, t('publicar.select'))}
                 </Campo>
-                <Campo id="idColor" label={t('publicar.color')}>
+                <Campo id="idColor" label={t('publicar.color')} {...validacion('idColor')}>
                   {select('idColor', cat.colores, t('publicar.select'))}
                 </Campo>
-                <Campo id="duenos" label={t('publicar.previousOwners')}>
+                <Campo id="duenos" label={t('publicar.previousOwners')} {...validacion('duenos')}>
                   {opciones(
                     'duenos',
                     Array.from({ length: DUENOS_MAX + 1 }, (_, n) => ({ valor: String(n), texto: n === DUENOS_MAX ? t('publicar.ownersOrMore', { n }) : String(n) })),
@@ -1015,7 +1062,7 @@ export function Publish() {
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo label={t('publicar.condition')}>
+                <Campo label={t('publicar.condition')} {...validacion('condicion')}>
                   <div className="seg" style={{ alignSelf: 'flex-start' }}>
                     {CONDICIONES.map((c) => (
                       <button type="button" key={c.valor} disabled={bloqueado('condicion')} className={d.condicion === c.valor ? 'on' : ''} aria-pressed={d.condicion === c.valor} onClick={() => set('condicion', c.valor)}>
@@ -1029,13 +1076,13 @@ export function Publish() {
                 {t('publicar.sectionAdditionalInfo')}
               </div>
               <div className="grid3">
-                <Campo id="combustible" label={t('publicar.fuel')}>
+                <Campo id="combustible" label={t('publicar.fuel')} {...validacion('combustible')}>
                   {opciones('combustible', COMBUSTIBLES.map((c) => ({ valor: c.valor, texto: t(c.label) })), t('publicar.select'))}
                 </Campo>
-                <Campo id="cilindros" label={t('publicar.cylinders')}>
+                <Campo id="cilindros" label={t('publicar.cylinders')} {...validacion('cilindros')}>
                   {opciones('cilindros', CILINDROS.map((n) => ({ valor: String(n), texto: String(n) })), esElectrico ? t('publicar.notApplicable') : t('publicar.select'), esElectrico)}
                 </Campo>
-                <Campo id="litros" label={t('publicar.engineLiters')}>
+                <Campo id="litros" label={t('publicar.engineLiters')} {...validacion('litros', true)}>
                   <input
                     className="input"
                     id="litros"
@@ -1048,7 +1095,7 @@ export function Publish() {
                 </Campo>
               </div>
               <div className="grid3">
-                <Campo id="aspiracion" label={t('publicar.aspiration')}>
+                <Campo id="aspiracion" label={t('publicar.aspiration')} {...validacion('aspiracion')}>
                   {opciones('aspiracion', ASPIRACIONES.map((a) => ({ valor: a.valor, texto: t(a.label) })), esElectrico ? t('publicar.notApplicable') : t('publicar.select'), esElectrico)}
                 </Campo>
                 <Campo id="caballos" label={t('publicar.horsepowerOptional')}>
@@ -1094,7 +1141,7 @@ export function Publish() {
                 {t('publicar.documentHint')}
               </p>
               <div className="grid3">
-                <Campo id="tipoDocumento" label={t('publicar.documentType')}>
+                <Campo id="tipoDocumento" label={t('publicar.documentType')} {...validacion('tipoDocumento')}>
                   <select
                     className="input"
                     id="tipoDocumento"
@@ -1111,7 +1158,7 @@ export function Publish() {
                   </select>
                 </Campo>
                 {(d.tipoDocumento === 'vin' || d.tipoDocumento === 'placa') && (
-                  <Campo id="documentoTexto" label={t(d.tipoDocumento === 'vin' ? 'publicar.vin' : 'publicar.docPlate')}>
+                  <Campo id="documentoTexto" label={t(d.tipoDocumento === 'vin' ? 'publicar.vin' : 'publicar.docPlate')} {...validacion('documentoTexto', true)}>
                     <input
                       className="input"
                       id="documentoTexto"
@@ -1123,7 +1170,7 @@ export function Publish() {
                   </Campo>
                 )}
                 {esDocumentoFoto(d.tipoDocumento) && (
-                  <Campo label={t('publicar.documentPhoto')}>
+                  <Campo label={t('publicar.documentPhoto')} {...validacion('documentoTexto')}>
                     {docFoto ? (
                       <div
                         className="photoslot filled"
@@ -1270,7 +1317,7 @@ export function Publish() {
 
           {step === 2 && (
             <section className="card col card-pad gap-4">
-              <Campo id="desc" label={t('publicar.descriptionTitle')}>
+              <Campo id="desc" label={t('publicar.descriptionTitle')} {...validacion('descripcion', true)}>
                 <textarea className="input" id="desc" placeholder={t('publicar.descriptionPlaceholder')} maxLength={2000} value={d.descripcion} onChange={(e) => set('descripcion', e.target.value)} />
               </Campo>
               <Campo id="imp" label={t('publicar.imperfectionsTitle')}>
@@ -1281,7 +1328,7 @@ export function Publish() {
                 <b>{t('publicar.tipBold')}</b>
                 {t('publicar.tipAfter')}
               </div>
-              <Campo id="precio" label={t('publicar.price')}>
+              <Campo id="precio" label={t('publicar.price')} {...validacion('precio', true)}>
                 <input className="input" id="precio" inputMode="numeric" placeholder="250,000" value={d.precio ? entero(Number(d.precio)) : ''} onChange={(e) => set('precio', digitos(e.target.value, 10))} />
               </Campo>
               {sugerencia === 'cargando' ? (

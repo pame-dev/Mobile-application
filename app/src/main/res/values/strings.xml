@@ -1011,6 +1011,8 @@
     <string name="admin2_pay_bank">Banco</string>
     <string name="admin2_pay_clabe">CLABE (18 dígitos)</string>
     <string name="admin2_pay_missing">Mientras no guardes tu banco y CLABE, nadie puede pedir destacados.</string>
+    <string name="admin2_pay_missing_readonly">El administrador aún no guarda el banco y la CLABE: nadie puede pedir destacados.</string>
+    <string name="admin2_pay_readonly">Solo el administrador puede cambiar estos datos.</string>
     <string name="admin2_pay_saved">Datos de pago guardados.</string>
     <string name="admin2_pay_load_error">No se pudieron leer los datos de pago.</string>
     <string name="admin2_pay_error_price">El precio debe ser mayor a 0 y de máximo $100,000.</string>

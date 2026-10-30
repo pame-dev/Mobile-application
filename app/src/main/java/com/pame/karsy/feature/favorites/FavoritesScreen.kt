@@ -1,6 +1,8 @@
 package com.pame.karsy.feature.favorites
 
+import androidx.compose.foundation.layout.heightIn
 import com.pame.karsy.core.components.PrimaryButton
+import com.pame.karsy.core.components.VerifiedShield
 import com.pame.karsy.core.theme.KarsyGreenDark
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
@@ -358,13 +360,23 @@ private fun FavoriteCard(
                 )
                 ConditionTag(car.condicion, compact = true, modifier = Modifier.padding(start = 8.dp))
             }
-            Text(
-                "${car.year} · ${car.kilometraje}",
-                fontFamily = DmSans,
-                fontSize = KarsyTextSize.Body,
-                color = KarsyMid,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
+                    // Alto del escudo de verificado: todas las tarjetas miden lo mismo, lo tengan o no.
+                    .heightIn(min = 22.dp)
+            ) {
+                Text(
+                    "${car.year} · ${car.kilometraje}",
+                    fontFamily = DmSans,
+                    fontSize = KarsyTextSize.Body,
+                    color = KarsyMid,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                // Vendedor con documento aprobado por un admin (cuentas.verificado): solo el escudo.
+                if (car.ownerVerified) VerifiedShield(modifier = Modifier.padding(start = 8.dp))
+            }
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

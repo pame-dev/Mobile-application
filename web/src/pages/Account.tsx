@@ -314,6 +314,7 @@ export function NotificationPreferences() {
 
 /** Búsquedas guardadas: se crean en el inicio con "Avisarme de nuevos" y avisan de autos nuevos. */
 export function SavedSearches() {
+  const navigate = useNavigate()
   const { account, redirect } = useRequireAccount('/busquedas')
   const { t } = useI18n()
   const { toast } = useUi()
@@ -358,6 +359,9 @@ export function SavedSearches() {
             <Icon name="bell" size={26} />
           </span>
           <p className="muted">{t('saved.empty')}</p>
+          <button className="btn btn-primary" onClick={() => navigate('/')}>
+            {t('perfil.exploreVehicles')}
+          </button>
         </div>
       ) : (
         <div className="card" style={{ overflow: 'hidden' }}>
