@@ -90,6 +90,8 @@ svg.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .field{display:flex;flex-direction:column;gap:var(--s-2);min-width:0}
 .field label{font-size:var(--fs-xs);font-weight:var(--fw-semibold);color:var(--ink)}
 .input{height:var(--h-md);border:1px solid var(--border-muted);border-radius:var(--r-md);background:var(--surface);padding:0 var(--s-3);color:var(--charcoal);font:inherit;width:100%}
+/* Campos con sugerencias (datalist): sin la flechita ▼ que agrega Chrome; las sugerencias salen al escribir o al hacer clic. */
+input[list]::-webkit-calendar-picker-indicator{display:none !important}
 textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .input::placeholder{color:var(--mid)}
 .inputicon{position:relative} .inputicon svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mid)} .inputicon .input{padding-left:44px}
