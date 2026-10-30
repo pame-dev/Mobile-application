@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Icon } from '../components/Icon'
 import { VolverButton } from '../components/VolverButton'
+import { datosPagoDestacado } from '../data/seller'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
+import { useSession } from '../session/SessionContext'
 
 /** Correo de soporte de Karsy (también en HelpScreen de la app). */
 export const CORREO_SOPORTE = 'karsypi5@gmail.com'
@@ -12,6 +15,7 @@ const PREGUNTAS: [Clave, Clave][] = [
   ['help.q.review', 'help.a.review'],
   ['help.q.rejected', 'help.a.rejected'],
   ['help.q.featured', 'help.a.featured'],
+  ['help.q.featuredPay', 'help.a.featuredPay'],
   ['help.q.verify', 'help.a.verify'],
   ['help.q.contact', 'help.a.contact'],
   ['help.q.safe', 'help.a.safe'],
@@ -22,6 +26,12 @@ const PREGUNTAS: [Clave, Clave][] = [
 /** Ayuda: preguntas frecuentes y cómo escribirle a soporte. Abierta para todos (con o sin sesión). */
 export function Ayuda() {
   const { t } = useI18n()
+  const { account } = useSession()
+  // Días que dura un destacado (los cambia el admin). Sin sesión no se pueden leer: 30, los de siempre.
+  const [dias, setDias] = useState(30)
+  useEffect(() => {
+    if (account) void datosPagoDestacado().then((d) => setDias(d.dias), () => undefined)
+  }, [account])
   return (
     <div className="wrap wrap-narrow page-end">
       <div className="pagehead">
@@ -40,7 +50,7 @@ export function Ayuda() {
               {t(p)}
               <Icon name="down" size={16} />
             </summary>
-            <p>{t(r)}</p>
+            <p>{t(r, { dias })}</p>
           </details>
         ))}
       </div>

@@ -43,6 +43,7 @@ import { EVENTO_CAMBIOS, useRecargar, type Tabla } from '../../lib/tiempoReal'
 import { ExportarAdmin } from './ReporteAdmin'
 import { Verificaciones } from './Verificaciones'
 import { RevisarRepuveModal } from './RevisarRepuve'
+import { ConfigPagos, montoPago, RevisarPagoModal, useVerComprobante } from './PagosDestacado'
 import { AdminHead, Badge, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
@@ -1206,22 +1207,28 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
   const [busy, setBusy] = useState<number | null>(null)
   const cuenta = (e: string) => datos.destacados.filter((d) => d.estado_solicitud === e).length
   const lista = datos.destacados.filter((d) => d.estado_solicitud === tab)
+  const verComprobante = useVerComprobante()
 
-  const aprobar = async (d: DestacadoAdmin, titulo: string) => {
+  /** true si se aprobó (la ventana de revisar pago se queda abierta si falla). */
+  const aprobar = async (d: DestacadoAdmin, titulo: string): Promise<boolean> => {
     setBusy(d.id_solicitud_destacado)
     try {
       await resolveFeatured(d.id_solicitud_destacado, true, null)
       listo(t('admin.msgFeatApproved'))
       openModal(<Aprobada titulo={titulo} />)
+      return true
     } catch (e) {
       toast(mensajeUsuario(e))
+      return false
+    } finally {
+      setBusy(null)
     }
-    setBusy(null)
   }
 
   return (
     <>
       <AdminHead title={t('admin.featTitle')} desc={t('admin.featDesc')} />
+      <ConfigPagos />
       <Tabs
         value={tab}
         onChange={setTab}
@@ -1256,6 +1263,22 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
                       <b>{d.solicitante}</b> {t('admin.requestedWhen', { when: haceCuanto(d.fecha_solicitud).toLowerCase() })}
                     </p>
                   </div>
+                  {/* Pago de la solicitud; las de la etapa de prueba no tienen. */}
+                  {d.monto != null && d.referencia ? (
+                    <div className="row gap-2" style={{ flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                      <p className="text-sm">
+                        <b className="ink num">{montoPago(d.monto)}</b> · <span className="num" style={{ userSelect: 'all' }}>{d.referencia}</span>
+                      </p>
+                      {d.comprobante_path && (
+                        <button className="btn btn-ghost btn-sm" onClick={() => void verComprobante(d.comprobante_path!)}>
+                          <Icon name="doc" size={14} />
+                          {t('admin.payViewProof')}
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="badge b-neu" style={{ alignSelf: 'flex-start' }}>{t('admin.payTrial')}</span>
+                  )}
                   {d.motivo_rechazo && (
                     <p className="muted text-xs">
                       <Traducido texto={d.motivo_rechazo}>{(m) => t('admin.reason', { m })}</Traducido>
@@ -1266,9 +1289,22 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
                       <button className="btn btn-ghost btn-sm" disabled={busy === d.id_solicitud_destacado} onClick={() => openModal(<RejectFeatured d={d} listo={listo} />)}>
                         {t('admin.reject')}
                       </button>
-                      <button className="btn btn-primary btn-sm" disabled={busy === d.id_solicitud_destacado} onClick={() => void aprobar(d, titulo)}>
-                        {t('admin.approve')}
-                      </button>
+                      {d.comprobante_path ? (
+                        // Con pago: se aprueba desde la ventana que guía a confirmar que el dinero llegó.
+                        <button
+                          className="btn btn-primary btn-sm"
+                          disabled={busy === d.id_solicitud_destacado}
+                          onClick={() =>
+                            openModal(<RevisarPagoModal d={d} auto={titulo} onAprobar={() => aprobar(d, titulo)} onRechazar={() => openModal(<RejectFeatured d={d} listo={listo} />)} />)
+                          }
+                        >
+                          {t('admin.payReview')}
+                        </button>
+                      ) : (
+                        <button className="btn btn-primary btn-sm" disabled={busy === d.id_solicitud_destacado} onClick={() => void aprobar(d, titulo)}>
+                          {t('admin.approve')}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

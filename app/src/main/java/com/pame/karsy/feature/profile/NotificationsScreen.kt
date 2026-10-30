@@ -42,6 +42,7 @@ import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Payments
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.StarOutline
@@ -93,6 +94,7 @@ private fun styleFor(tipo: String): NotifStyle = when (tipo) {
         NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4))
     "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, Color(0xFF8B5CF6), Color(0xFFF5F3FF))
     "destacado_por_vencer" -> NotifStyle(Icons.Rounded.Star, Color(0xFFD97706), Color(0xFFFFFBEB))
+    "pago_destacado" -> NotifStyle(Icons.Rounded.Payments, Color(0xFFD97706), Color(0xFFFFFBEB))
     "publicacion_rechazada", "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, Color(0xFFDC2626), Color(0xFFFEF2F2))
     "publicacion_deshabilitada", "cuenta_suspendida" -> NotifStyle(Icons.Rounded.Block, Color(0xFFDC2626), Color(0xFFFEF2F2))
     "cuenta_reactivada" -> NotifStyle(Icons.Rounded.CheckCircle, Color(0xFF16A34A), Color(0xFFF0FDF4))
@@ -126,6 +128,8 @@ fun NotificationsScreen(
     onDashboard: () -> Unit = {},
     /** Solicitud de verificación nueva (admin) → Verificación en el panel. */
     onAdminVerifications: () -> Unit = {},
+    /** Pago de destacado por revisar (admin) → Destacados en el panel. */
+    onAdminFeatured: () -> Unit = {},
     /** Verificación aprobada o rechazada → su perfil (ahí ve la insignia o la reenvía). */
     onProfile: () -> Unit = {},
 ) {
@@ -189,6 +193,7 @@ fun NotificationsScreen(
                                     n.tipo == "resumen_semanal" -> onHome
                                     n.tipo == "resumen_vendedor" -> onDashboard
                                     n.tipo == "verificacion_pendiente" -> onAdminVerifications
+                                    n.tipo == "pago_destacado" -> onAdminFeatured
                                     n.tipo == "verificacion_aprobada" || n.tipo == "verificacion_rechazada" -> onProfile
                                     n.idPublicacion != null -> ({ onCarClick(n.idPublicacion) })
                                     else -> null

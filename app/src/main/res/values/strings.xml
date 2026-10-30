@@ -42,11 +42,13 @@
     <string name="help_q_rejected">¿Por qué rechazaron mi publicación?</string>
     <string name="help_a_rejected">En Mi panel verás el motivo. Toca “Corregir y reenviar”, cambia lo que se indica y vuelve a enviarla.</string>
     <string name="help_q_featured">¿Qué es un destacado?</string>
-    <string name="help_a_featured">Un destacado hace que tu auto aparezca en la sección Destacados, al inicio de Karsy, durante 1 mes. Se solicita desde Mi panel o desde tu publicación, y el equipo de Karsy lo aprueba.</string>
+    <string name="help_a_featured">Un destacado hace que tu auto aparezca en la sección Destacados, al inicio de Karsy, durante 30 días. Es solo para lotes: se pide desde Mi panel o desde tu publicación y el equipo de Karsy lo activa cuando confirma tu pago.</string>
+    <string name="help_q_featured_cost">¿Cuánto cuesta destacar y cómo pago?</string>
+    <string name="help_a_featured_cost">Destacar es solo para lotes. Al pedirlo verás el precio, la cuenta (banco y CLABE) y tu referencia. Transfiere desde tu banco, escribe la referencia en el concepto y sube el comprobante. Revisamos tu pago en máximo 24 horas hábiles. El pago no es reembolsable.</string>
     <string name="help_q_verify">¿Cómo verifico mi cuenta?</string>
     <string name="help_a_verify">Los particulares envían su CURP y los lotes su Constancia de Situación Fiscal desde su perfil. Cuando el equipo la revise, aparecerá la insignia de cuenta verificada.</string>
     <string name="help_q_contact">¿Cómo contacto a un vendedor?</string>
-    <string name="help_a_contact">Karsy no tiene chat ni pagos: en la publicación toca “Contactar vendedor” para llamar, escribir por WhatsApp o mandar un correo al vendedor.</string>
+    <string name="help_a_contact">Karsy no tiene chat ni cobra por la compra del auto: en la publicación toca “Contactar vendedor” para llamar, escribir por WhatsApp o mandar un correo al vendedor.</string>
     <string name="help_q_safe">¿Cómo compro de forma segura?</string>
     <string name="help_a_safe">Revisa el auto en persona en un lugar público, como el estacionamiento de un centro comercial, y no pagues nada por adelantado. Al tocar “Contactar vendedor” verás una guía con más consejos.</string>
     <string name="help_q_report">¿Cómo reporto una publicación?</string>
@@ -555,14 +557,35 @@
     </plurals>
     <string name="profile_dashboard_request_already_pending">Ya hay una solicitud pendiente para este vehículo.</string>
     <!-- Diálogo destacar -->
-    <string name="profile_feature_dialog_title">¿Quieres destacar tu vehículo?</string>
-    <string name="profile_feature_dialog_body">Tu auto aparecerá en la sección Destacados, al inicio de Karsy y antes que los demás, durante 1 mes, para que más compradores lo vean.</string>
-    <string name="profile_feature_dialog_note">Antes de destacarla, un administrador deberá revisar y aprobar tu solicitud. Una vez aprobada, tu vehículo aparecerá como publicación destacada durante 1 mes; después vuelve a mostrarse como una publicación normal y puedes solicitarlo de nuevo.</string>
-    <string name="profile_feature_dialog_confirm">Solicitar destacar</string>
+    <string name="profile_feature_dialog_title">Destacar tu auto</string>
+    <string name="profile_feature_dialog_body">Tu auto aparecerá en la sección Destacados, al inicio de Karsy y antes que los demás, durante %1$s.</string>
+    <string name="profile_feature_dialog_confirm">Enviar solicitud</string>
+    <plurals name="featured_pay_days">
+        <item quantity="one">%1$d día</item>
+        <item quantity="other">%1$d días</item>
+    </plurals>
+    <string name="featured_pay_price">%1$s MXN</string>
+    <string name="featured_pay_step1">Transfiere %1$s a esta cuenta:</string>
+    <string name="featured_pay_bank_value">Banco: %1$s</string>
+    <string name="featured_pay_clabe">CLABE</string>
+    <string name="featured_pay_reference">Referencia</string>
+    <string name="featured_pay_holder_note">Tu banco te mostrará el nombre del titular al ingresar la CLABE.</string>
+    <string name="featured_pay_step2">En el concepto escribe tu referencia:</string>
+    <string name="featured_pay_step3">Sube la foto o PDF del comprobante.</string>
+    <string name="featured_pay_receipt_label">Comprobante (JPG, PNG o PDF, máx. %1$d MB)</string>
+    <string name="featured_pay_copy">Copiar</string>
+    <string name="featured_pay_copy_cd">Copiar %1$s</string>
+    <string name="featured_pay_copied">Copiado</string>
+    <string name="featured_pay_no_refund_notice">El pago no es reembolsable en ningún caso, aunque vendas o pauses tu auto o se deshabilite la publicación antes de que termine el destacado.</string>
+    <string name="featured_pay_no_refund_check">Acepto que el pago no es reembolsable.</string>
+    <string name="featured_pay_review_time">Revisaremos tu pago en máximo 24 horas hábiles.</string>
+    <string name="featured_pay_sending">Enviando…</string>
+    <string name="featured_pay_unavailable">Los pagos de destacados aún no están disponibles. Intenta más tarde.</string>
+    <string name="featured_pay_retry">Reintentar</string>
+    <string name="featured_pay_error_login">Inicia sesión para destacar tu auto.</string>
     <string name="profile_cancel">Cancelar</string>
     <!-- Solicitud enviada -->
-    <string name="profile_request_sent_body">Tu solicitud para destacar %1$s fue enviada correctamente. Si se aprueba, estará destacada durante 1 mes.</string>
-    <string name="profile_request_sent_review">El equipo de Karsy la revisará pronto.</string>
+    <string name="profile_request_sent_body">Recibimos tu comprobante para destacar %1$s. Revisaremos tu pago en máximo 24 horas hábiles y te avisaremos cuando tu auto quede destacado.</string>
     <string name="profile_request_sent_ok">Entendido</string>
     <!-- Editar perfil -->
     <string name="profile_edit_profile">Editar perfil</string>
@@ -931,7 +954,7 @@
     <string name="admin2_msg_report_resolved_disabled">Reporte atendido y publicación deshabilitada.</string>
     <string name="admin2_msg_report_resolved">Reporte marcado como atendido.</string>
     <string name="admin2_msg_report_dismissed">Reporte descartado.</string>
-    <string name="admin2_msg_featured_approved">Publicación destacada por 1 mes.</string>
+    <string name="admin2_msg_featured_approved">Publicación destacada.</string>
     <string name="admin2_msg_featured_rejected">Solicitud rechazada.</string>
     <string name="admin2_msg_verification_approved">Usuario verificado.</string>
     <string name="admin2_msg_verification_rejected">Documento rechazado.</string>
@@ -979,6 +1002,37 @@
     <string name="admin2_csf_lot_name">Nombre del lote</string>
     <string name="admin2_csf_check_document">Es una constancia del SAT, se lee completa y el estatus dice “ACTIVO”</string>
     <string name="admin2_csf_check_name">El nombre o razón social coincide con el del lote</string>
+    <!-- Pagos de destacados -->
+    <string name="admin2_pay_title">Datos para recibir pagos</string>
+    <string name="admin2_pay_desc">Es lo que ven los lotes al pedir un destacado (sin el nombre del titular).</string>
+    <string name="admin2_pay_price">Precio (MXN)</string>
+    <string name="admin2_pay_days">Días</string>
+    <string name="admin2_pay_bank">Banco</string>
+    <string name="admin2_pay_clabe">CLABE (18 dígitos)</string>
+    <string name="admin2_pay_save">Guardar</string>
+    <string name="admin2_pay_missing">Mientras no guardes tu banco y CLABE, nadie puede pedir destacados.</string>
+    <string name="admin2_pay_saved">Datos de pago guardados.</string>
+    <string name="admin2_pay_load_error">No se pudieron leer los datos de pago.</string>
+    <string name="admin2_pay_error_price">El precio debe ser mayor a 0 y de máximo $100,000.</string>
+    <string name="admin2_pay_error_days">Los días deben estar entre 1 y 365.</string>
+    <string name="admin2_pay_error_bank">El nombre del banco puede tener como máximo 60 caracteres.</string>
+    <string name="admin2_pay_error_clabe">La CLABE debe tener 18 dígitos.</string>
+    <string name="admin2_pay_trial">Sin pago (etapa de prueba)</string>
+    <string name="admin2_pay_section">Pago</string>
+    <string name="admin2_pay_amount">Monto</string>
+    <string name="admin2_pay_reference">Referencia</string>
+    <string name="admin2_pay_review">Revisar pago</string>
+    <string name="admin2_pay_review_title">Revisar pago de %1$s</string>
+    <string name="admin2_pay_review_sub">Confirma en tu banco que el pago llegó antes de destacar el auto.</string>
+    <string name="admin2_pay_view_receipt">Ver comprobante</string>
+    <string name="admin2_pay_expected_amount">Monto esperado</string>
+    <string name="admin2_pay_expected_reference">Referencia esperada</string>
+    <string name="admin2_pay_lot">Lote</string>
+    <string name="admin2_pay_vehicle">Auto</string>
+    <string name="admin2_pay_steps">1. Abre tu banca en línea.\n2. Busca una transferencia de %1$s con la referencia %2$s (o a nombre del lote).\n3. Confirma que el dinero ya está en tu cuenta: no te bases solo en la imagen, se puede alterar.\n4. Si todo coincide, aprueba; si no, recházala y escribe el motivo.</string>
+    <string name="admin2_pay_check_amount">El monto coincide</string>
+    <string name="admin2_pay_check_found">Encontré el pago (por la referencia o el nombre)</string>
+    <string name="admin2_pay_check_received">El dinero ya está en mi cuenta</string>
     <plurals name="admin2_notifications_unread">
         <item quantity="one">Notificaciones (%1$d sin leer)</item>
         <item quantity="other">Notificaciones (%1$d sin leer)</item>
@@ -1249,8 +1303,8 @@
     <string name="terms_s2_body">Puedes registrarte como Particular o como Lote. Te comprometes a dar información real y actualizada, y a mantener tu contraseña en secreto. Eres responsable de toda la actividad que ocurra en tu cuenta.</string>
     <string name="terms_s3_title">3. Publicaciones</string>
     <string name="terms_s3_body">Las publicaciones deben describir el vehículo de forma veraz: precio, kilometraje, estado y fotos reales del vehículo. Toda publicación pasa por una revisión del equipo de administración antes de mostrarse a los compradores y puede ser rechazada si no cumple con estas reglas.</string>
-    <string name="terms_s4_title">4. Publicaciones destacadas</string>
-    <string name="terms_s4_body">Puedes solicitar que tu vehículo aparezca en la sección de destacados. La solicitud será revisada por un administrador, quien puede aprobarla o rechazarla indicando el motivo. Un destacado aprobado dura 1 mes a partir de la aprobación; al terminar, la publicación sigue activa como una publicación normal y puedes volver a solicitarlo.</string>
+    <string name="terms_s4_title">4. Destacados y pagos</string>
+    <string name="terms_s4_body">Solo las cuentas de tipo Lote pueden solicitar que un vehículo aparezca en la sección de destacados. El destacado se paga por transferencia a la cuenta (banco y CLABE) que se muestra al solicitarlo, con la referencia indicada, y se adjunta el comprobante. El destacado empieza cuando un administrador confirma el pago y dura los días indicados al solicitarlo; si el pago no se puede confirmar, la solicitud se rechaza indicando el motivo. El pago no es reembolsable en ningún caso, incluido si la publicación se vende, se pausa o se deshabilita antes de que termine el destacado.</string>
     <string name="terms_s5_title">5. Contacto y tratos entre usuarios</string>
     <string name="terms_s5_body">Los acuerdos, pagos y entregas se realizan directamente entre comprador y vendedor. Te recomendamos revisar la documentación del vehículo, verificar la identidad del vendedor y no realizar pagos por adelantado sin haber visto el vehículo.</string>
     <string name="terms_s6_title">6. Conductas no permitidas</string>
@@ -1303,7 +1357,7 @@
     <string name="notif_favorite">A alguien le gustó tu publicación \"%1$s\" y la agregó a sus favoritos.</string>
     <string name="notif_sent">Tu publicación \"%1$s\" se envió al administrador y la está revisando.</string>
     <string name="notif_approved">¡Tu publicación \"%1$s\" fue aprobada! Ya está visible para todos.</string>
-    <string name="notif_featured_mine">Tu publicación \"%1$s\" ahora es destacada durante 1 mes.</string>
+    <string name="notif_featured_mine">Tu publicación \"%1$s\" ahora es destacada. Aparece en la sección Destacados de Karsy.</string>
     <string name="notif_featured_expiring">Tu destacado de \"%1$s\" termina en menos de 3 días. Renuévalo para seguir apareciendo en destacados.</string>
     <string name="notif_account_suspended">Tu cuenta de Karsy fue suspendida por administración. Mientras esté suspendida no podrás entrar a la app.</string>
     <string name="notif_account_reactivated">Tu cuenta de Karsy fue reactivada. Ya puedes volver a entrar.</string>
@@ -1320,6 +1374,7 @@
     <string name="notif_verification_pending_curp">Un particular envió su CURP para verificar su cuenta. Revísala en Verificación.</string>
     <string name="notif_verification_approved">¡Tu cuenta de Karsy fue verificada! Ya aparece la insignia en tu perfil.</string>
     <string name="notif_verification_rejected">No pudimos verificar tu cuenta. Revisa el motivo y vuelve a enviarla desde tu perfil.</string>
+    <string name="notif_payment_featured">Llegó un pago para destacar “%1$s”. Revísalo en Destacados.</string>
     <string name="notif_prefs_title">Elegir qué avisos recibir</string>
     <string name="notif_prefs_system_off">Las notificaciones de Karsy están apagadas en tu teléfono. Toca aquí para activarlas.</string>
     <string name="notif_prefs_prices">Precios de tus favoritos</string>

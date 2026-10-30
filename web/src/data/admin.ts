@@ -148,11 +148,22 @@ export interface DestacadoAdmin {
   motivo_rechazo: string | null
   solicitante: string
   solicitante_foto: string | null
+  /** Pago de la solicitud; null en las de la etapa de prueba (sin pago). */
+  monto: number | null
+  referencia: string | null
+  /** Ruta del comprobante en el bucket privado comprobantes-pago. */
+  comprobante_path: string | null
 }
 
 export const adminAccounts = async () => (check(await supabase.rpc('admin_listar_cuentas')) ?? []) as CuentaAdmin[]
 export const adminReports = async () => (check(await supabase.rpc('admin_listar_reportes')) ?? []) as ReporteAdmin[]
-export const adminFeatured = async () => (check(await supabase.rpc('admin_listar_destacados')) ?? []) as DestacadoAdmin[]
+
+/** Solicitudes de destacado con su pago. De paso borra los comprobantes que ya nadie usa (sin esperar). */
+export async function adminFeatured(): Promise<DestacadoAdmin[]> {
+  const rows = (check(await supabase.rpc('admin_listar_destacados')) ?? []) as DestacadoAdmin[]
+  void borrarComprobantesSinUso()
+  return rows.map((d) => ({ ...d, monto: d.monto == null ? null : Number(d.monto) }))
+}
 
 /** Publicaciones que todavía no tienen huellas de fotos (las que ya existían), con sus fotos. */
 export async function publicacionesSinHuellas(): Promise<{ id: number; fotos: string[] }[]> {
@@ -210,6 +221,35 @@ export async function setAccountSuspended(idCuenta: string, suspender: boolean, 
 /** estado: "atendido" | "descartado". */
 export async function resolveReport(idReporte: number, estado: 'atendido' | 'descartado', motivo: string, deshabilitar: boolean) {
   check(await supabase.rpc('admin_resolver_reporte', { p_id_reporte: idReporte, p_estado: estado, p_motivo: motivo, p_deshabilitar: deshabilitar }))
+}
+
+/** Guarda precio, días, banco y CLABE para recibir los pagos de destacados. */
+export async function guardarConfigPagos(precio: number, dias: number, banco: string, clabe: string) {
+  check(await supabase.rpc('admin_guardar_config_pagos', { p_precio: precio, p_dias: dias, p_banco: banco, p_clabe: clabe }))
+}
+
+/** Bucket privado de los comprobantes de pago de destacados. */
+const BUCKET_COMPROBANTES = 'comprobantes-pago'
+
+/**
+ * Borra del bucket los comprobantes que ya no se necesitan (destacado terminado, rechazados
+ * reemplazados o viejos, subidos y no enviados). Si falla, se reintenta al volver a cargar.
+ */
+async function borrarComprobantesSinUso() {
+  try {
+    const { data } = await supabase.rpc('admin_comprobantes_sin_uso')
+    const rutas = (data ?? []) as string[]
+    if (rutas.length) await supabase.storage.from(BUCKET_COMPROBANTES).remove(rutas)
+  } catch {
+    // no bloquea el panel
+  }
+}
+
+/** URL firmada de 10 minutos para ver un comprobante de pago (el bucket es privado). */
+export async function comprobanteUrl(ruta: string): Promise<string> {
+  const { data, error } = await supabase.storage.from(BUCKET_COMPROBANTES).createSignedUrl(ruta, 600)
+  if (error) throw error
+  return data.signedUrl
 }
 
 export async function resolveFeatured(idSolicitud: number, aprobar: boolean, motivo: string | null) {

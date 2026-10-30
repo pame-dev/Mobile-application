@@ -21,6 +21,7 @@ import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.data.model.SellerContact
 import com.pame.karsy.data.remote.AnuncioDto
 import com.pame.karsy.data.remote.ContactoDto
+import com.pame.karsy.data.remote.DatosPagoDto
 import com.pame.karsy.data.remote.DestacadoFinDto
 import com.pame.karsy.data.remote.DocumentoVehiculoDto
 import com.pame.karsy.data.remote.FavoritoDto
@@ -29,7 +30,6 @@ import com.pame.karsy.data.remote.FotoPropuestaDto
 import com.pame.karsy.data.remote.InteraccionDto
 import com.pame.karsy.data.remote.InteraccionInsert
 import com.pame.karsy.data.remote.ReporteInsert
-import com.pame.karsy.data.remote.SolicitudDestacadoInsert
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
@@ -228,8 +228,36 @@ object CarRepository {
         db.from("reportes").insert(ReporteInsert(id, uid, motivo))
     }
 
-    suspend fun requestFeatured(id: Long) {
-        db.from("solicitudes_destacado").insert(SolicitudDestacadoInsert(id))
+    /** Bucket privado de los comprobantes de pago de destacados (dueño y admin). */
+    const val BUCKET_COMPROBANTES = "comprobantes-pago"
+
+    /** Precio, días, banco y CLABE para pagar un destacado (función datos_pago_destacado). */
+    suspend fun datosPagoDestacado(): DatosPagoDto? =
+        db.postgrest.rpc("datos_pago_destacado").decodeList<DatosPagoDto>().firstOrNull()
+
+    /**
+     * Sube el comprobante (JPG, PNG o PDF) al bucket privado y devuelve su ruta
+     * (<id_cuenta>/<uuid>.<jpg|png|pdf>). [mime] ya viene revisado con Constancia.mimeValido.
+     */
+    suspend fun uploadComprobante(bytes: ByteArray, mime: String): String {
+        val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.featured_pay_error_login))
+        val ruta = "$uid/${UUID.randomUUID()}.${Constancia.extension(mime)}"
+        db.storage.from(BUCKET_COMPROBANTES).upload(ruta, bytes) {
+            upsert = false
+            contentType = ContentType.parse(mime)
+        }
+        return ruta
+    }
+
+    /**
+     * Pide destacar una publicación propia con el comprobante ya subido (función solicitar_destacado:
+     * solo lotes). Si ya hay una solicitud pendiente la BD responde 23505 (esDuplicado).
+     */
+    suspend fun requestFeatured(id: Long, comprobante: String) {
+        db.postgrest.rpc("solicitar_destacado", buildJsonObject {
+            put("p_id_publicacion", id)
+            put("p_comprobante", comprobante)
+        })
     }
 
     /** Anuncios vistos por la cuenta en sesión, con el texto "Visto hace …". */

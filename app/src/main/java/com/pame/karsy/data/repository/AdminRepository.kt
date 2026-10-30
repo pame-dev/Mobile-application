@@ -23,7 +23,7 @@ object AdminRepository {
 
     private val db get() = Supabase.client
 
-    /** Lo que dura la URL firmada para ver un documento de verificación. */
+    /** Lo que dura la URL firmada para ver un documento de verificación o un comprobante de pago. */
     private val CONSTANCIA_URL_EXPIRA = 10.minutes
 
     suspend fun accounts(): List<CuentaAdminDto> =
@@ -134,5 +134,31 @@ object AdminRepository {
             put("p_aprobar", approve)
             put("p_motivo", reason)
         })
+    }
+
+    /** Guarda precio, días y la cuenta (banco y CLABE) donde se pagan los destacados. */
+    suspend fun guardarConfigPagos(precio: Double, dias: Int, banco: String?, clabe: String?) {
+        db.postgrest.rpc("admin_guardar_config_pagos", buildJsonObject {
+            put("p_precio", precio)
+            put("p_dias", dias)
+            put("p_banco", banco)
+            put("p_clabe", clabe)
+        })
+    }
+
+    /** URL firmada y temporal (10 min) del comprobante de pago de un destacado. */
+    suspend fun comprobanteSignedUrl(ruta: String): String =
+        db.storage.from(CarRepository.BUCKET_COMPROBANTES).createSignedUrl(ruta, CONSTANCIA_URL_EXPIRA)
+
+    /**
+     * Borra del bucket privado los comprobantes que ya no se necesitan (destacado terminado,
+     * rechazado y reemplazado, o subidos y nunca enviados). Nunca lanza: si falla, se reintenta
+     * al abrir el panel otra vez.
+     */
+    suspend fun borrarComprobantesSinUso() {
+        runCatching {
+            val rutas = db.postgrest.rpc("admin_comprobantes_sin_uso").decodeAs<List<String>>()
+            if (rutas.isNotEmpty()) db.storage.from(CarRepository.BUCKET_COMPROBANTES).delete(rutas)
+        }
     }
 }

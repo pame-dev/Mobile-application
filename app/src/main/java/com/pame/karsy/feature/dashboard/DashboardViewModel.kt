@@ -1,16 +1,15 @@
 package com.pame.karsy.feature.dashboard
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import com.pame.karsy.core.session.PublicacionesOcultas
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pame.karsy.R
-import com.pame.karsy.core.locale.texto
 import com.pame.karsy.core.session.SessionManager
-import com.pame.karsy.core.supabase.esDuplicado
 import com.pame.karsy.core.supabase.mensajeUsuario
+import com.pame.karsy.core.util.PagoDestacado
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.repository.CarRepository
@@ -41,7 +40,7 @@ class DashboardViewModel : ViewModel() {
 
     val displayName: String get() = SessionManager.account?.nombre.orEmpty()
 
-    /** Auto para el que se muestra el diálogo "¿Quieres destacar tu vehículo?". */
+    /** Auto para el que se muestra la ventana "Destacar tu auto". */
     var destacarCar by mutableStateOf<Car?>(null)
         private set
 
@@ -66,28 +65,33 @@ class DashboardViewModel : ViewModel() {
         }
     }
 
-    /** Destacar pide confirmación; renovar un destacado que está por terminar va directo (un toque). */
+    /** Solo los lotes pueden destacar o renovar (cuentas.tipo_cuenta). */
+    val puedeDestacar: Boolean get() = PagoDestacado.puedeDestacar(SessionManager.account?.tipoCuenta)
+
+    /** Datos de pago, comprobante y casilla de la ventana "Destacar tu auto". */
+    val pago = DestacarPago()
+
+    /** Destacar y renovar abren la misma ventana: los dos se pagan con transferencia y comprobante. */
     fun askDestacar(car: Car) {
+        if (!puedeDestacar) return
         destacarCar = car
-        if (car.featured && car.featuredEndsSoon) confirmDestacar()
+        pago.abrir(this)
     }
 
     fun cancelDestacar() {
+        if (pago.enviando) return
         destacarCar = null
     }
 
-    fun confirmDestacar() {
+    fun retryDatosPago() = pago.cargar(this)
+
+    /** Sube el comprobante y pide el destacado; al aceptarse se ve "Solicitud enviada". */
+    fun confirmDestacar(context: Context) {
         val car = destacarCar ?: return
-        destacarCar = null
-        viewModelScope.launch {
-            safeCall { CarRepository.requestFeatured(car.id) }
-                .onSuccess {
-                    solicitudCar = car
-                    myListings = myListings.map { if (it.id == car.id) it.copy(featuredPending = true) else it }
-                }
-                .onFailure {
-                    error = if (it.esDuplicado()) texto(R.string.profile_dashboard_request_already_pending) else it.mensajeUsuario()
-                }
+        pago.enviar(this, context, car.id) {
+            destacarCar = null
+            solicitudCar = car
+            myListings = myListings.map { if (it.id == car.id) it.copy(featuredPending = true) else it }
         }
     }
 

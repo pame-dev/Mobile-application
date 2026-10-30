@@ -332,11 +332,11 @@ fun CarDetailScreen(
                 onEdit = ::editPublication,
                 onPause = { confirmPause = true },
                 onResume = { setPaused(false) },
+                puedeDestacar = vm.puedeDestacar,
                 onFeature = {
-                    // Renovar va directo (un toque); destacar por primera vez pide confirmación.
-                    if (detail.car.featured && detail.car.featuredEndsSoon) {
-                        vm.requestFeatured { error -> if (error == null) featureSent = true else toastMessage = error }
-                    } else askFeature = true
+                    // Destacar y renovar abren la misma ventana: los dos se pagan con comprobante.
+                    vm.openFeature()
+                    askFeature = true
                 },
                 onMarkSold = { confirmSold = true },
                 onMarkAvailable = { confirmAvailable = true },
@@ -505,15 +505,20 @@ fun CarDetailScreen(
             )
         }
 
-        // Mismos diálogos que en Mi Panel para pedir que se destaque.
-        if (askFeature) {
+        // Mismos diálogos que en Mi Panel para pedir que se destaque (solo lotes).
+        if (askFeature && vm.puedeDestacar) {
             DestacarDialog(
                 carName = "${detail.car.title} ${detail.car.year}",
-                onConfirm = {
-                    askFeature = false
-                    vm.requestFeatured { error -> if (error == null) featureSent = true else toastMessage = error }
+                idPublicacion = detail.car.id,
+                pago = vm.pago,
+                onRetry = vm::retryDatosPago,
+                onSend = {
+                    vm.requestFeatured(context) {
+                        askFeature = false
+                        featureSent = true
+                    }
                 },
-                onCancel = { askFeature = false }
+                onCancel = { if (!vm.pago.enviando) askFeature = false }
             )
         }
         if (featureSent) {
@@ -581,6 +586,8 @@ private fun OwnerActionsBar(
     onEdit: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
+    /** Solo los lotes ven Destacar y Renovar; un particular solo ve el estado de su destacado vigente. */
+    puedeDestacar: Boolean,
     onFeature: () -> Unit,
     onMarkSold: () -> Unit,
     onMarkAvailable: () -> Unit,
@@ -591,7 +598,7 @@ private fun OwnerActionsBar(
     // Pausar, destacar y marcar como vendida solo aplican a una publicación aprobada que el dueño controla.
     // Marcar como vendida, además, solo cuando está activa.
     val canToggle = car.approved && car.status in listOf(EstadoAuto.ACTIVO, EstadoAuto.PAUSADO)
-    val showFeature = car.approved && car.status == EstadoAuto.ACTIVO
+    val showFeature = car.approved && car.status == EstadoAuto.ACTIVO && (puedeDestacar || car.featured || car.featuredPending)
     // Una rechazada se corrige desde el aviso de arriba.
     val canEdit = car.status != EstadoAuto.VENDIDO && car.rejectedReason == null
     val isSold = car.status == EstadoAuto.VENDIDO
@@ -628,7 +635,7 @@ private fun OwnerActionsBar(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                val renovar = car.featured && car.featuredEndsSoon && !car.featuredPending
+                val renovar = puedeDestacar && car.featured && car.featuredEndsSoon && !car.featuredPending
                 if (showFeature) OwnerButton(
                     text = when {
                         renovar -> stringResource(R.string.detail_owner_renew)
@@ -641,7 +648,7 @@ private fun OwnerActionsBar(
                     },
                     onClick = onFeature,
                     // Una solicitud a la vez; un destacado vigente solo se renueva si está por terminar.
-                    enabled = !car.featuredPending && (!car.featured || renovar),
+                    enabled = puedeDestacar && !car.featuredPending && (!car.featured || renovar),
                     filled = renovar,
                     color = if (renovar) KarsyTeal else FeatureGold,
                     modifier = Modifier.weight(1f)

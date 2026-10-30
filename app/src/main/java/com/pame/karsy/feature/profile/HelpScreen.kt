@@ -63,6 +63,7 @@ private val PREGUNTAS: List<Pair<Int, Int>> = listOf(
     R.string.help_q_review to R.string.help_a_review,
     R.string.help_q_rejected to R.string.help_a_rejected,
     R.string.help_q_featured to R.string.help_a_featured,
+    R.string.help_q_featured_cost to R.string.help_a_featured_cost,
     R.string.help_q_verify to R.string.help_a_verify,
     R.string.help_q_contact to R.string.help_a_contact,
     R.string.help_q_safe to R.string.help_a_safe,
