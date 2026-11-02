@@ -25,6 +25,7 @@ export function ProfileHeader({
   info,
   actions,
   coverAction,
+  back,
 }: {
   name: string
   avatarUrl: string | null
@@ -38,6 +39,8 @@ export function ProfileHeader({
   info?: ReactNode
   actions?: ReactNode
   coverAction?: ReactNode
+  /** Flecha de regresar: va en la esquina superior izquierda de la portada (no sola encima). */
+  back?: ReactNode
 }) {
   const { openModal, closeModal } = useUi()
   const { t } = useI18n()
@@ -50,6 +53,7 @@ export function ProfileHeader({
     <>
       <div className="cover">
         {coverUrl && !portadaFallo && <img src={coverUrl} alt="" onError={() => setPortadaFallo(true)} />}
+        {back && <div className="coverback">{back}</div>}
         {coverAction}
       </div>
       <div className="ownhead">
