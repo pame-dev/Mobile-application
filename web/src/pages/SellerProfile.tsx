@@ -73,10 +73,8 @@ export function SellerProfile() {
 
   return (
     <div className="wrap page-top">
-      <div style={{ marginBottom: 'var(--s-4)' }}>
-        <VolverButton fallback="/" />
-      </div>
       <ProfileHeader
+        back={<VolverButton fallback="/" />}
         name={perfil.name}
         avatarUrl={perfil.avatarUrl}
         coverUrl={perfil.coverUrl}

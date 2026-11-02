@@ -70,8 +70,13 @@ import kotlinx.coroutines.launch
 fun SavedSearchesScreen(onBack: () -> Unit, onExplore: () -> Unit) {
     val scope = rememberCoroutineScope()
     var busquedas by remember { mutableStateOf<List<BusquedaGuardadaDto>?>(null) }
+    /** Falló la primera carga: se dice en lugar de mostrar la lista vacía. */
+    var errorCarga by remember { mutableStateOf<String?>(null) }
     suspend fun load() {
-        busquedas = safeCall { SearchRepository.mine() }.getOrDefault(emptyList())
+        safeCall { SearchRepository.mine() }
+            .onSuccess { busquedas = it; errorCarga = null }
+            // Al refrescar sin red se conserva lo que ya se veía.
+            .onFailure { if (busquedas == null) errorCarga = it.mensajeUsuario() else AvisoKarsy.mostrar(it.mensajeUsuario(), error = true) }
     }
     LaunchedEffect(Unit) { load() }
 
@@ -110,6 +115,10 @@ fun SavedSearchesScreen(onBack: () -> Unit, onExplore: () -> Unit) {
                     modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 14.dp)
                 )
                 val items = busquedas
+                errorCarga?.takeIf { items == null }?.let { msg ->
+                    ProfileLoadError(msg) { errorCarga = null; scope.launch { load() } }
+                    return@Column
+                }
                 ProfileCard {
                     when {
                         items == null -> Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {

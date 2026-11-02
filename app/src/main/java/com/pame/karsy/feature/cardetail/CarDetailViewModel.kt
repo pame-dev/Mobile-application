@@ -35,6 +35,11 @@ class CarDetailViewModel : ViewModel() {
         private set
     var contactLoading by mutableStateOf(false)
         private set
+    /** No se pudo leer el contacto (red): la hoja muestra el error con "Reintentar". */
+    var contactError by mutableStateOf(false)
+        private set
+    /** El contacto ya se contó en esta visita (las estadísticas no se inflan al refrescar o reabrir). */
+    private var contactoRegistrado = false
     var sellerCars by mutableStateOf<List<Car>>(emptyList())
         private set
 
@@ -166,13 +171,20 @@ class CarDetailViewModel : ViewModel() {
         }
     }
 
-    /** Pide teléfono y correo del vendedor (y registra el contacto). */
-    fun loadContact() {
+    /** Pide teléfono y correo del vendedor; con [registrar] (al abrir la hoja) cuenta el contacto una vez. */
+    fun loadContact(registrar: Boolean = true) {
         val id = detail?.car?.id ?: return
+        if (registrar && !contactoRegistrado) {
+            contactoRegistrado = true
+            viewModelScope.launch { CarRepository.registrarContacto(id) }
+        }
         if (contact != null || contactLoading) return
         contactLoading = true
+        contactError = false
         viewModelScope.launch {
-            contact = safeCall { CarRepository.contact(id) }.getOrNull()
+            safeCall { CarRepository.contact(id) }
+                .onSuccess { contact = it }
+                .onFailure { contactError = true }
             contactLoading = false
         }
     }
@@ -183,7 +195,8 @@ class CarDetailViewModel : ViewModel() {
         viewModelScope.launch {
             sellerCars = safeCall { CarRepository.ownerCars(sellerId, onlyVisible = true) }.getOrDefault(emptyList())
         }
-        loadContact()
+        // Ver el perfil no es contactar: no se cuenta.
+        loadContact(registrar = false)
     }
 
     fun report(motivo: String, onDone: (String?) -> Unit) {

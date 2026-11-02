@@ -4,8 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.core.app.NotificationManagerCompat
-import android.provider.Settings
-import android.content.Intent
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.push.datosDeAviso
 import com.pame.karsy.core.push.notificationText
@@ -77,6 +76,8 @@ import com.pame.karsy.core.theme.KarsySlate
 import com.pame.karsy.core.theme.KarsySlateSoft
 import com.pame.karsy.core.theme.KarsyTealSoft
 import com.pame.karsy.core.theme.KarsyTextSize
+import com.pame.karsy.core.util.abrirAjustesDeNotificaciones
+import com.pame.karsy.core.supabase.mensajeUsuario
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -149,11 +150,18 @@ fun NotificationsScreen(
     onProfile: () -> Unit = {},
 ) {
     var notifications by remember { mutableStateOf<List<NotificacionDto>?>(null) }
+    /** Falló la primera carga: se dice en lugar de mostrar "sin avisos". */
+    var errorCarga by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     suspend fun load() {
-        val lista = safeCall { NotificationRepository.mine() }.getOrDefault(emptyList())
-        if (lista.any { !it.leida }) safeCall { NotificationRepository.markAllRead() }
-        notifications = lista
+        safeCall { NotificationRepository.mine() }
+            .onSuccess { lista ->
+                if (lista.any { !it.leida }) safeCall { NotificationRepository.markAllRead() }
+                notifications = lista
+                errorCarga = null
+            }
+            // Al refrescar sin red se conserva lo que ya se veía.
+            .onFailure { if (notifications == null) errorCarga = it.mensajeUsuario() else AvisoKarsy.mostrar(it.mensajeUsuario(), error = true) }
     }
     LaunchedEffect(Unit) { load() }
     Column(
@@ -177,6 +185,10 @@ fun NotificationsScreen(
                 PreferencesRow(onPreferences)
                 Spacer(Modifier.height(14.dp))
                 val items = notifications
+                errorCarga?.takeIf { items == null }?.let { msg ->
+                    ProfileLoadError(msg) { errorCarga = null; scope.launch { load() } }
+                    return@Column
+                }
                 if (items == null) {
                     // Esqueleto de la lista mientras carga.
                     ProfileCard {
@@ -302,9 +314,7 @@ private fun PreferencesRow(onPreferences: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                            runCatching { context.startActivity(intent) }
+                            abrirAjustesDeNotificaciones(context)
                         }
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {

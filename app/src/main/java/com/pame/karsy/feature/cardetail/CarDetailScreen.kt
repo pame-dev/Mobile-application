@@ -572,6 +572,8 @@ fun CarDetailScreen(
             detail = detail,
             contact = vm.contact,
             loading = vm.contactLoading,
+            error = vm.contactError,
+            onRetry = { vm.loadContact(registrar = false) },
             onDismiss = { showContact = false },
             onOpenProfile = {
                 showContact = false
@@ -888,26 +890,31 @@ private fun DetailHeader(
     onReport: () -> Unit,
     onShare: () -> Unit,
 ) {
-    Box(
+    // Fila: flecha, título en el espacio que queda y botones. Con las zonas táctiles de 48dp los
+    // botones ya no caben alrededor de un título centrado sobre todo el ancho (lo tapaban).
+    Row(
         Modifier
             .fillMaxWidth()
             .background(KarsyBg)
             .statusBarsPadding()
-            .padding(start = 12.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        KarsyBackButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart), contentDescription = stringResource(R.string.detail_back))
+        KarsyBackButton(onClick = onBack, contentDescription = stringResource(R.string.detail_back))
         Text(
             stringResource(R.string.detail_title),
             fontFamily = Outfit,
             fontWeight = FontWeight.Bold,
             fontSize = KarsyTextSize.TitleLarge,
             color = KarsyInk,
-            modifier = Modifier.align(Alignment.Center)
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp)
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
+        // Sin separación extra: la zona táctil de 48dp de cada botón ya deja aire entre ellos.
+        Row {
             // Compartir: para todos, también el dueño (es quien más comparte su publicación).
             HeaderSquareButton(onClick = onShare) {
                 Icon(
@@ -1302,5 +1309,5 @@ private fun shareCar(context: Context, detail: CarDetail) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, lineas.joinToString("\n"))
     }
-    context.startActivity(Intent.createChooser(intent, context.getString(R.string.detail_share)))
+    runCatching { context.startActivity(Intent.createChooser(intent, context.getString(R.string.detail_share))) }
 }

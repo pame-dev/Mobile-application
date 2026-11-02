@@ -46,10 +46,11 @@ export function Lots() {
 
   return (
     <div className="wrap page-top">
-      <div style={{ marginBottom: 'var(--s-4)' }}>
-        <VolverButton fallback="/" />
-      </div>
       <div className="banner">
+        {/* Flecha dentro del banner (no sola encima). */}
+        <div style={{ marginBottom: 'var(--s-4)' }}>
+          <VolverButton fallback="/" />
+        </div>
         <span className="eyebrow" style={{ color: '#8FD3D8' }}>
           {t('perfil.lotsEyebrow')}
         </span>

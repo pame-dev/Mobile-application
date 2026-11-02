@@ -1,8 +1,11 @@
 package com.pame.karsy.feature.cardetail
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -62,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBorderMuted
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsySurface
@@ -71,6 +75,7 @@ import com.pame.karsy.core.theme.KarsyCharcoal
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTeal
+import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWarning
 import com.pame.karsy.core.theme.KarsyWarningLight
@@ -95,12 +100,17 @@ internal fun ContactSheet(
     loading: Boolean,
     onDismiss: () -> Unit,
     onOpenProfile: () -> Unit,
+    /** No se pudo leer el contacto: se muestra el error con "Reintentar" en lugar de "Sin teléfono". */
+    error: Boolean = false,
+    onRetry: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val telefono = contact?.telefono
     val whatsapp = contact?.whatsapp
     val prefiereWhatsapp = contact?.medioPrincipal == "whatsapp"
     val mensajeWhatsapp = stringResource(R.string.detail_whatsapp_message, detail.car.title, detail.car.year)
+    val sinApp = stringResource(R.string.detail_no_dialer)
+    val sinWhatsapp = stringResource(R.string.detail_no_whatsapp_app)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -178,6 +188,23 @@ internal fun ContactSheet(
                     )
                     if (loading) {
                         CircularProgressIndicator(color = KarsyTeal, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                    } else if (error) {
+                        Text(
+                            stringResource(R.string.detail_contact_error),
+                            fontFamily = DmSans,
+                            fontSize = KarsyTextSize.Small,
+                            color = KarsyError
+                        )
+                        Text(
+                            stringResource(R.string.home_retry),
+                            fontFamily = DmSans,
+                            fontSize = KarsyTextSize.Body,
+                            fontWeight = FontWeight.Bold,
+                            color = KarsyTealText,
+                            modifier = Modifier
+                                .clickable(role = Role.Button, onClick = onRetry)
+                                .padding(vertical = 8.dp)
+                        )
                     } else {
                         Text(
                             telefono ?: stringResource(R.string.detail_no_phone),
@@ -217,14 +244,16 @@ internal fun ContactSheet(
                 val llamar: @Composable (Boolean) -> Unit = { primary ->
                     ContactButton(stringResource(R.string.detail_call_seller), Icons.Rounded.Call, primary, enabled = telefono != null) {
                         telefono?.let {
-                            context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + it.filter { c -> c.isDigit() || c == '+' })))
+                            val llamada = Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + it.filter { c -> c.isDigit() || c == '+' }))
+                            // Sin app de teléfono (p. ej. tabletas): se copia el número en lugar de cerrar la app.
+                            if (runCatching { context.startActivity(llamada) }.isFailure) copiarNumero(context, it, sinApp)
                         }
                     }
                 }
                 val escribir: @Composable (Boolean) -> Unit = { primary ->
                     ContactButton(stringResource(R.string.detail_send_whatsapp), Icons.AutoMirrored.Rounded.Chat, primary, enabled = whatsapp != null) {
                         whatsapp?.let {
-                            openWhatsapp(context, it, mensajeWhatsapp)
+                            if (!openWhatsapp(context, it, mensajeWhatsapp)) copiarNumero(context, it, sinWhatsapp)
                         }
                     }
                 }
@@ -355,9 +384,18 @@ private fun ContactButton(
 }
 
 /** Abre un chat de WhatsApp con un mensaje listo. Los números de 10 dígitos se toman como de México (+52). */
-internal fun openWhatsapp(context: Context, numero: String, mensaje: String) {
+internal fun openWhatsapp(context: Context, numero: String, mensaje: String): Boolean {
     val digitos = numero.filter { it.isDigit() }
     val internacional = if (digitos.length == 10) "52$digitos" else digitos
     val uri = Uri.parse("https://wa.me/$internacional?text=${Uri.encode(mensaje)}")
-    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+    return runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }.isSuccess
+}
+
+/**
+ * Sin app para llamar o abrir WhatsApp: copia el número y lo avisa. Toast (no AvisoKarsy) porque
+ * la hoja de contacto es otra ventana y el aviso de la pantalla quedaría debajo.
+ */
+private fun copiarNumero(context: Context, numero: String, aviso: String) {
+    context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("tel", numero))
+    Toast.makeText(context, aviso, Toast.LENGTH_LONG).show()
 }

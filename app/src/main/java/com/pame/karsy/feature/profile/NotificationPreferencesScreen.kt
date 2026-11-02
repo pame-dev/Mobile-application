@@ -56,8 +56,15 @@ import kotlinx.coroutines.launch
 fun NotificationPreferencesScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var prefs by remember { mutableStateOf<PreferenciasAvisosDto?>(null) }
+    /**
+     * Falló la primera carga: no se muestran interruptores con valores por defecto, porque al
+     * tocar uno se guardarían encima de las preferencias reales.
+     */
+    var errorCarga by remember { mutableStateOf<String?>(null) }
     suspend fun load() {
-        prefs = safeCall { NotificationRepository.preferences() }.getOrDefault(prefs ?: PreferenciasAvisosDto())
+        safeCall { NotificationRepository.preferences() }
+            .onSuccess { prefs = it; errorCarga = null }
+            .onFailure { if (prefs == null) errorCarga = it.mensajeUsuario() else AvisoKarsy.mostrar(it.mensajeUsuario(), error = true) }
     }
     LaunchedEffect(Unit) { load() }
 
@@ -93,6 +100,10 @@ fun NotificationPreferencesScreen(onBack: () -> Unit) {
                 .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
         ) {
             val p = prefs
+            errorCarga?.takeIf { p == null }?.let { msg ->
+                ProfileLoadError(msg) { errorCarga = null; scope.launch { load() } }
+                return@Column
+            }
             ProfileCard {
                 if (p == null) {
                     Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) { repeat(4) { SkeletonListRow() } }

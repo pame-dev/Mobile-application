@@ -341,6 +341,9 @@
     <string name="detail_contact_info_title">Contact information</string>
     <string name="detail_close">Close</string>
     <string name="detail_no_phone">No phone number on file</string>
+    <string name="detail_contact_error">We couldn\'t load the seller\'s details. Check your connection.</string>
+    <string name="detail_no_dialer">We couldn\'t find an app to make calls. We copied the number.</string>
+    <string name="detail_no_whatsapp_app">We couldn\'t open WhatsApp. We copied the number.</string>
     <string name="detail_whatsapp_number">WhatsApp: %1$s</string>
     <string name="detail_no_whatsapp">No WhatsApp</string>
     <string name="detail_prefers_whatsapp">Prefers to be messaged on WhatsApp</string>

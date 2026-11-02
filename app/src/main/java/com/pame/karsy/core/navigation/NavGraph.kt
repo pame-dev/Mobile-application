@@ -165,11 +165,17 @@ fun KarsyNavGraph(
      * vendedor, particular → inicio. El inicio queda debajo para regresar con "atrás".
      */
     fun enterAs(account: SessionAccount) {
+        // Si el registro o el login empezó desde un auto (p. ej. "Contactar" como visitante), ese
+        // detalle sigue en la pila debajo de las pantallas de cuenta: se vuelve a él en lugar de
+        // mandar a Inicio, para que no tenga que buscarlo otra vez.
+        val volverAlAuto = runCatching { navController.getBackStackEntry(Routes.CarDetail.route) }.getOrNull()
+            ?.arguments?.getLong(Routes.CarDetail.ARG)?.takeIf { it > 0 }
         SessionManager.login(account)
         navController.navigate(Routes.Home.route) {
             popUpTo(navController.graph.id) { inclusive = true }
         }
         when {
+            volverAlAuto != null -> navController.navigate(Routes.CarDetail.createRoute(volverAlAuto))
             account.tienePanel -> navController.navigate(Routes.AdminDashboard.route)
             account.mode == UserMode.LOTE -> navController.navigate(Routes.Dashboard.route)
         }
@@ -220,12 +226,23 @@ fun KarsyNavGraph(
         }
     }
 
-    fun openCar(id: Long) = navController.navigate(Routes.CarDetail.createRoute(id))
+    /**
+     * La pantalla actual está activa (no se está yendo). Evita que un doble toque en "atrás" o en
+     * una tarjeta navegue dos veces: sacar también Inicio (pantalla en blanco) o abrir dos detalles.
+     */
+    fun puedeNavegar() = navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED
+
+    fun openCar(id: Long) {
+        if (puedeNavegar()) navController.navigate(Routes.CarDetail.createRoute(id))
+    }
     fun openAdminCar(id: Long) = navController.navigate(Routes.AdminVehicleReview.createRoute(id))
     fun goRegister() = navController.navigate(Routes.RegisterType.route)
     fun goVerifyEmail(email: String, sendCode: Boolean) =
         navController.navigate(Routes.VerifyEmail.createRoute(email, sendCode))
-    fun back() { navController.popBackStack() }
+    /** "Atrás" por un toque del usuario. Al terminar una operación se usa popBackStack() directo. */
+    fun back() {
+        if (puedeNavegar()) navController.popBackStack()
+    }
 
     /**
      * Cambia de pestaña de la barra inferior: deja Inicio como base de la pila y
@@ -533,7 +550,13 @@ fun KarsyNavGraph(
                         }
                     )
                 }
-                composable(Routes.Dashboard.route) {
+                composable(Routes.Dashboard.route) { entry ->
+                    // Sin sesión no hay panel de vendedor que mostrar. Solo si esta pantalla sigue siendo
+                    // la actual: al cerrar sesión ya se navegó a Bienvenida y no hay que mandar a Inicio.
+                    if (!userMode.isLoggedIn) {
+                        LaunchedEffect(Unit) { if (navController.currentBackStackEntry == entry) goHome() }
+                        return@composable
+                    }
                     DashboardScreen(
                         onBack = ::back,
                         onNewPublication = { navController.navigate(Routes.PublishFlow.createRoute()) },
@@ -543,7 +566,13 @@ fun KarsyNavGraph(
                 }
 
                 // ── Administración ───────────────────────────────────────────
-                composable(Routes.AdminDashboard.route) {
+                composable(Routes.AdminDashboard.route) { entry ->
+                    // Solo administración y moderadores; si la cuenta no tiene rol de panel, a Inicio. Solo si
+                    // esta pantalla sigue siendo la actual (al cerrar sesión ya se navegó a Bienvenida).
+                    if (!SessionManager.hasPanel) {
+                        LaunchedEffect(Unit) { if (navController.currentBackStackEntry == entry) goHome() }
+                        return@composable
+                    }
                     AdminDashboardScreen(
                         onCarClick = ::openAdminCar,
                         onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
@@ -566,7 +595,7 @@ fun KarsyNavGraph(
                         onBack = ::back,
                         onRegister = ::goRegister,
                         onCarClick = ::openAdminCar,
-                        bottomBar = { vehicle?.let { AdminVehicleReviewBar(adminVm, it, onDone = ::back) } },
+                        bottomBar = { vehicle?.let { AdminVehicleReviewBar(adminVm, it, onDone = { navController.popBackStack() }) } },
                         cambiosPendientes = true
                     )
                 }
@@ -581,7 +610,8 @@ fun KarsyNavGraph(
                     val report = adminVm.reports.firstOrNull { it.id == reportId }
                     if (report == null) {
                         // Ya resuelto o la lista aún no carga: regresa al panel.
-                        LaunchedEffect(adminVm.loading) { if (!adminVm.loading) back() }
+                        // Automático (no es un toque): sin la guarda de back(), que lo ignoraría durante la animación.
+                        LaunchedEffect(adminVm.loading) { if (!adminVm.loading) navController.popBackStack() }
                     } else if (report.type == "Usuario") {
                         // Reporte de cuenta: se revisa la cuenta del vendedor, no la publicación.
                         UserReportReviewScreen(
@@ -589,7 +619,7 @@ fun KarsyNavGraph(
                             report = report,
                             onBack = ::back,
                             onCarClick = ::openAdminCar,
-                            onDone = ::back
+                            onDone = { navController.popBackStack() }
                         )
                     } else {
                         CarDetailScreen(
@@ -601,7 +631,7 @@ fun KarsyNavGraph(
                             topNotice = { ReportReviewNotice(report) },
                             // Sin barra del dueño aunque el admin sea quien publicó.
                             bottomBar = {
-                                if (report.status == "Pendiente") ReportReviewBar(adminVm, report, onDone = ::back)
+                                if (report.status == "Pendiente") ReportReviewBar(adminVm, report, onDone = { navController.popBackStack() })
                             }
                         )
                     }

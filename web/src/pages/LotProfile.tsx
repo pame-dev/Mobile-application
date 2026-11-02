@@ -89,11 +89,8 @@ export function LotProfile() {
 
   return (
     <div className="wrap page-top">
-      <div style={{ marginBottom: 'var(--s-4)' }}>
-        <VolverButton fallback="/lotes" />
-      </div>
-
       <ProfileHeader
+        back={<VolverButton fallback="/lotes" />}
         name={lote.name}
         avatarUrl={lote.logoUrl}
         coverUrl={lote.coverUrl}

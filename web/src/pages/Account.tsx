@@ -634,10 +634,11 @@ function Legal({ title, doc, id }: { title: Clave; doc: Record<Lang, LegalDoc>; 
   return (
     <div className="wrap" style={{ padding: 'var(--s-6) var(--s-4) var(--s-10)' }}>
       <div className="card legaltext" style={{ margin: '0 auto' }}>
-        <div style={{ marginBottom: 'var(--s-4)' }}>
+        {/* Flecha y título en la misma línea. */}
+        <div className="row gap-3" style={{ alignItems: 'center' }}>
           <VolverButton onClick={volver} label={desdeRegistro ? t('legal.backToRegister') : t('common.back')} />
+          <h1 className="h1-page">{t(title)}</h1>
         </div>
-        <h1 className="h1-page">{t(title)}</h1>
         <p className="mid" style={{ margin: 'var(--s-2) 0 var(--s-4)' }}>
           {d.update}
         </p>
