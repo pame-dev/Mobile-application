@@ -817,8 +817,10 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
               {t('admin.viewListing')}
             </button>
             <span />
+            {/* Como la app: solo se deshabilita una publicación activa; una deshabilitada se puede habilitar. */}
             {row.aprobada &&
               (habilitada ? (
+                row.estado_publicacion === 'activa' && (
                 <button
                   className="btn btn-danger"
                   onClick={() =>
@@ -839,6 +841,7 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
                 >
                   {t('admin.disable')}
                 </button>
+                )
               ) : (
                 <button className="btn btn-primary" disabled={busy} onClick={() => correr(() => setCarEnabled(car.id, true, 'Habilitada desde el panel.'), t('admin.msgEnabled'))}>
                   {t('admin.enable')}

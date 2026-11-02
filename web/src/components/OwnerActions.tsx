@@ -294,10 +294,12 @@ export function OwnerButtons({ c, acciones, oculta, onOcultar }: { c: OwnCar; ac
             {c.featured ? t('perfil.renewFeatured') : t('perfil.feature')}
           </button>
         ) : null)}
-      {(c.status === 'Activo' || c.status === 'Pausado' || c.status === 'Pendiente') && (
-        <button className="btn btn-ghost btn-sm" onClick={() => acciones.editar(c)}>
+      {/* Como la app: se edita todo menos lo vendido o rechazado (eso se corrige arriba), también una
+          deshabilitada; con cambios en revisión no se edita hasta que el equipo responda. */}
+      {c.status !== 'Vendido' && c.status !== 'Rechazado' && (
+        <button className="btn btn-ghost btn-sm" disabled={c.inReview} onClick={() => acciones.editar(c)}>
           <Icon name="edit" size={14} />
-          {t('perfil.edit')}
+          {c.inReview ? t('perfil.inReview') : t('perfil.edit')}
         </button>
       )}
       {c.status === 'Activo' && (

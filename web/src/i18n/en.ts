@@ -199,6 +199,7 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'notif.poca_actividad': '"{v}" has had few views in 30 days. Try adjusting the price or featuring it.',
   'notif.confirmar_venta': 'Did you sell "{v}"? Mark it as sold so people stop contacting you.',
   'notif.prefs.title': 'Choose which notifications to get',
+  'notif.prefs.loadError': "We couldn't load your preferences. Check your connection.",
   'notif.prefs.linkDesc': 'Prices of your favorites, summaries, recommendations and notices about your cars.',
   'notif.prefs.prices': 'Prices of your favorites',
   'notif.prefs.pricesDesc': 'When a car you saved drops in price or is no longer available.',

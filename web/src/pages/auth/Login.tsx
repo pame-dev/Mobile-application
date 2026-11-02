@@ -13,6 +13,18 @@ export function destinoDe(state: unknown): string {
   return from && from.startsWith('/') && !from.startsWith('/login') ? from : '/'
 }
 
+/**
+ * A dónde entrar después de iniciar sesión (como enterAs de la app): a la pantalla que pidió el
+ * login (p. ej. un auto o Publicar); si se entró desde el inicio, según el rol: equipo → panel de
+ * administración, lote → Mi panel, particular → inicio.
+ */
+function destinoAlEntrar(cuenta: { rolPanel: string | null; tipoCuenta: string }, state: unknown): string {
+  const destino = destinoDe(state)
+  if (destino !== '/') return destino
+  if (cuenta.rolPanel) return '/admin'
+  return cuenta.tipoCuenta === 'lote' ? '/panel' : '/'
+}
+
 /** Inicio de sesión (LoginScreen + LoginViewModel de la app). */
 export function Login() {
   const navigate = useNavigate()
@@ -47,7 +59,7 @@ export function Login() {
         return
       }
       toast(t('auth.login.hello', { nombre: r.account.nombre.split(' ')[0] }))
-      navigate(destinoDe(location.state), { replace: true })
+      navigate(destinoAlEntrar(r.account, location.state), { replace: true })
     } catch (e) {
       setLoading(false)
       if (e instanceof EmailNotVerifiedError) {

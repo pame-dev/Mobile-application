@@ -255,6 +255,7 @@ export async function cuentaVerificada(id: string): Promise<boolean> {
   return c?.verificado === true
 }
 
+/** Datos de contacto; con [userId] cuenta además el contacto (estadísticas): una vez por visita al auto. */
 export async function sellerContact(id: number, userId: string | null): Promise<SellerContact | null> {
   const data = check(await supabase.rpc('contacto_vendedor', { p_id_publicacion: id })) as SellerContact | null
   if (data && userId) {
