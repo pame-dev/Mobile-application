@@ -58,8 +58,17 @@ export function AuthShell({ title, sub, photo = 0, children }: { title: string; 
   )
 }
 
-export function BackButton({ onClick }: { onClick: () => void }) {
+/** Flecha para regresar; con [title], en la misma línea que el título de la pantalla (no sola arriba). */
+export function BackButton({ onClick, title }: { onClick: () => void; title?: string }) {
   const { t } = useI18n()
+  if (title) {
+    return (
+      <div className="row gap-3" style={{ alignItems: 'center' }}>
+        <VolverButton onClick={onClick} label={t('auth.back')} />
+        <h1>{title}</h1>
+      </div>
+    )
+  }
   return (
     <div style={{ alignSelf: 'flex-start' }}>
       <VolverButton onClick={onClick} label={t('auth.back')} />

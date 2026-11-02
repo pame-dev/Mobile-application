@@ -58,8 +58,7 @@ export function Login() {
 
   return (
     <AuthShell title={t('auth.login.artTitle')} sub={t('auth.login.artSub')}>
-      <BackButton onClick={() => navigate('/')} />
-      <h1>{t('auth.login.title')}</h1>
+      <BackButton onClick={() => navigate('/')} title={t('auth.login.title')} />
       <form className="col gap-4"
         onSubmit={(e) => {
           e.preventDefault()

@@ -30,8 +30,7 @@ export function RegisterType() {
   ]
   return (
     <AuthShell title={t('auth.type.artTitle')} sub={t('auth.type.artSub')} photo={11}>
-      <BackButton onClick={() => navigate('/')} />
-      <h1>{t('auth.type.title')}</h1>
+      <BackButton onClick={() => navigate('/')} title={t('auth.type.title')} />
       <p className="muted">{t('auth.type.sub')}</p>
       {opciones.map(([v, titulo, d, i, bg]) => (
         <button key={v} className={`typecard ${tipo === v ? 'on' : ''}`} aria-pressed={tipo === v} onClick={() => setTipo(v)}>
@@ -514,8 +513,11 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
           void crear()
         }}
       >
-        <VolverButton to="/registro" label={t('auth.back')} />
-        <h1 className="h1-page" style={{ marginTop: 'var(--s-4)' }}>{esLote ? t('auth.reg.lotTitle') : t('auth.reg.title')}</h1>
+        {/* Flecha y título en la misma línea. */}
+        <div className="row gap-3" style={{ alignItems: 'center' }}>
+          <VolverButton to="/registro" label={t('auth.back')} />
+          <h1 className="h1-page">{esLote ? t('auth.reg.lotTitle') : t('auth.reg.title')}</h1>
+        </div>
         <p className="muted">{esLote ? t('auth.reg.lotSub') : t('auth.reg.sub')}</p>
 
         {esLote && (
