@@ -65,6 +65,8 @@ class RegisterViewModel : ViewModel() {
     var password by mutableStateOf("")
     var confirmPassword by mutableStateOf("")
     var acceptedTerms by mutableStateOf(false)
+    /** Política de privacidad aceptada (como la web: términos y privacidad, cada una por separado). */
+    var acceptedPrivacy by mutableStateOf(false)
 
     var loading by mutableStateOf(false)
         private set
@@ -149,6 +151,7 @@ class RegisterViewModel : ViewModel() {
 
     /** La casilla de términos se marca en rojo si se intentó enviar sin aceptarlos. */
     val termsError: Boolean get() = submitted && !acceptedTerms
+    val privacyError: Boolean get() = submitted && !acceptedPrivacy
 
     /** Cambia cada vez que el envío falla: la pantalla lleva la vista al primer error. */
     var scrollToErrorRequest by mutableIntStateOf(0)
@@ -159,7 +162,8 @@ class RegisterViewModel : ViewModel() {
         camposDe(esLote).filter { validar(it) != null } +
             (if (correoYaRegistrado) listOf("correo") else emptyList()) +
             (if (password.isNotEmpty() && password != confirmPassword) listOf("confirmPassword") else emptyList()) +
-            (if (!acceptedTerms) listOf("terminos") else emptyList())
+            (if (!acceptedTerms) listOf("terminos") else emptyList()) +
+            (if (!acceptedPrivacy) listOf("privacidad") else emptyList())
 
     private fun camposDe(esLote: Boolean) =
         listOf("nombre", "apellido", "correo", "telefono", "whatsapp", "medio", "estado", "ciudad", "password") +
@@ -227,6 +231,7 @@ class RegisterViewModel : ViewModel() {
             errores.isNotEmpty() -> texto(R.string.auth_error_check_red)
             password != confirmPassword -> texto(R.string.auth_passwords_mismatch)
             !acceptedTerms -> texto(R.string.auth_error_accept_terms)
+            !acceptedPrivacy -> texto(R.string.auth_error_accept_privacy)
             else -> null
         }
         if (error != null) {

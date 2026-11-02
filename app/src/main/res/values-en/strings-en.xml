@@ -130,6 +130,7 @@
     <string name="auth_error_complete_required">Fill in the required fields.</string>
     <string name="auth_error_check_red">Check the fields marked in red.</string>
     <string name="auth_error_accept_terms">Accept the terms and conditions to continue.</string>
+    <string name="auth_error_accept_privacy">Accept the privacy policy to continue.</string>
     <string name="auth_lote_title">Create dealership profile</string>
     <string name="auth_lote_subtitle">Register your dealership to start listing vehicles.</string>
     <string name="auth_section_manager">Contact person details</string>
@@ -1259,6 +1260,9 @@
     <string name="core_terms_prefix">"I accept KARSY\'s "</string>
     <string name="core_terms_link">terms and conditions</string>
     <string name="core_terms_suffix">.</string>
+    <string name="core_privacy_prefix">"I accept KARSY\'s "</string>
+    <string name="core_privacy_link">privacy policy</string>
+    <string name="core_privacy_suffix">.</string>
     <!-- User mode -->
     <string name="core_mode_guest">Guest</string>
     <string name="core_mode_particular">Individual</string>

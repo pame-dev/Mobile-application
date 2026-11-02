@@ -132,6 +132,7 @@
     <string name="auth_error_complete_required">Completa los campos obligatorios.</string>
     <string name="auth_error_check_red">Revisa los datos marcados en rojo.</string>
     <string name="auth_error_accept_terms">Acepta los términos y condiciones para continuar.</string>
+    <string name="auth_error_accept_privacy">Acepta la política de privacidad para continuar.</string>
     <string name="auth_lote_title">Crear perfil de lote</string>
     <string name="auth_lote_subtitle">Registra tu lote para comenzar a publicar vehículos.</string>
     <string name="auth_section_manager">Datos del responsable</string>
@@ -1261,6 +1262,9 @@
     <string name="core_terms_prefix">"Acepto los "</string>
     <string name="core_terms_link">términos y condiciones</string>
     <string name="core_terms_suffix">" de KARSY."</string>
+    <string name="core_privacy_prefix">"Acepto la "</string>
+    <string name="core_privacy_link">política de privacidad</string>
+    <string name="core_privacy_suffix">" de KARSY."</string>
     <!-- Modo de usuario -->
     <string name="core_mode_guest">Visitante</string>
     <string name="core_mode_particular">Particular</string>

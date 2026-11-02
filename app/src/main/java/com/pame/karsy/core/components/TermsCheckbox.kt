@@ -45,8 +45,9 @@ import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 
 /**
- * Casilla "Acepto los términos y condiciones de KARSY" (TermsNote del mockup).
- * Tocar el enlace abre los términos ([onOpenTerms]); el resto de la fila marca la casilla.
+ * Casilla "Acepto los términos y condiciones de KARSY" (TermsNote del mockup). Con [prefix],
+ * [link] y [suffix] sirve para otro documento (p. ej. la política de privacidad).
+ * Tocar el enlace abre el documento ([onOpenTerms]); el resto de la fila marca la casilla.
  */
 @Composable
 fun TermsCheckbox(
@@ -56,6 +57,9 @@ fun TermsCheckbox(
     onOpenTerms: (() -> Unit)? = null,
     /** Borde rojo: se intentó enviar el formulario sin aceptarlos. */
     error: Boolean = false,
+    prefix: String = stringResource(R.string.core_terms_prefix),
+    link: String = stringResource(R.string.core_terms_link),
+    suffix: String = stringResource(R.string.core_terms_suffix),
 ) {
     val shape = RoundedCornerShape(KarsyRadius.Md)
     Row(
@@ -83,21 +87,18 @@ fun TermsCheckbox(
                 Icon(Icons.Rounded.Check, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(14.dp))
             }
         }
-        val termsPrefix = stringResource(R.string.core_terms_prefix)
-        val termsLink = stringResource(R.string.core_terms_link)
-        val termsSuffix = stringResource(R.string.core_terms_suffix)
         Text(
             text = buildAnnotatedString {
-                append(termsPrefix)
+                append(prefix)
                 val linkStyle = SpanStyle(color = KarsyTealText, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
                 if (onOpenTerms != null) {
                     withLink(LinkAnnotation.Clickable("terms", TextLinkStyles(linkStyle)) { onOpenTerms() }) {
-                        append(termsLink)
+                        append(link)
                     }
                 } else {
-                    withStyle(linkStyle) { append(termsLink) }
+                    withStyle(linkStyle) { append(link) }
                 }
-                append(termsSuffix)
+                append(suffix)
             },
             fontFamily = DmSans,
             fontSize = KarsyTextSize.Small,

@@ -44,6 +44,7 @@ fun RegisterParticularScreen(
     onCreated: (SessionAccount) -> Unit,
     onVerifyEmail: (String) -> Unit,
     onTerms: () -> Unit = {},
+    onPrivacy: () -> Unit = {},
     onLogin: () -> Unit = {},
     vm: RegisterViewModel = viewModel(),
 ) {
@@ -133,6 +134,13 @@ fun RegisterParticularScreen(
             TermsCheckbox(
                 checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it }, onOpenTerms = onTerms,
                 error = vm.termsError, modifier = scroller.markModifier("terminos")
+            )
+            TermsCheckbox(
+                checked = vm.acceptedPrivacy, onCheckedChange = { vm.acceptedPrivacy = it }, onOpenTerms = onPrivacy,
+                error = vm.privacyError, modifier = scroller.markModifier("privacidad"),
+                prefix = stringResource(R.string.core_privacy_prefix),
+                link = stringResource(R.string.core_privacy_link),
+                suffix = stringResource(R.string.core_privacy_suffix)
             )
             PrimaryButton(
                 text = if (vm.loading) stringResource(R.string.auth_creating_profile) else stringResource(R.string.auth_create_profile),

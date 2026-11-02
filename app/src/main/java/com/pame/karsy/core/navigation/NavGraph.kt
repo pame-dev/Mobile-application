@@ -383,6 +383,7 @@ fun KarsyNavGraph(
                         onCreated = ::enterAs,
                         onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
                         onTerms = { navController.navigate(Routes.Terms.route) },
+                        onPrivacy = { navController.navigate(Routes.PrivacyNotice.route) },
                         onLogin = { navController.navigate(Routes.Login.route) }
                     )
                 }
@@ -392,6 +393,7 @@ fun KarsyNavGraph(
                         onCreated = ::enterAs,
                         onVerifyEmail = { goVerifyEmail(it, sendCode = false) },
                         onTerms = { navController.navigate(Routes.Terms.route) },
+                        onPrivacy = { navController.navigate(Routes.PrivacyNotice.route) },
                         onLogin = { navController.navigate(Routes.Login.route) }
                     )
                 }
