@@ -7,15 +7,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -35,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -62,6 +67,7 @@ import com.pame.karsy.core.theme.Outfit
 private enum class ClientType { PARTICULAR, LOTE }
 
 /** Elección del tipo de cuenta: Particular o Lote. Se navega al pulsar "Continuar". */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () -> Unit, onLogin: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf<ClientType?>(null) }
@@ -78,7 +84,11 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
                 .verticalScroll(rememberScrollState())
         ) {
             RegisterHeader(title = stringResource(R.string.auth_register_title), subtitle = stringResource(R.string.auth_register_type_subtitle))
-            Column(Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp)) {
+            // Dos tarjetas grandes que llenan la pantalla: así no parece que falten opciones.
+            Column(
+                Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 TypeCard(
                     icon = Icons.Outlined.PersonOutline,
                     title = stringResource(R.string.auth_type_particular),
@@ -114,29 +124,33 @@ fun RegisterTypeScreen(onBack: () -> Unit, onParticular: () -> Unit, onLote: () 
             Text(
                 stringResource(R.string.auth_complete_profile_later),
                 fontFamily = DmSans,
-                fontSize = KarsyTextSize.Small,
+                fontSize = KarsyTextSize.BodyLarge,
                 color = KarsyMid,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 14.dp)
             )
-            Row(
+            // FlowRow: en pantallas angostas el enlace baja completo a la siguiente línea.
+            FlowRow(
                 Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp),
                 horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                itemVerticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.auth_have_account_question), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal)
+                Text(stringResource(R.string.auth_have_account_question), fontFamily = DmSans, fontSize = KarsyTextSize.Title, color = KarsyCharcoal)
                 Text(
                     stringResource(R.string.auth_sign_in_here),
                     fontFamily = DmSans,
-                    fontSize = KarsyTextSize.BodyLarge,
+                    fontSize = KarsyTextSize.Title,
                     fontWeight = FontWeight.SemiBold,
                     color = KarsyTealText,
                     textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable(onClick = onLogin)
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(KarsyRadius.Sm))
+                        .clickable(role = Role.Button, onClick = onLogin)
+                        .padding(horizontal = 4.dp, vertical = 10.dp)
                 )
             }
         }
@@ -156,8 +170,8 @@ private fun TypeCard(
     val iconBg by animateColorAsState(if (active) KarsyTeal else KarsyTealLight, label = "iconBg")
     Row(
         Modifier
-            .padding(bottom = 14.dp)
             .fillMaxWidth()
+            .heightIn(min = 200.dp)
             .shadow(
                 if (active) 8.dp else 3.dp, shape,
                 ambientColor = if (active) KarsyTeal else KarsyNavy,
@@ -166,24 +180,25 @@ private fun TypeCard(
             .clip(shape)
             .background(bg)
             .border(if (active) 2.dp else 1.5.dp, if (active) KarsyTeal else KarsyBorder, shape)
-            .clickable(onClick = onClick)
-            .padding(20.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.Top
+            // Opción seleccionable: TalkBack anuncia si está elegida.
+            .selectable(selected = active, role = Role.RadioButton, onClick = onClick)
+            .padding(24.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             Modifier
-                .size(56.dp)
+                .size(72.dp)
                 .clip(RoundedCornerShape(KarsyRadius.Lg))
                 .background(iconBg),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = if (active) KarsyWhite else KarsyTeal, modifier = Modifier.size(34.dp))
+            Icon(icon, contentDescription = null, tint = if (active) KarsyWhite else KarsyTeal, modifier = Modifier.size(40.dp))
         }
         Column {
-            Text(title, fontFamily = Outfit, fontWeight = FontWeight.Bold, fontSize = KarsyTextSize.TitleLarge, color = KarsyInk)
-            Spacer(Modifier.height(4.dp))
-            Text(desc, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, lineHeight = 19.6.sp, color = KarsyMid)
+            Text(title, fontFamily = Outfit, fontWeight = FontWeight.Bold, fontSize = KarsyTextSize.HeadlineLarge, color = KarsyInk)
+            Spacer(Modifier.height(6.dp))
+            Text(desc, fontFamily = DmSans, fontSize = KarsyTextSize.Subtitle, lineHeight = 21.sp, color = KarsyMid)
         }
     }
 }
