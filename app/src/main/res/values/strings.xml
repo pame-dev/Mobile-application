@@ -343,6 +343,9 @@
     <string name="detail_contact_info_title">Información de contacto</string>
     <string name="detail_close">Cerrar</string>
     <string name="detail_no_phone">Sin teléfono registrado</string>
+    <string name="detail_contact_error">No pudimos cargar los datos del vendedor. Revisa tu conexión.</string>
+    <string name="detail_no_dialer">No encontramos una app para llamar. Copiamos el número.</string>
+    <string name="detail_no_whatsapp_app">No pudimos abrir WhatsApp. Copiamos el número.</string>
     <string name="detail_whatsapp_number">WhatsApp: %1$s</string>
     <string name="detail_no_whatsapp">Sin WhatsApp</string>
     <string name="detail_prefers_whatsapp">Prefiere que le escribas por WhatsApp</string>

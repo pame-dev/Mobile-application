@@ -572,6 +572,8 @@ fun CarDetailScreen(
             detail = detail,
             contact = vm.contact,
             loading = vm.contactLoading,
+            error = vm.contactError,
+            onRetry = { vm.loadContact(registrar = false) },
             onDismiss = { showContact = false },
             onOpenProfile = {
                 showContact = false
@@ -1307,5 +1309,5 @@ private fun shareCar(context: Context, detail: CarDetail) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, lineas.joinToString("\n"))
     }
-    context.startActivity(Intent.createChooser(intent, context.getString(R.string.detail_share)))
+    runCatching { context.startActivity(Intent.createChooser(intent, context.getString(R.string.detail_share))) }
 }

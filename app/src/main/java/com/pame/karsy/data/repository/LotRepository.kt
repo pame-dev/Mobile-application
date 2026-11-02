@@ -34,6 +34,8 @@ object LotRepository {
         return cuentas
             .filter { it.idCuenta != propio }
             .map { toLot(it, perfiles[it.idCuenta], conteo[it.idCuenta] ?: 0) }
+            // El directorio solo muestra lotes con inventario (sin cuentas vacías ni de prueba).
+            .filter { it.vehicleCount > 0 }
             .sortedWith(compareByDescending<Lot> { it.vehicleCount }.thenBy { it.name.lowercase() })
     }
 

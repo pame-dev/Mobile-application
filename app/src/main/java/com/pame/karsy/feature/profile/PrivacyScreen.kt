@@ -1,10 +1,8 @@
 package com.pame.karsy.feature.profile
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.provider.Settings
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,6 +55,7 @@ import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsySuccess
 import com.pame.karsy.core.theme.KarsyTextSize
+import com.pame.karsy.core.util.abrirAjustesDeNotificaciones
 import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.core.supabase.mensajeUsuario
 import com.pame.karsy.data.repository.AuthRepository
@@ -140,10 +139,7 @@ fun PrivacyScreen(
                         descriptionColor = if (notificationsOn) KarsySuccess else KarsyError,
                     ) {
                         // Ajustes de notificaciones de Karsy en el teléfono.
-                        context.startActivity(
-                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        )
+                        abrirAjustesDeNotificaciones(context)
                     }
                 }
             }

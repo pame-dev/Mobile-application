@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +33,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.PrimaryButton
+import com.pame.karsy.core.theme.DmSans
+import com.pame.karsy.core.theme.KarsyMid
+import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.model.SOLD_INSIDE_APP
 import com.pame.karsy.data.model.SOLD_OUTSIDE_APP
@@ -71,6 +76,28 @@ internal fun ProfileCard(
             .border(1.dp, borderColor, shape),
         content = content
     )
+}
+
+/**
+ * No se pudo cargar la lista (sin internet, error del servidor): se dice en lugar de mostrarla
+ * vacía, para que el usuario no crea que perdió sus datos.
+ */
+@Composable
+internal fun ProfileLoadError(message: String, onRetry: () -> Unit) {
+    ProfileCard {
+        Text(
+            message,
+            fontFamily = DmSans,
+            fontSize = KarsyTextSize.BodyLarge,
+            color = KarsyMid,
+            modifier = Modifier.padding(20.dp)
+        )
+        PrimaryButton(
+            text = stringResource(R.string.home_retry),
+            onClick = onRetry,
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
+        )
+    }
 }
 
 /** Separador entre filas de una lista dentro de una tarjeta (1px #F4F7F9). */

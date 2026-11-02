@@ -643,9 +643,11 @@ object ExportarPanel {
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(
-            Intent.createChooser(enviar, texto(titulo))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
+        runCatching {
+            context.startActivity(
+                Intent.createChooser(enviar, texto(titulo))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
     }
 }

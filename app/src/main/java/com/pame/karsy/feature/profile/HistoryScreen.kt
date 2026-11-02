@@ -29,10 +29,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.pame.karsy.R
+import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
+import com.pame.karsy.core.supabase.mensajeUsuario
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,9 +63,14 @@ import com.pame.karsy.data.repository.CarRepository
 @Composable
 fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit, onExplore: () -> Unit) {
     var historyItems by remember { mutableStateOf<List<Pair<Car, String>>?>(null) }
+    /** Falló la primera carga: se dice en lugar de mostrar el historial vacío. */
+    var errorCarga by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     suspend fun load() {
-        historyItems = safeCall { CarRepository.history() }.getOrDefault(emptyList())
+        safeCall { CarRepository.history() }
+            .onSuccess { historyItems = it; errorCarga = null }
+            // Al refrescar sin red se conserva lo que ya se veía.
+            .onFailure { if (historyItems == null) errorCarga = it.mensajeUsuario() else AvisoKarsy.mostrar(it.mensajeUsuario(), error = true) }
     }
     LaunchedEffect(Unit) { load() }
     Column(
@@ -85,6 +92,10 @@ fun HistoryScreen(onBack: () -> Unit, onCarClick: (Long) -> Unit, onExplore: () 
                     .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
             ) {
                 val items = historyItems
+                errorCarga?.takeIf { items == null }?.let { msg ->
+                    ProfileLoadError(msg) { errorCarga = null; scope.launch { load() } }
+                    return@Column
+                }
                 if (items == null) {
                     // Esqueleto de la lista mientras carga.
                     ProfileCard {

@@ -199,15 +199,16 @@ object CarRepository {
         }
     }
 
-    /** Datos de contacto del vendedor; con sesión también registra el contacto. */
+    /** Cuenta un contacto con el vendedor (estadísticas); se llama una vez al abrir la hoja de contacto. */
+    suspend fun registrarContacto(id: Long) {
+        val uid = SessionManager.userId ?: return
+        runCatching { db.from("interacciones_publicacion").insert(InteraccionInsert(id, uid, "contactar")) }
+    }
+
+    /** Datos de contacto del vendedor (el contacto se cuenta aparte, con [registrarContacto]). */
     suspend fun contact(id: Long): SellerContact? {
         val dto = db.postgrest.rpc("contacto_vendedor", buildJsonObject { put("p_id_publicacion", id) })
             .decodeAsOrNull<ContactoDto>() ?: return null
-        SessionManager.userId?.let { uid ->
-            runCatching {
-                db.from("interacciones_publicacion").insert(InteraccionInsert(id, uid, "contactar"))
-            }
-        }
         return SellerContact(
             id = dto.idCuenta,
             nombre = dto.nombre,
