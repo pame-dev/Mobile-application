@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Login
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
@@ -141,6 +143,43 @@ private fun MenuOption(icon: ImageVector, text: String, color: Color, onClick: (
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(19.dp))
         Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = color)
+    }
+}
+
+/**
+ * Menú del ícono de Perfil para un visitante: iniciar sesión, crear cuenta e idioma. Así el
+ * idioma se puede cambiar en cualquier momento (como el selector de la barra de la web).
+ */
+@Composable
+internal fun VisitorMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    onLogin: () -> Unit,
+    onRegister: () -> Unit,
+    onLanguage: () -> Unit,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        offset = DpOffset(0.dp, 8.dp),
+        shape = RoundedCornerShape(KarsyRadius.Lg),
+        containerColor = KarsySurface,
+        shadowElevation = 10.dp,
+        modifier = Modifier.widthIn(min = 220.dp, max = 300.dp)
+    ) {
+        MenuOption(Icons.AutoMirrored.Rounded.Login, stringResource(R.string.home_login), KarsyInk) {
+            onDismiss()
+            onLogin()
+        }
+        MenuOption(Icons.Outlined.PersonAdd, stringResource(R.string.home_register), KarsyInk) {
+            onDismiss()
+            onRegister()
+        }
+        HorizontalDivider(color = KarsyBorder)
+        MenuOption(Icons.Outlined.Language, stringResource(R.string.settings_language), KarsyInk) {
+            onDismiss()
+            onLanguage()
+        }
     }
 }
 

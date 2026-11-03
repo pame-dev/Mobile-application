@@ -193,7 +193,9 @@ fun ProfileScreen(
                 // Solo el propio lote: estado de su constancia fiscal y, si se puede, el botón para subirla.
                 if (user.accountType == "lote") {
                     LoteConstanciaCard(
-                        estado = user.estadoVerificacion,
+                        // Sin documento guardado pero con la insignia (cuentas.verificado): verificada, como la web.
+                        estado = if (user.estadoVerificacion == Constancia.SIN_DOCUMENTO && user.verificado) Constancia.VERIFICADO
+                        else user.estadoVerificacion,
                         motivoRechazo = user.motivoRechazoVerificacion,
                         fechaEnvio = user.fechaEnvioVerificacion,
                         fechaRevision = user.fechaRevisionVerificacion,

@@ -42,6 +42,9 @@ class CarDetailViewModel : ViewModel() {
     private var contactoRegistrado = false
     var sellerCars by mutableStateOf<List<Car>>(emptyList())
         private set
+    /** Hasta 4 autos visibles del mismo tipo de carrocería (como "Vehículos similares" de la web). */
+    var similares by mutableStateOf<List<Car>>(emptyList())
+        private set
 
     private var loadedId: Long? = null
     /** El admin revisa la publicación: se muestran los cambios en revisión (CarRepository.detail). */
@@ -61,6 +64,14 @@ class CarDetailViewModel : ViewModel() {
                 .onSuccess { detail = it; error = null }
                 .onFailure { error = it.mensajeUsuario() }
             loading = false
+            // Similares aparte: no retrasa el contador de vistas ni el favorito. Sin tipo de carrocería, no hay.
+            detail?.car?.takeIf { it.bodyType.isNotBlank() }?.let { car ->
+                launch {
+                    similares = safeCall { CarRepository.visibleCars() }.getOrDefault(emptyList())
+                        .filter { it.bodyType == car.bodyType && it.id != car.id }
+                        .take(4)
+                }
+            }
             if (detail != null) {
                 CarRepository.registerView(id)
                 if (SessionManager.userId != null) {

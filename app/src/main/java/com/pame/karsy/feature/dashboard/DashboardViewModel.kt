@@ -98,4 +98,20 @@ class DashboardViewModel : ViewModel() {
     fun closeSolicitud() {
         solicitudCar = null
     }
+
+    /** Cambiando el estado de una publicación desde el menú ⋮ (los botones de los diálogos se apagan). */
+    var actualizando by mutableStateOf(false)
+        private set
+
+    /** Pausar/habilitar o vendido/disponible desde Mi panel (las mismas acciones que el detalle, como la web). */
+    fun cambiarEstado(accion: suspend () -> Unit, onDone: (error: String?) -> Unit) {
+        if (actualizando) return
+        actualizando = true
+        viewModelScope.launch {
+            safeCall { accion() }
+                .onSuccess { load(); onDone(null) }
+                .onFailure { onDone(it.mensajeUsuario()) }
+            actualizando = false
+        }
+    }
 }

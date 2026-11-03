@@ -13,6 +13,8 @@ data class Lot(
     val hours: String?,
     /** Publicaciones visibles (aprobadas, activas y habilitadas). */
     val vehicleCount: Int,
+    /** Portada del perfil (cuentas.foto_portada); null = sin portada. */
+    val coverUrl: String? = null,
     /** cuentas.verificado: insignia "Lote verificado". */
     val verificado: Boolean = false,
 )

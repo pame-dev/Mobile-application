@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.mutableStateListOf
 import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.theme.KarsyCoral
+import com.pame.karsy.feature.home.VisitorMenu
 import com.pame.karsy.feature.profile.NotificationPreferencesScreen
 import com.pame.karsy.feature.profile.SavedSearchesScreen
 import androidx.activity.compose.BackHandler
@@ -321,7 +322,6 @@ fun KarsyNavGraph(
     }
     val toastFavorites = stringResource(R.string.home_toast_register_favorites)
     val toastPublish = stringResource(R.string.home_toast_register_publish)
-    val toastProfile = stringResource(R.string.nav_toast_register_profile)
 
     Box(Modifier.fillMaxSize()) {
         // Las pantallas con barra dejan ese espacio libre al final de su lista.
@@ -439,7 +439,8 @@ fun KarsyNavGraph(
                         onRegister = ::goRegister,
                         onCarClick = ::openCar,
                         onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) },
-                        onDuplicatePublication = { navController.navigate(Routes.PublishFlow.duplicateRoute(it)) }
+                        onDuplicatePublication = { navController.navigate(Routes.PublishFlow.duplicateRoute(it)) },
+                        onOpenLot = { navController.navigate(Routes.LotProfile.createRoute(it)) }
                     )
                 }
                 composable(Routes.Favorites.route) {
@@ -563,7 +564,8 @@ fun KarsyNavGraph(
                         onBack = ::back,
                         onNewPublication = { navController.navigate(Routes.PublishFlow.createRoute()) },
                         onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) },
-                        onCarClick = ::openCar
+                        onCarClick = ::openCar,
+                        onDuplicatePublication = { navController.navigate(Routes.PublishFlow.duplicateRoute(it)) }
                     )
                 }
 
@@ -661,7 +663,8 @@ fun KarsyNavGraph(
                         BottomTab.Favorites ->
                             if (userMode.isLoggedIn) goSection(Routes.Favorites.route) else barToast = toastFavorites
                         BottomTab.Profile ->
-                            if (userMode.isLoggedIn) accountMenuOpen = !accountMenuOpen else barToast = toastProfile
+                            // Con sesión, el menú de la cuenta; sin sesión, iniciar sesión / crear cuenta / idioma.
+                            accountMenuOpen = !accountMenuOpen
                     }
                 },
                 onPublish = {
@@ -671,7 +674,15 @@ fun KarsyNavGraph(
                 profileMenuOpen = accountMenuOpen,
                 profileMenu = {
                     val account = SessionManager.account
-                    AccountMenu(
+                    if (!userMode.isLoggedIn) {
+                        VisitorMenu(
+                            expanded = accountMenuOpen,
+                            onDismiss = { accountMenuOpen = false },
+                            onLogin = { navController.navigate(Routes.Login.route) },
+                            onRegister = ::goRegister,
+                            onLanguage = { languageOpen = true }
+                        )
+                    } else AccountMenu(
                         expanded = accountMenuOpen,
                         name = account?.nombre.orEmpty(),
                         email = account?.correo.orEmpty(),

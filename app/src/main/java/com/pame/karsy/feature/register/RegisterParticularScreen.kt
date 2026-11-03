@@ -132,11 +132,16 @@ fun RegisterParticularScreen(
 
             Spacer(Modifier.height(24.dp))
             TermsCheckbox(
-                checked = vm.acceptedTerms, onCheckedChange = { vm.acceptedTerms = it }, onOpenTerms = onTerms,
+                // Sin haber abierto los términos, tocar la casilla los abre (como la web: leer y luego aceptar).
+                checked = vm.acceptedTerms,
+                onCheckedChange = { if (vm.leyoTerminos) vm.acceptedTerms = it else { vm.leyoTerminos = true; onTerms() } },
+                onOpenTerms = { vm.leyoTerminos = true; onTerms() },
                 error = vm.termsError, modifier = scroller.markModifier("terminos")
             )
             TermsCheckbox(
-                checked = vm.acceptedPrivacy, onCheckedChange = { vm.acceptedPrivacy = it }, onOpenTerms = onPrivacy,
+                checked = vm.acceptedPrivacy,
+                onCheckedChange = { if (vm.leyoPrivacidad) vm.acceptedPrivacy = it else { vm.leyoPrivacidad = true; onPrivacy() } },
+                onOpenTerms = { vm.leyoPrivacidad = true; onPrivacy() },
                 error = vm.privacyError, modifier = scroller.markModifier("privacidad"),
                 prefix = stringResource(R.string.core_privacy_prefix),
                 link = stringResource(R.string.core_privacy_link),

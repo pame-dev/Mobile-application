@@ -84,6 +84,7 @@ object LotRepository {
             address = direccion,
             hours = p?.horarios,
             vehicleCount = vehicleCount,
+            coverUrl = Supabase.publicUrl(c.fotoPortada),
             verificado = c.verificado,
         )
     }

@@ -67,6 +67,9 @@ class RegisterViewModel : ViewModel() {
     var acceptedTerms by mutableStateOf(false)
     /** Política de privacidad aceptada (como la web: términos y privacidad, cada una por separado). */
     var acceptedPrivacy by mutableStateOf(false)
+    /** Se abrió cada documento: como en la web, solo se puede aceptar después de leerlo. */
+    var leyoTerminos by mutableStateOf(false)
+    var leyoPrivacidad by mutableStateOf(false)
 
     var loading by mutableStateOf(false)
         private set
