@@ -35,9 +35,12 @@ function ContactModal({ detail, registrar }: { detail: CarDetail; registrar: boo
   const { account } = useSession()
   const { t } = useI18n()
   const [c, setC] = useState<SellerContact | null | undefined>(undefined)
+  /** Veces que se tocó "Reintentar": al reintentar ya no se vuelve a contar el contacto. */
+  const [intento, setIntento] = useState(0)
   useEffect(() => {
-    sellerContact(detail.car.id, registrar ? (account?.id ?? null) : null).then(setC).catch(() => setC(null))
-  }, [detail.car.id, account?.id, registrar])
+    const contar = registrar && intento === 0
+    sellerContact(detail.car.id, contar ? (account?.id ?? null) : null).then(setC).catch(() => setC(null))
+  }, [detail.car.id, account?.id, registrar, intento])
 
   const car = detail.car
   const mensaje = t('vehiculo.contact.message', { v: `${car.brand} ${car.model} ${car.year}` })
@@ -49,7 +52,18 @@ function ContactModal({ detail, registrar }: { detail: CarDetail; registrar: boo
       {c === undefined ? (
         <div className="skeleton" style={{ height: 120 }} />
       ) : c === null ? (
-        <p className="muted">{t('vehiculo.contact.error')}</p>
+        <>
+          <p className="muted">{t('vehiculo.contact.error')}</p>
+          <button
+            className="btn btn-ghost btn-block"
+            onClick={() => {
+              setC(undefined)
+              setIntento((n) => n + 1)
+            }}
+          >
+            {t('common.retry')}
+          </button>
+        </>
       ) : (
         <>
           {c.medio_principal && (
@@ -427,7 +441,8 @@ export function Detail() {
   }
   const fotos = detail.gallery.length ? detail.gallery : [null]
   const on = fav.isFavorite(c.id)
-  const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
+  // Al terminar el registro se regresa a este auto.
+  const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro', { state: { from: location.pathname } }) })
 
   const compartir = async () => {
     // Enlace limpio: en WhatsApp muestra la foto y el precio (Edge Function vista-previa) y,

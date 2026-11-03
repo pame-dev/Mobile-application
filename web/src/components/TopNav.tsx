@@ -178,7 +178,7 @@ export function TopNav() {
   const activo = (to: string) => (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to))
   const irA = (to: string) =>
     to === '/favoritos' && mode === 'guest'
-      ? toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
+      ? toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro', { state: { from: location.pathname + location.search } }) })
       : navigate(to)
   /** Opciones de la cuenta: las usa el menú del avatar y el de hamburguesa. */
   const cuentaItems: [string, string, IconName][] = [

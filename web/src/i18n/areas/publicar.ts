@@ -78,9 +78,7 @@ export const es = {
   // Confirmaciones
   'publicar.exitTitle': '¿Salir sin publicar?',
   'publicar.exitEditMessage': 'Si sales ahora, se perderán los cambios que hayas hecho.',
-  'publicar.exitMessage': 'Guardaremos los datos que escribiste para que sigas después. Las fotos no se guardan: tendrás que elegirlas de nuevo.',
-  'publicar.draftRestored': 'Recuperamos los datos que llevabas escritos. Las fotos no se guardan: vuelve a elegirlas.',
-  'publicar.draftDiscard': 'Empezar de cero',
+  'publicar.exitMessage': 'Si sales ahora, se perderán los datos que escribiste y las fotos que elegiste.',
   'publicar.duplicating': 'Copiamos los datos de tu otra publicación. Revisa que todo coincida con este auto y agrega sus fotos y su documento.',
   'publicar.exitYes': 'Sí, salir',
   'publicar.confirmEditTitle': '¿Enviar cambios?',
@@ -274,9 +272,7 @@ export const en: Record<keyof typeof es, string> = {
 
   'publicar.exitTitle': 'Leave without publishing?',
   'publicar.exitEditMessage': 'If you leave now, the changes you made will be lost.',
-  'publicar.exitMessage': "We'll keep the details you typed so you can continue later. Photos aren't saved: you'll need to choose them again.",
-  'publicar.draftRestored': "We restored the details you had typed. Photos aren't saved: please choose them again.",
-  'publicar.draftDiscard': 'Start over',
+  'publicar.exitMessage': 'If you leave now, the details you typed and the photos you chose will be lost.',
   'publicar.duplicating': "We copied the details from your other listing. Check that everything matches this car and add its photos and document.",
   'publicar.exitYes': 'Yes, leave',
   'publicar.confirmEditTitle': 'Send changes?',

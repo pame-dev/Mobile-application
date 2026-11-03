@@ -315,7 +315,8 @@ function toLot(c: CuentaRow, p: PerfilLoteRow | undefined, vehicleCount: number)
 }
 
 /**
- * Lotes con cuenta activa, de los que tienen más vehículos a los que tienen menos.
+ * Lotes con cuenta activa y al menos un vehículo publicado, de los que tienen más vehículos
+ * a los que tienen menos (igual que LotRepository.lots() en la app).
  * No incluye el lote de la cuenta en sesión: el directorio es para ver a los demás.
  */
 export async function lots(selfId: string | null): Promise<Lot[]> {
@@ -330,6 +331,7 @@ export async function lots(selfId: string | null): Promise<Lot[]> {
   return (check(cuentas) as CuentaRow[])
     .filter((c) => c.id_cuenta !== selfId)
     .map((c) => toLot(c, porId.get(c.id_cuenta), conteo.get(c.id_cuenta) ?? 0))
+    .filter((l) => l.vehicleCount > 0)
     .sort((a, b) => b.vehicleCount - a.vehicleCount || a.name.localeCompare(b.name, 'es'))
 }
 
