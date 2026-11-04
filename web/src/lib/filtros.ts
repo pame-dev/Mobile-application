@@ -17,17 +17,30 @@ export const ORDEN: readonly (readonly [string, Clave])[] = [
 
 export const hayFiltros = (f: Filtros) => FILTER_KEYS.some((k) => f[k])
 
+/** Minúsculas y sin acentos, para que "cafe" encuentre "Café" (como normalizado() de la app). */
+const normalizado = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{Mn}+/gu, '')
+
+/**
+ * Cada palabra de la búsqueda debe aparecer en marca, modelo, año, tipo, vendedor o descripción,
+ * en cualquier orden: "versa 2020 nissan" encuentra "Nissan Versa 2020" (Car.coincide() de la app).
+ */
+const coincide = (c: Car, palabras: string[]) => {
+  if (palabras.length === 0) return true
+  const texto = normalizado(`${c.brand} ${c.model} ${c.year} ${c.bodyType} ${c.ownerName} ${c.description}`)
+  return palabras.every((p) => texto.includes(p))
+}
+
 /**
  * Búsqueda + filtros + orden (filtrar() de HomeViewModel.kt).
  * Con [conservarOrden], "Más recientes" deja la lista como viene (Favoritos: orden en que se guardaron).
  */
 export function filtrarCars(cars: Car[], f: Filtros, q: string, orden: string, conservarOrden = false): Car[] {
-  const texto = q.trim().toLowerCase()
+  const palabras = normalizado(q).split(' ').filter((p) => p.trim() !== '')
   const min = Number(f.min) || null
   const max = Number(f.max) || null
   const lista = cars.filter(
     (c) =>
-      (!texto || `${c.brand} ${c.model} ${c.year}`.toLowerCase().includes(texto)) &&
+      coincide(c, palabras) &&
       (!f.marca || String(c.brandId) === f.marca) &&
       (!f.modelo || String(c.modelId) === f.modelo) &&
       (!f.anio || String(c.year) === f.anio) &&

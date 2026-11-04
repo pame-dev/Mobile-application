@@ -98,6 +98,8 @@ export const es = {
   // Detalle
   'vehiculo.detail.unavailable': 'Publicación no disponible',
   'vehiculo.detail.unavailableMsg': 'Puede que se haya vendido, que esté en revisión o que ya no exista.',
+  'vehiculo.detail.soldMsg': 'Este vehículo ya se vendió. El vendedor lo marcó como vendido; ya no está disponible.',
+  'vehiculo.detail.soldButton': 'Vehículo vendido',
   'vehiculo.detail.seeMore': 'Ver más vehículos',
   'vehiculo.detail.linkCopied': 'Enlace copiado',
   'vehiculo.detail.translated': 'Traducido automáticamente del español.',
@@ -282,6 +284,8 @@ export const en: Record<keyof typeof es, string> = {
 
   'vehiculo.detail.unavailable': 'Listing unavailable',
   'vehiculo.detail.unavailableMsg': 'It may have been sold, be under review or no longer exist.',
+  'vehiculo.detail.soldMsg': 'This vehicle has already been sold. The seller marked it as sold; it is no longer available.',
+  'vehiculo.detail.soldButton': 'Vehicle sold',
   'vehiculo.detail.seeMore': 'See more vehicles',
   'vehiculo.detail.linkCopied': 'Link copied',
   'vehiculo.detail.translated': 'Automatically translated from Spanish.',

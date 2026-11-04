@@ -34,6 +34,7 @@ import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.components.StarBadge
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyImagePlaceholder
 import com.pame.karsy.core.theme.KarsyInk
@@ -88,7 +89,8 @@ fun FeaturedCarCard(
             car.badge?.let {
                 StarBadge(it, modifier = Modifier.align(Alignment.TopStart).padding(12.dp))
             }
-            HeartToggle(
+            // Tus propias publicaciones no se guardan en favoritos (como la web).
+            if (car.ownerId != SessionManager.userId) HeartToggle(
                 filled = isFavorite,
                 onToggle = onToggleFavorite,
                 modifier = Modifier

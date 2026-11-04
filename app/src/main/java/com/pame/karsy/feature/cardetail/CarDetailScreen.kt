@@ -125,6 +125,7 @@ import com.pame.karsy.data.model.SOLD_OUTSIDE_APP
 import com.pame.karsy.feature.dashboard.DestacarDialog
 import com.pame.karsy.feature.dashboard.SolicitudEnviadaDialog
 import com.pame.karsy.data.model.CarDetail
+import com.pame.karsy.feature.home.VehicleCard
 import com.pame.karsy.feature.profile.ProfileAvatar
 import com.pame.karsy.feature.profile.soldViaLabel
 import kotlinx.coroutines.launch
@@ -144,6 +145,8 @@ fun CarDetailScreen(
     onEditPublication: (Long) -> Unit = {},
     /** Duplicar: publicación nueva con los datos de esta (sin fotos ni documento). */
     onDuplicatePublication: (Long) -> Unit = {},
+    /** El vendedor es un lote: se abre su perfil completo (dirección, horario, inventario), como la web. */
+    onOpenLot: (String) -> Unit = {},
     /** El admin revisa la publicación: muestra los cambios en revisión en vez de lo aprobado. */
     cambiosPendientes: Boolean = false,
     vm: CarDetailViewModel = viewModel(),
@@ -261,6 +264,11 @@ fun CarDetailScreen(
     }
 
     fun openSeller() {
+        val d = vm.detail
+        if (d != null && d.sellerType == "lote") {
+            onOpenLot(d.sellerId)
+            return
+        }
         vm.loadSellerCars()
         showSellerProfile = true
     }
@@ -329,7 +337,7 @@ fun CarDetailScreen(
                     onSelect = { activeImg = it },
                     onOpenFullscreen = { showViewer = true },
                 )
-                DetailBody(detail = detail, onOpenSeller = ::openSeller)
+                DetailBody(detail = detail, onOpenSeller = ::openSeller, similares = vm.similares, onCarClick = onCarClick)
             }
             }
 
@@ -1032,7 +1040,7 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
 }
 
 @Composable
-private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
+private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit, similares: List<Car>, onCarClick: (Long) -> Unit) {
     val car = detail.car
     // Escudo de verificado junto al nombre del vendedor (lote o particular).
     var vendedorVerificado by remember { mutableStateOf(false) }
@@ -1173,6 +1181,26 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit) {
                         .padding(top = 3.dp)
                         .clickable(onClick = onOpenSeller)
                 )
+            }
+        }
+
+        // Vehículos similares: mismo tipo de carrocería (como la web), en una fila que se desliza.
+        if (similares.isNotEmpty()) {
+            SectionLabel(stringResource(R.string.detail_similar_title))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+            ) {
+                similares.forEach { s ->
+                    VehicleCard(
+                        car = s,
+                        isFavorite = false,
+                        onClick = { onCarClick(s.id) },
+                        onToggleFavorite = {},
+                        showFavorite = false,
+                        modifier = Modifier.width(280.dp)
+                    )
+                }
             }
         }
     }

@@ -27,8 +27,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,6 +47,7 @@ import androidx.core.net.toUri
 import com.pame.karsy.R
 import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.components.SubHeader
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyCharcoal
@@ -55,6 +58,8 @@ import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Outfit
+import com.pame.karsy.core.util.safeCall
+import com.pame.karsy.data.repository.CarRepository
 
 /** Correo de soporte de Karsy (también en la página Ayuda de la web). */
 private const val CORREO_SOPORTE = "karsypi5@gmail.com"
@@ -99,9 +104,17 @@ fun HelpScreen(onBack: () -> Unit) {
             Text(stringResource(R.string.help_sub), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyMid)
             Spacer(Modifier.height(14.dp))
             ProfileCard {
+                // Días que dura un destacado (los cambia el admin). Sin sesión no se pueden leer: 30, los de
+                // siempre (igual que la web).
+                var dias by remember { mutableIntStateOf(30) }
+                LaunchedEffect(Unit) {
+                    if (SessionManager.userId != null) {
+                        safeCall { CarRepository.datosPagoDestacado() }.getOrNull()?.let { dias = it.dias }
+                    }
+                }
                 PREGUNTAS.forEachIndexed { i, (pregunta, respuesta) ->
                     if (i > 0) RowDivider()
-                    Pregunta(pregunta, respuesta, abierta == i) { abierta = if (abierta == i) -1 else i }
+                    Pregunta(pregunta, respuesta, abierta == i, dias) { abierta = if (abierta == i) -1 else i }
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -133,7 +146,7 @@ fun HelpScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun Pregunta(@StringRes pregunta: Int, @StringRes respuesta: Int, abierta: Boolean, onToggle: () -> Unit) {
+private fun Pregunta(@StringRes pregunta: Int, @StringRes respuesta: Int, abierta: Boolean, dias: Int, onToggle: () -> Unit) {
     // El lector de pantalla anuncia si se abre o se cierra la respuesta.
     val accion = stringResource(if (abierta) R.string.help_hide_answer else R.string.help_show_answer)
     Column(
@@ -162,7 +175,8 @@ private fun Pregunta(@StringRes pregunta: Int, @StringRes respuesta: Int, abiert
         }
         AnimatedVisibility(visible = abierta) {
             Text(
-                stringResource(respuesta),
+                // Solo la respuesta del destacado lleva los días (%1${'$'}d).
+                if (respuesta == R.string.help_a_featured) stringResource(respuesta, dias) else stringResource(respuesta),
                 fontFamily = DmSans,
                 fontSize = KarsyTextSize.BodyLarge,
                 lineHeight = 21.sp,

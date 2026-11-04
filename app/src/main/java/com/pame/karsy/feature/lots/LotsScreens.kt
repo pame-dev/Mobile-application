@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.lots
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.activity.compose.BackHandler
@@ -52,6 +53,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -63,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.RegisterToast
@@ -77,6 +80,7 @@ import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
 import com.pame.karsy.core.theme.KarsyBorder
+import com.pame.karsy.core.theme.KarsyImagePlaceholder
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavyDeep
@@ -473,6 +477,20 @@ private fun LotIdentityCard(
             .border(1.dp, LotOutline, shape)
             .padding(20.dp)
     ) {
+        // Portada del lote (como el perfil de lote de la web).
+        lot.coverUrl?.let { portada ->
+            AsyncImage(
+                model = portada,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp)
+                    .clip(RoundedCornerShape(KarsyRadius.Md))
+                    .background(KarsyImagePlaceholder)
+            )
+            Spacer(Modifier.height(16.dp))
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             ZoomableProfileAvatar(
                 name = lot.name,
@@ -519,6 +537,9 @@ private fun LotIdentityCard(
             color = KarsyMid,
             modifier = Modifier.padding(top = 14.dp)
         )
+        // Dirección y horario de atención (como la web).
+        LotInfoRow(stringResource(R.string.lot_address_label), lot.address)
+        LotInfoRow(stringResource(R.string.lot_hours_label), lot.hours.orEmpty())
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
@@ -529,6 +550,16 @@ private fun LotIdentityCard(
             ActionPill(Icons.AutoMirrored.Outlined.Chat, stringResource(R.string.lot_whatsapp), canWhatsapp, onWhatsapp, Modifier.weight(1f))
             ActionPill(Icons.Outlined.Directions, stringResource(R.string.lot_directions), true, onDirections, Modifier.weight(1.2f))
         }
+    }
+}
+
+/** Etiqueta y valor de la tarjeta del lote (dirección, horario); no se muestra si está vacío. */
+@Composable
+private fun LotInfoRow(label: String, value: String) {
+    if (value.isBlank()) return
+    Column(Modifier.padding(top = 12.dp)) {
+        Text(label.uppercase(), fontFamily = DmSans, fontSize = KarsyTextSize.Caption, fontWeight = FontWeight.Bold, color = KarsyMid)
+        Text(value, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, lineHeight = 20.sp, color = KarsyInk, modifier = Modifier.padding(top = 2.dp))
     }
 }
 

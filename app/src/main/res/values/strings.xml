@@ -42,7 +42,7 @@
     <string name="help_q_rejected">¿Por qué rechazaron mi publicación?</string>
     <string name="help_a_rejected">En Mi panel verás el motivo. Toca “Corregir y reenviar”, cambia lo que se indica y vuelve a enviarla.</string>
     <string name="help_q_featured">¿Qué es un destacado?</string>
-    <string name="help_a_featured">Un destacado hace que tu auto aparezca en la sección Destacados, al inicio de Karsy, durante 30 días. Es solo para lotes: se pide desde Mi panel o desde tu publicación y el equipo de Karsy lo activa cuando confirma tu pago.</string>
+    <string name="help_a_featured">Un destacado hace que tu auto aparezca en la sección Destacados, al inicio de Karsy, durante %1$d días. Es solo para lotes: se pide desde Mi panel o desde tu publicación y el equipo de Karsy lo activa cuando confirma tu pago.</string>
     <string name="help_q_featured_cost">¿Cuánto cuesta destacar y cómo pago?</string>
     <string name="help_a_featured_cost">Destacar es solo para lotes. Al pedirlo verás el precio, la cuenta (banco y CLABE) y tu referencia. Transfiere desde tu banco, escribe la referencia en el concepto y sube el comprobante. Revisamos tu pago en máximo 24 horas hábiles. El pago no es reembolsable.</string>
     <string name="help_q_verify">¿Cómo verifico mi cuenta?</string>
@@ -132,6 +132,7 @@
     <string name="auth_error_complete_required">Completa los campos obligatorios.</string>
     <string name="auth_error_check_red">Revisa los datos marcados en rojo.</string>
     <string name="auth_error_accept_terms">Acepta los términos y condiciones para continuar.</string>
+    <string name="auth_error_accept_privacy">Acepta la política de privacidad para continuar.</string>
     <string name="auth_lote_title">Crear perfil de lote</string>
     <string name="auth_lote_subtitle">Registra tu lote para comenzar a publicar vehículos.</string>
     <string name="auth_section_manager">Datos del responsable</string>
@@ -260,7 +261,6 @@
     <string name="nav_lots">Lotes</string>
     <string name="nav_favorites">Favoritos</string>
     <string name="nav_profile">Perfil</string>
-    <string name="nav_toast_register_profile">Regístrate o inicia sesión para ver tu perfil</string>
     <string name="home_notifications">Notificaciones</string>
     <string name="home_logout_title">¿Cerrar sesión?</string>
     <string name="home_logout_message">¿Estás seguro de que deseas salir de tu cuenta de Karsy? Tendrás que iniciar sesión de nuevo para gestionar tus vehículos.</string>
@@ -334,6 +334,7 @@
     <string name="detail_see_translation">Ver traducción</string>
     <string name="detail_section_car_details">Detalles del auto</string>
     <string name="detail_section_seller_contact">Contacto del vendedor</string>
+    <string name="detail_similar_title">Vehículos similares</string>
     <string name="detail_dealer_view_profile">Lote · Ver perfil</string>
     <string name="detail_private_view_profile">Particular · Ver perfil</string>
     <string name="detail_not_found">Vehículo no encontrado</string>
@@ -415,6 +416,7 @@
     <string name="profile_dashboard_hidden_listings">Publicaciones ocultas</string>
     <string name="profile_dashboard_hidden_desc">No aparecen en Mis publicaciones de tu perfil. Puedes volver a mostrarlas cuando quieras.</string>
     <string name="profile_dashboard_unhide">Mostrar en perfil</string>
+    <string name="profile_dashboard_more_actions">Más acciones</string>
     <string name="detail_owner_sold_title">¿Marcar como vendido?</string>
     <string name="detail_owner_sold_desc">Dejará de aparecer para los compradores y quienes lo tengan en favoritos verán que ya se vendió. Puedes volver a marcarlo como disponible cuando quieras.</string>
     <string name="detail_owner_sold_confirm">Confirmar</string>
@@ -1261,6 +1263,9 @@
     <string name="core_terms_prefix">"Acepto los "</string>
     <string name="core_terms_link">términos y condiciones</string>
     <string name="core_terms_suffix">" de KARSY."</string>
+    <string name="core_privacy_prefix">"Acepto la "</string>
+    <string name="core_privacy_link">política de privacidad</string>
+    <string name="core_privacy_suffix">" de KARSY."</string>
     <!-- Modo de usuario -->
     <string name="core_mode_guest">Visitante</string>
     <string name="core_mode_particular">Particular</string>
@@ -1455,6 +1460,8 @@
     <string name="lot_call">Llamar</string>
     <string name="lot_whatsapp">WhatsApp</string>
     <string name="lot_directions">Cómo llegar</string>
+    <string name="lot_address_label">Dirección</string>
+    <string name="lot_hours_label">Horario</string>
     <string name="lot_whatsapp_message">Hola, vi su lote %1$s en Karsy y me gustaría más información.</string>
     <string name="lot_inventory_title">Vehículos en venta</string>
     <string name="lot_search_placeholder">Buscar marca o modelo…</string>

@@ -40,7 +40,7 @@
     <string name="help_q_rejected">Why was my listing rejected?</string>
     <string name="help_a_rejected">You will see the reason in My dashboard. Tap “Fix and resubmit”, change what is indicated and send it again.</string>
     <string name="help_q_featured">What is a featured listing?</string>
-    <string name="help_a_featured">Featuring makes your car appear in the Featured section, at the top of Karsy, for 30 days. It\'s only for dealerships: you request it from My dashboard or from your listing, and the Karsy team turns it on once it confirms your payment.</string>
+    <string name="help_a_featured">Featuring makes your car appear in the Featured section, at the top of Karsy, for %1$d days. It\'s only for dealerships: you request it from My dashboard or from your listing, and the Karsy team turns it on once it confirms your payment.</string>
     <string name="help_q_featured_cost">How much does featuring cost and how do I pay?</string>
     <string name="help_a_featured_cost">Featuring is only for dealerships. When you request it you\'ll see the price, the account (bank and CLABE) and your reference. Transfer from your bank, write the reference in the payment concept and upload the receipt. We review your payment within 24 business hours. The payment is non-refundable.</string>
     <string name="help_q_verify">How do I verify my account?</string>
@@ -130,6 +130,7 @@
     <string name="auth_error_complete_required">Fill in the required fields.</string>
     <string name="auth_error_check_red">Check the fields marked in red.</string>
     <string name="auth_error_accept_terms">Accept the terms and conditions to continue.</string>
+    <string name="auth_error_accept_privacy">Accept the privacy policy to continue.</string>
     <string name="auth_lote_title">Create dealership profile</string>
     <string name="auth_lote_subtitle">Register your dealership to start listing vehicles.</string>
     <string name="auth_section_manager">Contact person details</string>
@@ -258,7 +259,6 @@
     <string name="nav_lots">Dealerships</string>
     <string name="nav_favorites">Favorites</string>
     <string name="nav_profile">Profile</string>
-    <string name="nav_toast_register_profile">Sign up or log in to see your profile</string>
     <string name="home_notifications">Notifications</string>
     <string name="home_logout_title">Log out?</string>
     <string name="home_logout_message">Are you sure you want to log out of your Karsy account? You\'ll need to log in again to manage your vehicles.</string>
@@ -332,6 +332,7 @@
     <string name="detail_see_translation">See translation</string>
     <string name="detail_section_car_details">Car details</string>
     <string name="detail_section_seller_contact">Seller contact</string>
+    <string name="detail_similar_title">Similar vehicles</string>
     <string name="detail_dealer_view_profile">Dealer · View profile</string>
     <string name="detail_private_view_profile">Private seller · View profile</string>
     <string name="detail_not_found">Vehicle not found</string>
@@ -413,6 +414,7 @@
     <string name="profile_dashboard_hidden_listings">Hidden listings</string>
     <string name="profile_dashboard_hidden_desc">They don\'t appear in My listings on your profile. You can show them again whenever you want.</string>
     <string name="profile_dashboard_unhide">Show on profile</string>
+    <string name="profile_dashboard_more_actions">More actions</string>
     <string name="detail_owner_sold_title">Mark as sold?</string>
     <string name="detail_owner_sold_desc">Buyers won\'t see it anymore and anyone who saved it to favorites will see it was sold. You can mark it as available again whenever you want.</string>
     <string name="detail_owner_sold_confirm">Confirm</string>
@@ -1259,6 +1261,9 @@
     <string name="core_terms_prefix">"I accept KARSY\'s "</string>
     <string name="core_terms_link">terms and conditions</string>
     <string name="core_terms_suffix">.</string>
+    <string name="core_privacy_prefix">"I accept KARSY\'s "</string>
+    <string name="core_privacy_link">privacy policy</string>
+    <string name="core_privacy_suffix">.</string>
     <!-- User mode -->
     <string name="core_mode_guest">Guest</string>
     <string name="core_mode_particular">Individual</string>
@@ -1453,6 +1458,8 @@
     <string name="lot_call">Call</string>
     <string name="lot_whatsapp">WhatsApp</string>
     <string name="lot_directions">Directions</string>
+    <string name="lot_address_label">Address</string>
+    <string name="lot_hours_label">Hours</string>
     <string name="lot_whatsapp_message">Hi, I saw your dealership %1$s on Karsy and I\'d like more information.</string>
     <string name="lot_inventory_title">Vehicles for sale</string>
     <string name="lot_search_placeholder">Search brand or model…</string>

@@ -1,9 +1,16 @@
 package com.pame.karsy.feature.dashboard
 
+import androidx.annotation.StringRes
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
+import com.pame.karsy.data.model.SOLD_INSIDE_APP
+import com.pame.karsy.data.model.SOLD_OUTSIDE_APP
+import com.pame.karsy.data.repository.CarRepository
 import kotlin.coroutines.cancellation.CancellationException
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.locale.texto
@@ -107,6 +114,8 @@ fun DashboardScreen(
     onNewPublication: () -> Unit,
     onEditPublication: (Long) -> Unit,
     onCarClick: (Long) -> Unit,
+    /** Duplicar (solo lotes): publicación nueva con los datos de esta. */
+    onDuplicatePublication: (Long) -> Unit = {},
     vm: DashboardViewModel = viewModel(),
 ) {
     // Se recarga al volver (p. ej. después de publicar).
@@ -114,6 +123,17 @@ fun DashboardScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var exportar by remember { mutableStateOf(false) }
+    /** Acción elegida en el menú ⋮ de una publicación que necesita confirmación. */
+    var accion by remember { mutableStateOf<Pair<Car, AccionPanel>?>(null) }
+    fun elegir(car: Car, a: AccionPanel) = when (a) {
+        AccionPanel.Editar -> onEditPublication(car.id)
+        AccionPanel.Duplicar -> onDuplicatePublication(car.id)
+        // Habilitar no pide confirmación: se hace al momento y se avisa el resultado.
+        AccionPanel.Habilitar -> vm.cambiarEstado({ CarRepository.setPaused(car.id, false) }) { error ->
+            if (error == null) AvisoKarsy.mostrar(texto(R.string.detail_owner_resumed)) else AvisoKarsy.mostrar(error, error = true)
+        }
+        else -> accion = car to a
+    }
     // Mientras se genera el archivo: el botón se deshabilita y se ve un indicador.
     var exportando by remember { mutableStateOf(false) }
     if (exportar) {
@@ -200,7 +220,8 @@ fun DashboardScreen(
                         onDestacar = vm::askDestacar,
                         onEdit = onEditPublication,
                         onNewPublication = onNewPublication,
-                        onCarClick = onCarClick
+                        onCarClick = onCarClick,
+                        onAccion = ::elegir
                     )
                     if (hidden.isNotEmpty()) HiddenListingsSection(
                         listings = hidden,
@@ -210,6 +231,8 @@ fun DashboardScreen(
                 }
             }
         }
+
+        accion?.let { (car, a) -> AccionPanelDialog(vm, car, a, onClose = { accion = null }) }
 
         AnimatedVisibility(visible = vm.destacarCar != null, enter = fadeIn(), exit = fadeOut()) {
             // Se conserva el último auto mientras se anima la salida.
@@ -535,6 +558,7 @@ private fun MyListingsSection(
     onEdit: (Long) -> Unit,
     onNewPublication: () -> Unit,
     onCarClick: (Long) -> Unit,
+    onAccion: (Car, AccionPanel) -> Unit,
 ) {
     Column {
         Row(
@@ -574,7 +598,7 @@ private fun MyListingsSection(
                 )
             }
             ListingsGrid(listings) { car, modifier ->
-                ListingCard(car, favoriteCounts[car.id] ?: 0, onDestacar, onEdit, onCarClick, modifier, puedeDestacar = puedeDestacar)
+                ListingCard(car, favoriteCounts[car.id] ?: 0, onDestacar, onEdit, onCarClick, modifier, puedeDestacar = puedeDestacar, onAccion = onAccion)
             }
         }
     }
@@ -639,6 +663,8 @@ private fun ListingCard(
     onUnhide: (() -> Unit)? = null,
     /** Solo los lotes ven Destacar y Renovar; un particular solo ve el estado de su destacado vigente. */
     puedeDestacar: Boolean = false,
+    /** Menú ⋮ con el resto de las acciones (null en "Publicaciones ocultas"). */
+    onAccion: ((Car, AccionPanel) -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -672,6 +698,9 @@ private fun ListingCard(
                     .background((if (car.status == EstadoAuto.ACTIVO) KarsyTeal else KarsyNavy).copy(alpha = 0.85f))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             )
+            if (onAccion != null) {
+                AccionesMenu(car, puedeDuplicar = puedeDestacar, onAccion = onAccion, modifier = Modifier.align(Alignment.TopEnd))
+            }
         }
         Column(
             modifier = Modifier
@@ -808,3 +837,142 @@ private fun ListingCard(
         }
     }
 }
+
+/** Acciones del menú ⋮ de una publicación en Mi panel (las mismas que el detalle y que la web). */
+internal enum class AccionPanel { Editar, Pausar, Habilitar, Vendido, Disponible, Ocultar, Duplicar }
+
+/** Menú ⋮ sobre la foto: solo las acciones que aplican al estado de la publicación (reglas del detalle). */
+@Composable
+private fun AccionesMenu(car: Car, puedeDuplicar: Boolean, onAccion: (Car, AccionPanel) -> Unit, modifier: Modifier) {
+    var abierto by remember { mutableStateOf(false) }
+    val opciones = buildList {
+        // Una rechazada se corrige con su botón; una vendida ya no se edita.
+        if (car.status != EstadoAuto.VENDIDO && car.rejectedReason == null) add(AccionPanel.Editar)
+        if (car.approved && car.status == EstadoAuto.ACTIVO) add(AccionPanel.Pausar)
+        if (car.approved && car.status == EstadoAuto.PAUSADO) add(AccionPanel.Habilitar)
+        if (car.approved && car.status == EstadoAuto.ACTIVO) add(AccionPanel.Vendido)
+        if (car.status == EstadoAuto.VENDIDO) add(AccionPanel.Disponible)
+        if (PublicacionesOcultas.sePuedeOcultar(car)) add(AccionPanel.Ocultar)
+        if (puedeDuplicar) add(AccionPanel.Duplicar)
+    }
+    if (opciones.isEmpty()) return
+    Box(modifier) {
+        IconButton(onClick = { abierto = true }) {
+            Box(
+                Modifier
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(KarsySurface.copy(alpha = 0.92f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.profile_dashboard_more_actions), tint = KarsyInk, modifier = Modifier.size(18.dp))
+            }
+        }
+        DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }, containerColor = KarsySurface) {
+            opciones.forEach { a ->
+                // Con cambios en revisión no se edita hasta que el equipo responda.
+                val enRevision = a == AccionPanel.Editar && car.inReview
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            stringResource(
+                                when (a) {
+                                    AccionPanel.Editar -> if (enRevision) R.string.detail_owner_in_review else R.string.detail_owner_edit
+                                    AccionPanel.Pausar -> R.string.detail_owner_pause
+                                    AccionPanel.Habilitar -> R.string.detail_owner_resume
+                                    AccionPanel.Vendido -> R.string.detail_owner_mark_sold
+                                    AccionPanel.Disponible -> R.string.detail_owner_mark_available
+                                    AccionPanel.Ocultar -> R.string.detail_owner_hide
+                                    AccionPanel.Duplicar -> R.string.detail_owner_duplicate
+                                }
+                            ),
+                            fontFamily = DmSans,
+                            fontSize = KarsyTextSize.BodyLarge,
+                            color = if (a == AccionPanel.Pausar) KarsyError else KarsyInk
+                        )
+                    },
+                    enabled = !enRevision,
+                    onClick = {
+                        abierto = false
+                        onAccion(car, a)
+                    }
+                )
+            }
+        }
+    }
+}
+
+/** Confirmaciones del menú ⋮ (mismos textos que el detalle); al terminar avisa con AvisoKarsy. */
+@Composable
+private fun AccionPanelDialog(vm: DashboardViewModel, car: Car, accion: AccionPanel, onClose: () -> Unit) {
+    // Vendido tiene un segundo paso: dónde se vendió (publicaciones.medio_venta).
+    var preguntarDonde by remember(car.id) { mutableStateOf(false) }
+    /** Al terminar: aviso de éxito [msg] o del error, y se cierra el diálogo. */
+    fun listo(@StringRes msg: Int): (String?) -> Unit = { error ->
+        if (error == null) AvisoKarsy.mostrar(texto(msg)) else AvisoKarsy.mostrar(error, error = true)
+        onClose()
+    }
+    @Composable
+    fun Confirmar(@StringRes titulo: Int, @StringRes desc: Int, @StringRes boton: Int, peligro: Boolean = false, onConfirm: () -> Unit) {
+        AlertDialog(
+            onDismissRequest = { if (!vm.actualizando) onClose() },
+            containerColor = KarsySurface,
+            title = { Text(stringResource(titulo), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+            text = { Text(stringResource(desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
+            confirmButton = {
+                TextButton(onClick = onConfirm, enabled = !vm.actualizando) {
+                    Text(stringResource(boton), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = if (peligro) KarsyError else KarsyTealText)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onClose, enabled = !vm.actualizando) {
+                    Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
+                }
+            }
+        )
+    }
+    when (accion) {
+        AccionPanel.Pausar -> Confirmar(R.string.detail_owner_pause_title, R.string.detail_owner_pause_desc, R.string.detail_owner_pause, peligro = true) {
+            vm.cambiarEstado({ CarRepository.setPaused(car.id, true) }, listo(R.string.detail_owner_paused))
+        }
+        AccionPanel.Disponible -> Confirmar(R.string.detail_owner_available_title, R.string.detail_owner_available_desc, R.string.detail_owner_mark_available) {
+            vm.cambiarEstado({ CarRepository.setSold(car.id, false) }, listo(R.string.detail_owner_marked_available))
+        }
+        AccionPanel.Ocultar -> Confirmar(R.string.detail_owner_hide_title, R.string.detail_owner_hide_desc, R.string.detail_owner_hide) {
+            PublicacionesOcultas.ocultar(car.id)
+            listo(R.string.detail_owner_hidden)(null)
+        }
+        AccionPanel.Vendido -> if (!preguntarDonde) {
+            Confirmar(R.string.detail_owner_sold_title, R.string.detail_owner_sold_desc, R.string.detail_owner_sold_confirm) { preguntarDonde = true }
+        } else {
+            AlertDialog(
+                onDismissRequest = { if (!vm.actualizando) onClose() },
+                containerColor = KarsySurface,
+                title = { Text(stringResource(R.string.detail_owner_sold_via_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(stringResource(R.string.detail_owner_sold_via_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal)
+                        listOf(SOLD_INSIDE_APP to R.string.detail_owner_sold_via_inside, SOLD_OUTSIDE_APP to R.string.detail_owner_sold_via_outside).forEach { (via, texto) ->
+                            OutlinedButton(
+                                onClick = { vm.cambiarEstado({ CarRepository.setSold(car.id, true, via) }, listo(R.string.detail_owner_marked_sold)) },
+                                enabled = !vm.actualizando,
+                                shape = RoundedCornerShape(KarsyRadius.Md),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(texto), fontFamily = DmSans, fontWeight = FontWeight.SemiBold, color = KarsyInk)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = onClose, enabled = !vm.actualizando) {
+                        Text(stringResource(R.string.admin1_cancel), fontFamily = DmSans, color = KarsyInk)
+                    }
+                }
+            )
+        }
+        AccionPanel.Editar, AccionPanel.Duplicar, AccionPanel.Habilitar -> Unit
+    }
+}
+

@@ -80,7 +80,8 @@ export function LotProfile() {
   }
 
   const invitado = mode === 'guest'
-  const pedirRegistro = () => toast(t('perfil.registerToContact'), { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
+  // Al terminar el registro se regresa a este lote.
+  const pedirRegistro = () => toast(t('perfil.registerToContact'), { label: t('nav.registerMe'), onClick: () => navigate('/registro', { state: { from: `/lotes/${id}` } }) })
   // Con sesión y sin número registrado, el botón se ve deshabilitado.
   const puedeLlamar = invitado || !!contacto?.phone
   const puedeWhatsapp = invitado || !!contacto?.whatsapp

@@ -13,9 +13,8 @@ import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.safeCall
-import com.pame.karsy.data.model.EstadoAuto
 import com.pame.karsy.data.repository.UserRepository
-import com.pame.karsy.feature.home.EtiquetaVendido
+import com.pame.karsy.feature.home.VehicleCard
 import com.pame.karsy.feature.profile.AvatarViewer
 import com.pame.karsy.feature.profile.ProfileCover
 import com.pame.karsy.feature.profile.ZoomableProfileAvatar
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,14 +45,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyInk
@@ -69,7 +65,6 @@ import com.pame.karsy.core.theme.Outfit
 import com.pame.karsy.data.model.Car
 import com.pame.karsy.data.model.CarDetail
 import com.pame.karsy.data.model.SellerContact
-import com.pame.karsy.feature.profile.ImagePlaceholder
 import com.pame.karsy.feature.profile.ProfileAvatar
 
 /**
@@ -244,28 +239,16 @@ internal fun SellerProfileView(
                             modifier = Modifier.padding(15.dp)
                         )
                     }
-                    cars.chunked(3).forEach { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                            row.forEach { car ->
-                                Box(
-                                    Modifier
-                                        .weight(1f)
-                                        .aspectRatio(1f)
-                                        .background(ImagePlaceholder)
-                                        .clickable { onCarClick(car.id) }
-                                ) {
-                                    AsyncImage(
-                                        model = car.imageUrl,
-                                        contentDescription = "${car.title} ${car.year}",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                    if (car.status == EstadoAuto.VENDIDO) EtiquetaVendido(Modifier.align(Alignment.TopStart).padding(5.dp))
-                                }
-                            }
-                            // Mantiene el tamaño de las celdas en la última fila.
-                            repeat(3 - row.size) { Box(Modifier.weight(1f)) }
-                        }
+                    // Tarjetas con precio, año y ubicación (como el perfil del vendedor en la web).
+                    cars.forEach { car ->
+                        VehicleCard(
+                            car = car,
+                            isFavorite = false,
+                            onClick = { onCarClick(car.id) },
+                            onToggleFavorite = {},
+                            showFavorite = false,
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp)
+                        )
                     }
                 }
             }

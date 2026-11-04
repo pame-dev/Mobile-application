@@ -603,7 +603,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
   const [q, setQ] = useState('')
   // Desde "Requiere atención" (o el enlace viejo /admin/lotes) llega con ?tipo=lote o ?tipo=suspendido.
   const [params] = useSearchParams()
-  const [tab, setTab] = useState<'todos' | 'particular' | 'lote' | 'suspendido'>(() => {
+  const [tab, setTab] = useState<'todos' | 'particular' | 'lote' | 'activo' | 'suspendido'>(() => {
     const tipo = params.get('tipo')
     return tipo === 'lote' || tipo === 'suspendido' ? tipo : 'todos'
   })
@@ -613,8 +613,14 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
   }, [tab, onVisto, toast])
   const c = datos.cuentas
   const lista = c
-    .filter((x) => (tab === 'todos' ? true : tab === 'suspendido' ? x.estado_cuenta === 'suspendida' : x.tipo_cuenta === tab))
-    .filter((x) => !q.trim() || `${x.nombre_mostrar} ${x.correo}`.toLowerCase().includes(q.trim().toLowerCase()))
+    .filter((x) =>
+      tab === 'todos' ? true : tab === 'suspendido' ? x.estado_cuenta === 'suspendida' : tab === 'activo' ? x.estado_cuenta !== 'suspendida' : x.tipo_cuenta === tab,
+    )
+    // Igual que la app: también busca por responsable del lote y ubicación (municipio, estado).
+    .filter((x) => {
+      const texto = [x.nombre_mostrar, x.correo, x.responsable, x.municipio, x.estado].filter(Boolean).join(' ')
+      return !q.trim() || texto.toLowerCase().includes(q.trim().toLowerCase())
+    })
   return (
     <>
       <AdminHead title={t('admin.sec.users')} desc={t('admin.usersDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.usersSearch')} />} />
@@ -625,6 +631,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
           ['todos', t('admin.withCount', { label: t('admin.all'), n: c.length })],
           ['particular', t('admin.withCount', { label: t('admin.individual'), n: c.filter((x) => x.tipo_cuenta === 'particular').length })],
           ['lote', t('admin.withCount', { label: t('admin.lot'), n: c.filter((x) => x.tipo_cuenta === 'lote').length })],
+          ['activo', t('admin.withCount', { label: t('admin.st.active'), n: c.filter((x) => x.estado_cuenta !== 'suspendida').length })],
           ['suspendido', t('admin.withCount', { label: t('admin.st.suspended'), n: c.filter((x) => x.estado_cuenta === 'suspendida').length })],
         ]}
       />
@@ -817,8 +824,10 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
               {t('admin.viewListing')}
             </button>
             <span />
+            {/* Como la app: solo se deshabilita una publicación activa; una deshabilitada se puede habilitar. */}
             {row.aprobada &&
               (habilitada ? (
+                row.estado_publicacion === 'activa' && (
                 <button
                   className="btn btn-danger"
                   onClick={() =>
@@ -839,6 +848,7 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
                 >
                   {t('admin.disable')}
                 </button>
+                )
               ) : (
                 <button className="btn btn-primary" disabled={busy} onClick={() => correr(() => setCarEnabled(car.id, true, 'Habilitada desde el panel.'), t('admin.msgEnabled'))}>
                   {t('admin.enable')}

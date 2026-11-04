@@ -6,7 +6,7 @@ import { MODAL_TITULO, ModalHead, useUi } from '../components/Ui'
 import { ProfileHeader } from '../components/ProfileParts'
 import { VehicleCard } from '../components/VehicleCard'
 import { VolverButton } from '../components/VolverButton'
-import { Traducido } from '../components/Traducido'
+import { Traducido, useTraduccion } from '../components/Traducido'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { enviarCurp, errorConstancia, mensajeUsuario, subirConstancia, uploadAvatar } from '../data/auth'
@@ -348,7 +348,10 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
           {t('perfil.curpDesc')}
         </p>
       </div>
-      {rechazado && perfil.motivoVerificacion && <AlertBox message={t('perfil.curpRejected', { motivo: perfil.motivoVerificacion })} />}
+      {/* El motivo lo escribe el admin (en español): en inglés se muestra traducido. */}
+      {rechazado && perfil.motivoVerificacion && (
+        <Traducido texto={perfil.motivoVerificacion}>{(motivo) => <AlertBox message={t('perfil.curpRejected', { motivo })} />}</Traducido>
+      )}
       <div className="field" style={{ maxWidth: 320 }}>
         <input
           className={`input ${error ? 'bad' : ''}`}
@@ -385,6 +388,8 @@ function ConstanciaLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void
   const input = useRef<HTMLInputElement>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // El motivo del rechazo lo escribe el admin (en español): en inglés se muestra traducido.
+  const motivo = useTraduccion(perfil.motivoVerificacion ?? '')
 
   // Sin fila pero con la insignia (cuentas.verificado), se muestra como verificada.
   const estado = perfil.verificacion === 'sin_documento' && perfil.verificado ? 'verificado' : perfil.verificacion
@@ -399,7 +404,7 @@ function ConstanciaLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void
       : estado === 'verificado'
         ? [t('perfil.csfVerified'), desde && t('perfil.csfSince', { fecha: desde })]
         : estado === 'rechazado'
-          ? [t('perfil.csfRejected'), perfil.motivoVerificacion && t('perfil.csfReason', { motivo: perfil.motivoVerificacion })]
+          ? [t('perfil.csfRejected'), perfil.motivoVerificacion && t('perfil.csfReason', { motivo })]
           : [t('perfil.csfNone'), t('perfil.csfNoneDetail')]
   const puedeSubir = estado === 'sin_documento' || estado === 'rechazado'
 

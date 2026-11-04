@@ -13,7 +13,6 @@ import {
   markAllRead,
   notificationPreferences,
   notifications,
-  PREFERENCIAS_POR_DEFECTO,
   saveNotificationPreferences,
   signOutEverywhere,
   type Notificacion,
@@ -230,14 +229,25 @@ export function NotificationPreferences() {
   const { t } = useI18n()
   const { toast } = useUi()
   const [prefs, setPrefs] = useState<PreferenciasAvisos | null>(null)
+  /**
+   * No se pudieron leer: no se muestran casillas con valores por defecto, porque al tocar una se
+   * guardarían encima de las preferencias reales (igual que la app).
+   */
+  const [errorCarga, setErrorCarga] = useState(false)
+  const [intento, setIntento] = useState(0)
   const [permiso, setPermiso] = useState<PermisoNavegador>(permisoNavegador)
 
   useEffect(() => {
     if (!account) return
+    let vivo = true
+    setErrorCarga(false)
     notificationPreferences(account.id)
-      .then(setPrefs)
-      .catch(() => setPrefs(PREFERENCIAS_POR_DEFECTO))
-  }, [account])
+      .then((p) => vivo && setPrefs(p))
+      .catch(() => vivo && setErrorCarga(true))
+    return () => {
+      vivo = false
+    }
+  }, [account, intento])
 
   if (redirect) return redirect
 
@@ -287,7 +297,14 @@ export function NotificationPreferences() {
           }
         />
       </div>
-      {!prefs ? (
+      {!prefs && errorCarga ? (
+        <div className="note error ink" style={{ display: 'flex', gap: 'var(--s-3)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className="grow">{t('notif.prefs.loadError')}</span>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIntento((n) => n + 1)}>
+            {t('common.retry')}
+          </button>
+        </div>
+      ) : !prefs ? (
         <div className="skeleton" style={{ height: 280 }} />
       ) : (
         <div className="card" style={{ overflow: 'hidden' }}>

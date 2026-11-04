@@ -73,7 +73,8 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
                 value = form.descripcion,
                 onValueChange = { form.descripcion = it },
                 placeholder = stringResource(R.string.publish_description_placeholder),
-                maxChars = 500
+                // Mismos límites que la web y la BD (2000 y 1000): editar en la app no recorta lo escrito en la web.
+                maxChars = 2000
             )
         }
         LimitedTextArea(
@@ -81,7 +82,7 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
             value = form.imperfecciones,
             onValueChange = { form.imperfecciones = it },
             placeholder = stringResource(R.string.publish_imperfections_placeholder),
-            maxChars = 300
+            maxChars = 1000
         )
 
         Row(

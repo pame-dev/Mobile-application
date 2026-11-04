@@ -117,6 +117,7 @@ data class LoteCuentaDto(
     @SerialName("descripcion_corta") val descripcionCorta: String? = null,
     @SerialName("estado_perfil_ubi") val estado: String,
     @SerialName("municipio_perfil_ubi") val municipio: String,
+    @SerialName("foto_portada") val fotoPortada: String? = null,
     /** Insignia "Lote verificado". */
     val verificado: Boolean = false,
 )

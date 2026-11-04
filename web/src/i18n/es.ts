@@ -210,6 +210,7 @@ export const CORE_ES = {
   'notif.poca_actividad': '"{v}" lleva 30 días con pocas visitas. Prueba ajustar el precio o destacarlo.',
   'notif.confirmar_venta': '¿Ya vendiste "{v}"? Márcalo como vendido para que no te sigan contactando.',
   'notif.prefs.title': 'Elegir qué avisos recibir',
+  'notif.prefs.loadError': 'No pudimos cargar tus preferencias. Revisa tu conexión.',
   'notif.prefs.linkDesc': 'Precios de tus favoritos, resúmenes, recomendaciones y avisos de tus autos.',
   'notif.prefs.prices': 'Precios de tus favoritos',
   'notif.prefs.pricesDesc': 'Cuando un auto que guardaste baja de precio o ya no está disponible.',

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { VolverButton } from '../../components/VolverButton'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AlertBox, AuthShell, BackButton, PasswordInput, PasswordRulesList } from '../../components/AuthParts'
 import { ConstanciaField } from '../../components/ConstanciaField'
 import { Icon, type IconName } from '../../components/Icon'
@@ -13,16 +13,19 @@ import type { Clave } from '../../i18n/es'
 import * as R from '../../lib/formRules'
 import { estadosMunicipios, jpegDe, type EstadoMunicipios } from '../../lib/mexico'
 import { useSession } from '../../session/SessionContext'
+import { destinoDe } from './Login'
 
 type Tipo = 'particular' | 'lote'
 
 /** Registro: tipo de cliente (RegisterTypeScreen de la app). */
 export function RegisterType() {
   const navigate = useNavigate()
+  // Origen (state.from, p. ej. el auto desde el que se pidió registrarse): se pasa al formulario.
+  const location = useLocation()
   const { t } = useI18n()
   const { account } = useSession()
   const [tipo, setTipo] = useState<Tipo>('particular')
-  if (account) return <Navigate to="/" replace />
+  if (account) return <Navigate to={destinoDe(location.state)} replace />
 
   const opciones: [Tipo, Clave, Clave, IconName, string | undefined][] = [
     ['particular', 'auth.type.individual', 'auth.type.individualDesc', 'user', undefined],
@@ -45,7 +48,7 @@ export function RegisterType() {
           <Icon name="chev" />
         </button>
       ))}
-      <button className="btn btn-primary btn-block btn-lg" onClick={() => navigate(`/registro/${tipo}`)}>
+      <button className="btn btn-primary btn-block btn-lg" onClick={() => navigate(`/registro/${tipo}`, { state: location.state })}>
         {t('auth.type.continue')}
       </button>
       <p className="muted text-sm" style={{ textAlign: 'center' }}>
@@ -165,6 +168,8 @@ function Field({ id, label, error, children, span }: { id: string; label: string
 export function RegisterForm({ tipo }: { tipo: Tipo }) {
   const esLote = tipo === 'lote'
   const navigate = useNavigate()
+  // Origen (state.from): al crear la cuenta se regresa ahí (si no hay, al inicio).
+  const location = useLocation()
   const { t } = useI18n()
   const { account, reload } = useSession()
   const { toast } = useUi()
@@ -230,7 +235,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollPedido])
 
-  if (account && !loading) return <Navigate to="/" replace />
+  if (account && !loading) return <Navigate to={destinoDe(location.state)} replace />
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => {
     if (k === 'telefono') setTelefonoAviso(null)
@@ -337,7 +342,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
       const curpFallo = !esLote && limpio.curp ? await enviarCurp(limpio.curp).then(() => false, () => true) : false
       await reload()
       toast(t(constanciaFallo ? 'auth.csf.uploadFailed' : curpFallo ? 'auth.curp.sendFailed' : 'auth.reg.created'))
-      navigate('/', { replace: true })
+      navigate(destinoDe(location.state), { replace: true })
     } catch (ex) {
       setLoading(false)
       if (ex instanceof EmailNotVerifiedError) {
@@ -346,7 +351,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
         if (logo) holdAvatarUntilVerified(ex.email, logo.blob)
         if (esLote && constancia) holdConstanciaUntilVerified(ex.email, constancia)
         if (!esLote && limpio.curp) holdCurpUntilVerified(ex.email, limpio.curp)
-        navigate('/verificar', { replace: true, state: { email: ex.email, sendCode: false } })
+        navigate('/verificar', { replace: true, state: { email: ex.email, sendCode: false, from: destinoDe(location.state) } })
         return
       }
       const msg = mensajeUsuario(ex)
@@ -515,7 +520,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
       >
         {/* Flecha y título en la misma línea. */}
         <div className="row gap-3" style={{ alignItems: 'center' }}>
-          <VolverButton to="/registro" label={t('auth.back')} />
+          <VolverButton onClick={() => navigate('/registro', { state: location.state })} label={t('auth.back')} />
           <h1 className="h1-page">{esLote ? t('auth.reg.lotTitle') : t('auth.reg.title')}</h1>
         </div>
         <p className="muted">{esLote ? t('auth.reg.lotSub') : t('auth.reg.sub')}</p>

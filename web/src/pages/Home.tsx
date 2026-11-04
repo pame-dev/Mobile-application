@@ -203,8 +203,9 @@ export function Home() {
           </div>
         )}
 
-        {/* Mientras se busca o filtra, los destacados se ocultan para que los resultados queden arriba (igual que la app). */}
-        {!hayFiltros && destacados.length > 0 && (
+        {/* Mientras se busca, los destacados se ocultan para que los resultados queden arriba; con filtros
+            siguen visibles (igual que la app). */}
+        {!params.has('q') && destacados.length > 0 && (
           <>
             <CarruselDestacados cars={destacados} onOpen={(id) => navigate(`/vehiculo/${id}`)} />
           </>

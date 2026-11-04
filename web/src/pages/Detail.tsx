@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { VerifiedShield } from '../components/ConstanciaField'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
@@ -30,13 +30,17 @@ const STATUS_BADGE: Record<Car['status'], string> = {
   Pausado: 'b-neu',
 }
 
-function ContactModal({ detail }: { detail: CarDetail }) {
+/** [registrar]: contar este contacto en las estadísticas (solo la primera vez que se abre en la visita). */
+function ContactModal({ detail, registrar }: { detail: CarDetail; registrar: boolean }) {
   const { account } = useSession()
   const { t } = useI18n()
   const [c, setC] = useState<SellerContact | null | undefined>(undefined)
+  /** Veces que se tocó "Reintentar": al reintentar ya no se vuelve a contar el contacto. */
+  const [intento, setIntento] = useState(0)
   useEffect(() => {
-    sellerContact(detail.car.id, account?.id ?? null).then(setC).catch(() => setC(null))
-  }, [detail.car.id, account?.id])
+    const contar = registrar && intento === 0
+    sellerContact(detail.car.id, contar ? (account?.id ?? null) : null).then(setC).catch(() => setC(null))
+  }, [detail.car.id, account?.id, registrar, intento])
 
   const car = detail.car
   const mensaje = t('vehiculo.contact.message', { v: `${car.brand} ${car.model} ${car.year}` })
@@ -48,7 +52,18 @@ function ContactModal({ detail }: { detail: CarDetail }) {
       {c === undefined ? (
         <div className="skeleton" style={{ height: 120 }} />
       ) : c === null ? (
-        <p className="muted">{t('vehiculo.contact.error')}</p>
+        <>
+          <p className="muted">{t('vehiculo.contact.error')}</p>
+          <button
+            className="btn btn-ghost btn-block"
+            onClick={() => {
+              setC(undefined)
+              setIntento((n) => n + 1)
+            }}
+          >
+            {t('common.retry')}
+          </button>
+        </>
       ) : (
         <>
           {c.medio_principal && (
@@ -256,6 +271,8 @@ export function Detail() {
   const navigate = useNavigate()
   const { account, mode } = useSession()
   const location = useLocation()
+  /** Auto cuyo contacto ya se contó en esta visita (las estadísticas no se inflan al reabrir la ventana). */
+  const contactoContado = useRef<number | null>(null)
   /** Abierto con "Ver publicación" desde la revisión de Vehículos del panel de administración. */
   const origen = location.state as { revisionAdmin?: boolean; revisionReporte?: number } | null
   /** Abierto con "Ver publicación" desde la revisión de un reporte (id del reporte). */
@@ -415,9 +432,17 @@ export function Detail() {
   const esDueno = !!account && account.id === c.ownerId
   // El dueño no ve favorito, contactar ni reportar en sus propias publicaciones.
   const acciones = !esDueno
+  // Vendido: aviso y sin "Contactar" (igual que la app).
+  const vendido = c.status === 'Vendido'
+  const abrirContacto = () => {
+    const registrar = contactoContado.current !== c.id
+    contactoContado.current = c.id
+    openModal(<ContactModal detail={detail} registrar={registrar} />)
+  }
   const fotos = detail.gallery.length ? detail.gallery : [null]
   const on = fav.isFavorite(c.id)
-  const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro') })
+  // Al terminar el registro se regresa a este auto.
+  const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro', { state: { from: location.pathname } }) })
 
   const compartir = async () => {
     // Enlace limpio: en WhatsApp muestra la foto y el precio (Edge Function vista-previa) y,
@@ -621,13 +646,15 @@ export function Detail() {
           <div>
             <span className="price-xl num">{precio(c.priceValue)}</span> <span className="mid">{c.currency}</span>
           </div>
+          {acciones && vendido && <div className="note info ink">{t('vehiculo.detail.soldMsg')}</div>}
           {acciones && (
             <button
               className="btn btn-primary btn-block btn-lg"
-              onClick={() => (mode === 'guest' ? pedirRegistro(t('vehiculo.detail.guestContact')) : openModal(<ContactModal detail={detail} />))}
+              disabled={vendido}
+              onClick={() => (mode === 'guest' ? pedirRegistro(t('vehiculo.detail.guestContact')) : abrirContacto())}
             >
               <Icon name="chat" size={18} />
-              {t('vehiculo.detail.contactSeller')}
+              {vendido ? t('vehiculo.detail.soldButton') : t('vehiculo.detail.contactSeller')}
             </button>
           )}
           <div className="label" style={{ marginTop: 'var(--s-1)' }}>

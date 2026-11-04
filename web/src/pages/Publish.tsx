@@ -142,24 +142,6 @@ const VACIO: Datos = {
   descripcion: '', imperfecciones: '', tipoDocumento: '', documentoTexto: '',
 }
 
-/** Borrador de una publicación nueva (solo los datos escritos; las fotos no se guardan). */
-const claveBorrador = (uid: string) => `karsy-borrador-publicar-${uid}`
-function leerBorrador(uid: string): Datos | null {
-  try {
-    const crudo = localStorage.getItem(claveBorrador(uid))
-    return crudo ? { ...VACIO, ...(JSON.parse(crudo) as Partial<Datos>) } : null
-  } catch {
-    return null
-  }
-}
-function borrarBorrador(uid: string) {
-  try {
-    localStorage.removeItem(claveBorrador(uid))
-  } catch {
-    /* sin almacenamiento: no hay borrador que borrar */
-  }
-}
-
 const digitos = (v: string, max = 12) => v.replace(/\D/g, '').slice(0, max)
 
 /** Litros al escribir: solo un entero y un decimal; el punto se pone solo ("20" → "2.0"). */
@@ -249,8 +231,6 @@ export function Publish() {
   const [sugerencia, setSugerencia] = useState<'cargando' | 'error' | { rango: Rango; desde?: number; hasta?: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cargandoEdicion, setCargandoEdicion] = useState(editId != null || duplicarId != null)
-  /** Se recuperó un borrador guardado (se avisa arriba, con opción de empezar de cero). */
-  const [conBorrador, setConBorrador] = useState(false)
   const [rechazo, setRechazo] = useState<string | null>(null)
   // Lo escribe el admin (en español): en inglés se muestra traducido.
   const rechazoTraducido = useTraduccion(rechazo ?? '')
@@ -361,33 +341,6 @@ export function Publish() {
       vivo = false
     }
   }, [editId, duplicarId])
-
-  // Publicación nueva: se recupera lo que se llevaba escrito (si se salió a otra página o se cerró).
-  const uid = account?.id
-  useEffect(() => {
-    if (!uid || editId != null || duplicarId != null) return
-    const guardado = leerBorrador(uid)
-    if (guardado) {
-      setD(guardado)
-      setTocado(true)
-      setConBorrador(true)
-    }
-  }, [uid, editId, duplicarId])
-  // ...y se va guardando mientras se escribe (hasta publicar). Un duplicado no: su origen sigue ahí.
-  useEffect(() => {
-    if (!uid || editId != null || duplicarId != null || !tocado || listo) return
-    try {
-      localStorage.setItem(claveBorrador(uid), JSON.stringify(d))
-    } catch {
-      /* sin almacenamiento: no se guarda el borrador */
-    }
-  }, [uid, editId, duplicarId, d, tocado, listo])
-  const empezarDeCero = () => {
-    if (uid) borrarBorrador(uid)
-    setD(VACIO)
-    setTocado(false)
-    setConBorrador(false)
-  }
 
   // Al llegar a Detalles se busca el precio de autos similares: mismo modelo y ±2 años; si hay
   // pocos, el mismo modelo de cualquier año. Con "Otros" (modelo escrito a mano) no se sugiere.
@@ -820,7 +773,6 @@ export function Publish() {
         .then((vs) => (vs.every(Boolean) ? registrarHuellas(idGuardada, vs as string[]) : undefined))
         .catch(() => undefined)
       setListo(true)
-      if (account) borrarBorrador(account.id)
       openModal(<Exito titulo={titulo} editando={editId != null} aprobada={editandoAprobada} editId={editId} />)
     } catch (ex) {
       setSubida(null)
@@ -985,16 +937,6 @@ export function Publish() {
           <b>{t('publicar.rejectedTitle')}</b>
           <br />
           {t('publicar.rejectedReason', { motivo: rechazoTraducido })}
-        </div>
-      )}
-      {conBorrador && (
-        <div className="note info ink" style={{ marginBottom: 'var(--s-4)', display: 'flex', gap: 'var(--s-3)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span className="grow" style={{ minWidth: 200 }}>
-            {t('publicar.draftRestored')}
-          </span>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={empezarDeCero}>
-            {t('publicar.draftDiscard')}
-          </button>
         </div>
       )}
       {duplicarId != null && (

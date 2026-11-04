@@ -36,6 +36,7 @@ import com.pame.karsy.core.components.ConditionTag
 import com.pame.karsy.core.components.HeartToggle
 import com.pame.karsy.core.components.VerifiedShield
 import com.pame.karsy.core.locale.rememberTraduccion
+import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBorder
 import com.pame.karsy.core.theme.KarsyInk
@@ -63,6 +64,8 @@ fun VehicleCard(
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
+    /** false: sin corazón (p. ej. en "Vehículos similares" del detalle). */
+    showFavorite: Boolean = true,
 ) {
     val shape = RoundedCornerShape(KarsyRadius.Lg)
     Column(
@@ -88,8 +91,8 @@ fun VehicleCard(
                 modifier = Modifier.fillMaxSize()
             )
             if (car.status == EstadoAuto.VENDIDO) EtiquetaVendido(Modifier.align(Alignment.TopStart).padding(10.dp))
-            // Un auto vendido ya no se puede guardar (no saldría en Favoritos).
-            if (car.status != EstadoAuto.VENDIDO) HeartToggle(
+            // Un auto vendido ya no se puede guardar (no saldría en Favoritos), ni el tuyo propio (como la web).
+            if (showFavorite && car.status != EstadoAuto.VENDIDO && car.ownerId != SessionManager.userId) HeartToggle(
                 filled = isFavorite,
                 onToggle = onToggleFavorite,
                 size = 32.dp,

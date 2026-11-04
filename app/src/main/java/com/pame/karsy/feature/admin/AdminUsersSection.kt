@@ -112,7 +112,8 @@ fun AdminUsersSection(vm: AdminViewModel, initialFilter: String = "Todos") {
         ) {
             AdminUserDetailRows(user)
             // Suspender / reactivar (admin_cambiar_estado_cuenta registra la acción en la bitácora).
-            if (user.id != SessionManager.userId) {
+            // Como la web: no a uno mismo ni a otro administrador (la BD lo rechazaría).
+            if (user.id != SessionManager.userId && !user.isAdmin) {
                 AdminSheetActions {
                     if (user.status == "Suspendido") {
                         AdminSheetButton(
