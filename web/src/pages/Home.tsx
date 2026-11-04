@@ -16,6 +16,7 @@ import { entero, km, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
 import { ModalHead, useUi } from '../components/Ui'
+import { recordarBusqueda, SugerenciasBusqueda } from '../components/SugerenciasBusqueda'
 import { miUbicacion } from '../data/account'
 import { estadosMunicipios, mismoLugar, type EstadoMunicipios } from '../lib/mexico'
 
@@ -34,6 +35,16 @@ export function Home() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
+  /** Texto del buscador del banner (como en la app); se mantiene igual a la búsqueda aplicada (?q=). */
+  const [qBanner, setQBanner] = useState(params.get('q') ?? '')
+  useEffect(() => setQBanner(params.get('q') ?? ''), [params])
+  const buscarBanner = () => {
+    const next = new URLSearchParams(params)
+    if (qBanner.trim()) next.set('q', qBanner.trim())
+    else next.delete('q')
+    recordarBusqueda(qBanner, account?.id)
+    setParams(next)
+  }
   const [cars, setCars] = useState<Car[] | null>(null)
   const [error, setError] = useState<Clave | null>(null)
   const [stats, setStats] = useState<{ vehiculos: number; marcas: number; modelos: number } | null>(null)
@@ -170,6 +181,32 @@ export function Home() {
             {t('home.title2')}
           </h1>
           <p>{t('home.lead')}</p>
+          {/* Buscador a la vista en el banner, como en la app (en celular el de la barra está en el menú). */}
+          <form
+            className="herosearch"
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault()
+              buscarBanner()
+            }}
+          >
+            <div className="inputicon grow">
+              <Icon name="search" size={18} />
+              <input
+                className="input"
+                list="heroq-sugerencias"
+                autoComplete="off"
+                placeholder={t('nav.searchPlaceholder')}
+                aria-label={t('nav.searchLabel')}
+                value={qBanner}
+                onChange={(e) => setQBanner(e.target.value)}
+              />
+              <SugerenciasBusqueda id="heroq-sugerencias" />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              {t('home.searchBtn')}
+            </button>
+          </form>
           <div className="stats">
             <div>
               <b className="num">{stats ? entero(stats.vehiculos) : '—'}</b>

@@ -81,6 +81,7 @@ export const CORE_ES = {
   'home.title1': 'Encuentra tu próximo',
   'home.title2': 'vehículo ideal',
   'home.lead': 'Miles de vehículos verificados en toda la república mexicana. Compra, vende y negocia con confianza.',
+  'home.searchBtn': 'Buscar',
   'home.statVehicles': 'Vehículos',
   'home.statBrands': 'Marcas',
   'home.statModels': 'Modelos',
