@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { unreadCount } from '../data/account'
 import { useI18n } from '../i18n/I18nContext'
-import { FILTER_KEYS, SIN_FILTROS, filtrosDeUrl, type Filtros } from '../lib/filtros'
 import { iniciales } from '../lib/format'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
-import { FilterFields } from './Filters'
 import { Icon, type IconName } from './Icon'
 import { LangSwitch } from './LangSwitch'
-import { recordarBusqueda, SugerenciasBusqueda } from './SugerenciasBusqueda'
 import { EVENTO_CAMBIOS, type Tabla } from '../lib/tiempoReal'
 import { ModalHead, useUi } from './Ui'
 
@@ -20,64 +17,6 @@ export function Brand({ light = false }: { light?: boolean }) {
       <img src="/logo.png" alt="" />
       Karsy
     </button>
-  )
-}
-
-/** Panel de filtros de la barra (mismos campos que el menú de filtros de la app); se aplica a Inicio. */
-function FilterPanel({ onClose }: { onClose: () => void }) {
-  const { mode } = useSession()
-  const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const [draft, setDraft] = useState<Filtros>(() => filtrosDeUrl(params))
-  const { t } = useI18n()
-
-  const aplicar = (valores: Filtros) => {
-    const next = new URLSearchParams(params)
-    for (const k of FILTER_KEYS) {
-      const v = valores[k]?.trim()
-      if (v) next.set(k, v)
-      else next.delete(k)
-    }
-    onClose()
-    navigate({ pathname: '/', search: next.toString() })
-  }
-
-  // Igual que la app: los visitantes ven la invitación a registrarse en lugar de los filtros.
-  if (mode === 'guest') {
-    return (
-      <div className="filterpop">
-        <h3>{t('filters.title')}</h3>
-        <div className="note info">
-          {t('filters.guest')}
-          <br />
-          <a
-            href="/registro"
-            onClick={(e) => {
-              e.preventDefault()
-              onClose()
-              navigate('/registro')
-            }}
-          >
-            <b>{t('filters.registerFree')}</b>
-          </a>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="filterpop">
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h3>{t('filters.title')}</h3>
-        <button style={{ background: 'none', border: 0, color: 'var(--teal-text)', fontWeight: 600 }} onClick={() => aplicar(SIN_FILTROS)}>
-          {t('filters.clear')}
-        </button>
-      </div>
-      <FilterFields draft={draft} onChange={setDraft} />
-      <button className="btn btn-primary btn-block" onClick={() => aplicar(draft)}>
-        {t('filters.apply')}
-      </button>
-    </div>
   )
 }
 
@@ -114,14 +53,10 @@ export function TopNav() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
-  const [params] = useSearchParams()
-  const [filtersOpen, setFiltersOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   /** Menú de hamburguesa (pantallas de 1000 px o menos). */
   const [menuMovil, setMenuMovil] = useState(false)
   const cerrarMenuMovil = useCallback(() => setMenuMovil(false), [])
-  const [q, setQ] = useState(params.get('q') ?? '')
-  const searchRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [sinLeer, setSinLeer] = useState(0)
 
@@ -142,33 +77,19 @@ export function TopNav() {
     }
   }, [account, location.pathname])
 
-  // La búsqueda refleja la URL (p. ej. al volver atrás).
   useEffect(() => {
-    setQ(params.get('q') ?? '')
-  }, [params])
-  useEffect(() => {
-    setFiltersOpen(false)
     setMenuOpen(false)
     setMenuMovil(false)
   }, [location.pathname])
 
-  // Clic fuera cierra el panel de filtros y el menú de la cuenta.
+  // Clic fuera cierra el menú de la cuenta.
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (filtersOpen && searchRef.current && !searchRef.current.contains(e.target as Node)) setFiltersOpen(false)
       if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
     }
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
-  }, [filtersOpen, menuOpen])
-
-  const buscar = () => {
-    const next = new URLSearchParams(location.pathname === '/' ? params : undefined)
-    if (q.trim()) next.set('q', q.trim())
-    else next.delete('q')
-    recordarBusqueda(q, account?.id)
-    navigate({ pathname: '/', search: next.toString() })
-  }
+  }, [menuOpen])
 
   const links: [string, string, IconName][] = [
     ['/', t('nav.home'), 'home'],
@@ -207,33 +128,6 @@ export function TopNav() {
             </button>
           ))}
         </nav>
-        <div className="navsearch" ref={searchRef}>
-          <form
-            className="inputicon grow"
-            role="search"
-            onSubmit={(e) => {
-              e.preventDefault()
-              buscar()
-            }}
-          >
-            <Icon name="search" size={18} />
-            {/* Sugerencias: búsquedas recientes y marcas. */}
-            <input className="input" id="navq" list="navq-sugerencias" autoComplete="off" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
-            <SugerenciasBusqueda id="navq-sugerencias" />
-          </form>
-          <button
-            className={`btn filterbtn ${filtersOpen ? 'on' : ''}`}
-            aria-expanded={filtersOpen}
-            onClick={() => {
-              setFiltersOpen((v) => !v)
-              setMenuOpen(false)
-            }}
-          >
-            <Icon name="filter" size={18} />
-            <span>{t('nav.filters')}</span>
-          </button>
-          {filtersOpen && <FilterPanel onClose={() => setFiltersOpen(false)} />}
-        </div>
         <div className="row" style={{ marginLeft: 'auto' }}>
           {mode === 'guest' ? (
             <>
@@ -261,7 +155,6 @@ export function TopNav() {
                   aria-expanded={menuOpen}
                   onClick={() => {
                     setMenuOpen((v) => !v)
-                    setFiltersOpen(false)
                   }}
                 >
                   {foto ? <img src={foto} alt="" /> : iniciales(account!.nombre)}
@@ -322,7 +215,7 @@ export function TopNav() {
 
 /**
  * Menú de hamburguesa (1000 px o menos): panel que se desliza desde la derecha con todo
- * lo del encabezado: buscador y filtros, Inicio / Lotes / Favoritos, entrar o registrarse
+ * lo del encabezado: Inicio / Lotes / Favoritos, entrar o registrarse
  * (visitante) o Publicar y las opciones de la cuenta, cerrar sesión e idioma. Se cierra
  * con la X, tocando afuera, con Esc, al cambiar de pantalla o si la ventana se agranda.
  */
@@ -344,9 +237,6 @@ function MenuMovil({
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
-  const [params] = useSearchParams()
-  const [q, setQ] = useState(params.get('q') ?? '')
-  const [filtros, setFiltros] = useState(false)
   const cerrarRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLElement>(null)
   /** Solo cierra si el clic empezó y terminó en el fondo (no al soltar ahí tras seleccionar texto). */
@@ -387,14 +277,6 @@ function MenuMovil({
     }
   }, [onCerrar])
 
-  const buscar = () => {
-    const next = new URLSearchParams(location.pathname === '/' ? params : undefined)
-    if (q.trim()) next.set('q', q.trim())
-    else next.delete('q')
-    recordarBusqueda(q, account?.id)
-    navigate({ pathname: '/', search: next.toString() })
-    onCerrar()
-  }
   const ir = (to: string) => {
     irA(to)
     onCerrar()
@@ -438,26 +320,6 @@ function MenuMovil({
             <LangSwitch />
           </div>
         )}
-
-        <div className="drawersearch">
-          <form
-            className="inputicon grow"
-            role="search"
-            onSubmit={(e) => {
-              e.preventDefault()
-              buscar()
-            }}
-          >
-            <Icon name="search" size={18} />
-            <input className="input" list="drawerq-sugerencias" autoComplete="off" placeholder={t('nav.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.searchLabel')} />
-            <SugerenciasBusqueda id="drawerq-sugerencias" />
-          </form>
-          <button className={`btn filterbtn ${filtros ? 'on' : ''}`} aria-expanded={filtros} onClick={() => setFiltros((v) => !v)}>
-            <Icon name="filter" size={18} />
-            <span>{t('nav.filters')}</span>
-          </button>
-        </div>
-        {filtros && <FilterPanel onClose={onCerrar} />}
 
         {/* Una sola lista con la misma separación: navegación, cuenta y cerrar sesión. */}
         <nav className="drawerlinks">

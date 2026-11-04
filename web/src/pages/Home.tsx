@@ -9,13 +9,15 @@ import { busquedaVacia, guardarBusqueda, type FiltrosBusqueda } from '../data/bu
 import type { Car } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
-import { FILTER_KEYS, ORDEN, filtrarCars, filtrosDeUrl, type FilterKey } from '../lib/filtros'
+import { FILTER_KEYS, ORDEN, SIN_FILTROS, filtrarCars, filtrosDeUrl, type FilterKey, type Filtros } from '../lib/filtros'
+import { FilterFields } from '../components/Filters'
 import { nombreCatalogo } from '../lib/catalogo'
 import type { Catalogs } from '../data/types'
 import { entero, km, precio } from '../lib/format'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
 import { ModalHead, useUi } from '../components/Ui'
+import { recordarBusqueda, SugerenciasBusqueda } from '../components/SugerenciasBusqueda'
 import { miUbicacion } from '../data/account'
 import { estadosMunicipios, mismoLugar, type EstadoMunicipios } from '../lib/mexico'
 
@@ -34,6 +36,16 @@ export function Home() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
+  /** Texto del buscador del banner (como en la app); se mantiene igual a la búsqueda aplicada (?q=). */
+  const [qBanner, setQBanner] = useState(params.get('q') ?? '')
+  useEffect(() => setQBanner(params.get('q') ?? ''), [params])
+  const buscarBanner = () => {
+    const next = new URLSearchParams(params)
+    if (qBanner.trim()) next.set('q', qBanner.trim())
+    else next.delete('q')
+    recordarBusqueda(qBanner, account?.id)
+    setParams(next)
+  }
   const [cars, setCars] = useState<Car[] | null>(null)
   const [error, setError] = useState<Clave | null>(null)
   const [stats, setStats] = useState<{ vehiculos: number; marcas: number; modelos: number } | null>(null)
@@ -99,6 +111,8 @@ export function Home() {
    * guarda: la alerta usa solo los filtros). El tipo viene por nombre en la URL.
    */
   const filtrosActivos = filtrosDeUrl(params)
+  /** Filtros aplicados (sin contar el modelo, que va con la marca) más el orden si no es el de siempre. */
+  const filtrosContados = FILTER_KEYS.filter((k) => filtrosActivos[k] && k !== 'modelo').length + (params.has('orden') ? 1 : 0)
 
   // Filtros aplicados como etiquetas con X (marca y modelo vienen como id: se buscan sus nombres).
   const [cat, setCat] = useState<Catalogs | null>(null)
@@ -152,13 +166,6 @@ export function Home() {
     }
   }
 
-  const setOrden = (v: string) => {
-    const next = new URLSearchParams(params)
-    if (v === 'recientes') next.delete('orden')
-    else next.set('orden', v)
-    setParams(next, { replace: true })
-  }
-
   return (
     <>
       <section className="hero">
@@ -170,6 +177,32 @@ export function Home() {
             {t('home.title2')}
           </h1>
           <p>{t('home.lead')}</p>
+          {/* Buscador a la vista en el banner, como en la app (en celular el de la barra está en el menú). */}
+          <form
+            className="herosearch"
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault()
+              buscarBanner()
+            }}
+          >
+            <div className="inputicon grow">
+              <Icon name="search" size={18} />
+              <input
+                className="input"
+                list="heroq-sugerencias"
+                autoComplete="off"
+                placeholder={t('nav.searchPlaceholder')}
+                aria-label={t('nav.searchLabel')}
+                value={qBanner}
+                onChange={(e) => setQBanner(e.target.value)}
+              />
+              <SugerenciasBusqueda id="heroq-sugerencias" />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              {t('home.searchBtn')}
+            </button>
+          </form>
           <div className="stats">
             <div>
               <b className="num">{stats ? entero(stats.vehiculos) : '—'}</b>
@@ -247,18 +280,15 @@ export function Home() {
                 {t('home.clearFilters')}
               </button>
             )}
-            <select
-              className="input"
-              aria-label={t('sort.label')}
-              value={params.get('orden') ?? 'recientes'}
-              onChange={(e) => setOrden(e.target.value)} style={{ height: 36, width: 'auto', borderRadius: 'var(--r-pill)' }}
+            {/* Filtros y orden en una sola ventana (antes el orden iba aquí y los filtros en la barra). */}
+            <button
+              className={`btn filterbtn solo ${filtrosContados ? 'on' : ''}`}
+              style={{ height: 36, borderRadius: 'var(--r-pill)' }}
+              onClick={() => openModal(<FiltrosInicioModal params={params} onAplicar={(next) => setParams(next, { replace: true })} />)}
             >
-              {ORDEN.map(([v, clave]) => (
-                <option key={v} value={v}>
-                  {t(clave)}
-                </option>
-              ))}
-            </select>
+              <Icon name="filter" size={18} />
+              <span>{t('nav.filters')}{filtrosContados ? ` (${filtrosContados})` : ''}</span>
+            </button>
           </div>
         </div>
 
@@ -558,5 +588,76 @@ function CarruselDestacados({ cars, onOpen }: { cars: Car[]; onOpen: (id: number
         </div>
       </div>
     </>
+  )
+}
+
+/**
+ * Filtros de Inicio con el orden adentro (Más recientes, precio…). Los visitantes solo
+ * eligen el orden y ven la invitación a registrarse, igual que en la app.
+ */
+function FiltrosInicioModal({ params, onAplicar }: { params: URLSearchParams; onAplicar: (next: URLSearchParams) => void }) {
+  const { mode } = useSession()
+  const { closeModal } = useUi()
+  const { t } = useI18n()
+  const navigate = useNavigate()
+  const [draft, setDraft] = useState<Filtros>(() => filtrosDeUrl(params))
+  const [orden, setOrden] = useState(params.get('orden') ?? 'recientes')
+  const invitado = mode === 'guest'
+
+  const aplicar = (valores: Filtros, ordenNuevo: string) => {
+    const next = new URLSearchParams(params)
+    if (!invitado) {
+      for (const k of FILTER_KEYS) {
+        const v = valores[k]?.trim()
+        if (v) next.set(k, v)
+        else next.delete(k)
+      }
+    }
+    if (ordenNuevo === 'recientes') next.delete('orden')
+    else next.set('orden', ordenNuevo)
+    onAplicar(next)
+    closeModal()
+  }
+
+  return (
+    <div className="modal">
+      <ModalHead title={t('filters.modalTitle')} />
+      <div className="field">
+        <label htmlFor="forden">{t('sort.label')}</label>
+        <select className="input" id="forden" value={orden} onChange={(e) => setOrden(e.target.value)}>
+          {ORDEN.map(([v, clave]) => (
+            <option key={v} value={v}>
+              {t(clave)}
+            </option>
+          ))}
+        </select>
+      </div>
+      {invitado ? (
+        <div className="note info">
+          {t('filters.guest')}
+          <br />
+          <a
+            href="/registro"
+            onClick={(e) => {
+              e.preventDefault()
+              closeModal()
+              navigate('/registro')
+            }}
+          >
+            <b>{t('filters.registerFree')}</b>
+          </a>
+        </div>
+      ) : (
+        <FilterFields draft={draft} onChange={setDraft} />
+      )}
+      <div className="grid2">
+        <button className="btn btn-ghost" onClick={() => aplicar(SIN_FILTROS, 'recientes')}>
+          {t('filters.clear')}
+        </button>
+        <button className="btn btn-primary" onClick={() => aplicar(draft, orden)}>
+          {t('filters.apply')}
+        </button>
+      </div>
+    </div>
   )
 }

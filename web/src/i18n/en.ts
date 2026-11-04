@@ -76,6 +76,7 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'home.title1': 'Find your next',
   'home.title2': 'ideal vehicle',
   'home.lead': 'Thousands of verified vehicles all across Mexico. Buy, sell and negotiate with confidence.',
+  'home.searchBtn': 'Search',
   'home.statVehicles': 'Vehicles',
   'home.statBrands': 'Brands',
   'home.statModels': 'Models',
