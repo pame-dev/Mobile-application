@@ -560,9 +560,15 @@ export function Profile() {
   const datos = [perfil.municipio && `${perfil.municipio}, ${perfil.estado}`, perfil.email].filter(Boolean).join(' · ')
 
   return (
-    <div className="wrap page-top">
+    <div className="wrap">
+      {/* Mismo encabezado que Configuración: flecha y título fuera de la portada. */}
+      <div className="pagehead">
+        <div className="row">
+          <VolverButton fallback="/" />
+          <h1>{t('nav.myProfile')}</h1>
+        </div>
+      </div>
       <ProfileHeader
-        back={<VolverButton fallback="/" />}
         name={perfil.displayName}
         avatarUrl={perfil.avatarUrl}
         coverUrl={perfil.coverUrl}
