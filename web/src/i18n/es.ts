@@ -112,7 +112,7 @@ export const CORE_ES = {
   'home.noMatch': 'Ningún vehículo coincide con tu búsqueda.',
 
   // Pie de página
-  'footer.tagline': 'Marketplace automotriz para comprar y vender autos nuevos y seminuevos en todo México.',
+  'footer.tagline': 'Marketplace automotriz para comprar y vender autos seminuevos y usados en todo México.',
   'footer.legal': 'Legal',
   'footer.language': 'Idioma',
 

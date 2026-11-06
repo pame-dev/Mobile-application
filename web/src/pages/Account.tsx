@@ -357,7 +357,7 @@ export function SavedSearches() {
 
   return (
     <div className="wrap wrap-narrow page-end">
-      <PageHead title={t('saved.title')} back="/configuracion" />
+      <PageHead title={t('saved.title')} back="historial" fallback="/configuracion" />
       <p className="muted" style={{ margin: '0 0 var(--s-4)' }}>
         {t('saved.hint')}
       </p>
@@ -485,7 +485,7 @@ export function Settings() {
 
   return (
     <div className="wrap wrap-narrow page-end">
-      <PageHead title={t('settings.title')} back="/perfil" />
+      <PageHead title={t('settings.title')} back="historial" fallback="/perfil" />
       <div className="card" style={{ overflow: 'hidden' }}>
         <SetRow icon="bell" title={t('notif.title')} desc={t('settings.notificationsDesc')} onClick={() => navigate('/notificaciones')} />
         <SetRow icon="search" title={t('saved.title')} desc={t('saved.settingsDesc')} onClick={() => navigate('/busquedas')} />
@@ -593,7 +593,7 @@ export function Privacy() {
 
   return (
     <div className="wrap wrap-narrow page-end">
-      <PageHead title={t('settings.privacy')} back="/configuracion" />
+      <PageHead title={t('settings.privacy')} back="historial" fallback="/configuracion" />
       <div className="label" style={{ marginBottom: 'var(--s-3)' }}>
         {t('privacy.security')}
       </div>

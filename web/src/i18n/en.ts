@@ -106,7 +106,7 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'home.empty': 'There are no vehicles published yet.',
   'home.noMatch': 'No vehicles match your search.',
 
-  'footer.tagline': 'Car marketplace to buy and sell new and used cars all across Mexico.',
+  'footer.tagline': 'Car marketplace to buy and sell pre-owned and used cars all across Mexico.',
   'footer.legal': 'Legal',
   'footer.language': 'Language',
 
