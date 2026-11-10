@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useI18n } from '../i18n/I18nContext'
 import { destinoAviso, textoAviso } from '../lib/avisos'
 import { ConfirmModal } from './Confirm'
+import { activarPushWeb, quitarPushWeb, soportaPushWeb } from '../lib/pushWeb'
 import { escucharCambios, EVENTO_CAMBIOS, type Tabla } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
 import { useUi } from './Ui'
@@ -20,9 +21,10 @@ const soportaAvisos = () => typeof window !== 'undefined' && 'Notification' in w
 export function TiempoReal() {
   const { account, reload } = useSession()
   const { toast, openModal } = useUi()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const navigate = useNavigate()
   const uid = account?.id ?? null
+  const rolPanel = account?.rolPanel ?? null
 
   useEffect(() => {
     return escucharCambios(uid, (a) => {
@@ -53,6 +55,29 @@ export function TiempoReal() {
     window.addEventListener(EVENTO_CAMBIOS, onCambios)
     return () => window.removeEventListener(EVENTO_CAMBIOS, onCambios)
   }, [uid, reload])
+
+  // Equipo (administrador y moderadores) con permiso: push en el navegador aunque Karsy esté
+  // cerrada. Se revisa también cuando cambia el permiso (ventana de abajo o Notificaciones).
+  // Si la cuenta en sesión no es del equipo, este navegador deja de recibir los avisos.
+  useEffect(() => {
+    if (!uid || !soportaPushWeb()) return
+    const revisar = () => {
+      if (!rolPanel) void quitarPushWeb().catch(() => undefined)
+      else if (Notification.permission === 'granted') void activarPushWeb(lang).catch(() => undefined)
+    }
+    revisar()
+    let permiso: PermissionStatus | null = null
+    navigator.permissions
+      ?.query({ name: 'notifications' })
+      .then((p) => {
+        permiso = p
+        p.onchange = revisar
+      })
+      .catch(() => undefined)
+    return () => {
+      if (permiso) permiso.onchange = null
+    }
+  }, [uid, rolPanel, lang])
 
   // Al entrar con sesión, como la app: una ventana para activar las notificaciones del
   // navegador (el permiso solo se puede pedir tras un clic). Se pregunta una vez por

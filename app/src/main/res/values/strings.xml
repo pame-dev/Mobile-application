@@ -1400,6 +1400,9 @@
     <string name="notif_verification_approved">¡Tu cuenta de Karsy fue verificada! Ya aparece la insignia en tu perfil.</string>
     <string name="notif_verification_rejected">No pudimos verificar tu cuenta. Revisa el motivo y vuelve a enviarla desde tu perfil.</string>
     <string name="notif_payment_featured">Llegó un pago para destacar “%1$s”. Revísalo en Destacados.</string>
+    <string name="notif_listing_to_review">Hay una publicación nueva por revisar: “%1$s”. Revísala en Vehículos.</string>
+    <string name="notif_edit_to_review">Editaron “%1$s” y hay cambios por revisar. Revísalos en Vehículos.</string>
+    <string name="notif_new_report">Reportaron “%1$s”. Revísalo en Reportes.</string>
     <string name="notif_prefs_title">Elegir qué avisos recibir</string>
     <string name="notif_prefs_system_off">Las notificaciones de Karsy están apagadas en tu teléfono. Toca aquí para activarlas.</string>
     <string name="notif_prefs_prices">Precios de tus favoritos</string>

@@ -1,6 +1,8 @@
 # Despliegue de la web (carpeta web/) en Netlify.
 # La BD, el login y las fotos siguen en Supabase: en Netlify solo hay que agregar
 # VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY (Site configuration → Environment variables).
+# Para el push en el navegador del equipo, también VITE_VAPID_PUBLIC_KEY (la llave
+# pública VAPID; la privada solo va en los secretos de Supabase).
 
 [build]
   base = "web"

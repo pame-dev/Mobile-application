@@ -39,6 +39,9 @@ fun notificationTextRes(tipo: String): Int = when (tipo) {
     "verificacion_aprobada" -> R.string.notif_verification_approved
     "verificacion_rechazada" -> R.string.notif_verification_rejected
     "pago_destacado" -> R.string.notif_payment_featured
+    "publicacion_por_revisar" -> R.string.notif_listing_to_review
+    "edicion_por_revisar" -> R.string.notif_edit_to_review
+    "reporte_nuevo" -> R.string.notif_new_report
     else -> R.string.notif_generic
 }
 

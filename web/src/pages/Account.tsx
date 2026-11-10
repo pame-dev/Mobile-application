@@ -88,7 +88,11 @@ function estiloDe(tipo: string): [IconName, string, string] {
     case 'favorito':
       return ['heart', 'var(--error-l)', 'var(--error)']
     case 'propuesta_enviada':
+    case 'publicacion_por_revisar':
+    case 'edicion_por_revisar':
       return ['doc', 'var(--warning-l)', 'var(--warning)']
+    case 'reporte_nuevo':
+      return ['flag', 'var(--error-l)', 'var(--error)']
     case 'publicacion_aprobada':
     case 'edicion_aprobada':
     case 'publicacion_rehabilitada':
