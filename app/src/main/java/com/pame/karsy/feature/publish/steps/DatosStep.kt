@@ -270,7 +270,8 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 CatalogDropdown(
                     value = form.duenos.toIntOrNull()?.let { if (it >= max) masDe else it.toString() }.orEmpty(),
                     placeholder = stringResource(R.string.publish_select),
-                    options = (0..max).map { it.toLong() to if (it == max) masDe else it.toString() },
+                    // Sin "0": todo auto seminuevo o usado tuvo al menos un dueño.
+                    options = (1..max).map { it.toLong() to if (it == max) masDe else it.toString() },
                     onSelect = { form.duenos = it.toString() },
                     enabled = activo("duenos")
                 )

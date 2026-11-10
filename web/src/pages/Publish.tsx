@@ -310,7 +310,8 @@ export function Publish() {
             combustible: a.tipo_combustible ?? '',
             idCarroceria: a.id_carroceria ? String(a.id_carroceria) : '',
             idColor: a.id_color ? String(a.id_color) : '',
-            duenos: a.numero_propietarios_anteriores != null ? String(a.numero_propietarios_anteriores) : '',
+            // El menú ya no tiene "0": si estaba en 0, queda vacío para elegir de nuevo.
+            duenos: a.numero_propietarios_anteriores ? String(a.numero_propietarios_anteriores) : '',
             condicion: a.condicion_vehiculo ?? '',
             descripcion: pot ? desc.slice(0, pot.index) : desc,
             imperfecciones: a.descripcion_problemas ?? '',
@@ -998,7 +999,8 @@ export function Publish() {
                 <Campo id="duenos" label={t('publicar.previousOwners')} {...validacion('duenos')}>
                   {opciones(
                     'duenos',
-                    Array.from({ length: DUENOS_MAX + 1 }, (_, n) => ({ valor: String(n), texto: n === DUENOS_MAX ? t('publicar.ownersOrMore', { n }) : String(n) })),
+                    // Sin "0": todo auto seminuevo o usado tuvo al menos un dueño.
+                    Array.from({ length: DUENOS_MAX }, (_, i) => i + 1).map((n) => ({ valor: String(n), texto: n === DUENOS_MAX ? t('publicar.ownersOrMore', { n }) : String(n) })),
                     t('publicar.select'),
                   )}
                 </Campo>
