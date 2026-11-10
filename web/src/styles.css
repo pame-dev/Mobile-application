@@ -448,8 +448,10 @@ button.bigavatar{cursor:zoom-in}
 .step.on{color:var(--ink)} .step.on i{background:var(--navy);border-color:var(--navy);color:#fff}
 .step.done i{background:var(--teal);border-color:var(--teal);color:#fff}
 .stepline{flex:1;height:2px;background:var(--border);margin:0 var(--s-3);min-width:20px}
-.photogrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--s-3)}
-.photogrid.extra{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+/* Fotos del paso 2: los 6 recuadros (y los adicionales) miden igual, cuadrados, sin importar el texto. */
+.photogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3)}
+.photogrid > *{min-width:0}
+.photogrid .photoslot{width:100%;overflow:hidden}
 .photoslot.bad{border-color:var(--error);color:var(--error)}
 .photoslot.filled.bad{outline:3px solid var(--error);outline-offset:-3px}
 .photoslot .tag{position:absolute;left:8px;bottom:8px;background:rgba(255,255,255,.92);color:var(--navy-deep);font-size:var(--fs-xs);font-weight:var(--fw-semibold);padding:var(--s-1) var(--s-2);border-radius:var(--r-pill);max-width:calc(100% - 16px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
