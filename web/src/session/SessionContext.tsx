@@ -3,6 +3,7 @@ import { traducir } from '../i18n/I18nContext'
 import { cerrarSesionLocal, supabase } from '../lib/supabase'
 import type { Account } from '../data/types'
 import { aplicarTemaDeCuenta } from '../lib/tema'
+import { quitarPushWeb } from '../lib/pushWeb'
 
 /** Visitante (sin sesión), usuario (particular o lote) o administrador. Un moderador es 'user' con account.rolPanel. */
 export type Mode = 'guest' | 'user' | 'admin'
@@ -135,6 +136,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [cuentaId])
 
   const signOut = useCallback(async () => {
+    // Antes de salir (aún con sesión): este navegador deja de recibir los push del equipo.
+    await quitarPushWeb().catch(() => undefined)
     await cerrarSesionLocal()
     setAccount(null)
   }, [])

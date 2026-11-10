@@ -1398,6 +1398,9 @@
     <string name="notif_verification_approved">Your Karsy account was verified! The badge now shows on your profile.</string>
     <string name="notif_verification_rejected">We couldn\'t verify your account. Check the reason and send it again from your profile.</string>
     <string name="notif_payment_featured">A payment arrived to feature “%1$s”. Review it in Featured.</string>
+    <string name="notif_listing_to_review">A new listing needs review: “%1$s”. Review it in Vehicles.</string>
+    <string name="notif_edit_to_review">“%1$s” was edited and has changes to review. Review them in Vehicles.</string>
+    <string name="notif_new_report">“%1$s” was reported. Review it in Reports.</string>
     <string name="notif_prefs_title">Choose which notifications to get</string>
     <string name="notif_prefs_system_off">Karsy notifications are turned off on your phone. Tap here to turn them on.</string>
     <string name="notif_prefs_prices">Prices of your favorites</string>

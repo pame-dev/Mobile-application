@@ -144,11 +144,12 @@ Deno.serve(async (req) => {
     .from("dispositivos_push")
     .delete()
     .eq("id_cuenta", idCuenta)
-    .select("token");
+    .select("token, p256dh");
   if (errorDispositivos) console.error("No se pudieron quitar los teléfonos", errorDispositivos.message);
 
   // 3. Aviso inmediato. Si falla, los teléfonos lo notan al volver a la app (o en un minuto).
-  const avisados = await avisarTelefonos((dispositivos ?? []).map((d) => d.token as string))
+  // Solo los teléfonos (Firebase); los navegadores del equipo (p256dh) no reciben este aviso.
+  const avisados = await avisarTelefonos((dispositivos ?? []).filter((d) => !d.p256dh).map((d) => d.token as string))
     .catch((e) => {
       console.error("No se pudo avisar a los teléfonos", e);
       return 0;

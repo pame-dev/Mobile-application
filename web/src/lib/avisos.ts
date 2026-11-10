@@ -8,7 +8,7 @@ const TIPOS = [
   'publicacion_rechazada', 'edicion_rechazada', 'publicacion_deshabilitada', 'destacado_rechazado', 'destacado_por_vencer',
   'cuenta_suspendida', 'cuenta_reactivada', 'reporte_atendido', 'reporte_descartado', 'busqueda_coincidencia',
   'favorito_no_disponible', 'auto_parecido', 'poca_actividad', 'confirmar_venta', 'verificacion_aprobada',
-  'verificacion_rechazada', 'pago_destacado',
+  'verificacion_rechazada', 'pago_destacado', 'publicacion_por_revisar', 'edicion_por_revisar', 'reporte_nuevo',
 ] as const
 
 /**
@@ -63,6 +63,8 @@ export function destinoAviso(tipo: string, idPublicacion: number | null): string
   if (tipo === 'resumen_vendedor') return '/panel'
   if (tipo === 'verificacion_pendiente') return '/admin/verificacion'
   if (tipo === 'pago_destacado') return '/admin/destacados'
+  if (tipo === 'publicacion_por_revisar' || tipo === 'edicion_por_revisar') return '/admin/vehiculos'
+  if (tipo === 'reporte_nuevo') return '/admin/reportes'
   if (tipo === 'verificacion_aprobada' || tipo === 'verificacion_rechazada') return '/perfil'
   return idPublicacion ? `/vehiculo/${idPublicacion}` : null
 }

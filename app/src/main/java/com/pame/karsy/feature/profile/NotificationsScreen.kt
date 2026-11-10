@@ -105,7 +105,9 @@ private data class NotifStyle(val icon: ImageVector, val color: Color, val bg: C
 
 private fun styleFor(tipo: String): NotifStyle = when (tipo) {
     "favorito" -> NotifStyle(Icons.Rounded.Favorite, KarsyRed, KarsyRedSoft)
-    "propuesta_enviada" -> NotifStyle(Icons.Rounded.HourglassTop, KarsyAmber, KarsyAmberSoft)
+    "propuesta_enviada", "publicacion_por_revisar", "edicion_por_revisar" ->
+        NotifStyle(Icons.Rounded.HourglassTop, KarsyAmber, KarsyAmberSoft)
+    "reporte_nuevo" -> NotifStyle(Icons.Rounded.Flag, KarsyRed, KarsyRedSoft)
     "publicacion_aprobada", "edicion_aprobada", "publicacion_rehabilitada" ->
         NotifStyle(Icons.Rounded.CheckCircle, KarsyGreen, KarsyGreenSoft)
     "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, KarsyPurple, KarsyPurpleSoft)
@@ -146,6 +148,10 @@ fun NotificationsScreen(
     onAdminVerifications: () -> Unit = {},
     /** Pago de destacado por revisar (admin) → Destacados en el panel. */
     onAdminFeatured: () -> Unit = {},
+    /** Publicación o edición por revisar (admin y moderador de publicaciones) → Vehículos en el panel. */
+    onAdminVehicles: () -> Unit = {},
+    /** Reporte nuevo (admin y moderador de publicaciones) → Reportes en el panel. */
+    onAdminReports: () -> Unit = {},
     /** Verificación aprobada o rechazada → su perfil (ahí ve la insignia o la reenvía). */
     onProfile: () -> Unit = {},
 ) {
@@ -221,6 +227,8 @@ fun NotificationsScreen(
                                     n.tipo == "resumen_vendedor" -> onDashboard
                                     n.tipo == "verificacion_pendiente" -> onAdminVerifications
                                     n.tipo == "pago_destacado" -> onAdminFeatured
+                                    n.tipo == "publicacion_por_revisar" || n.tipo == "edicion_por_revisar" -> onAdminVehicles
+                                    n.tipo == "reporte_nuevo" -> onAdminReports
                                     n.tipo == "verificacion_aprobada" || n.tipo == "verificacion_rechazada" -> onProfile
                                     n.idPublicacion != null -> ({ onCarClick(n.idPublicacion) })
                                     else -> null
