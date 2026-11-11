@@ -65,7 +65,7 @@ fun DetailsStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) 
         onButtonClick = onNext
     ) {
         form.error?.let { StepError(it) }
-        val tipBold = stringResource(R.string.publish_tip_bold, 60)
+        val tipBold = stringResource(R.string.publish_tip_bold)
         val tipFull = stringResource(R.string.publish_tip_full, tipBold)
         PublishField(form, "descripcion", marcarAlSalir = true) {
             LimitedTextArea(

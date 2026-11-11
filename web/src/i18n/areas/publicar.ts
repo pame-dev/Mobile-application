@@ -164,9 +164,9 @@ export const es = {
   'publicar.descriptionPlaceholder': 'Una buena descripción aumenta las visitas',
   'publicar.imperfectionsTitle': 'Detalles o imperfecciones',
   'publicar.imperfectionsPlaceholder': 'La transparencia genera confianza en los compradores',
-  'publicar.tipBefore': '💡 Los anuncios con descripción completa reciben ',
-  'publicar.tipBold': '40% más contactos',
-  'publicar.tipAfter': ' que los incompletos.',
+  'publicar.tipBefore': '💡 Una descripción completa y honesta da ',
+  'publicar.tipBold': 'más confianza',
+  'publicar.tipAfter': ' a los compradores y ayuda a que te contacten.',
 
   // Paso 4
   'publicar.photosShort': '{n} fotos',
@@ -354,9 +354,9 @@ export const en: Record<keyof typeof es, string> = {
   'publicar.descriptionPlaceholder': 'A good description gets more views',
   'publicar.imperfectionsTitle': 'Details or imperfections',
   'publicar.imperfectionsPlaceholder': 'Being upfront builds trust with buyers',
-  'publicar.tipBefore': '💡 Listings with a complete description get ',
-  'publicar.tipBold': '40% more inquiries',
-  'publicar.tipAfter': ' than incomplete ones.',
+  'publicar.tipBefore': '💡 A complete, honest description builds ',
+  'publicar.tipBold': 'more trust',
+  'publicar.tipAfter': ' with buyers and helps you get more inquiries.',
 
   'publicar.photosShort': '{n} photos',
   'publicar.reviewNotice': 'Your listing will be reviewed before it appears on the home page.',
