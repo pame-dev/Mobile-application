@@ -82,54 +82,62 @@ function useRequireAccount(from: string) {
 
 // ── Notificaciones ─────────────────────────────────────────────────────────
 
-/** Ícono y colores de cada tipo de aviso (mismos que la app). */
+/**
+ * Ícono y colores de cada tipo de aviso (mismos que la app). Solo tres colores (el ícono dice
+ * de qué trata): verde = buena noticia, rojo = problema o rechazo, turquesa = informativo.
+ */
 function estiloDe(tipo: string): [IconName, string, string] {
+  const bueno = (i: IconName): [IconName, string, string] => [i, 'var(--success-l)', 'var(--success)']
+  const malo = (i: IconName): [IconName, string, string] => [i, 'var(--error-l)', 'var(--error)']
+  // Turquesa de texto: se lee mejor sobre el fondo claro.
+  const info = (i: IconName): [IconName, string, string] => [i, 'var(--teal-light)', 'var(--teal-text)']
   switch (tipo) {
     case 'favorito':
-      return ['heart', 'var(--error-l)', 'var(--error)']
+      return info('heart')
     case 'propuesta_enviada':
     case 'publicacion_por_revisar':
     case 'edicion_por_revisar':
-      return ['doc', 'var(--warning-l)', 'var(--warning)']
+      return info('doc')
     case 'reporte_nuevo':
-      return ['flag', 'var(--error-l)', 'var(--error)']
+    case 'reporte_atendido':
+    case 'reporte_descartado':
+      return info('flag')
     case 'publicacion_aprobada':
     case 'edicion_aprobada':
     case 'publicacion_rehabilitada':
     case 'cuenta_reactivada':
     case 'verificacion_aprobada':
-      return ['check', 'var(--success-l)', 'var(--success)']
+      return bueno('check')
     case 'destacado_aprobado':
+      return bueno('star')
     case 'destacado_por_vencer':
-    case 'destacado_rechazado':
     case 'pago_destacado':
-      return ['star', 'var(--warning-l)', 'var(--warning)']
+      return info('star')
+    case 'destacado_rechazado':
+      return malo('star')
     case 'publicacion_rechazada':
     case 'edicion_rechazada':
     case 'publicacion_deshabilitada':
     case 'cuenta_suspendida':
     case 'verificacion_rechazada':
-      return ['alert', 'var(--error-l)', 'var(--error)']
+      return malo('alert')
     case 'verificacion_pendiente':
-      return ['shield', 'var(--warning-l)', 'var(--warning)']
-    case 'reporte_atendido':
-    case 'reporte_descartado':
-      return ['flag', 'var(--pill)', 'var(--ink)']
+      return info('shield')
     case 'precio_bajo':
-      return ['chart', 'var(--success-l)', 'var(--success)']
+      return info('chart')
     case 'favorito_no_disponible':
-      return ['heart', 'var(--pill)', 'var(--mid)']
+      return info('heart')
     case 'resumen_semanal':
     case 'auto_parecido':
-      return ['car', 'var(--teal-light)', 'var(--teal)']
+      return info('car')
     case 'resumen_vendedor':
     case 'hito_vistas':
-      return ['eye', 'var(--teal-light)', 'var(--teal)']
+      return info('eye')
     case 'poca_actividad':
     case 'confirmar_venta':
-      return ['sold', 'var(--warning-l)', 'var(--warning)']
+      return info('sold')
     default:
-      return ['bell', 'var(--teal-light)', 'var(--teal)']
+      return info('bell')
   }
 }
 

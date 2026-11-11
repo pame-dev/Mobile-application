@@ -62,19 +62,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.KarsyAmber
-import com.pame.karsy.core.theme.KarsyAmberSoft
-import com.pame.karsy.core.theme.KarsyBlue
-import com.pame.karsy.core.theme.KarsyBlueSoft
 import com.pame.karsy.core.theme.KarsyGreen
 import com.pame.karsy.core.theme.KarsyGreenSoft
-import com.pame.karsy.core.theme.KarsyPurple
-import com.pame.karsy.core.theme.KarsyPurpleSoft
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyRed
 import com.pame.karsy.core.theme.KarsyRedSoft
-import com.pame.karsy.core.theme.KarsySlate
-import com.pame.karsy.core.theme.KarsySlateSoft
 import com.pame.karsy.core.theme.KarsyTealSoft
+import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
 import com.pame.karsy.core.util.abrirAjustesDeNotificaciones
 import com.pame.karsy.core.supabase.mensajeUsuario
@@ -100,35 +94,42 @@ import com.pame.karsy.core.util.safeCall
 import com.pame.karsy.data.remote.NotificacionDto
 import com.pame.karsy.data.repository.NotificationRepository
 
-/** Ícono, colores y texto de cada tipo de aviso (mismo estilo que las alertas del admin). */
+/** Ícono y colores de cada tipo de aviso. */
 private data class NotifStyle(val icon: ImageVector, val color: Color, val bg: Color)
 
-private fun styleFor(tipo: String): NotifStyle = when (tipo) {
-    "favorito" -> NotifStyle(Icons.Rounded.Favorite, KarsyRed, KarsyRedSoft)
-    "propuesta_enviada", "publicacion_por_revisar", "edicion_por_revisar" ->
-        NotifStyle(Icons.Rounded.HourglassTop, KarsyAmber, KarsyAmberSoft)
-    "reporte_nuevo" -> NotifStyle(Icons.Rounded.Flag, KarsyRed, KarsyRedSoft)
-    "publicacion_aprobada", "edicion_aprobada", "publicacion_rehabilitada" ->
-        NotifStyle(Icons.Rounded.CheckCircle, KarsyGreen, KarsyGreenSoft)
-    "destacado_aprobado" -> NotifStyle(Icons.Rounded.Star, KarsyPurple, KarsyPurpleSoft)
-    "destacado_por_vencer" -> NotifStyle(Icons.Rounded.Star, KarsyAmber, KarsyAmberSoft)
-    "pago_destacado" -> NotifStyle(Icons.Rounded.Payments, KarsyAmber, KarsyAmberSoft)
-    "publicacion_rechazada", "edicion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, KarsyRed, KarsyRedSoft)
-    "publicacion_deshabilitada", "cuenta_suspendida" -> NotifStyle(Icons.Rounded.Block, KarsyRed, KarsyRedSoft)
-    "cuenta_reactivada" -> NotifStyle(Icons.Rounded.CheckCircle, KarsyGreen, KarsyGreenSoft)
-    "verificacion_pendiente" -> NotifStyle(Icons.Rounded.VerifiedUser, KarsyAmber, KarsyAmberSoft)
-    "verificacion_aprobada" -> NotifStyle(Icons.Rounded.VerifiedUser, KarsyGreen, KarsyGreenSoft)
-    "verificacion_rechazada" -> NotifStyle(Icons.Rounded.Cancel, KarsyRed, KarsyRedSoft)
-    "destacado_rechazado" -> NotifStyle(Icons.Rounded.StarOutline, KarsyAmber, KarsyAmberSoft)
-    "reporte_atendido" -> NotifStyle(Icons.Rounded.Flag, KarsyBlue, KarsyBlueSoft)
-    "reporte_descartado" -> NotifStyle(Icons.Rounded.Flag, KarsyTeal, KarsyBg)
-    "busqueda_coincidencia" -> NotifStyle(Icons.Rounded.NotificationsActive, KarsyTeal, KarsyTealSoft)
-    "precio_bajo" -> NotifStyle(Icons.Rounded.TrendingDown, KarsyGreen, KarsyGreenSoft)
-    "favorito_no_disponible" -> NotifStyle(Icons.Rounded.HeartBroken, KarsySlate, KarsySlateSoft)
-    "resumen_semanal", "auto_parecido" -> NotifStyle(Icons.Rounded.DirectionsCar, KarsyTeal, KarsyTealSoft)
-    "resumen_vendedor", "hito_vistas" -> NotifStyle(Icons.Rounded.Insights, KarsyPurple, KarsyPurpleSoft)
-    "poca_actividad", "confirmar_venta" -> NotifStyle(Icons.Rounded.Sell, KarsyAmber, KarsyAmberSoft)
-    else -> NotifStyle(Icons.Rounded.Notifications, KarsyTeal, KarsyBg)
+/**
+ * Solo tres colores (el ícono dice de qué trata): verde = buena noticia, rojo = problema o
+ * rechazo, turquesa = informativo (todo lo demás). Mismos que la web (Account.tsx).
+ */
+private fun styleFor(tipo: String): NotifStyle {
+    fun bueno(icon: ImageVector) = NotifStyle(icon, KarsyGreen, KarsyGreenSoft)
+    fun malo(icon: ImageVector) = NotifStyle(icon, KarsyRed, KarsyRedSoft)
+    // Turquesa de texto: se lee mejor sobre el fondo claro (en oscuro es el mismo turquesa).
+    fun info(icon: ImageVector) = NotifStyle(icon, KarsyTealText, KarsyTealSoft)
+    return when (tipo) {
+        "favorito" -> info(Icons.Rounded.Favorite)
+        "propuesta_enviada", "publicacion_por_revisar", "edicion_por_revisar" -> info(Icons.Rounded.HourglassTop)
+        "reporte_nuevo" -> info(Icons.Rounded.Flag)
+        "publicacion_aprobada", "edicion_aprobada", "publicacion_rehabilitada" -> bueno(Icons.Rounded.CheckCircle)
+        "destacado_aprobado" -> bueno(Icons.Rounded.Star)
+        "destacado_por_vencer" -> info(Icons.Rounded.Star)
+        "pago_destacado" -> info(Icons.Rounded.Payments)
+        "publicacion_rechazada", "edicion_rechazada" -> malo(Icons.Rounded.Cancel)
+        "publicacion_deshabilitada", "cuenta_suspendida" -> malo(Icons.Rounded.Block)
+        "cuenta_reactivada" -> bueno(Icons.Rounded.CheckCircle)
+        "verificacion_pendiente" -> info(Icons.Rounded.VerifiedUser)
+        "verificacion_aprobada" -> bueno(Icons.Rounded.VerifiedUser)
+        "verificacion_rechazada" -> malo(Icons.Rounded.Cancel)
+        "destacado_rechazado" -> malo(Icons.Rounded.StarOutline)
+        "reporte_atendido", "reporte_descartado" -> info(Icons.Rounded.Flag)
+        "busqueda_coincidencia" -> info(Icons.Rounded.NotificationsActive)
+        "precio_bajo" -> info(Icons.Rounded.TrendingDown)
+        "favorito_no_disponible" -> info(Icons.Rounded.HeartBroken)
+        "resumen_semanal", "auto_parecido" -> info(Icons.Rounded.DirectionsCar)
+        "resumen_vendedor", "hito_vistas" -> info(Icons.Rounded.Insights)
+        "poca_actividad", "confirmar_venta" -> info(Icons.Rounded.Sell)
+        else -> info(Icons.Rounded.Notifications)
+    }
 }
 
 /**
