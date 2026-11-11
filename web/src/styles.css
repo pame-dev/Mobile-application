@@ -418,6 +418,8 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 /* Lotes, perfiles y favoritos */
 .banner{border-radius:var(--r-xl);padding:var(--s-8);color:#fff;background:linear-gradient(120deg,var(--navy-deep),var(--navy-fixed-light));position:relative;overflow:hidden}
 .banner h1{color:#fff}
+/* Botones sobre el fondo azul: translúcidos en vez de un cuadro blanco. */
+.banner .iconbtn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
 .banner p{color:var(--on-navy);max-width:620px}
 .lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:var(--s-5)}
 .lotcard{padding:var(--s-5);display:flex;gap:var(--s-4);cursor:pointer;text-align:left;transition:box-shadow .18s;width:100%;color:inherit;font:inherit;text-decoration:none}
