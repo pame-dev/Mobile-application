@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { VolverButton } from '../../components/VolverButton'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { hayPantallaAnterior, VolverButton } from '../../components/VolverButton'
+import { useNavigate } from 'react-router-dom'
 import { AlertBox } from '../../components/AuthParts'
 import { Icon } from '../../components/Icon'
 import { Traducido } from '../../components/Traducido'
@@ -282,7 +282,6 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
   const { toast, openModal } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
-  const location = useLocation()
   const moderacion = useModeracion()
   const [busy, setBusy] = useState(false)
   const propuesta = propuestaPendiente(row)
@@ -307,7 +306,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
     }
   }
   // Regresa al panel tal como estaba; si el detalle se abrió directo, a la sección de Vehículos.
-  const volver = () => (location.key !== 'default' ? navigate(-1) : navigate('/admin/vehiculos'))
+  const volver = () => (hayPantallaAnterior() ? navigate(-1) : navigate('/admin/vehiculos'))
 
   return (
     <div className="card adminbar">
@@ -478,7 +477,6 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
   const { toast } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
-  const location = useLocation()
   const acciones = useAccionesReporte()
   const [r, setR] = useState<ReporteAdmin | null | undefined>(undefined)
   const [dueno, setDueno] = useState<CuentaAdmin | undefined>(undefined)
@@ -501,7 +499,7 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
     onChanged()
   }
   // Regresa al panel, que vuelve a abrir el reporte; si el detalle se abrió directo, también lo abre.
-  const volver = () => (location.key !== 'default' ? navigate(-1) : navigate('/admin/reportes', { state: { reporte: idReporte } }))
+  const volver = () => (hayPantallaAnterior() ? navigate(-1) : navigate('/admin/reportes', { state: { reporte: idReporte } }))
   const pendiente = r?.estado_reporte === 'pendiente'
   const deCuenta = r ? esReporteDeCuenta(r) : false
 

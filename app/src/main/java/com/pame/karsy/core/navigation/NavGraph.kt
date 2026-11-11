@@ -161,11 +161,21 @@ fun KarsyNavGraph(
     }
 
     /**
+     * Historial de secciones de la barra (Lotes, Favoritos, Perfil, Mi Panel…).
+     * Cambiar de sección regresa primero a Inicio, así que la pila de navegación no
+     * recuerda de dónde se venía; este historial sí, para que la flecha / "atrás" de
+     * Lotes, Favoritos y Perfil regrese a la sección anterior.
+     */
+    val sectionHistory = remember { mutableStateListOf<String>() }
+
+    /**
      * Entra a la app según el rol de la cuenta y borra el historial de onboarding:
      * admin (sea particular o lote) → panel de administración, lote → su panel de
      * vendedor, particular → inicio. El inicio queda debajo para regresar con "atrás".
      */
     fun enterAs(account: SessionAccount) {
+        // Sesión nueva: no se regresa a secciones de la sesión anterior.
+        sectionHistory.clear()
         // Si el registro o el login empezó desde un auto (p. ej. "Contactar" como visitante), ese
         // detalle sigue en la pila debajo de las pantallas de cuenta: se vuelve a él en lugar de
         // mandar a Inicio, para que no tenga que buscarlo otra vez.
@@ -183,6 +193,7 @@ fun KarsyNavGraph(
     }
 
     fun enterAsGuest() {
+        sectionHistory.clear()
         SessionManager.enterAsGuest()
         navController.navigate(Routes.Home.route) {
             popUpTo(navController.graph.id) { inclusive = true }
@@ -254,14 +265,6 @@ fun KarsyNavGraph(
         launchSingleTop = true
         restoreState = true
     }
-
-    /**
-     * Historial de secciones de la barra (Lotes, Favoritos, Perfil, Mi Panel…).
-     * Cambiar de sección regresa primero a Inicio, así que la pila de navegación no
-     * recuerda de dónde se venía; este historial sí, para que la flecha / "atrás" de
-     * Lotes, Favoritos y Perfil regrese a la sección anterior.
-     */
-    val sectionHistory = remember { mutableStateListOf<String>() }
 
     /** Rutas de la barra a las que se puede regresar (sin argumentos, se navega con goTab). */
     val sectionRoutes = setOf(
@@ -568,8 +571,15 @@ fun KarsyNavGraph(
                         LaunchedEffect(Unit) { if (navController.currentBackStackEntry == entry) goHome() }
                         return@composable
                     }
+                    // Abierto desde el menú (p. ej. desde Perfil): regresa a esa sección, como Perfil y
+                    // Favoritos. Abierto encima de otra pantalla (un aviso, publicar): regresa a ella.
+                    val salirDelPanel = {
+                        if (navController.previousBackStackEntry?.destination?.route == Routes.Home.route) leaveSection()
+                        else back()
+                    }
+                    BackHandler(onBack = salirDelPanel)
                     DashboardScreen(
-                        onBack = ::back,
+                        onBack = salirDelPanel,
                         onNewPublication = { navController.navigate(Routes.PublishFlow.createRoute()) },
                         onEditPublication = { navController.navigate(Routes.PublishFlow.createRoute(it)) },
                         onCarClick = ::openCar,

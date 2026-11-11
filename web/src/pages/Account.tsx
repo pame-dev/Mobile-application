@@ -5,7 +5,7 @@ import { Bandera } from '../components/Bandera'
 import { ConfirmModal } from '../components/Confirm'
 import { Icon, type IconName } from '../components/Icon'
 import { LogoutModal } from '../components/TopNav'
-import { VolverButton } from '../components/VolverButton'
+import { hayPantallaAnterior, VolverButton } from '../components/VolverButton'
 import { ModalHead, useUi } from '../components/Ui'
 import { Traducido } from '../components/Traducido'
 import {
@@ -651,7 +651,7 @@ function Legal({ title, doc, id }: { title: Clave; doc: Record<Lang, LegalDoc>; 
   const desdeRegistro = (location.state as { desdeRegistro?: boolean } | null)?.desdeRegistro === true
   const [acepto, setAcepto] = useState(false)
   // Regresa en el historial (Registro, Configuración, pie de página…); si se abrió directo, al Inicio (o al registro).
-  const volver = () => (location.key !== 'default' ? navigate(-1) : navigate(desdeRegistro ? '/registro' : '/', { replace: true }))
+  const volver = () => (hayPantallaAnterior() ? navigate(-1) : navigate(desdeRegistro ? '/registro' : '/', { replace: true }))
   return (
     <div className="wrap" style={{ padding: 'var(--s-6) var(--s-4) var(--s-10)' }}>
       <div className="card legaltext" style={{ margin: '0 auto' }}>
