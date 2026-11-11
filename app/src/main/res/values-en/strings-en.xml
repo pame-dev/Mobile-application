@@ -814,8 +814,8 @@
     <string name="publish_description_placeholder">A good description gets more views</string>
     <string name="publish_imperfections_title">Details or imperfections</string>
     <string name="publish_imperfections_placeholder">Being upfront builds trust with buyers</string>
-    <string name="publish_tip_full">Listings with a complete description get %1$s than incomplete ones.</string>
-    <string name="publish_tip_bold">%1$d%% more inquiries</string>
+    <string name="publish_tip_full">A complete, honest description builds %1$s with buyers and helps you get more inquiries.</string>
+    <string name="publish_tip_bold">more trust</string>
     <string name="publish_spec_model">Model</string>
     <string name="publish_spec_year">Year</string>
     <string name="publish_spec_brand">Make</string>

@@ -286,6 +286,10 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .modal.wide{max-width:560px}
 .modal h3{font-size:var(--fs-xl);line-height:var(--lh-tight)}
 .mclose{margin-left:auto}
+/* Ventana centrada (ícono arriba): la X va en la esquina y el título y texto ocupan todo el ancho. */
+.modal.centrada{position:relative;text-align:center;align-items:center}
+.modal.centrada > .row{width:100%}
+.modal.centrada .mclose{position:absolute;top:var(--s-4);right:var(--s-4)}
 .opt{display:flex;gap:var(--s-3);padding:var(--s-4);border-radius:var(--r-md);border:1.5px solid var(--border);background:var(--surface);text-align:left;width:100%;align-items:flex-start}
 .opt.on{border-color:var(--teal);background:var(--teal-light)}
 .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border-muted);flex:none;margin-top:2px}
@@ -414,6 +418,8 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 /* Lotes, perfiles y favoritos */
 .banner{border-radius:var(--r-xl);padding:var(--s-8);color:#fff;background:linear-gradient(120deg,var(--navy-deep),var(--navy-fixed-light));position:relative;overflow:hidden}
 .banner h1{color:#fff}
+/* Botones sobre el fondo azul: translúcidos en vez de un cuadro blanco. */
+.banner .iconbtn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
 .banner p{color:var(--on-navy);max-width:620px}
 .lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:var(--s-5)}
 .lotcard{padding:var(--s-5);display:flex;gap:var(--s-4);cursor:pointer;text-align:left;transition:box-shadow .18s;width:100%;color:inherit;font:inherit;text-decoration:none}

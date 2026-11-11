@@ -47,14 +47,14 @@ export function Lots() {
   return (
     <div className="wrap page-top">
       <div className="banner">
-        {/* Flecha dentro del banner (no sola encima). */}
-        <div style={{ marginBottom: 'var(--s-4)' }}>
-          <VolverButton fallback="/" />
-        </div>
         <span className="eyebrow" style={{ color: '#8FD3D8' }}>
           {t('perfil.lotsEyebrow')}
         </span>
-        <h1 className="h1-page" style={{ margin: 'var(--s-2) 0' }}>{t('nav.lots')}</h1>
+        {/* Flecha en la línea del título, como en Favoritos y Ayuda. */}
+        <div className="row" style={{ gap: 'var(--s-3)', margin: 'var(--s-2) 0' }}>
+          <VolverButton fallback="/" />
+          <h1 className="h1-page">{t('nav.lots')}</h1>
+        </div>
         <p>{t('perfil.lotsLead')}</p>
         <div className="inputicon" style={{ marginTop: 'var(--s-5)', maxWidth: 520 }}>
           <Icon name="search" size={18} />

@@ -816,8 +816,8 @@
     <string name="publish_description_placeholder">Una buena descripción aumenta las visitas</string>
     <string name="publish_imperfections_title">Detalles o imperfecciones</string>
     <string name="publish_imperfections_placeholder">La transparencia genera confianza en los compradores</string>
-    <string name="publish_tip_full">Los anuncios con descripción completa reciben %1$s que los incompletos.</string>
-    <string name="publish_tip_bold">%1$d%% más contactos</string>
+    <string name="publish_tip_full">Una descripción completa y honesta da %1$s a los compradores y ayuda a que te contacten.</string>
+    <string name="publish_tip_bold">más confianza</string>
     <string name="publish_spec_model">Modelo</string>
     <string name="publish_spec_year">Año</string>
     <string name="publish_spec_brand">Marca</string>

@@ -502,7 +502,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         combustible = a.combustible.orEmpty()
         idCarroceria = a.idCarroceria
         idColor = a.idColor
-        duenos = a.propietariosAnteriores?.toString().orEmpty()
+        // El menú ya no tiene "0": si estaba en 0, queda vacío para elegir de nuevo.
+        duenos = a.propietariosAnteriores?.takeIf { it > 0 }?.toString().orEmpty()
         condicion = a.condicionVehiculo.orEmpty()
 
         // Al publicar, los caballos de fuerza se agregaron al final de la descripción.
