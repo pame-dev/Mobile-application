@@ -478,7 +478,8 @@ export function Dashboard() {
     <div className="wrap">
       <div className="pagehead">
         <div className="row">
-          <VolverButton to="/perfil" label={t('perfil.backToProfile')} />
+          {/* Regresa a la pantalla anterior (ruta fija hacía ciclo con la flecha de Mi perfil). */}
+          <VolverButton fallback="/perfil" />
           <h1>{t('perfil.dashboardTitle')}</h1>
         </div>
         <div className="row" style={{ flexWrap: 'wrap' }}>

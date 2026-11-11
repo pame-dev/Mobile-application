@@ -53,7 +53,8 @@ export function History() {
     <div className="wrap page-end">
       <div className="pagehead">
         <div className="row">
-          <VolverButton to="/perfil" />
+          {/* Regresa a la pantalla anterior (ruta fija hacía ciclo con la flecha de Mi perfil). */}
+          <VolverButton fallback="/perfil" />
           <h1>{t('nav.history')}</h1>
         </div>
       </div>
