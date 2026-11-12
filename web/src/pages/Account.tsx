@@ -524,7 +524,7 @@ export function Settings() {
         <SetRow icon="doc" title={t('settings.terms')} desc={t('settings.termsDesc')} onClick={() => navigate('/terminos')} />
         <SetRow icon="help" title={t('help.title')} desc={t('help.settingsDesc')} onClick={() => navigate('/ayuda')} />
       </div>
-      <button className="btn btn-ghost btn-block" style={{ marginTop: 'var(--s-4)', color: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => openModal(<LogoutModal />)}>
+      <button className="btn btn-ghost btn-block" style={{ marginTop: 'var(--s-4)', color: 'var(--error-text)', borderColor: 'var(--error-text)' }} onClick={() => openModal(<LogoutModal />)}>
         <Icon name="logout" size={18} />
         {t('nav.logout')}
       </button>

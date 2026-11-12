@@ -7,7 +7,7 @@
   --teal-text:#2E767C;
   --bg:#EAEFF4; --surface:#FFFFFF; --outline:#D9E1E8; --charcoal:#333333; --mid:#646D64; --text2:#5D6679;
   --border:#E2E8ED; --border-muted:#D4DDE4; --disabled:#D0D8E0; --placeholder:#DDE6EC;
-  --success:#2E7D32; --success-l:#E8F5E9; --error:#D32F2F; --error-l:#FDECEA; --warning:#F59E0B; --warning-l:#FFF7E6; --star:#F5B400;
+  --success:#2E7D32; --success-l:#E8F5E9; --error:#D32F2F; --error-l:#FDECEA; --error-text:#C62828; --warning:#F59E0B; --warning-l:#FFF7E6; --star:#F5B400;
   --pill:#E2F1F8; --admin-blue:#2563EB;
   /* Fijos en los dos temas: textos claros sobre los fondos azul marino (banner, pie, perfiles),
      avatares, corazón, verificado y etiquetas de condición. */
@@ -35,14 +35,14 @@
   --navy:#2D6390; --navy-light:#3D78A8; --ink:#E6EDF3; --teal-light:#16353A; --teal-soft:#15312F; --teal-text:#5FB7BE;
   --bg:#0F151B; --surface:#1A232C; --outline:#2A3540; --charcoal:#E2E7EC; --mid:#97A3AE; --text2:#A6B1BC;
   --border:#2C3844; --border-muted:#3A4652; --disabled:#3A4652; --placeholder:#26313B;
-  --success-l:#15301A; --error-l:#3B1919; --warning-l:#3A2D12; --pill:#1F3A4F; --admin-blue:#60A5FA; --admin-row:#26313B; --admin-text:#D0D8E0;
+  --success-l:#15301A; --error-l:#3B1919; --error-text:#F87171; --warning-l:#3A2D12; --pill:#1F3A4F; --admin-blue:#60A5FA; --admin-row:#26313B; --admin-text:#D0D8E0;
   --b-succ-bg:rgba(74,222,128,.15); --b-succ:#4ADE80; --b-warn-bg:rgba(251,191,36,.15); --b-warn:#FBBF24; --b-dang-bg:rgba(248,113,113,.15); --b-dang:#F87171; --b-info-bg:rgba(96,165,250,.15); --b-info:#60A5FA; --b-neu-bg:#232E38; --b-neu:#B7C1CB;
   --shadow:0 6px 18px rgba(0,0,0,.35); --shadow-lg:0 18px 50px rgba(0,0,0,.5); --focus:var(--teal); color-scheme:dark }}
 :root[data-theme="dark"]{
   --navy:#2D6390; --navy-light:#3D78A8; --ink:#E6EDF3; --teal-light:#16353A; --teal-soft:#15312F; --teal-text:#5FB7BE;
   --bg:#0F151B; --surface:#1A232C; --outline:#2A3540; --charcoal:#E2E7EC; --mid:#97A3AE; --text2:#A6B1BC;
   --border:#2C3844; --border-muted:#3A4652; --disabled:#3A4652; --placeholder:#26313B;
-  --success-l:#15301A; --error-l:#3B1919; --warning-l:#3A2D12; --pill:#1F3A4F; --admin-blue:#60A5FA; --admin-row:#26313B; --admin-text:#D0D8E0;
+  --success-l:#15301A; --error-l:#3B1919; --error-text:#F87171; --warning-l:#3A2D12; --pill:#1F3A4F; --admin-blue:#60A5FA; --admin-row:#26313B; --admin-text:#D0D8E0;
   --b-succ-bg:rgba(74,222,128,.15); --b-succ:#4ADE80; --b-warn-bg:rgba(251,191,36,.15); --b-warn:#FBBF24; --b-dang-bg:rgba(248,113,113,.15); --b-dang:#F87171; --b-info-bg:rgba(96,165,250,.15); --b-info:#60A5FA; --b-neu-bg:#232E38; --b-neu:#B7C1CB;
   --shadow:0 6px 18px rgba(0,0,0,.35); --shadow-lg:0 18px 50px rgba(0,0,0,.5); --focus:var(--teal); color-scheme:dark }
 *{box-sizing:border-box}
@@ -291,11 +291,13 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .modal{background:var(--surface);border-radius:var(--r-xl);max-width:480px;width:100%;padding:var(--s-6);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:var(--s-3);max-height:calc(100vh - 40px);overflow:auto;animation:pop .2s}
 .modal.wide{max-width:560px}
 .modal h3{font-size:var(--fs-xl);line-height:var(--lh-tight)}
-.mclose{margin-left:auto}
-/* Ventana centrada (ícono arriba): la X va en la esquina y el título y texto ocupan todo el ancho. */
-.modal.centrada{position:relative;text-align:center;align-items:center}
-.modal.centrada > .row{width:100%}
-.modal.centrada .mclose{position:absolute;top:var(--s-4);right:var(--s-4)}
+/* Todos los avisos: título y texto centrados (dejan lugar a la X) y la X en la esquina superior
+   derecha. Los campos de formulario de abajo siguen alineados a la izquierda. */
+.modal{position:relative}
+.mhead{width:100%;text-align:center;padding-inline:var(--s-8)}
+.mclose{position:absolute;top:var(--s-4);right:var(--s-4)}
+/* Ventana con ícono arriba: además el ícono y el botón van centrados. */
+.modal.centrada{text-align:center;align-items:center}
 .opt{display:flex;gap:var(--s-3);padding:var(--s-4);border-radius:var(--r-md);border:1.5px solid var(--border);background:var(--surface);text-align:left;width:100%;align-items:flex-start}
 .opt.on{border-color:var(--teal);background:var(--teal-light)}
 .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border-muted);flex:none;margin-top:2px}
@@ -540,7 +542,7 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .adminmenu .amhead span{display:block;color:var(--teal-text);font-size:var(--fs-xs)}
 .adminmenu hr{border:0;border-top:1px solid var(--border);margin:var(--s-2)}
 .side .adminmenu button.it{height:42px}
-.side .adminmenu button.it.danger{color:var(--error)}
+.side .adminmenu button.it.danger{color:var(--error-text)}
 .side .adminmenu button.it.danger:hover{background:var(--error-l)}
 .adminmain{padding:var(--s-8) var(--s-8) var(--s-12);min-width:0}
 .akpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-4)}
@@ -738,7 +740,10 @@ table.t tr:hover td{background:var(--bg)}
 /* Modal "Editar perfil" (Profile.tsx, EditProfileModal): encabezado y botones fijos, solo el cuerpo hace scroll.
    La foto va en su propio bloque (sin márgenes negativos) para no encimarse sobre el título. */
 .modal.editmodal{max-width:560px;padding:0;gap:0;overflow:hidden;max-height:calc(100dvh - 40px)}
-.editmodal-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:var(--s-5) var(--s-6) var(--s-3);background:var(--surface)}
+.editmodal-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:center;gap:var(--s-3);padding:var(--s-5) var(--s-6) var(--s-3);background:var(--surface)}
+/* Editar perfil: título centrado y X en la esquina, como los demás avisos. */
+.editmodal-head h3{flex:1;text-align:center;padding-inline:var(--s-8)}
+.editmodal-head .iconbtn{position:absolute;top:var(--s-4);right:var(--s-4)}
 .editmodal-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:var(--s-3);padding:var(--s-1) var(--s-6) var(--s-4)}
 .editmodal-foot{position:sticky;bottom:0;z-index:2;padding:var(--s-3) var(--s-6) var(--s-5);background:var(--surface);border-top:1px solid var(--border)}
 .editmodal-avatar{display:flex;justify-content:flex-start;padding-block:var(--s-2)}

@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.ui.text.style.TextAlign
+import com.pame.karsy.core.components.TextoAviso
+import com.pame.karsy.core.components.TituloAviso
 import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -219,15 +222,7 @@ fun AdminReasonDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = KarsySurface,
-        title = {
-            Text(
-                stringResource(texts.title),
-                fontFamily = Outfit,
-                fontSize = KarsyTextSize.TitleLarge,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk
-            )
-        },
+        title = { TituloAviso(stringResource(texts.title), onClose = onDismiss, fontSize = KarsyTextSize.TitleLarge) },
         text = {
             Column {
                 Text(
@@ -235,7 +230,9 @@ fun AdminReasonDialog(
                     fontFamily = DmSans,
                     fontSize = KarsyTextSize.Body,
                     lineHeight = 18.sp,
-                    color = AdminColors.NeutralText
+                    color = AdminColors.NeutralText,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(

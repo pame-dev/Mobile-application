@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.ui.text.style.TextAlign
+import com.pame.karsy.core.components.TextoAviso
+import com.pame.karsy.core.components.TituloAviso
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipDescription
@@ -304,18 +307,10 @@ private fun RevisarCurpDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = KarsySurface,
-        title = {
-            Text(
-                stringResource(R.string.admin2_curp_review_title, verification.name),
-                fontFamily = Outfit,
-                fontSize = KarsyTextSize.TitleLarge,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk
-            )
-        },
+        title = { TituloAviso(stringResource(R.string.admin2_curp_review_title, verification.name), onClose = onDismiss, fontSize = KarsyTextSize.TitleLarge) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_curp_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_curp_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 Text(
                     stringResource(R.string.admin2_curp_steps),
                     fontFamily = DmSans,
@@ -397,18 +392,10 @@ private fun RevisarConstanciaDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = KarsySurface,
-        title = {
-            Text(
-                stringResource(R.string.admin2_csf_review_title, verification.name),
-                fontFamily = Outfit,
-                fontSize = KarsyTextSize.TitleLarge,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk
-            )
-        },
+        title = { TituloAviso(stringResource(R.string.admin2_csf_review_title, verification.name), onClose = onDismiss, fontSize = KarsyTextSize.TitleLarge) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_csf_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_csf_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 Text(
                     stringResource(R.string.admin2_csf_steps),
                     fontFamily = DmSans,

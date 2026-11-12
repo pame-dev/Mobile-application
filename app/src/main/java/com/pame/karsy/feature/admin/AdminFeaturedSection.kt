@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.admin
 
+import com.pame.karsy.core.components.BotonCerrarAviso
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.compose.foundation.text.KeyboardOptions
@@ -536,6 +537,8 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
     val approvedVehicle = stringResource(R.string.admin1_vehicle_with_year, request.vehicle, request.year)
     val approvedSuffix = stringResource(R.string.admin1_approved_msg_suffix)
     Dialog(onDismissRequest = onDone, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        // X en la esquina superior derecha, como los demás avisos.
+        Box {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -586,6 +589,8 @@ private fun ApprovedDialog(request: FeaturedRequest, onDone: () -> Unit) {
             Spacer(Modifier.height(20.dp))
             BottomActionButton(stringResource(R.string.admin1_back_to_requests), KarsyNavy, Modifier.fillMaxWidth(), onDone)
         }
+        BotonCerrarAviso(onClick = onDone, modifier = Modifier.align(Alignment.TopEnd).padding(30.dp))
+        }
     }
 }
 
@@ -595,6 +600,8 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
     var comment by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = onCancel, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        // X en la esquina superior derecha, como los demás avisos.
+        Box {
         Column(
             modifier = Modifier
                 .padding(20.dp)
@@ -722,6 +729,8 @@ private fun RejectDialog(onCancel: () -> Unit, onConfirm: (reason: String, comme
                     enabled = reason.isNotEmpty()
                 )
             }
+        }
+        BotonCerrarAviso(onClick = onCancel, modifier = Modifier.align(Alignment.TopEnd).padding(26.dp))
         }
     }
 }

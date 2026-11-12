@@ -8,7 +8,7 @@ import { PhotoViewer } from '../components/PhotoViewer'
 import { Traducido } from '../components/Traducido'
 import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
-import { MODAL_TITULO, ModalHead, useUi } from '../components/Ui'
+import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
 import { carDetail, cuentaVerificada, registerView, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
 import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
@@ -190,12 +190,11 @@ function ReportModal({ carId }: { carId: number }) {
 
   if (estado === 'enviado') {
     return (
-      <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
+      <div className="modal centrada">
         <div className="nic done-icon">
           <Icon name="check" size={30} />
         </div>
-        <h3 id={MODAL_TITULO}>{t('vehiculo.report.sentTitle')}</h3>
-        <p className="muted">{t('vehiculo.report.sentMsg')}</p>
+        <ModalHead title={t('vehiculo.report.sentTitle')} sub={t('vehiculo.report.sentMsg')} />
         <button className="btn btn-primary btn-block" onClick={closeModal}>
           {t('vehiculo.gotIt')}
         </button>

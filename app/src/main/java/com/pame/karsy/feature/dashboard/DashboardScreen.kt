@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.dashboard
 
+import androidx.compose.ui.text.style.TextAlign
+import com.pame.karsy.core.components.TextoAviso
+import com.pame.karsy.core.components.TituloAviso
 import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.rounded.MoreVert
@@ -384,18 +387,10 @@ private fun ExportarDialog(onDismiss: () -> Unit, onElegir: (pdf: Boolean) -> Un
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = KarsySurface,
-        title = {
-            Text(
-                stringResource(R.string.profile_dashboard_export_title),
-                fontFamily = Outfit,
-                fontSize = KarsyTextSize.TitleLarge,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk
-            )
-        },
+        title = { TituloAviso(stringResource(R.string.profile_dashboard_export_title), onClose = onDismiss, fontSize = KarsyTextSize.TitleLarge) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(stringResource(R.string.profile_dashboard_export_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid)
+                Text(stringResource(R.string.profile_dashboard_export_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 OutlinedButton(onClick = { onElegir(false) }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.profile_dashboard_export_csv), fontFamily = DmSans, color = KarsyInk)
                 }
@@ -920,8 +915,8 @@ private fun AccionPanelDialog(vm: DashboardViewModel, car: Car, accion: AccionPa
         AlertDialog(
             onDismissRequest = { if (!vm.actualizando) onClose() },
             containerColor = KarsySurface,
-            title = { Text(stringResource(titulo), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-            text = { Text(stringResource(desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
+            title = { TituloAviso(stringResource(titulo), onClose = { if (!vm.actualizando) onClose() }) },
+            text = { TextoAviso(stringResource(desc)) },
             confirmButton = {
                 TextButton(onClick = onConfirm, enabled = !vm.actualizando) {
                     Text(stringResource(boton), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = if (peligro) KarsyError else KarsyTealText)
@@ -951,10 +946,10 @@ private fun AccionPanelDialog(vm: DashboardViewModel, car: Car, accion: AccionPa
             AlertDialog(
                 onDismissRequest = { if (!vm.actualizando) onClose() },
                 containerColor = KarsySurface,
-                title = { Text(stringResource(R.string.detail_owner_sold_via_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+                title = { TituloAviso(stringResource(R.string.detail_owner_sold_via_title), onClose = { if (!vm.actualizando) onClose() }) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(stringResource(R.string.detail_owner_sold_via_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal)
+                        TextoAviso(stringResource(R.string.detail_owner_sold_via_desc))
                         listOf(SOLD_INSIDE_APP to R.string.detail_owner_sold_via_inside, SOLD_OUTSIDE_APP to R.string.detail_owner_sold_via_outside).forEach { (via, texto) ->
                             OutlinedButton(
                                 onClick = { vm.cambiarEstado({ CarRepository.setSold(car.id, true, via) }, listo(R.string.detail_owner_marked_sold)) },

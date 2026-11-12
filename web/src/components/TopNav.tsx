@@ -176,7 +176,7 @@ export function TopNav() {
                     ))}
                     <hr />
                     <button
-                      style={{ color: 'var(--error)' }}
+                      style={{ color: 'var(--error-text)' }}
                       onClick={() => {
                         setMenuOpen(false)
                         openModal(<LogoutModal />)
@@ -331,7 +331,7 @@ function MenuMovil({
           ))}
           {mode !== 'guest' && (
             <button
-              style={{ color: 'var(--error)' }}
+              style={{ color: 'var(--error-text)' }}
               onClick={() => {
                 onCerrar()
                 openModal(<LogoutModal />)
