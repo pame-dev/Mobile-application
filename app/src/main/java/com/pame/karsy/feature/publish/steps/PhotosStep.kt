@@ -16,7 +16,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.BoxWithConstraints
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.content.FileProvider
+import java.io.File
+import java.util.UUID
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -83,11 +94,60 @@ private val slotLabels = PublishViewModel.ETIQUETAS_ANGULOS
 /** [targetSlot] del recuadro de la foto del motor (después de los ángulos). */
 private val SLOT_MOTOR = slotLabels.size
 
+/** [targetSlot] de las fotos adicionales (solo con la cámara: la galería tiene su propio selector). */
+private val SLOT_EXTRAS = slotLabels.size + 1
+
+/**
+ * Archivo nuevo donde la cámara guarda la foto (cache/fotos_camara, compartido con la app de
+ * cámara por el FileProvider). Al tapar las placas se hace una copia derecha y reducida, así
+ * que estas son temporales: se borran las de hace más de un día.
+ */
+private fun nuevaFotoCamara(context: Context): Uri {
+    val dir = File(context.cacheDir, "fotos_camara").apply { mkdirs() }
+    val limite = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
+    dir.listFiles()?.filter { it.lastModified() < limite }?.forEach { it.delete() }
+    return FileProvider.getUriForFile(context, "${context.packageName}.archivos", File(dir, "${UUID.randomUUID()}.jpg"))
+}
+
 /** Paso 2: fotos del vehículo (una por ángulo, se suben a Storage al publicar). */
 @Composable
 fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
-    var targetSlot by remember { mutableIntStateOf(0) }
+    // Guardados: la app de cámara puede hacer que Android cierre Karsy mientras se toma la foto.
+    var targetSlot by rememberSaveable { mutableIntStateOf(0) }
+    var fotoCamara by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val hayCamara = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) }
+    val camara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val uri = fotoCamara
+        fotoCamara = null
+        if (!ok || uri == null) return@rememberLauncherForActivityResult
+        // La foto entra igual que una de la galería (placas, huellas, que sea auto, etc.).
+        when (targetSlot) {
+            SLOT_MOTOR -> form.setEnginePhoto(context, uri)
+            SLOT_EXTRAS -> form.addExtraPhotos(context, listOf(uri))
+            else -> form.setAnglePhoto(context, targetSlot, uri)
+        }
+    }
+    val recordatorio = stringResource(R.string.publish_camera_reminder)
+    val sinAppCamara = stringResource(R.string.publish_camera_unavailable)
+    /** Abre la cámara para [slot] y recuerda qué foto toca y que el teléfono vaya horizontal. */
+    fun abrirCamara(slot: Int, etiqueta: String) {
+        targetSlot = slot
+        val uri = nuevaFotoCamara(context)
+        fotoCamara = uri
+        try {
+            camara.launch(uri)
+            // Se ve encima de la cámara.
+            Toast.makeText(context, "$etiqueta · $recordatorio", Toast.LENGTH_LONG).show()
+        } catch (_: ActivityNotFoundException) {
+            fotoCamara = null
+            Toast.makeText(context, sinAppCamara, Toast.LENGTH_SHORT).show()
+        } catch (_: SecurityException) {
+            // Algunas versiones de Android la bloquean; queda la galería.
+            fotoCamara = null
+            Toast.makeText(context, sinAppCamara, Toast.LENGTH_SHORT).show()
+        }
+    }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         if (targetSlot == SLOT_MOTOR) form.setEnginePhoto(context, uri) else form.setAnglePhoto(context, targetSlot, uri)
@@ -128,8 +188,9 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         )
         slotLabels.forEachIndexed { i, labelRes ->
             val uri = form.photos[i]
+            val etiqueta = stringResource(labelRes)
             PhotoSlotCard(
-                slot = PhotoSlot(stringResource(labelRes), uri),
+                slot = PhotoSlot(etiqueta, uri),
                 isDashboard = i == 4,
                 // Borde rojo: falta la foto (después de intentar avanzar), está repetida o no parece auto.
                 hasError = (form.photosAttempted && uri == null) ||
@@ -148,13 +209,15 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                 onPick = {
                     targetSlot = i
                     picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }
+                },
+                onCamera = if (hayCamara) ({ abrirCamara(i, etiqueta) }) else null
             )
         }
         // Foto del motor: recomendada (no bloquea si falta).
         val motor = form.enginePhoto
+        val etiquetaMotor = stringResource(R.string.publish_photo_engine)
         PhotoSlotCard(
-            slot = PhotoSlot(stringResource(R.string.publish_photo_engine), motor),
+            slot = PhotoSlot(etiquetaMotor, motor),
             isDashboard = false,
             hasError = motor != null && (motor in form.duplicatePhotos || motor in form.fotosAjenas),
             status = when {
@@ -171,6 +234,7 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }
             },
+            onCamera = if (hayCamara) ({ if (!form.motorSinLugar) abrirCamara(SLOT_MOTOR, etiquetaMotor) }) else null,
             onRemove = if (motor != null) form::removeEnginePhoto else null
         )
         ExtraPhotosCard(
@@ -180,6 +244,10 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
             total = form.fotosElegidas.size,
             canAdd = form.extraPhotosLeft > 0,
             onAdd = { extrasPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onCamera = if (hayCamara) {
+                val etiqueta = stringResource(R.string.publish_extra_photo)
+                ({ abrirCamara(SLOT_EXTRAS, etiqueta) })
+            } else null,
             onRemove = form::removeExtraPhoto,
             isProcessing = form::procesandoFoto
         )
@@ -194,6 +262,8 @@ private fun ExtraPhotosCard(
     total: Int,
     canAdd: Boolean,
     onAdd: () -> Unit,
+    /** Tomar una foto con la cámara; null si el teléfono no tiene cámara. */
+    onCamera: (() -> Unit)?,
     onRemove: (Uri) -> Unit,
     isProcessing: (Uri) -> Boolean,
 ) {
@@ -241,7 +311,18 @@ private fun ExtraPhotosCard(
                 }
             }
         }
-        Row(
+        if (canAdd && onCamera != null) {
+            // Con cámara: tomar (de una en una, "Tomar otra" después de la primera) o elegir varias.
+            Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PhotoButton(
+                    Icons.Outlined.PhotoCamera,
+                    stringResource(if (photos.isEmpty()) R.string.publish_take_photo else R.string.publish_take_another),
+                    onCamera,
+                    Modifier.weight(1f)
+                )
+                PhotoButton(Icons.Outlined.Image, stringResource(R.string.publish_gallery), onAdd, Modifier.weight(1f))
+            }
+        } else Row(
             modifier = Modifier
                 .padding(top = 12.dp)
                 .fillMaxWidth()
@@ -336,6 +417,8 @@ private fun PhotoSlotCard(
     hasError: Boolean,
     status: String?,
     onPick: () -> Unit,
+    /** Tomar la foto con la cámara; null si el teléfono no tiene cámara (solo galería). */
+    onCamera: (() -> Unit)?,
     onRemove: (() -> Unit)? = null,
 ) {
     Column(
@@ -442,26 +525,18 @@ private fun PhotoSlotCard(
                 modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
             )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(KarsyRadius.Md))
-                .background(KarsySurface)
-                .border(1.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
-                .clickable(onClick = onPick)
-                .padding(vertical = 10.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Outlined.Image, null, tint = KarsyMid, modifier = Modifier.size(18.dp))
-            Text(
-                stringResource(R.string.publish_pick_from_gallery),
-                fontFamily = DmSans,
-                fontSize = KarsyTextSize.Body,
-                fontWeight = FontWeight.Medium,
-                color = KarsyCharcoal,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+        if (onCamera != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PhotoButton(
+                    Icons.Outlined.PhotoCamera,
+                    stringResource(if (slot.image == null) R.string.publish_take_photo else R.string.publish_retake_photo),
+                    onCamera,
+                    Modifier.weight(1f)
+                )
+                PhotoButton(Icons.Outlined.Image, stringResource(R.string.publish_gallery), onPick, Modifier.weight(1f))
+            }
+        } else {
+            PhotoButton(Icons.Outlined.Image, stringResource(R.string.publish_pick_from_gallery), onPick, Modifier.fillMaxWidth())
         }
         onRemove?.let {
             Text(
@@ -479,5 +554,31 @@ private fun PhotoSlotCard(
                     .wrapContentHeight(Alignment.CenterVertically)
             )
         }
+    }
+}
+
+/** Botón con borde de los recuadros de foto ("Tomar foto", "Galería"). */
+@Composable
+private fun PhotoButton(icon: ImageVector, text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(KarsyRadius.Md))
+            .background(KarsySurface)
+            .border(1.dp, KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 10.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, null, tint = KarsyMid, modifier = Modifier.size(18.dp))
+        Text(
+            text,
+            fontFamily = DmSans,
+            fontSize = KarsyTextSize.Body,
+            fontWeight = FontWeight.Medium,
+            color = KarsyCharcoal,
+            maxLines = 1,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }

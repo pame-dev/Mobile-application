@@ -810,6 +810,13 @@
     <string name="publish_engine_hint">Recommended: a photo of the engine with the hood open gives buyers more confidence.</string>
     <string name="publish_photo_looks_exterior">Looks like the outside of the car. If that was a mistake, upload one of the dashboard showing the mileage.</string>
     <string name="publish_pick_from_gallery">Choose from gallery</string>
+    <string name="publish_take_photo">Take photo</string>
+    <string name="publish_retake_photo">Retake</string>
+    <string name="publish_take_another">Take another</string>
+    <string name="publish_gallery">Gallery</string>
+    <string name="publish_extra_photo">Extra photo</string>
+    <string name="publish_camera_reminder">hold the phone horizontally</string>
+    <string name="publish_camera_unavailable">We couldn\'t find a camera app. Choose the photo from the gallery.</string>
     <string name="publish_description_title">Car description</string>
     <string name="publish_description_placeholder">A good description gets more views</string>
     <string name="publish_imperfections_title">Details or imperfections</string>
