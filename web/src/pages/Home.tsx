@@ -199,8 +199,9 @@ export function Home() {
               />
               <SugerenciasBusqueda id="heroq-sugerencias" />
             </div>
-            <button type="submit" className="btn btn-primary">
-              {t('home.searchBtn')}
+            <button type="submit" className="btn btn-primary" aria-label={t('home.searchBtn')}>
+              <Icon name="search" size={18} />
+              <span>{t('home.searchBtn')}</span>
             </button>
           </form>
           <div className="stats">
