@@ -25,7 +25,7 @@ import { calcularRango, compararPrecio, type Rango } from '../lib/precioSugerido
 import { huellaVisual, mismaFoto } from '../lib/huellaVisual'
 import { ANGULOS_CON_AUTO, pareceAuto, precargarDetector } from '../lib/detectorAutos'
 import { jpegDe } from '../lib/mexico'
-import { precargarTapaPlacas, taparPlacas } from '../lib/tapaPlacas'
+import { precargarTapaPlacas, reducirFoto, taparPlacas } from '../lib/tapaPlacas'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
 import { traducir, useI18n } from '../i18n/I18nContext'
@@ -263,6 +263,7 @@ export function Publish() {
   const trabajosPlacas = useRef<Promise<void>[]>([])
   /** Fotos más recientes (después de un await, las variables del render ya pueden ser viejas). */
   const fotosActuales = useRef<Foto[]>([])
+  const motorActual = useRef<Foto | null>(null)
   const arriba = useRef<HTMLDivElement>(null)
 
   // Catálogos primero: se usan para saber si la marca/modelo es "Otros" al precargar.
@@ -429,6 +430,7 @@ export function Publish() {
   const nombresFotos = (indices: number[]) =>
     indices.map((i) => t(ANGULOS[i]).replace(/^./, (c) => c.toLocaleLowerCase())).join(', ')
   fotosActuales.current = fotos
+  motorActual.current = motor
   const lugaresExtra = MAX_FOTOS - fotos.length
   /** Ya no cabe la foto del motor: entre ángulos y adicionales se llegó a MAX_FOTOS. */
   const motorSinLugar = !motor && fotos.length >= MAX_FOTOS
@@ -640,23 +642,28 @@ export function Publish() {
   }
   const esImagen = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
 
-  const ponerAngulo = (file: File | undefined) => {
-    if (!file || !esImagen(file)) return
+  const ponerAngulo = async (original: File | undefined) => {
+    if (!original || !esImagen(original)) return
+    // El recuadro se lee antes de reducir: mientras tanto se puede tocar otro.
+    const angulo = anguloElegido.current
     setTocado(true)
     setRepetidas(new Set())
     setUsadas(new Set())
-    const foto = nuevaFoto(file)
-    // La foto del motor no es un ángulo obligatorio (va en su propio recuadro) y solo si cabe.
-    if (anguloElegido.current === ANGULOS.length) {
-      if (motorSinLugar) return
+    if (angulo === ANGULOS.length && motorSinLugar) return
+    const reducida = await reducirFoto(original)
+    // La foto del motor no es un ángulo obligatorio (va en su propio recuadro) y solo si cabe;
+    // se revisa otra vez porque mientras se reducía pudieron entrar otras fotos.
+    if (angulo === ANGULOS.length && !motorActual.current && fotosActuales.current.length >= MAX_FOTOS) return
+    const foto = nuevaFoto(reducida)
+    if (angulo === ANGULOS.length) {
       prepararFoto(foto)
       setMotor(foto)
       return
     }
-    if (anguloElegido.current < ANGULOS_CON_AUTO) void revisarAuto(foto)
-    if (anguloElegido.current !== ANGULOS.length - 1) prepararFoto(foto)
+    if (angulo < ANGULOS_CON_AUTO) void revisarAuto(foto)
+    if (angulo !== ANGULOS.length - 1) prepararFoto(foto)
     else revisarTablero(foto)
-    setAngulos((a) => a.map((f, i) => (i === anguloElegido.current ? foto : f)))
+    setAngulos((a) => a.map((f, i) => (i === angulo ? foto : f)))
   }
   /** Cambiar de documento borra lo que se había puesto del anterior. */
   const elegirDocumento = (tipo: Datos['tipoDocumento']) => {
@@ -677,15 +684,21 @@ export function Publish() {
     setDocFoto({ key: crypto.randomUUID(), url: esPdf ? '' : URL.createObjectURL(file), file })
   }
   const docEsPdf = !!docFoto && (docFoto.file ? tipoConstancia(docFoto.file) === 'application/pdf' : !!docFoto.ruta?.endsWith('.pdf'))
-  const agregarExtras = (files: File[]) => {
+  const agregarExtras = async (files: File[]) => {
     const validas = files.filter(esImagen).slice(0, lugaresExtra)
     if (!validas.length) return
     setTocado(true)
     setRepetidas(new Set())
     setUsadas(new Set())
-    const nuevas = validas.map(nuevaFoto)
-    nuevas.forEach(prepararFoto)
-    setExtras((x) => [...x, ...nuevas])
+    // De una en una: cada foto se reduce y entra antes de abrir la siguiente.
+    for (const original of validas) {
+      const reducida = await reducirFoto(original)
+      // Mientras se reducía pudieron entrar otras fotos (otro lote o la del motor).
+      if (fotosActuales.current.length >= MAX_FOTOS) break
+      const foto = nuevaFoto(reducida)
+      prepararFoto(foto)
+      setExtras((x) => [...x, foto])
+    }
   }
 
   const publicar = async () => {
@@ -1229,7 +1242,7 @@ export function Publish() {
                 onDrop={(e) => {
                   e.preventDefault()
                   setArrastrando(false)
-                  agregarExtras([...e.dataTransfer.files])
+                  void agregarExtras([...e.dataTransfer.files])
                 }}
               >
                 <Icon name="upload" size={24} />
@@ -1238,14 +1251,14 @@ export function Publish() {
                   {t('publicar.dropHint')}
                 </span>
               </button>
-              <input ref={anguloInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => (ponerAngulo(e.target.files?.[0]), (e.target.value = ''))} />
+              <input ref={anguloInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => (void ponerAngulo(e.target.files?.[0]), (e.target.value = ''))} />
               <input
                 ref={extrasInput}
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 multiple
                 hidden
-                onChange={(e) => (agregarExtras([...(e.target.files ?? [])]), (e.target.value = ''))}
+                onChange={(e) => (void agregarExtras([...(e.target.files ?? [])]), (e.target.value = ''))}
               />
             </section>
           )}
