@@ -197,7 +197,6 @@ export const es = {
   'publicar.successResubmitMessage': 'Tu {titulo} se envió de nuevo a revisión. Aparecerá para los compradores en cuanto un administrador la apruebe.',
   'publicar.successResubmitTitle': '¡Reenviada!',
   'publicar.successTitle': '¡Publicado!',
-  'publicar.goDashboard': 'Ver mi panel',
   'publicar.viewListing': 'Ver publicación',
 } as const
 
@@ -384,6 +383,5 @@ export const en: Record<keyof typeof es, string> = {
   'publicar.successResubmitMessage': "Your {titulo} was sent back for review. It'll be visible to buyers as soon as an admin approves it.",
   'publicar.successResubmitTitle': 'Resubmitted!',
   'publicar.successTitle': 'Published!',
-  'publicar.goDashboard': 'Go to my dashboard',
   'publicar.viewListing': 'View listing',
 }
