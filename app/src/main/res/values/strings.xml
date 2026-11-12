@@ -1069,6 +1069,12 @@
     <string name="admin2_verif_open_error">No encontramos una app para abrir el documento.</string>
     <string name="admin2_value_all">Todos</string>
     <string name="admin2_value_to_review">Por revisar</string>
+    <string name="admin2_value_published">Publicadas</string>
+    <string name="admin2_value_blocked">Bloqueadas</string>
+    <string name="admin2_value_inactive">Inactivas</string>
+    <string name="admin2_value_all_f">Todas</string>
+    <string name="admin2_row_new">Nueva</string>
+    <string name="admin2_row_edit">Edición</string>
     <string name="admin2_value_active">Activo</string>
     <string name="admin2_value_suspended">Suspendido</string>
     <string name="admin2_value_individual">Particular</string>
