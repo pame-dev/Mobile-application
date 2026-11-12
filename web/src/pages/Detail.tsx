@@ -5,6 +5,7 @@ import { CarPhoto } from '../components/CarPhoto'
 import { ConditionTag } from '../components/ConditionTag'
 import { Icon } from '../components/Icon'
 import { PhotoViewer } from '../components/PhotoViewer'
+import { Traducido } from '../components/Traducido'
 import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { MODAL_TITULO, ModalHead, useUi } from '../components/Ui'
@@ -501,6 +502,27 @@ export function Detail() {
           <div>
             <b>{t(c.status === 'Pendiente' ? 'vehiculo.detail.notPublicTitle' : 'vehiculo.detail.changesReviewTitle')}</b>
             <p>{t(c.status === 'Pendiente' ? 'vehiculo.detail.notPublicDesc' : 'vehiculo.detail.changesReviewDesc')}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Rechazada (o rechazados sus cambios) o deshabilitada: el dueño ve el motivo, como en la
+          notificación. "Corregir y reenviar" está en los botones de abajo. */}
+      {esDueno && propia && (propia.rejectedReason || (c.status === 'Deshabilitado' && propia.disabledReason)) && (
+        <div className="revisionaviso peligro" role="status">
+          <Icon name="alert" size={20} />
+          <div>
+            <b>
+              {t(
+                propia.rejectedReason
+                  ? propia.approved
+                    ? 'vehiculo.detail.changesRejectedTitle'
+                    : 'vehiculo.detail.rejectedTitle'
+                  : 'vehiculo.detail.disabledTitle',
+              )}
+            </b>
+            {/* Lo escribe el equipo en español: en inglés se muestra traducido. */}
+            <Traducido texto={(propia.rejectedReason ?? propia.disabledReason)!}>{(m) => <p>{t('perfil.reason', { motivo: m })}</p>}</Traducido>
           </div>
         </div>
       )}

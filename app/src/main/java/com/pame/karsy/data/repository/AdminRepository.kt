@@ -62,7 +62,7 @@ object AdminRepository {
         }
     }
 
-    /** El admin abrió el filtro "Deshabilitado" o "Pausado": dejan de salir en "Requiere atención". */
+    /** El admin abrió el filtro "Bloqueadas" o "Inactivas": sus deshabilitadas o pausadas dejan de salir en "Requiere atención". */
     suspend fun marcarVistas(estado: String) {
         db.postgrest.rpc("admin_marcar_vistas", buildJsonObject { put("p_estado", estado) })
     }

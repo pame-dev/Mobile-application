@@ -500,6 +500,8 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .revisionaviso > .i{color:var(--warning);flex:none;margin-top:1px}
 .revisionaviso b{display:block;font-family:var(--f-display);font-size:var(--fs-md)}
 .revisionaviso p{margin:var(--s-1) 0 0;font-size:var(--fs-sm);color:var(--text2)}
+.revisionaviso.peligro{background:var(--error-l);border-color:var(--error)}
+.revisionaviso.peligro > .i{color:var(--error)}
 .enrevision img{opacity:.55;filter:grayscale(.7)}
 .ownerbar .acts{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 /* Celular: los botones del dueño en dos columnas parejas, no en filas de ancho desigual. */

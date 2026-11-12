@@ -30,21 +30,45 @@ import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTextSize
 
+/** Filtro que junta las publicaciones nuevas en revisión y las ediciones sin revisar. */
+internal const val POR_REVISAR = "Por revisar"
+internal const val PUBLICADAS = "Publicadas"
+/** Las detuvo el equipo. */
+internal const val BLOQUEADAS = "Bloqueadas"
+/** Las detuvo el dueño. */
+internal const val INACTIVAS = "Inactivas"
+internal const val TODAS = "Todas"
+
+/** Estados agrupados por lo que el equipo hace con ellos (la etiqueta de cada fila da el detalle). Igual que la web. */
+private val FILTROS_VEHICULO = linkedMapOf(
+    POR_REVISAR to setOf("Pendiente", "Cambios pendientes"),
+    PUBLICADAS to setOf("Activo"),
+    BLOQUEADAS to setOf("Rechazado", "Deshabilitado"),
+    INACTIVAS to setOf("Pausado", "Vendido"),
+    TODAS to null,
+)
+
+/** Si una publicación con [estado] entra en [filtro]. "Todas" (o uno desconocido) incluye todo. */
+internal fun enFiltroVehiculo(filtro: String, estado: String): Boolean =
+    FILTROS_VEHICULO[filtro]?.contains(estado) ?: true
+
 @Composable
 /**
  * "Revisar" abre la publicación con las acciones de admin abajo ([onReview]),
  * igual que la revisión de reportes.
  */
-fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialStatus: String = "Todos") {
+fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialStatus: String = POR_REVISAR) {
     var search by rememberSaveable { mutableStateOf("") }
-    var status by rememberSaveable(initialStatus) { mutableStateOf(initialStatus) }
-    // Al ver "Deshabilitado" o "Pausado", sus publicaciones dejan de salir en "Requiere atención".
+    // Sin filtro pedido se abre en "Por revisar" (nuevas y cambios pendientes): es lo que el equipo necesita revisar.
+    val inicial = if (initialStatus in FILTROS_VEHICULO) initialStatus else POR_REVISAR
+    var status by rememberSaveable(inicial) { mutableStateOf(inicial) }
+    // Al ver "Bloqueadas" o "Inactivas", sus deshabilitadas o pausadas dejan de salir en "Requiere atención".
     LaunchedEffect(status) { vm.marcarVistas(status) }
 
     val vehicles = vm.vehicles
     val filtered = vehicles.filter { vehicle ->
         val matchesSearch = "${vehicle.name} ${vehicle.seller}".contains(search, ignoreCase = true)
-        val matchesStatus = status == "Todos" || vehicle.status == status
+        val matchesStatus = enFiltroVehiculo(status, vehicle.status)
         matchesSearch && matchesStatus
     }
 
@@ -62,7 +86,7 @@ fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialSt
                     // Los estados se comparan en español; solo se traduce lo que se muestra.
                     AdminValueSelect(
                         status,
-                        listOf("Todos", "Activo", "Pendiente", "Cambios pendientes", "Rechazado", "Deshabilitado", "Pausado", "Vendido")
+                        FILTROS_VEHICULO.keys.toList()
                     ) { status = it }
                 }
                 AdminSearchBar(
@@ -94,7 +118,12 @@ fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialSt
                         ) {
                             AdminBadge(vehicle.tipo, BadgeTone.Neutral)
                             Spacer(Modifier.weight(1f))
-                            AdminStatusBadge(vehicle.status)
+                            // En "Por revisar" la fila dice si es nueva o una edición.
+                            when (vehicle.status) {
+                                "Pendiente" -> AdminBadge(stringResource(R.string.admin2_row_new), adminStatusTone(vehicle.status))
+                                "Cambios pendientes" -> AdminBadge(stringResource(R.string.admin2_row_edit), adminStatusTone(vehicle.status))
+                                else -> AdminStatusBadge(vehicle.status)
+                            }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             AdminThumbnail(vehicle.imageUrl, size = 44.dp)

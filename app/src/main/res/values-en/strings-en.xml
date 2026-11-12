@@ -1066,6 +1066,13 @@
     <string name="admin2_verif_reviewed_by">Reviewed by</string>
     <string name="admin2_verif_open_error">We could not find an app to open the document.</string>
     <string name="admin2_value_all">All</string>
+    <string name="admin2_value_to_review">To review</string>
+    <string name="admin2_value_published">Published</string>
+    <string name="admin2_value_blocked">Blocked</string>
+    <string name="admin2_value_inactive">Inactive</string>
+    <string name="admin2_value_all_f">All</string>
+    <string name="admin2_row_new">New</string>
+    <string name="admin2_row_edit">Edit</string>
     <string name="admin2_value_active">Active</string>
     <string name="admin2_value_suspended">Suspended</string>
     <string name="admin2_value_individual">Individual</string>

@@ -133,11 +133,11 @@ class AdminViewModel : ViewModel() {
         }
     }
 
-    /** Al ver el filtro "Deshabilitado" o "Pausado", sus publicaciones dejan de salir en "Requiere atención". */
+    /** Al ver el filtro "Bloqueadas" o "Inactivas", sus deshabilitadas o pausadas dejan de salir en "Requiere atención". */
     fun marcarVistas(status: String) {
         val estado = when (status) {
-            "Deshabilitado" -> "deshabilitada"
-            "Pausado" -> "pausada"
+            BLOQUEADAS -> "deshabilitada"
+            INACTIVAS -> "pausada"
             else -> return
         }
         viewModelScope.launch {
@@ -303,8 +303,8 @@ class AdminViewModel : ViewModel() {
             // Solo lo que realmente tiene pendientes.
             return listOf(
                 // Se quitan cuando el admin abre ese filtro en Vehículos (marcarVistas).
-                AdminAlert(s.deshabilitadasSinVer, textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadasSinVer, s.deshabilitadasSinVer), Icons.Outlined.Description, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos, "Deshabilitado"),
-                AdminAlert(s.pausadasSinVer, textoPlural(R.plurals.admin2_alert_paused, s.pausadasSinVer, s.pausadasSinVer), Icons.Outlined.PauseCircle, Color(0xFFF2F4F7), Color(0xFF667085), AdminSection.Vehiculos, "Pausado"),
+                AdminAlert(s.deshabilitadasSinVer, textoPlural(R.plurals.admin2_alert_disabled, s.deshabilitadasSinVer, s.deshabilitadasSinVer), Icons.Outlined.Description, Color(0xFFFEF2F2), Color(0xFFEF4444), AdminSection.Vehiculos, BLOQUEADAS),
+                AdminAlert(s.pausadasSinVer, textoPlural(R.plurals.admin2_alert_paused, s.pausadasSinVer, s.pausadasSinVer), Icons.Outlined.PauseCircle, Color(0xFFF2F4F7), Color(0xFF667085), AdminSection.Vehiculos, INACTIVAS),
                 AdminAlert(s.suspendidasSinVer, textoPlural(R.plurals.admin2_alert_suspended, s.suspendidasSinVer, s.suspendidasSinVer), Icons.Outlined.PersonOff, Color(0xFFFFFBEB), Color(0xFFF59E0B), AdminSection.Usuarios, "Suspendido"),
                 AdminAlert(s.lotesNuevos, textoPlural(R.plurals.admin2_alert_new_lots, s.lotesNuevos, s.lotesNuevos, range.toInt()), Icons.Outlined.Storefront, Color(0xFFEFF6FF), Color(0xFF3B82F6), AdminSection.Usuarios),
                 AdminAlert(s.propuestasPendientes, textoPlural(R.plurals.admin2_alert_pending_review, s.propuestasPendientes, s.propuestasPendientes), Icons.Outlined.Shield, Color(0xFFF5F3FF), Color(0xFF8B5CF6), AdminSection.Vehiculos),
@@ -469,6 +469,11 @@ class AdminViewModel : ViewModel() {
  */
 internal fun adminValueLabelRes(value: String): Int? = when (value) {
     "Todos" -> R.string.admin2_value_all
+    POR_REVISAR -> R.string.admin2_value_to_review
+    PUBLICADAS -> R.string.admin2_value_published
+    BLOQUEADAS -> R.string.admin2_value_blocked
+    INACTIVAS -> R.string.admin2_value_inactive
+    TODAS -> R.string.admin2_value_all_f
     "Activo" -> R.string.admin2_value_active
     "Suspendido" -> R.string.admin2_value_suspended
     "Particular" -> R.string.admin2_value_individual

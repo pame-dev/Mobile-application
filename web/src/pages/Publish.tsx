@@ -774,6 +774,8 @@ export function Publish() {
         .then((vs) => (vs.every(Boolean) ? registrarHuellas(idGuardada, vs as string[]) : undefined))
         .catch(() => undefined)
       setListo(true)
+      // Se sale del formulario antes del aviso: al cerrarlo ya no se puede volver a enviar.
+      navigate('/panel', { replace: true })
       openModal(<Exito titulo={titulo} editando={editId != null} aprobada={editandoAprobada} editId={editId} />)
     } catch (ex) {
       setSubida(null)
@@ -1391,14 +1393,14 @@ export function Publish() {
   )
 }
 
-/** Aviso de éxito (SuccessOverlay de la app). */
+/** Aviso de éxito (SuccessOverlay de la app). Se muestra ya en Mi panel. */
 function Exito({ titulo, editando, aprobada, editId }: { titulo: string; editando: boolean; aprobada: boolean; editId: number | null }) {
   const { closeModal } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
   const ir = (to: string) => {
     closeModal()
-    navigate(to, { replace: true })
+    navigate(to)
   }
   const mensaje = !editando
     ? t('publicar.successMessage', { titulo })
@@ -1411,20 +1413,15 @@ function Exito({ titulo, editando, aprobada, editId }: { titulo: string; editand
         <Icon name="check" size={30} />
       </span>
       <ModalHead title={editando && !aprobada ? t('publicar.successResubmitTitle') : t('publicar.successTitle')} sub={mensaje} />
-      <div className="grid2" style={{ width: '100%' }}>
-        <button className="btn btn-ghost" onClick={() => ir('/panel')}>
-          {t('publicar.goDashboard')}
+      {editId != null ? (
+        <button className="btn btn-primary btn-block" onClick={() => ir(`/vehiculo/${editId}`)}>
+          {t('publicar.viewListing')}
         </button>
-        {editId != null ? (
-          <button className="btn btn-primary" onClick={() => ir(`/vehiculo/${editId}`)}>
-            {t('publicar.viewListing')}
-          </button>
-        ) : (
-          <button className="btn btn-primary" onClick={() => ir('/')}>
-            {t('common.goHome')}
-          </button>
-        )}
-      </div>
+      ) : (
+        <button className="btn btn-primary btn-block" onClick={() => ir('/')}>
+          {t('common.goHome')}
+        </button>
+      )}
     </div>
   )
 }

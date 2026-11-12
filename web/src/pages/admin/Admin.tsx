@@ -44,7 +44,7 @@ import { ExportarAdmin } from './ReporteAdmin'
 import { Verificaciones } from './Verificaciones'
 import { RevisarRepuveModal } from './RevisarRepuve'
 import { ConfigPagos, ConfigPagosLectura, montoPago, RevisarPagoModal, useVerComprobante } from './PagosDestacado'
-import { AdminHead, Badge, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
+import { AdminHead, Badge, BADGE, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
 
@@ -360,8 +360,8 @@ function Inicio({ nombre, stats, verificaciones, rango, setRango, ir }: { nombre
       [stats.lotesNuevos, plural(stats.lotesNuevos, 'admin.alertLotsOne', 'admin.alertLotsMany', { d: rango }), 'usuarios', '#3B82F6', 'tipo=lote'],
       [stats.suspendidasSinVer, plural(stats.suspendidasSinVer, 'admin.alertSuspendedOne', 'admin.alertSuspendedMany'), 'usuarios', '#98A2B3', 'tipo=suspendido'],
       // Se quitan cuando el admin abre ese filtro en Vehículos (admin_marcar_vistas).
-      [stats.deshabilitadasSinVer, plural(stats.deshabilitadasSinVer, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3', 'estado=Deshabilitado'],
-      [stats.pausadasSinVer, plural(stats.pausadasSinVer, 'admin.alertPausedOne', 'admin.alertPausedMany'), 'vehiculos', '#98A2B3', 'estado=Pausado'],
+      [stats.deshabilitadasSinVer, plural(stats.deshabilitadasSinVer, 'admin.alertDisabledOne', 'admin.alertDisabledMany'), 'vehiculos', '#98A2B3', 'estado=Bloqueadas'],
+      [stats.pausadasSinVer, plural(stats.pausadasSinVer, 'admin.alertPausedOne', 'admin.alertPausedMany'), 'vehiculos', '#98A2B3', 'estado=Inactivas'],
     ] as [number, string, Seccion, string, string?][]
   ).filter(([n]) => n > 0)
 
@@ -861,7 +861,20 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
   )
 }
 
-const FILTROS_VEHICULO = ['Todos', 'Pendiente', 'Cambios pendientes', 'Activo', 'Rechazado', 'Deshabilitado', 'Pausado', 'Vendido'] as const
+// Estados agrupados por lo que el equipo hace con ellos (la columna Estado da el detalle).
+// "Por revisar" es la vista inicial: es lo que el equipo necesita revisar.
+type FiltroVehiculo = 'Por revisar' | 'Publicadas' | 'Bloqueadas' | 'Inactivas' | 'Todas'
+const FILTROS_VEHICULO: [FiltroVehiculo, Clave, string[] | null][] = [
+  ['Por revisar', 'admin.toReview', ['Pendiente', 'Cambios pendientes']],
+  ['Publicadas', 'admin.fPublished', ['Activo']],
+  // Las detuvo el equipo.
+  ['Bloqueadas', 'admin.fBlocked', ['Rechazado', 'Deshabilitado']],
+  // Las detuvo el dueño.
+  ['Inactivas', 'admin.fInactive', ['Pausado', 'Vendido']],
+  ['Todas', 'admin.fAll', null],
+]
+/** En "Por revisar" la fila dice si es nueva o una edición. */
+const ETIQUETA_FILA: Record<string, Clave> = { Pendiente: 'admin.rowNew', 'Cambios pendientes': 'admin.rowEdit' }
 
 /**
  * Una sola vez: registra la huella visual de las fotos de las publicaciones que ya existían,
@@ -902,19 +915,20 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
   const { openModal, toast } = useUi()
   const { t } = useI18n()
   const [q, setQ] = useState('')
-  // Desde "Requiere atención" llega con ?estado=Deshabilitado o ?estado=Pausado.
+  // Desde "Requiere atención" llega con ?estado=Bloqueadas o ?estado=Inactivas.
   const [params] = useSearchParams()
-  const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>(() => FILTROS_VEHICULO.find((f) => f === params.get('estado')) ?? 'Todos')
-  // Al ver ese filtro, sus publicaciones dejan de salir en "Requiere atención".
+  const [tab, setTab] = useState<FiltroVehiculo>(() => FILTROS_VEHICULO.find(([f]) => f === params.get('estado'))?.[0] ?? 'Por revisar')
+  // Al ver ese filtro, sus deshabilitadas o pausadas dejan de salir en "Requiere atención".
   useEffect(() => {
-    const estado = tab === 'Deshabilitado' ? 'deshabilitada' : tab === 'Pausado' ? 'pausada' : null
+    const estado = tab === 'Bloqueadas' ? 'deshabilitada' : tab === 'Inactivas' ? 'pausada' : null
     if (estado) marcarVistas(estado).then(onVisto).catch((e) => toast(mensajeUsuario(e)))
   }, [tab, onVisto, toast])
   const conEstado = useMemo(() => datos.autos.map((a) => ({ ...a, estado: estadoAdmin(a.row, a.car) })), [datos.autos])
+  const enFiltro = (f: FiltroVehiculo, estado: string) => FILTROS_VEHICULO.find(([v]) => v === f)?.[2]?.includes(estado) ?? true
   const lista = conEstado
-    .filter((a) => tab === 'Todos' || a.estado === tab)
+    .filter((a) => enFiltro(tab, a.estado))
     .filter((a) => !q.trim() || `${a.car.brand} ${a.car.model} ${a.car.year} ${a.car.ownerName}`.toLowerCase().includes(q.trim().toLowerCase()))
-  const cuenta = (s: string) => conEstado.filter((a) => a.estado === s).length
+  const cuenta = (f: FiltroVehiculo) => conEstado.filter((a) => enFiltro(f, a.estado)).length
   return (
     <>
       <AdminHead title={t('admin.sec.vehicles')} desc={t('admin.vehiclesDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.vehiclesSearch')} />} />
@@ -922,7 +936,7 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
       <Tabs
         value={tab}
         onChange={setTab}
-        options={FILTROS_VEHICULO.map((f) => [f, f === 'Todos' ? t('admin.withCount', { label: t('admin.all'), n: conEstado.length }) : t('admin.withCount', { label: etiquetaEstado(f), n: cuenta(f) })])}
+        options={FILTROS_VEHICULO.map(([f, clave]) => [f, t('admin.withCount', { label: t(clave), n: cuenta(f) })])}
       />
       <div className="card tablewrap">
         <table className="t">
@@ -938,7 +952,7 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
           </thead>
           <tbody>
             {lista.map(({ car, row, estado }) => {
-              const revisar = estado === 'Pendiente' || estado === 'Cambios pendientes'
+              const revisar = estado in ETIQUETA_FILA
               return (
                 <tr key={car.id}>
                   <td>
@@ -958,7 +972,7 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
                   <td data-label={t('admin.year')}>{car.year || '—'}</td>
                   <td className="num" data-label={t('admin.price')}>{precio(car.priceValue)}</td>
                   <td data-label={t('admin.status')}>
-                    <Badge s={estado} />
+                    {revisar ? <span className={`badge ${BADGE[estado]}`}>{t(ETIQUETA_FILA[estado])}</span> : <Badge s={estado} />}
                   </td>
                   <td>
                     <button className={`btn btn-sm ${revisar ? 'btn-primary' : 'btn-ghost'}`} onClick={() => openModal(<VehicleReview car={car} row={row} listo={listo} />)}>

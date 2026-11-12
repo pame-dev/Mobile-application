@@ -79,6 +79,13 @@ export const es = {
 
   // Comunes
   'admin.all': 'Todos',
+  'admin.toReview': 'Por revisar',
+  'admin.fPublished': 'Publicadas',
+  'admin.fBlocked': 'Bloqueadas',
+  'admin.fInactive': 'Inactivas',
+  'admin.fAll': 'Todas',
+  'admin.rowNew': 'Nueva',
+  'admin.rowEdit': 'Edición',
   'admin.withCount': '{label} ({n})',
   'admin.individual': 'Particular',
   'admin.lot': 'Lote',
@@ -469,6 +476,13 @@ export const en: Record<keyof typeof es, string> = {
   'admin.st.requested': 'Requested',
 
   'admin.all': 'All',
+  'admin.toReview': 'To review',
+  'admin.fPublished': 'Published',
+  'admin.fBlocked': 'Blocked',
+  'admin.fInactive': 'Inactive',
+  'admin.fAll': 'All',
+  'admin.rowNew': 'New',
+  'admin.rowEdit': 'Edit',
   'admin.withCount': '{label} ({n})',
   'admin.individual': 'Individual',
   'admin.lot': 'Dealer',
