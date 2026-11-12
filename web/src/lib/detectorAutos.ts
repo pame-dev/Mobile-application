@@ -26,7 +26,7 @@ const UMBRAL = 0.1
 let modelo: Promise<MobileNet> | null = null
 
 /** iPhone o iPad (el iPad se presenta como Mac, pero con pantalla táctil). */
-const esIOS = () =>
+export const esIOS = () =>
   /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1)
 
 /**
