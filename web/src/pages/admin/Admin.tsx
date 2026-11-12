@@ -861,7 +861,8 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
   )
 }
 
-const FILTROS_VEHICULO = ['Todos', 'Pendiente', 'Cambios pendientes', 'Activo', 'Rechazado', 'Deshabilitado', 'Pausado', 'Vendido'] as const
+// "Por revisar" (nuevas y cambios pendientes) es la vista inicial: es lo que el equipo necesita revisar.
+const FILTROS_VEHICULO = ['Por revisar', 'Todos', 'Pendiente', 'Cambios pendientes', 'Activo', 'Rechazado', 'Deshabilitado', 'Pausado', 'Vendido'] as const
 
 /**
  * Una sola vez: registra la huella visual de las fotos de las publicaciones que ya existían,
@@ -904,17 +905,18 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
   const [q, setQ] = useState('')
   // Desde "Requiere atención" llega con ?estado=Deshabilitado o ?estado=Pausado.
   const [params] = useSearchParams()
-  const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>(() => FILTROS_VEHICULO.find((f) => f === params.get('estado')) ?? 'Todos')
+  const [tab, setTab] = useState<(typeof FILTROS_VEHICULO)[number]>(() => FILTROS_VEHICULO.find((f) => f === params.get('estado')) ?? 'Por revisar')
   // Al ver ese filtro, sus publicaciones dejan de salir en "Requiere atención".
   useEffect(() => {
     const estado = tab === 'Deshabilitado' ? 'deshabilitada' : tab === 'Pausado' ? 'pausada' : null
     if (estado) marcarVistas(estado).then(onVisto).catch((e) => toast(mensajeUsuario(e)))
   }, [tab, onVisto, toast])
   const conEstado = useMemo(() => datos.autos.map((a) => ({ ...a, estado: estadoAdmin(a.row, a.car) })), [datos.autos])
+  const porRevisar = (estado: string) => estado === 'Pendiente' || estado === 'Cambios pendientes'
   const lista = conEstado
-    .filter((a) => tab === 'Todos' || a.estado === tab)
+    .filter((a) => tab === 'Todos' || a.estado === tab || (tab === 'Por revisar' && porRevisar(a.estado)))
     .filter((a) => !q.trim() || `${a.car.brand} ${a.car.model} ${a.car.year} ${a.car.ownerName}`.toLowerCase().includes(q.trim().toLowerCase()))
-  const cuenta = (s: string) => conEstado.filter((a) => a.estado === s).length
+  const cuenta = (s: string) => conEstado.filter((a) => (s === 'Por revisar' ? porRevisar(a.estado) : a.estado === s)).length
   return (
     <>
       <AdminHead title={t('admin.sec.vehicles')} desc={t('admin.vehiclesDesc')} right={<SearchBox value={q} onChange={setQ} placeholder={t('admin.vehiclesSearch')} />} />
@@ -922,7 +924,7 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
       <Tabs
         value={tab}
         onChange={setTab}
-        options={FILTROS_VEHICULO.map((f) => [f, f === 'Todos' ? t('admin.withCount', { label: t('admin.all'), n: conEstado.length }) : t('admin.withCount', { label: etiquetaEstado(f), n: cuenta(f) })])}
+        options={FILTROS_VEHICULO.map((f) => [f, f === 'Todos' ? t('admin.withCount', { label: t('admin.all'), n: conEstado.length }) : t('admin.withCount', { label: f === 'Por revisar' ? t('admin.toReview') : etiquetaEstado(f), n: cuenta(f) })])}
       />
       <div className="card tablewrap">
         <table className="t">
@@ -938,7 +940,7 @@ function Vehiculos({ datos, listo, onVisto }: { datos: Datos; listo: (m: string)
           </thead>
           <tbody>
             {lista.map(({ car, row, estado }) => {
-              const revisar = estado === 'Pendiente' || estado === 'Cambios pendientes'
+              const revisar = porRevisar(estado)
               return (
                 <tr key={car.id}>
                   <td>

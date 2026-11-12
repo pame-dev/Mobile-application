@@ -79,6 +79,7 @@ export const es = {
 
   // Comunes
   'admin.all': 'Todos',
+  'admin.toReview': 'Por revisar',
   'admin.withCount': '{label} ({n})',
   'admin.individual': 'Particular',
   'admin.lot': 'Lote',
@@ -469,6 +470,7 @@ export const en: Record<keyof typeof es, string> = {
   'admin.st.requested': 'Requested',
 
   'admin.all': 'All',
+  'admin.toReview': 'To review',
   'admin.withCount': '{label} ({n})',
   'admin.individual': 'Individual',
   'admin.lot': 'Dealer',

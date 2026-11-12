@@ -30,21 +30,28 @@ import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyNavy
 import com.pame.karsy.core.theme.KarsyTextSize
 
+/** Filtro que junta las publicaciones nuevas en revisión y las ediciones sin revisar. */
+internal const val POR_REVISAR = "Por revisar"
+private val ESTADOS_POR_REVISAR = setOf("Pendiente", "Cambios pendientes")
+
 @Composable
 /**
  * "Revisar" abre la publicación con las acciones de admin abajo ([onReview]),
  * igual que la revisión de reportes.
  */
-fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialStatus: String = "Todos") {
+fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialStatus: String = POR_REVISAR) {
     var search by rememberSaveable { mutableStateOf("") }
-    var status by rememberSaveable(initialStatus) { mutableStateOf(initialStatus) }
+    // Sin filtro pedido se abre en "Por revisar" (nuevas y cambios pendientes): es lo que el equipo necesita revisar.
+    val inicial = if (initialStatus == "Todos") POR_REVISAR else initialStatus
+    var status by rememberSaveable(inicial) { mutableStateOf(inicial) }
     // Al ver "Deshabilitado" o "Pausado", sus publicaciones dejan de salir en "Requiere atención".
     LaunchedEffect(status) { vm.marcarVistas(status) }
 
     val vehicles = vm.vehicles
     val filtered = vehicles.filter { vehicle ->
         val matchesSearch = "${vehicle.name} ${vehicle.seller}".contains(search, ignoreCase = true)
-        val matchesStatus = status == "Todos" || vehicle.status == status
+        val matchesStatus = status == "Todos" || vehicle.status == status ||
+            (status == POR_REVISAR && vehicle.status in ESTADOS_POR_REVISAR)
         matchesSearch && matchesStatus
     }
 
@@ -62,7 +69,7 @@ fun AdminVehiclesSection(vm: AdminViewModel, onReview: (Long) -> Unit, initialSt
                     // Los estados se comparan en español; solo se traduce lo que se muestra.
                     AdminValueSelect(
                         status,
-                        listOf("Todos", "Activo", "Pendiente", "Cambios pendientes", "Rechazado", "Deshabilitado", "Pausado", "Vendido")
+                        listOf(POR_REVISAR, "Todos", "Pendiente", "Cambios pendientes", "Activo", "Rechazado", "Deshabilitado", "Pausado", "Vendido")
                     ) { status = it }
                 }
                 AdminSearchBar(

@@ -469,6 +469,7 @@ class AdminViewModel : ViewModel() {
  */
 internal fun adminValueLabelRes(value: String): Int? = when (value) {
     "Todos" -> R.string.admin2_value_all
+    POR_REVISAR -> R.string.admin2_value_to_review
     "Activo" -> R.string.admin2_value_active
     "Suspendido" -> R.string.admin2_value_suspended
     "Particular" -> R.string.admin2_value_individual
