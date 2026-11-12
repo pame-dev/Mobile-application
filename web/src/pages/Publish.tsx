@@ -26,6 +26,7 @@ import { huellaVisual, mismaFoto } from '../lib/huellaVisual'
 import { ANGULOS_CON_AUTO, pareceAuto, precargarDetector } from '../lib/detectorAutos'
 import { jpegDe } from '../lib/mexico'
 import { precargarTapaPlacas, reducirFoto, taparPlacas } from '../lib/tapaPlacas'
+import { borrarDiag, diag, leerDiag, tam } from '../lib/diagnostico'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
 import { traducir, useI18n } from '../i18n/I18nContext'
@@ -227,6 +228,19 @@ export function Publish() {
   /** Fotos del tablero en las que el detector ve el exterior de un auto (solo avisa). */
   const [tableroExterior, setTableroExterior] = useState<Set<string>>(new Set())
   const [step, setStep] = useState(0)
+  // TEMPORAL (diagnóstico iPhone): pasos guardados de la prueba anterior; ver lib/diagnostico.ts.
+  const [diagPrevio, setDiagPrevio] = useState<string[]>(() => leerDiag())
+  useEffect(() => {
+    diag('página de Publicar abierta')
+    const alCambiar = () => diag(`página ${document.visibilityState === 'visible' ? 'visible' : 'oculta'}`)
+    const alSalir = () => diag('página cerrándose (pagehide)')
+    document.addEventListener('visibilitychange', alCambiar)
+    window.addEventListener('pagehide', alSalir)
+    return () => {
+      document.removeEventListener('visibilitychange', alCambiar)
+      window.removeEventListener('pagehide', alSalir)
+    }
+  }, [])
   /** Precio sugerido (paso Detalles): 'cargando', el rango de autos similares o null si no hay suficientes. */
   const [sugerencia, setSugerencia] = useState<'cargando' | 'error' | { rango: Rango; desde?: number; hasta?: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -588,6 +602,7 @@ export function Publish() {
   // Los modelos se descargan al llegar al paso de fotos, para que la revisión sea inmediata.
   useEffect(() => {
     if (step !== 1) return
+    diag('entró al paso de fotos')
     precargarDetector().catch(() => undefined)
     precargarTapaPlacas().catch(() => undefined)
   }, [step])
@@ -612,6 +627,7 @@ export function Publish() {
         n.delete(f.key)
         return n
       })
+      diag(blob ? 'placas: foto tapada puesta' : 'placas: sin placas, listo')
     })
     trabajosPlacas.current.push(trabajo)
   }
@@ -625,8 +641,9 @@ export function Publish() {
 
   const nuevaFoto = (file: File): Foto => {
     const f: Foto = { key: 'f:' + crypto.randomUUID(), url: URL.createObjectURL(file), file }
-    huellas.current.set(f.key, huella(f).catch(() => 'key:' + f.key))
-    visuales.current.set(f.key, huellaVisual(file))
+    huellas.current.set(f.key, huella(f).then((h) => (diag('huella exacta: lista'), h)).catch(() => 'key:' + f.key))
+    diag('huella visual: calculando')
+    visuales.current.set(f.key, huellaVisual(file).then((h) => (diag('huella visual: lista'), h)))
     return f
   }
   const huellaExacta = (f: Foto): Promise<string> => {
@@ -643,6 +660,7 @@ export function Publish() {
   const esImagen = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
 
   const ponerAngulo = async (original: File | undefined) => {
+    if (original) diag(`foto elegida para el recuadro ${anguloElegido.current + 1} (${tam(original.size)}, ${original.type || 'sin tipo'})`)
     if (!original || !esImagen(original)) return
     // El recuadro se lee antes de reducir: mientras tanto se puede tocar otro.
     const angulo = anguloElegido.current
@@ -655,6 +673,7 @@ export function Publish() {
     // se revisa otra vez porque mientras se reducía pudieron entrar otras fotos.
     if (angulo === ANGULOS.length && !motorActual.current && fotosActuales.current.length >= MAX_FOTOS) return
     const foto = nuevaFoto(reducida)
+    diag('foto puesta en el formulario')
     if (angulo === ANGULOS.length) {
       prepararFoto(foto)
       setMotor(foto)
@@ -914,6 +933,22 @@ export function Publish() {
 
   return (
     <div className="wrap" style={{ maxWidth: 980 }} ref={arriba}>
+      {/* TEMPORAL (diagnóstico iPhone): últimos pasos antes de que la página se recargara. */}
+      {diagPrevio.length > 0 && (
+        <div className="card" style={{ margin: 'var(--s-4) 0', padding: 'var(--s-4)', fontSize: 'var(--fs-xs)' }}>
+          <b>Diagnóstico (temporal): últimos pasos de la prueba anterior</b>
+          <pre style={{ whiteSpace: 'pre-wrap', margin: 'var(--s-2) 0', fontFamily: 'monospace' }}>{diagPrevio.join('\n')}</pre>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              borrarDiag()
+              setDiagPrevio([])
+            }}
+          >
+            Borrar registro
+          </button>
+        </div>
+      )}
       <div className="pagehead">
         <div>
           <h1>{editId ? t('publicar.editTitle') : t('publicar.title')}</h1>
