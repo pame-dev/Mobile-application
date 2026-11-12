@@ -675,6 +675,7 @@
     <string name="profile_stat_sold">Vendidos</string>
     <string name="profile_stat_active">Activas</string>
     <string name="profile_saved">Perfil guardado.</string>
+    <string name="profile_cover_updated">Portada actualizada.</string>
     <string name="profile_photo_updated">Foto actualizada.</string>
     <!-- Estado de la publicación (solo etiqueta visible) -->
     <string name="profile_status_active">Activo</string>

@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.profile
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.material.icons.outlined.PhotoCamera
 import com.pame.karsy.core.components.CargandoBloqueo
 import android.net.Uri
 import com.pame.karsy.core.components.KarsyPullToRefresh
@@ -124,23 +126,19 @@ fun ProfileScreen(
     val user = vm.user
     var editOpen by rememberSaveable { mutableStateOf(false) }
     var passwordOpen by rememberSaveable { mutableStateOf(false) }
-    // Foto y portada elegidas en "Editar perfil": se suben hasta presionar Guardar.
+    // Foto elegida (o portada quitada) en "Editar perfil": se guarda hasta presionar Guardar.
     var pendingAvatar by rememberSaveable { mutableStateOf<Uri?>(null) }
-    var pendingCover by rememberSaveable { mutableStateOf<Uri?>(null) }
     var coverRemoved by rememberSaveable { mutableStateOf(false) }
     val clearPending = {
         pendingAvatar = null
-        pendingCover = null
         coverRemoved = false
     }
     val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) pendingAvatar = uri
     }
+    // "Editar portada" (sobre la portada del perfil): se sube y guarda al elegirla.
     val pickCover = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            pendingCover = uri
-            coverRemoved = false
-        }
+        if (uri != null) vm.cambiarPortada(context, uri)
     }
     // Foto de perfil ampliada (solo si hay foto).
     var avatarOpen by rememberSaveable { mutableStateOf(false) }
@@ -190,7 +188,8 @@ fun ProfileScreen(
                         vm.clearDialogErrors()
                         editOpen = true
                     },
-                    onOpenAvatar = { avatarOpen = true }
+                    onOpenAvatar = { avatarOpen = true },
+                    onEditCover = { pickCover.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
                 )
                 Spacer(Modifier.height(16.dp))
                 // Solo el propio lote: estado de su constancia fiscal y, si se puede, el botón para subirla.
@@ -270,28 +269,18 @@ fun ProfileScreen(
                 clearPending()
             },
             onSave = { updated ->
-                vm.save(context, updated, pendingAvatar, pendingCover, coverRemoved) {
+                vm.save(context, updated, pendingAvatar, coverRemoved) {
                     editOpen = false
                     clearPending()
                 }
             },
             avatarPreview = pendingAvatar?.toString() ?: user.avatarUrl,
-            coverPreview = when {
-                pendingCover != null -> pendingCover.toString()
-                coverRemoved -> null
-                else -> user.coverUrl
-            },
-            photosChanged = pendingAvatar != null || pendingCover != null || coverRemoved,
+            coverPreview = if (coverRemoved) null else user.coverUrl,
+            photosChanged = pendingAvatar != null || coverRemoved,
             onPickPhoto = {
                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
-            onPickCover = {
-                pickCover.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            },
-            onRemoveCover = {
-                pendingCover = null
-                coverRemoved = true
-            },
+            onRemoveCover = { coverRemoved = true },
             onChangePassword = {
                 vm.clearDialogErrors()
                 passwordOpen = true
@@ -322,11 +311,39 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit, onOpenAvatar: () -> Unit) {
+private fun ProfileHeaderCard(user: User, userMode: UserMode, onEdit: () -> Unit, onOpenAvatar: () -> Unit, onEditCover: () -> Unit) {
     ProfileCard {
       Box(modifier = Modifier.fillMaxWidth()) {
         // Portada: foto personalizada o degradado de la marca (no se amplía).
         ProfileCover(coverUrl = user.coverUrl, height = 100.dp)
+        // "Editar portada" directo sobre la portada (abajo a la derecha), como en la web: se
+        // elige la imagen y se guarda al momento, sin entrar a Editar perfil.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(10.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .clickable(role = Role.Button, onClick = onEditCover)
+                    .padding(horizontal = 12.dp, vertical = 7.dp)
+            ) {
+                Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(15.dp))
+                Text(
+                    stringResource(R.string.profile_edit_cover),
+                    fontFamily = DmSans,
+                    fontSize = KarsyTextSize.Small,
+                    fontWeight = FontWeight.SemiBold,
+                    color = KarsyWhite,
+                    modifier = Modifier.padding(start = 6.dp)
+                )
+            }
+        }
         // El avatar se superpone 44dp sobre la portada (marginTop: -44 del mockup).
         Column(
             modifier = Modifier

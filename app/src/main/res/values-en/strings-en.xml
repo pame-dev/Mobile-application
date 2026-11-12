@@ -673,6 +673,7 @@
     <string name="profile_stat_sold">Sold</string>
     <string name="profile_stat_active">Active</string>
     <string name="profile_saved">Profile saved.</string>
+    <string name="profile_cover_updated">Cover updated.</string>
     <string name="profile_photo_updated">Photo updated.</string>
     <!-- Listing status (display label only) -->
     <string name="profile_status_active">Active</string>
