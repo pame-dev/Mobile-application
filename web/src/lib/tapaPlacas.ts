@@ -1,5 +1,4 @@
 import type Ocr from '@gutenye/ocr-browser'
-import { diag, tam } from './diagnostico'
 import { esIOS } from './detectorAutos'
 
 /**
@@ -38,21 +37,17 @@ export const TAPA_PLACAS_DISPONIBLE = !esIOS()
 export function precargarTapaPlacas(): Promise<Ocr> {
   if (!TAPA_PLACAS_DISPONIBLE) return Promise.reject(new Error('Tapado de placas no disponible en iOS'))
   ocr ??= (async () => {
-    diag('modelo de placas: descargando')
     const [{ default: OcrBrowser }, ort] = await Promise.all([import('@gutenye/ocr-browser'), import('onnxruntime-web')])
     // El .wasm de onnxruntime se baja de jsDelivr (misma versión): Vite no lo sirve bien en desarrollo.
     ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/`
-    const creado = await OcrBrowser.create({
+    return OcrBrowser.create({
       models: {
         detectionPath: MODELOS + 'ch_PP-OCRv4_det_infer.onnx',
         recognitionPath: MODELOS + 'ch_PP-OCRv4_rec_infer.onnx',
         dictionaryPath: MODELOS + 'ppocr_keys_v1.txt',
       },
     })
-    diag('modelo de placas: listo')
-    return creado
   })().catch((e) => {
-    diag(`modelo de placas: ERROR ${e}`)
     ocr = null // sin internet o falló la descarga: se reintenta la próxima vez
     throw e
   })
@@ -108,9 +103,7 @@ let colaReducir: Promise<unknown> = Promise.resolve()
 export function reducirFoto(file: File): Promise<File> {
   const trabajo = colaReducir.then(async () => {
     try {
-      diag(`reducir: abriendo original (${tam(file.size)}, ${file.type})`)
       const canvas = await aCanvas(file)
-      diag(`reducir: copia de ${canvas.width}x${canvas.height} lista`)
       // Fondo blanco detrás de un PNG o WebP transparente (en JPEG quedaría negro), como jpegDe.
       const ctx = canvas.getContext('2d')!
       ctx.globalCompositeOperation = 'destination-over'
@@ -118,10 +111,8 @@ export function reducirFoto(file: File): Promise<File> {
       ctx.fillRect(0, 0, canvas.width, canvas.height)
       const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.9))
       canvas.width = canvas.height = 0 // libera la memoria del canvas (Safari tiene un tope)
-      diag(`reducir: listo (${blob ? tam(blob.size) : 'sin blob'})`)
       return blob ? new File([blob], 'foto.jpg', { type: 'image/jpeg' }) : file
-    } catch (e) {
-      diag(`reducir: ERROR ${e}`)
+    } catch {
       return file
     }
   })
@@ -137,9 +128,7 @@ export function reducirFoto(file: File): Promise<File> {
 export async function taparPlacas(origen: Blob | string): Promise<Blob | null> {
   if (!TAPA_PLACAS_DISPONIBLE) return null
   try {
-    diag('placas: abriendo foto y esperando modelo')
     const [modelo, canvas] = await Promise.all([precargarTapaPlacas(), aCanvas(origen)])
-    diag('placas: modelo y foto listos, analizando')
     const escala = Math.min(1, LADO_OCR / Math.max(canvas.width, canvas.height))
     const chico = document.createElement('canvas')
     chico.width = Math.round(canvas.width * escala)
@@ -148,7 +137,6 @@ export async function taparPlacas(origen: Blob | string): Promise<Blob | null> {
     const datos = chico.getContext('2d')!.getImageData(0, 0, chico.width, chico.height)
     chico.width = chico.height = 0
     const res = await modelo.detect({ data: datos.data, width: datos.width, height: datos.height })
-    diag(`placas: análisis terminado (${res.texts.length} textos)`)
     // Las cajas vienen en el tamaño con el que el modelo analizó la foto (la copia chica);
     // al dividir entre ese tamaño quedan en la foto completa.
     const sx = canvas.width / res.resizedImageWidth
