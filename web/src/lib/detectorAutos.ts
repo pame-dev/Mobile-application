@@ -29,13 +29,18 @@ let modelo: Promise<MobileNet> | null = null
 const esIOS = () =>
   /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1)
 
+/**
+ * En iPhone y iPad no se usa: con el detector, Safari cerraba y recargaba la página al poner
+ * la primera foto (con WebGL y también con el procesador). Ahí no se bloquea ninguna foto;
+ * el equipo revisa cada publicación antes de aprobarla.
+ */
+const DETECTOR_DISPONIBLE = !esIOS()
+
 /** Descarga el modelo (~14 MB, una vez) sin hacer más pesada la carga inicial de la página. */
 export function precargarDetector(): Promise<MobileNet> {
+  if (!DETECTOR_DISPONIBLE) return Promise.reject(new Error('Detector no disponible en iOS'))
   modelo ??= (async () => {
     const [tf, mobilenet] = await Promise.all([import('@tensorflow/tfjs'), import('@tensorflow-models/mobilenet')])
-    // En iPhone y iPad el análisis con la tarjeta gráfica (WebGL) hacía que Safari cerrara y
-    // recargara la página. Con el procesador tarda ~1 s por foto, con el mismo resultado.
-    if (esIOS()) await tf.setBackend('cpu')
     await tf.ready()
     return mobilenet.load({ version: 2, alpha: 1.0 })
   })().catch((e) => {
@@ -72,6 +77,7 @@ function reducir(img: HTMLImageElement): HTMLCanvasElement {
 
 /** true / false; null si no se pudo analizar (en ese caso no se bloquea al usuario). */
 export async function pareceAuto(url: string): Promise<boolean | null> {
+  if (!DETECTOR_DISPONIBLE) return null
   try {
     const [m, img] = await Promise.all([precargarDetector(), cargarImagen(url)])
     const chica = reducir(img)
