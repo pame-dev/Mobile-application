@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.register
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,8 @@ fun RegisterParticularScreen(
     onLogin: () -> Unit = {},
     vm: RegisterViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.loading)
     val context = LocalContext.current
     val scroller = rememberErrorScroller(vm, esLote = false)
 

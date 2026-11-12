@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.home
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.FlowRow
@@ -149,6 +150,8 @@ fun HomeScreen(
     onLogin: () -> Unit,
     vm: HomeViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.guardandoBusqueda)
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var toastMsg by remember { mutableStateOf<String?>(null) }
     /**

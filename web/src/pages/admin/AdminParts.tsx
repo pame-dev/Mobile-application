@@ -13,6 +13,7 @@ import type { AnuncioRow, Car, DocumentoVehiculo } from '../../data/types'
 import { traducir, useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
 import { iniciales } from '../../lib/format'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 /** Mínimo de caracteres de un motivo del admin (MIN_ADMIN_REASON en la app). */
 export const MIN_MOTIVO = 10
@@ -129,6 +130,7 @@ export function ReasonModal({
   const largo = motivo.trim().length
   return (
     <div className="modal">
+      <CargandoBloqueo visible={busy} />
       <ModalHead title={title} sub={desc} />
       <textarea className="input" placeholder={hint} value={motivo} maxLength={500} onChange={(e) => setMotivo(e.target.value)} autoFocus />
       <span className="mid text-xs" style={{ color: largo > 0 && largo < MIN_MOTIVO ? 'var(--error)' : undefined }}>
@@ -310,6 +312,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
 
   return (
     <div className="card adminbar">
+      <CargandoBloqueo visible={busy} />
       <div className="row" style={{ flexWrap: 'wrap' }}>
         <span className="nic">
           <Icon name="shield" size={18} />

@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.admin
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.compose.foundation.background
 import com.pame.karsy.core.components.KarsyBackButton
 import com.pame.karsy.core.components.KarsyPullToRefresh
@@ -56,6 +57,8 @@ fun UserReportReviewScreen(
     onCarClick: (Long) -> Unit,
     onDone: () -> Unit,
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.working)
     val user = vm.users.firstOrNull { it.id == report.ownerId }
     val listings = vm.vehicles.filter { it.sellerId == report.ownerId }
 

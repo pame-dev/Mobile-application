@@ -7,6 +7,7 @@ import { EMAIL_CODE_LENGTH, mensajeUsuario, sendVerificationCode, uploadPendingA
 import { useI18n } from '../../i18n/I18nContext'
 import { useSession } from '../../session/SessionContext'
 import { destinoDe } from './Login'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 interface VerifyState {
   email?: string
@@ -89,6 +90,7 @@ export function VerifyEmail() {
 
   return (
     <AuthShell title={t('auth.verify.artTitle')} sub={t('auth.verify.artSub')} photo={8}>
+      <CargandoBloqueo visible={sending} />
       <BackButton onClick={() => navigate(-1)} />
       <span className="nic" style={{ width: 64, height: 64, borderRadius: 'var(--r-lg)', background: 'var(--teal-light)', color: 'var(--teal)' }}>
         <Icon name="mail" size={30} />

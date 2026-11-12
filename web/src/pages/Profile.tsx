@@ -16,6 +16,7 @@ import { iniciales } from '../lib/format'
 import { estadosMunicipios, jpegDe, type EstadoMunicipios } from '../lib/mexico'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
+import { CargandoBloqueo } from '../components/CargandoBloqueo'
 
 /** Foto elegida en el diálogo: se sube hasta "Guardar" para que "Descartar" no deje nada guardado. */
 interface FotoNueva {
@@ -145,6 +146,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
     const guardarP = pregunta === 'guardar'
     return (
       <div className="modal">
+        <CargandoBloqueo visible={guardando} />
         <ModalHead
           title={guardarP ? t('perfil.saveTitle') : t('perfil.discardTitle')}
           sub={
@@ -183,6 +185,7 @@ function EditProfileModal({ original, onSaved }: { original: Perfil; onSaved: (p
 
   return (
     <div className="modal editmodal">
+      <CargandoBloqueo visible={guardando} />
       {/* Encabezado fijo arriba; solo el cuerpo hace scroll. */}
       <div className="editmodal-head">
         <h3 id={MODAL_TITULO}>{t('perfil.editProfile')}</h3>
@@ -342,6 +345,7 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
   }
   return (
     <section className="card col gap-3" style={{ marginTop: 'var(--s-6)', padding: 'var(--s-5)' }}>
+      <CargandoBloqueo visible={enviando} />
       <div>
         <h2 className="card-title tight">{t('perfil.curpTitle')}</h2>
         <p className="muted text-sm">
@@ -427,6 +431,7 @@ function ConstanciaLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void
 
   return (
     <section className="card csfrow" style={{ marginTop: 'var(--s-6)' }}>
+      <CargandoBloqueo visible={enviando} />
       <span className="csfrow-icon" style={{ background: colores.fondo, color: colores.icono }}>
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
@@ -561,6 +566,7 @@ export function Profile() {
 
   return (
     <div className="wrap">
+      <CargandoBloqueo visible={subiendoPortada} />
       {/* Mismo encabezado que Configuración: flecha y título fuera de la portada. */}
       <div className="pagehead">
         <div className="row">

@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -73,6 +74,8 @@ fun PrivacyScreen(
     onSignedOutEverywhere: () -> Unit,
     vm: ProfileViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.saving)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var passwordOpen by rememberSaveable { mutableStateOf(false) }

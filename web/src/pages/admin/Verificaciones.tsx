@@ -8,6 +8,7 @@ import { useI18n } from '../../i18n/I18nContext'
 import type { Clave } from '../../i18n/es'
 import { haceCuanto } from '../../lib/format'
 import { AdminHead, Ini, ReasonModal, Tabs } from './AdminParts'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 type Estado = VerificacionAdmin['estado']
 
@@ -233,6 +234,7 @@ export function Verificaciones({ verificaciones, listo }: { verificaciones: Veri
 
   return (
     <>
+      <CargandoBloqueo visible={busy != null} />
       <AdminHead title={t('admin.sec.verification')} desc={t('admin.verifDesc')} />
       <Tabs
         value={estado}

@@ -573,7 +573,7 @@
     <string name="featured_pay_clabe">CLABE</string>
     <string name="featured_pay_reference">Reference</string>
     <string name="featured_pay_holder_note">Your bank will show you the account holder\'s name when you enter the CLABE.</string>
-    <string name="featured_pay_step2">Write your reference in the payment concept:</string>
+    <string name="featured_pay_step2">In your transfer description, write:</string>
     <string name="featured_pay_step3">Upload the photo or PDF of the receipt.</string>
     <string name="featured_pay_receipt_label">Receipt (JPG, PNG or PDF, max. %1$d MB)</string>
     <string name="featured_pay_copy">Copy</string>
@@ -1321,6 +1321,7 @@
     <string name="core_error_no_permission">You don\'t have permission to do this.</string>
     <string name="core_error_no_connection">Can\'t reach the server. Check your internet connection.</string>
     <string name="core_error_read_image">Couldn\'t read the image.</string>
+    <string name="core_cargando_bloqueo">Working on it… please keep this screen open.</string>
     <string name="core_error_verify_email">Verify your email to continue.</string>
     <string name="core_error_sign_in_failed">Couldn\'t sign in.</string>
     <string name="core_error_no_karsy_account">This user doesn\'t have a Karsy account.</string>

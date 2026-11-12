@@ -14,6 +14,7 @@ import * as R from '../../lib/formRules'
 import { estadosMunicipios, jpegDe, type EstadoMunicipios } from '../../lib/mexico'
 import { useSession } from '../../session/SessionContext'
 import { destinoDe } from './Login'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 type Tipo = 'particular' | 'lote'
 
@@ -499,6 +500,7 @@ export function RegisterForm({ tipo }: { tipo: Tipo }) {
 
   return (
     <>
+      <CargandoBloqueo visible={loading} />
       <header className="topnav">
         <div className="wrap">
           <Brand />

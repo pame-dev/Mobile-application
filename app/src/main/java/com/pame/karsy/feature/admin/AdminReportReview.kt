@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.admin
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -105,6 +106,8 @@ fun ReportReviewNotice(report: AdminReport) {
  */
 @Composable
 fun ReportReviewBar(vm: AdminViewModel, report: AdminReport, onDone: () -> Unit) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.working)
     // Diálogo abierto: deshabilitar la publicación o descartar el reporte (ambos piden motivo).
     var dialog by rememberSaveable { mutableStateOf<ReportDecision?>(null) }
     // Solo se muestra el error de una acción lanzada desde esta pantalla.

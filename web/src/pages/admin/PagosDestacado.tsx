@@ -6,6 +6,7 @@ import { mensajeUsuario } from '../../data/auth'
 import { datosPagoDestacado } from '../../data/seller'
 import { useI18n } from '../../i18n/I18nContext'
 import { precio } from '../../lib/format'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 /** Monto con el formato de precio de Karsy: "$300 MXN". */
 export const montoPago = (monto: number) => `${precio(monto)} MXN`
@@ -290,6 +291,7 @@ export function ConfigPagos() {
 
   return (
     <div className="card card-pad col gap-4" style={{ marginBottom: 'var(--s-4)' }}>
+      <CargandoBloqueo visible={guardando} />
       <div className="row gap-3" style={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <h2 className="card-title tight">{t('admin.payCfgTitle')}</h2>

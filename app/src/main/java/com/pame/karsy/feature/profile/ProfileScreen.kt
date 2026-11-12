@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import android.net.Uri
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.locale.rememberTraduccion
@@ -116,6 +117,8 @@ fun ProfileScreen(
     onCarClick: (Long) -> Unit,
     vm: ProfileViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.saving || vm.enviandoConstancia || vm.enviandoCurp)
     LaunchedEffect(Unit) { vm.load() }
     val context = LocalContext.current
     val user = vm.user

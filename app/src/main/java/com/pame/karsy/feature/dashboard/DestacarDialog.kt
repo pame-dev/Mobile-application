@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -195,6 +196,8 @@ fun DestacarDialog(
     onSend: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(pago.enviando)
     val context = LocalContext.current
     // Mientras se envía no se cierra: así no se pierde la respuesta.
     DashboardSheet(onDismiss = { if (!pago.enviando) onCancel() }) {

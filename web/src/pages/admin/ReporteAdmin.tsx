@@ -10,6 +10,7 @@ import { descargar } from '../../lib/exportarPanel'
 import { entero } from '../../lib/format'
 import { traducirAlIngles } from '../../lib/traductor'
 import { LineChart, PairBars } from './AdminParts'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 /** Elegir formato: Excel (.xlsx) para trabajar los números o PDF para presentarlos. */
 function ExportarModal({ onExcel, onPdf }: { onExcel: () => void; onPdf: () => void }) {
@@ -309,6 +310,7 @@ export function ExportarAdmin({ stats, dias }: { stats: AdminStats | null; dias:
 
   return (
     <>
+      <CargandoBloqueo visible={cargando} />
       <button
         className="btn btn-ghost"
         disabled={!stats || cargando}

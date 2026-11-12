@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.admin
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -43,6 +44,8 @@ private enum class VehicleDecision { Approve, Reject, Disable, Enable }
  */
 @Composable
 fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () -> Unit) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.working)
     val actions = when {
         vehicle.pendingProposalId != null -> listOf(VehicleDecision.Reject, VehicleDecision.Approve)
         vehicle.status == "Activo" && vehicle.enabledByAdmin -> listOf(VehicleDecision.Disable)

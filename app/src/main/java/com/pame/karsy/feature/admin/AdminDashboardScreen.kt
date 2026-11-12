@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.admin
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import com.pame.karsy.core.theme.KarsyRadius
@@ -90,6 +91,8 @@ fun AdminDashboardScreen(
     onNotifications: () -> Unit,
     vm: AdminViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.working)
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val secciones = AdminSection.delRol(SessionManager.account?.rolPanel)

@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.cardetail
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -151,6 +152,8 @@ fun CarDetailScreen(
     cambiosPendientes: Boolean = false,
     vm: CarDetailViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.updatingStatus)
     // Al volver de corregirla se recarga para mostrar que ya está en revisión.
     var returningFromEdit by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(carId) {

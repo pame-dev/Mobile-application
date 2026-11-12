@@ -45,6 +45,7 @@ import { Verificaciones } from './Verificaciones'
 import { RevisarRepuveModal } from './RevisarRepuve'
 import { ConfigPagos, ConfigPagosLectura, montoPago, RevisarPagoModal, useVerComprobante } from './PagosDestacado'
 import { AdminHead, Badge, BADGE, DocumentoVehiculoAdmin, estadoAdmin, etiquetaEstado, fecha, Ini, LineChart, PairBars, propuestaPendiente, ReasonModal, SearchBox, Tabs, useAccionesReporte, useModeracion, esReporteDeCuenta, type TabReportes } from './AdminParts'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
 
@@ -532,6 +533,7 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
   const puede = !c.es_admin && c.id_cuenta !== selfId
   return (
     <div className="modal">
+      <CargandoBloqueo visible={busy} />
       <ModalHead title={t('admin.userDetail')} />
       <div className="row">
         <Ini name={c.nombre_mostrar} src={publicUrl(c.foto_perfil)} />
@@ -722,6 +724,7 @@ function VehicleReview({ car: aprobado, row: filaAprobada, listo }: { car: Car; 
 
   return (
     <div className="modal wide">
+      <CargandoBloqueo visible={busy} />
       <ModalHead title={t('admin.vehicleDetail')} sub={`${t('admin.listingNumber', { n: car.id })} · ${car.ownerName}`} />
       <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model}`} style={{ height: 220, borderRadius: 'var(--r-md)' }} />
       <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
@@ -1192,6 +1195,7 @@ function RejectFeatured({ d, listo }: { d: DestacadoAdmin; listo: (m: string) =>
   const [busy, setBusy] = useState(false)
   return (
     <div className="modal wide">
+      <CargandoBloqueo visible={busy} />
       <ModalHead title={t('admin.featRejectTitle')} sub={t('admin.featRejectSub')} />
       {MOTIVOS_DESTACADO.map(([valor, titulo, desc]) => (
         <button key={valor} className={`opt ${motivo === valor ? 'on' : ''}`} onClick={() => setMotivo(valor)}>
@@ -1277,6 +1281,7 @@ function Destacados({ datos, listo }: { datos: Datos; listo: (m: string) => void
 
   return (
     <>
+      <CargandoBloqueo visible={busy != null} />
       <AdminHead title={t('admin.featTitle')} desc={t('admin.featDesc')} />
       {/* Precio, días y cuenta bancaria: los edita solo el administrador (admin_guardar_config_pagos); el moderador solo los ve. */}
       {esAdmin ? <ConfigPagos /> : <ConfigPagosLectura />}

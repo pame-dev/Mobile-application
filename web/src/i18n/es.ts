@@ -12,6 +12,7 @@ export const CORE_ES = {
   'common.cancel': 'Cancelar',
   'common.save': 'Guardar',
   'common.saving': 'Guardando…',
+  'common.cargandoBloqueo': 'Procesando… no cierres esta pantalla.',
   'common.retry': 'Reintentar',
   'common.undo': 'Deshacer',
   'common.back': 'Volver',

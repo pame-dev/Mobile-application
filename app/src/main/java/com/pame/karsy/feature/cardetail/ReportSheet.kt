@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.cardetail
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -121,6 +122,8 @@ internal fun ReportSheet(onSubmit: (String, (String?) -> Unit) -> Unit, onDismis
     var reason by rememberSaveable { mutableStateOf("") }
     var details by rememberSaveable { mutableStateOf("") }
     var sending by remember { mutableStateOf(false) }
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(sending)
     var error by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(

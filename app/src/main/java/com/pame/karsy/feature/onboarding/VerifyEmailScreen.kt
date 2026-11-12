@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.onboarding
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,8 @@ fun VerifyEmailScreen(
     onVerified: (SessionAccount) -> Unit,
     vm: VerifyEmailViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.verifying || vm.sending)
     LaunchedEffect(Unit) { vm.start(email, sendCode) }
     val complete = vm.code.all { it.isNotEmpty() }
 

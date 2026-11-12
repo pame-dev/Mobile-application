@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.register
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import android.net.Uri
 import com.pame.karsy.core.theme.KarsyError
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -74,6 +75,8 @@ fun RegisterLoteScreen(
     onLogin: () -> Unit = {},
     vm: RegisterViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.loading)
     val context = LocalContext.current
     val scroller = rememberErrorScroller(vm, esLote = true)
     val pickLogo = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->

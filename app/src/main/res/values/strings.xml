@@ -575,7 +575,7 @@
     <string name="featured_pay_clabe">CLABE</string>
     <string name="featured_pay_reference">Referencia</string>
     <string name="featured_pay_holder_note">Tu banco te mostrará el nombre del titular al ingresar la CLABE.</string>
-    <string name="featured_pay_step2">En el concepto escribe tu referencia:</string>
+    <string name="featured_pay_step2">En el concepto de tu transferencia escribe:</string>
     <string name="featured_pay_step3">Sube la foto o PDF del comprobante.</string>
     <string name="featured_pay_receipt_label">Comprobante (JPG, PNG o PDF, máx. %1$d MB)</string>
     <string name="featured_pay_copy">Copiar</string>
@@ -1323,6 +1323,7 @@
     <string name="core_error_no_permission">No tienes permiso para hacer esto.</string>
     <string name="core_error_no_connection">Sin conexión con el servidor. Revisa tu Internet.</string>
     <string name="core_error_read_image">No se pudo leer la imagen.</string>
+    <string name="core_cargando_bloqueo">Procesando… no cierres esta pantalla.</string>
     <string name="core_error_verify_email">Verifica tu correo para continuar.</string>
     <string name="core_error_sign_in_failed">No se pudo iniciar sesión.</string>
     <string name="core_error_no_karsy_account">Este usuario no tiene una cuenta de Karsy.</string>
