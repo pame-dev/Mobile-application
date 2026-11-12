@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.ui.text.style.TextAlign
+import com.pame.karsy.core.components.TextoAviso
+import com.pame.karsy.core.components.TituloAviso
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipDescription
@@ -83,18 +86,10 @@ internal fun RevisarRepuveDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = KarsySurface,
-        title = {
-            Text(
-                stringResource(R.string.admin2_repuve_title, "${vehicle.name} ${vehicle.year}"),
-                fontFamily = Outfit,
-                fontSize = KarsyTextSize.TitleLarge,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk
-            )
-        },
+        title = { TituloAviso(stringResource(R.string.admin2_repuve_title, "${vehicle.name} ${vehicle.year}"), onClose = onDismiss, fontSize = KarsyTextSize.TitleLarge) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_repuve_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_repuve_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 if (!loaded) {
                     LinearProgressIndicator(color = KarsyTeal, modifier = Modifier.fillMaxWidth())
                 } else if (document == null) {

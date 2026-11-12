@@ -1,5 +1,9 @@
 package com.pame.karsy.feature.profile
 
+import com.pame.karsy.core.components.BotonCerrarAviso
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -78,19 +82,26 @@ fun ChangePasswordDialog(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
-            Text(
-                stringResource(R.string.profile_change_password),
-                fontFamily = Outfit,
-                fontWeight = FontWeight.Bold,
-                fontSize = KarsyTextSize.Headline,
-                color = KarsyInk
-            )
+            // Título centrado y X en la esquina, como los demás avisos.
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text(
+                    stringResource(R.string.profile_change_password),
+                    fontFamily = Outfit,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = KarsyTextSize.Headline,
+                    color = KarsyInk,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 36.dp)
+                )
+                BotonCerrarAviso(onClick = { if (!saving) onDismiss() }, enabled = !saving, modifier = Modifier.align(Alignment.CenterEnd))
+            }
             Text(
                 stringResource(R.string.profile_password_desc),
                 fontFamily = DmSans,
                 fontSize = KarsyTextSize.Body,
                 color = KarsyMid,
-                modifier = Modifier.padding(top = 6.dp, bottom = 20.dp)
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 20.dp)
             )
             FormInput(
                 label = stringResource(R.string.profile_password_current),

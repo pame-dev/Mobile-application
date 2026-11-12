@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.ui.text.style.TextAlign
+import com.pame.karsy.core.components.TextoAviso
+import com.pame.karsy.core.components.TituloAviso
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -66,18 +69,10 @@ internal fun RevisarPagoDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = KarsySurface,
-        title = {
-            Text(
-                stringResource(R.string.admin2_pay_review_title, vehiculo),
-                fontFamily = Outfit,
-                fontSize = KarsyTextSize.TitleLarge,
-                fontWeight = FontWeight.Bold,
-                color = KarsyInk
-            )
-        },
+        title = { TituloAviso(stringResource(R.string.admin2_pay_review_title, vehiculo), onClose = onDismiss, fontSize = KarsyTextSize.TitleLarge) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.admin2_pay_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText)
+                Text(stringResource(R.string.admin2_pay_review_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = AdminColors.NeutralText, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 // Se abre con el visor o navegador del teléfono (URL firmada de 10 min).
                 AdminActionButton(stringResource(R.string.admin2_pay_view_receipt), tone = ActionTone.Success, onClick = onOpenReceipt)
 

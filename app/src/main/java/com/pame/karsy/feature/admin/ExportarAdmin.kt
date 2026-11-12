@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.ui.text.style.TextAlign
+import com.pame.karsy.core.components.TextoAviso
+import com.pame.karsy.core.components.TituloAviso
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -567,12 +570,10 @@ fun ExportarAdminBoton(vm: AdminViewModel) {
         AlertDialog(
             onDismissRequest = { dialogo = false },
             containerColor = KarsySurface,
-            title = {
-                Text(stringResource(R.string.admin3_export_title), fontFamily = Outfit, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
-            },
+            title = { TituloAviso(stringResource(R.string.admin3_export_title), onClose = { dialogo = false }, fontSize = KarsyTextSize.TitleLarge) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(stringResource(R.string.admin3_export_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid)
+                    Text(stringResource(R.string.admin3_export_sub), fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     OutlinedButton(onClick = { elegir(false) }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.admin3_export_excel), fontFamily = DmSans, color = KarsyInk)
                     }

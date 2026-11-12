@@ -122,11 +122,10 @@ export function ModalHead({ title, sub }: { title: string; sub?: string }) {
   const { closeModal } = useUi()
   const { t } = useI18n()
   return (
-    <div className="row" style={{ alignItems: 'flex-start' }}>
-      <div className="grow">
-        <h3 id={MODAL_TITULO}>{title}</h3>
-        {sub && <p className="muted" style={{ marginTop: 'var(--s-1)' }}>{sub}</p>}
-      </div>
+    // Título y texto centrados; la X va en la esquina superior derecha del aviso (.mclose).
+    <div className="mhead">
+      <h3 id={MODAL_TITULO}>{title}</h3>
+      {sub && <p className="muted" style={{ marginTop: 'var(--s-1)' }}>{sub}</p>}
       <button className="iconbtn mclose" aria-label={t('common.close')} onClick={closeModal}>
         <Icon name="x" size={18} />
       </button>

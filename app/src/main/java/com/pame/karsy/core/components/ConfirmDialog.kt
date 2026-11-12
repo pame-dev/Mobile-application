@@ -87,7 +87,7 @@ fun ConfirmDialog(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Column(
+            Box(
                 Modifier
                     .animateEnterExit(enter = scaleIn(initialScale = 0.9f), exit = scaleOut(targetScale = 0.9f))
                     .padding(horizontal = 28.dp)
@@ -99,7 +99,11 @@ fun ConfirmDialog(
                         indication = null,
                         onClick = {}
                     )
-                    .padding(24.dp),
+            ) {
+            // X en la esquina superior derecha, igual que los avisos de la web.
+            BotonCerrarAviso(onClick = onCancel, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp))
+            Column(
+                Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
@@ -161,6 +165,7 @@ fun ConfirmDialog(
                         Text(confirmText, fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold)
                     }
                 }
+            }
             }
         }
     }

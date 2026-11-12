@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.profile
 
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -213,9 +214,10 @@ fun EditProfileDialog(
                     .verticalScroll(rememberScrollState())
                     .padding(24.dp)
             ) {
-                Row(
+                // Título centrado y X en la esquina, como los demás avisos.
+                Box(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         stringResource(R.string.profile_edit_profile),
@@ -223,9 +225,10 @@ fun EditProfileDialog(
                         fontWeight = FontWeight.Bold,
                         fontSize = KarsyTextSize.Headline,
                         color = KarsyInk,
-                        modifier = Modifier.weight(1f)
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 36.dp)
                     )
-                    IconButton(onClick = requestClose, modifier = Modifier.minimumInteractiveComponentSize().size(32.dp)) {
+                    IconButton(onClick = requestClose, modifier = Modifier.align(Alignment.CenterEnd).minimumInteractiveComponentSize().size(32.dp)) {
                         Icon(
                             Icons.Rounded.Close,
                             contentDescription = stringResource(R.string.profile_close_cd),

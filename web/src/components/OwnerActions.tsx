@@ -200,7 +200,7 @@ function SentModal() {
   const { closeModal } = useUi()
   const { t } = useI18n()
   return (
-    <div className="modal" style={{ textAlign: 'center', alignItems: 'center' }}>
+    <div className="modal centrada">
       <span className="nic done-icon">
         <Icon name="check" size={30} />
       </span>

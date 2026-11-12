@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.cardetail
 
+import com.pame.karsy.core.components.TextoAviso
+import com.pame.karsy.core.components.TituloAviso
 import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
@@ -405,8 +407,8 @@ fun CarDetailScreen(
             AlertDialog(
                 onDismissRequest = { if (!vm.updatingStatus) confirmPause = false },
                 containerColor = KarsySurface,
-                title = { Text(stringResource(R.string.detail_owner_pause_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_pause_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
+                title = { TituloAviso(stringResource(R.string.detail_owner_pause_title), onClose = { if (!vm.updatingStatus) confirmPause = false }) },
+                text = { TextoAviso(stringResource(R.string.detail_owner_pause_desc)) },
                 confirmButton = {
                     TextButton(onClick = { setPaused(true) }, enabled = !vm.updatingStatus) {
                         Text(stringResource(R.string.detail_owner_pause), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyError)
@@ -424,8 +426,8 @@ fun CarDetailScreen(
             AlertDialog(
                 onDismissRequest = { confirmSold = false },
                 containerColor = KarsySurface,
-                title = { Text(stringResource(R.string.detail_owner_sold_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_sold_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
+                title = { TituloAviso(stringResource(R.string.detail_owner_sold_title), onClose = { confirmSold = false }) },
+                text = { TextoAviso(stringResource(R.string.detail_owner_sold_desc)) },
                 confirmButton = {
                     TextButton(onClick = {
                         confirmSold = false
@@ -447,16 +449,10 @@ fun CarDetailScreen(
             AlertDialog(
                 onDismissRequest = { if (!vm.updatingStatus) askSoldVia = false },
                 containerColor = KarsySurface,
-                title = { Text(stringResource(R.string.detail_owner_sold_via_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
+                title = { TituloAviso(stringResource(R.string.detail_owner_sold_via_title), onClose = { if (!vm.updatingStatus) askSoldVia = false }) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            stringResource(R.string.detail_owner_sold_via_desc),
-                            fontFamily = DmSans,
-                            fontSize = KarsyTextSize.BodyLarge,
-                            color = KarsyCharcoal,
-                            modifier = Modifier.padding(bottom = 6.dp)
-                        )
+                        TextoAviso(stringResource(R.string.detail_owner_sold_via_desc), Modifier.padding(bottom = 6.dp))
                         OwnerButton(
                             text = stringResource(R.string.detail_owner_sold_via_inside),
                             onClick = { setSold(true, SOLD_INSIDE_APP) },
@@ -487,8 +483,8 @@ fun CarDetailScreen(
             AlertDialog(
                 onDismissRequest = { if (!vm.updatingStatus) confirmAvailable = false },
                 containerColor = KarsySurface,
-                title = { Text(stringResource(R.string.detail_owner_available_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_available_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
+                title = { TituloAviso(stringResource(R.string.detail_owner_available_title), onClose = { if (!vm.updatingStatus) confirmAvailable = false }) },
+                text = { TextoAviso(stringResource(R.string.detail_owner_available_desc)) },
                 confirmButton = {
                     TextButton(onClick = { setSold(false) }, enabled = !vm.updatingStatus) {
                         Text(stringResource(R.string.detail_owner_mark_available), fontFamily = DmSans, fontWeight = FontWeight.Bold, color = KarsyTealText)
@@ -506,8 +502,8 @@ fun CarDetailScreen(
             AlertDialog(
                 onDismissRequest = { confirmHide = false },
                 containerColor = KarsySurface,
-                title = { Text(stringResource(R.string.detail_owner_hide_title), fontFamily = Outfit, fontWeight = FontWeight.Bold, color = KarsyInk) },
-                text = { Text(stringResource(R.string.detail_owner_hide_desc), fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, color = KarsyCharcoal) },
+                title = { TituloAviso(stringResource(R.string.detail_owner_hide_title), onClose = { confirmHide = false }) },
+                text = { TextoAviso(stringResource(R.string.detail_owner_hide_desc)) },
                 confirmButton = {
                     TextButton(onClick = {
                         confirmHide = false

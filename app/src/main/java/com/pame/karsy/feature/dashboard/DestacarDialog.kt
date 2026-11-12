@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.components.BotonCerrarAviso
 import com.pame.karsy.core.components.CargandoBloqueo
 import android.content.Context
 import android.net.Uri
@@ -567,14 +568,19 @@ internal fun DashboardSheet(onDismiss: () -> Unit, content: @Composable ColumnSc
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(top = 12.dp, bottom = 4.dp)
-                    .width(40.dp)
-                    .height(4.dp)
-                    .clip(CircleShape)
-                    .background(KarsyBorderMuted)
-            )
+            // Barrita de arriba y X en la esquina superior derecha, como los demás avisos.
+            Box(Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp, bottom = 4.dp)
+                        .width(40.dp)
+                        .height(4.dp)
+                        .clip(CircleShape)
+                        .background(KarsyBorderMuted)
+                )
+                BotonCerrarAviso(onClick = onDismiss, modifier = Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 8.dp))
+            }
             content()
         }
     }
