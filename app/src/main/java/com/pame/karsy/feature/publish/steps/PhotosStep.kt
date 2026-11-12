@@ -157,9 +157,6 @@ fun PhotosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
         ActivityResultContracts.PickMultipleVisualMedia(PublishViewModel.MAX_FOTOS - slotLabels.size)
     ) { uris -> form.addExtraPhotos(context, uris) }
 
-    // Al editar, también se tapan las placas de las fotos que ya estaban publicadas.
-    LaunchedEffect(form.loadingEdit) { form.taparPlacasExistentes(context) }
-
     // Si falta alguna foto o hay repetidas, se sube al inicio para que se vea el aviso.
     val scrollState = rememberScrollState()
     LaunchedEffect(form.photoErrorSignal) {

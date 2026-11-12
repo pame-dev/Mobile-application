@@ -43,16 +43,14 @@ object TapaPlacas {
 
     /**
      * Copia de la foto (ya derecha según su EXIF y reducida) con las placas pixeladas.
-     * Con [soloSiHayPlaca] (fotos que ya están en Storage, al editar) devuelve la misma [uri]
-     * si no encontró placa, para no volver a subirla. Acepta fotos de la galería o URLs
-     * públicas. Si no se puede leer o analizar, devuelve [uri] para no bloquear al usuario.
+     * Acepta fotos de la galería o URLs públicas. Si no se puede leer o analizar, devuelve
+     * [uri] para no bloquear al usuario.
      */
-    suspend fun tapar(context: Context, uri: Uri, soloSiHayPlaca: Boolean = false): Uri = withContext(Dispatchers.IO) {
+    suspend fun tapar(context: Context, uri: Uri): Uri = withContext(Dispatchers.IO) {
         runCatching {
             val bitmap = leer(context, uri) ?: return@runCatching uri
             // Si en la foto completa no hay placa, se busca con zoom (placas chicas o lejanas).
             val zonas = reconocer(bitmap)?.let(::zonasDePlaca).orEmpty().ifEmpty { zonasConZoom(bitmap) }
-            if (zonas.isEmpty() && soloSiHayPlaca) return@runCatching uri
             zonas.forEach { pixelar(bitmap, it) }
             val dir = File(context.cacheDir, "fotos_publicar").apply { mkdirs() }
             val archivo = File(dir, "${UUID.randomUUID()}.jpg")

@@ -314,14 +314,13 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     /**
-     * Tapa las placas de una foto y llama a [listo] con la versión que se va a subir. Con
-     * [soloSiHayPlaca] (fotos ya publicadas) devuelve la misma si no tenía placa.
+     * Tapa las placas de una foto nueva y llama a [listo] con la versión que se va a subir.
+     * Las que ya estaban publicadas (al editar) no se vuelven a analizar: se revisaron al subirlas.
      */
     private fun prepararFoto(
         context: Context,
         uri: Uri,
         taparPlacas: Boolean,
-        soloSiHayPlaca: Boolean = false,
         listo: suspend (Uri) -> Unit,
     ) {
         val appContext = context.applicationContext
@@ -331,10 +330,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             // recuadros coincide aunque a una se le tapen las placas y a la otra no.
             val exacta = huella(appContext, uri)
             val visual = visuales[uri] ?: HuellaVisual.calcular(appContext, uri)
-            val lista = if (taparPlacas) TapaPlacas.tapar(appContext, uri, soloSiHayPlaca) else uri
+            val lista = if (taparPlacas) TapaPlacas.tapar(appContext, uri) else uri
             huellas[lista] = exacta
             visual?.let { visuales[uri] = it; visuales[lista] = it }
-            if (uri in rutasExistentes || uri in yaPublicadas) yaPublicadas += lista
             listo(lista)
             procesando.remove(uri)
         }
@@ -342,41 +340,11 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     /** Huella visual (HuellaVisual) de la foto original, por Uri (también la de su versión tapada). */
     private val visuales = mutableMapOf<Uri, String>()
-    /** Versiones tapadas de fotos que ya estaban publicadas (al editar). */
-    private val yaPublicadas = mutableSetOf<Uri>()
-    private fun esYaPublicada(uri: Uri) = uri in rutasExistentes || uri in yaPublicadas
+    private fun esYaPublicada(uri: Uri) = uri in rutasExistentes
 
     /** Fotos que ya están en una publicación de otra cuenta (fotos_ya_usadas), marcadas en rojo. */
     var fotosAjenas by mutableStateOf<Set<Uri>>(emptySet())
         private set
-
-    private var existentesRevisadas = false
-
-    /**
-     * Al editar: revisa también las fotos que ya estaban publicadas (menos el tablero). Si
-     * alguna tiene placa, se reemplaza por la versión tapada y esa es la que se sube; así,
-     * aunque el dueño no cambie las fotos, el admin las ve censuradas al revisar la edición.
-     */
-    fun taparPlacasExistentes(context: Context) {
-        if (!isEditing || loadingEdit || existentesRevisadas) return
-        existentesRevisadas = true
-        val appContext = context.applicationContext
-        photos.toList().forEachIndexed { slot, uri ->
-            if (uri == null || uri !in rutasExistentes || slot == photos.lastIndex) return@forEachIndexed
-            prepararFoto(appContext, uri, taparPlacas = true, soloSiHayPlaca = true) { lista ->
-                if (lista != uri && photos[slot] == uri) {
-                    photos[slot] = lista
-                    if (slot < DetectorAutos.ANGULOS_CON_AUTO) revisarAuto(appContext, lista)
-                }
-            }
-        }
-        extraPhotos.toList().filter { it in rutasExistentes }.forEach { uri ->
-            prepararFoto(appContext, uri, taparPlacas = true, soloSiHayPlaca = true) { lista ->
-                val i = extraPhotos.indexOf(uri)
-                if (lista != uri && i >= 0) extraPhotos[i] = lista
-            }
-        }
-    }
 
     private suspend fun revisarAuto(context: Context, uri: Uri) {
         if (!revisandoAuto(uri)) return
@@ -652,8 +620,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             }
             val fotos = fotosElegidas
             val exactas = fotos.map { huella(appContext, it) }
-            // Solo se calcula aquí la de fotos ya publicadas que no pasaron por prepararFoto (el
-            // tablero al editar); las demás se calcularon del original al elegirlas.
+            // Solo se calcula aquí la de las fotos ya publicadas (al editar, no pasan por
+            // prepararFoto); las nuevas se calcularon del original al elegirlas.
             val vis = fotos.map { u ->
                 visuales[u] ?: if (u in rutasExistentes) HuellaVisual.calcular(appContext, u)?.also { visuales[u] = it } else null
             }
