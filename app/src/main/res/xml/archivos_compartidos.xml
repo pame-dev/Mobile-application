@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Carpetas que se pueden compartir con otras apps (exportes de Mi panel). -->
+<!-- Carpetas que se pueden compartir con otras apps: exportes de Mi panel y la carpeta donde
+     la app de cámara guarda las fotos al publicar. -->
 <paths>
     <cache-path name="exportes" path="exportes/" />
+    <cache-path name="fotos_camara" path="fotos_camara/" />
 </paths>

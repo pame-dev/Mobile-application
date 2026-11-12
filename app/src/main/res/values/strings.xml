@@ -812,6 +812,13 @@
     <string name="publish_engine_hint">Recomendada: una foto del motor con el cofre abierto da más confianza a los compradores.</string>
     <string name="publish_photo_looks_exterior">Parece del exterior del auto. Si te equivocaste, sube una del tablero donde se vea el kilometraje.</string>
     <string name="publish_pick_from_gallery">Elegir de galería</string>
+    <string name="publish_take_photo">Tomar foto</string>
+    <string name="publish_retake_photo">Volver a tomar</string>
+    <string name="publish_take_another">Tomar otra</string>
+    <string name="publish_gallery">Galería</string>
+    <string name="publish_extra_photo">Foto adicional</string>
+    <string name="publish_camera_reminder">con el teléfono horizontal</string>
+    <string name="publish_camera_unavailable">No encontramos una app de cámara. Elige la foto de la galería.</string>
     <string name="publish_description_title">Descripción del auto</string>
     <string name="publish_description_placeholder">Una buena descripción aumenta las visitas</string>
     <string name="publish_imperfections_title">Detalles o imperfecciones</string>
