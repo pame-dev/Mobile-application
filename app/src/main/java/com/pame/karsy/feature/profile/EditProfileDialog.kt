@@ -98,7 +98,6 @@ fun EditProfileDialog(
     onDismiss: () -> Unit,
     onSave: (User) -> Unit,
     onPickPhoto: () -> Unit,
-    onPickCover: () -> Unit,
     onRemoveCover: () -> Unit,
     onChangePassword: () -> Unit,
     /** Foto y portada a mostrar: las elegidas sin guardar o las actuales (null = sin foto / degradado). */
@@ -237,33 +236,14 @@ fun EditProfileDialog(
                 }
                 Spacer(Modifier.height(20.dp))
 
-                // Portada (opcional): vista previa con botones para subir/cambiar o quitar.
+                // Portada (opcional): vista previa con la X para quitarla. Se cambia con "Editar
+                // portada" en el perfil, que la guarda al momento.
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(KarsyRadius.Lg))
                 ) {
                     ProfileCover(coverUrl = coverPreview, height = 96.dp)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(10.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.45f))
-                            .clickable(onClick = onPickCover)
-                            .padding(horizontal = 12.dp, vertical = 7.dp)
-                    ) {
-                        Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(15.dp))
-                        Text(
-                            stringResource(R.string.profile_edit_cover),
-                            fontFamily = DmSans,
-                            fontSize = KarsyTextSize.Small,
-                            fontWeight = FontWeight.SemiBold,
-                            color = KarsyWhite,
-                            modifier = Modifier.padding(start = 6.dp)
-                        )
-                    }
                     if (coverPreview != null) {
                         IconButton(
                             onClick = onRemoveCover,

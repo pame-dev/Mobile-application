@@ -72,15 +72,34 @@ class ProfileViewModel : ViewModel() {
     }
 
     /**
-     * Guarda los datos del perfil y, si se eligieron en el diálogo, sube la foto de perfil
-     * y la portada (o quita la portada). Las fotos se suben hasta aquí para que "Descartar"
-     * no deje nada guardado. La portada se comprime (lado mayor de 1600 px, JPEG).
+     * "Editar portada" del perfil: sube la imagen elegida y la pone como portada al momento,
+     * sin pasar por Editar perfil (como la web).
+     */
+    fun cambiarPortada(context: Context, uri: Uri) {
+        val actual = user ?: return
+        if (saving) return
+        val appContext = context.applicationContext
+        saving = true
+        viewModelScope.launch {
+            safeCall { UserRepository.uploadCover(Imagenes.jpegBytes(appContext, uri, maxLado = 1600, calidad = 78)) }
+                .onSuccess { url ->
+                    user = actual.copy(coverUrl = url)
+                    message = texto(R.string.profile_cover_updated)
+                }
+                .onFailure { message = it.mensajeUsuario() }
+            saving = false
+        }
+    }
+
+    /**
+     * Guarda los datos del perfil y, si se eligió en el diálogo, sube la foto de perfil o
+     * quita la portada. Se hace hasta aquí para que "Descartar" no deje nada guardado.
+     * Cambiar la portada no pasa por aquí: lo hace [cambiarPortada] al momento.
      */
     fun save(
         context: Context,
         updated: User,
         newAvatar: Uri?,
-        newCover: Uri?,
         removeCover: Boolean,
         onDone: () -> Unit,
     ) {
@@ -97,15 +116,9 @@ class ProfileViewModel : ViewModel() {
                     val url = UserRepository.uploadAvatar(Imagenes.jpegBytes(appContext, newAvatar, maxLado = 800))
                     guardado = guardado.copy(avatarUrl = url)
                 }
-                when {
-                    newCover != null -> {
-                        val url = UserRepository.uploadCover(Imagenes.jpegBytes(appContext, newCover, maxLado = 1600, calidad = 78))
-                        guardado = guardado.copy(coverUrl = url)
-                    }
-                    removeCover -> {
-                        UserRepository.removeCover()
-                        guardado = guardado.copy(coverUrl = null)
-                    }
+                if (removeCover) {
+                    UserRepository.removeCover()
+                    guardado = guardado.copy(coverUrl = null)
                 }
                 guardado
             }
