@@ -47,11 +47,31 @@ function cargarImagen(url: string): Promise<HTMLImageElement> {
   })
 }
 
+/** Lado máximo con el que se analiza: MobileNet la reduce a 224 px de todos modos. */
+const LADO_ANALISIS = 448
+
+/**
+ * Copia chica de la foto. Las fotos del iPhone (12 a 48 MP) pasan el límite de textura de
+ * Safari (4096 px): ahí el análisis sale vacío sin error y toda foto "no parecía un auto".
+ */
+function reducir(img: HTMLImageElement): HTMLCanvasElement {
+  const escala = Math.min(1, LADO_ANALISIS / Math.max(img.naturalWidth, img.naturalHeight))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(img.naturalWidth * escala))
+  canvas.height = Math.max(1, Math.round(img.naturalHeight * escala))
+  canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+  return canvas
+}
+
 /** true / false; null si no se pudo analizar (en ese caso no se bloquea al usuario). */
 export async function pareceAuto(url: string): Promise<boolean | null> {
   try {
     const [m, img] = await Promise.all([precargarDetector(), cargarImagen(url)])
-    const preds = await m.classify(img, 5)
+    const chica = reducir(img)
+    const preds = await m.classify(chica, 5).finally(() => {
+      // Libera la memoria del canvas (Safari tiene un tope de memoria para canvas).
+      chica.width = chica.height = 0
+    })
     const puntaje = preds
       .filter((p) => CLASES_AUTO.has(p.className.split(',')[0].trim()))
       .reduce((suma, p) => suma + p.probability, 0)

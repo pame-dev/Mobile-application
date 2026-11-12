@@ -23,6 +23,8 @@ import com.pame.karsy.core.location.Lugar
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
@@ -36,7 +38,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -74,6 +75,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -713,8 +715,8 @@ private data class HeroPalette(
 )
 
 /**
- * Claro: azul marino profundo a azul petróleo, textos blancos, buscador translúcido
- * y "Buscar" en turquesa.
+ * Claro: azul marino profundo a azul petróleo, textos blancos, buscador blanco
+ * y "Buscar" en turquesa (como la web).
  * Oscuro: azul marino a noche oscura, contadores turquesa y buscador oscuro.
  * El encabezado comparte el degradado del banner (ver heroBrush).
  */
@@ -744,31 +746,36 @@ private fun heroPalette(): HeroPalette = if (Tema.oscuro) HeroPalette(
     subtitle = Color(0xFFE2F1F8).copy(alpha = 0.85f),
     statNumber = Color.White,
     statLabel = Color(0xFFE2F1F8).copy(alpha = 0.75f),
-    // Buscador translúcido sobre el fondo oscuro.
-    searchBg = Color.White.copy(alpha = 0.08f),
-    searchBorder = Color.White.copy(alpha = 0.18f),
-    searchText = Color.White,
-    searchHint = Color.White.copy(alpha = 0.55f),
-    searchButton = KarsyTeal,
+    // Tema claro: buscador blanco (como la web); botón KarsyTealText por contraste.
+    searchBg = Color.White,
+    searchBorder = Color.White,
+    searchText = KarsyInk,
+    searchHint = KarsyMid,
+    searchButton = KarsyTealText,
     headerContent = Color.White,
     headerButtonBg = Color.White.copy(alpha = 0.10f),
     headerButtonActiveBg = Color.White.copy(alpha = 0.18f),
     headerButtonBorder = Color.White.copy(alpha = 0.22f),
 )
 
-/** Filtra mientras se escribe; "Buscar" (o la tecla del teclado) baja a los resultados. */
+/**
+ * Filtra mientras se escribe; "Buscar" (o la tecla del teclado) baja a los resultados.
+ * Una sola barra redonda con lupa y el botón redondo adentro, igual que la web en celular.
+ */
 @Composable
 private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch: () -> Unit, p: HeroPalette) {
-    val shape = RoundedCornerShape(KarsyRadius.Md)
     Row(
         Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .clip(shape)
+            .height(56.dp)
+            .shadow(10.dp, CircleShape)
+            .clip(CircleShape)
             .background(p.searchBg)
-            .border(1.dp, p.searchBorder, shape),
+            .border(1.dp, p.searchBorder, CircleShape)
+            .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(Icons.Rounded.Search, contentDescription = null, tint = p.searchHint, modifier = Modifier.padding(start = 10.dp).size(20.dp))
         BasicTextField(
             value = query,
             onValueChange = onQueryChange,
@@ -779,7 +786,7 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
             cursorBrush = SolidColor(KarsyTeal),
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 10.dp),
             decorationBox = { inner ->
                 Box {
                     if (query.isEmpty()) {
@@ -799,15 +806,17 @@ private fun HeroSearch(query: String, onQueryChange: (String) -> Unit, onSearch:
                 )
             }
         }
+        val buscar = stringResource(R.string.home_search)
         Box(
             Modifier
-                .fillMaxHeight()
+                .size(48.dp)
+                .clip(CircleShape)
                 .background(p.searchButton)
-                .clickable(onClick = onSearch)
-                .padding(horizontal = 18.dp),
+                .clickable(role = Role.Button, onClick = onSearch)
+                .semantics { contentDescription = buscar },
             contentAlignment = Alignment.Center
         ) {
-            Text(stringResource(R.string.home_search), fontFamily = Outfit, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = KarsyWhite)
+            Icon(Icons.Rounded.Search, contentDescription = null, tint = KarsyWhite, modifier = Modifier.size(20.dp))
         }
     }
 }
