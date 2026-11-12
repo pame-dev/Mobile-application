@@ -74,6 +74,36 @@ function pixelar(canvas: HTMLCanvasElement, x0: number, y0: number, x1: number, 
   ctx.imageSmoothingEnabled = true
 }
 
+/** Las fotos se reducen de una en una (ver reducirFoto). */
+let colaReducir: Promise<unknown> = Promise.resolve()
+
+/**
+ * Copia de la foto elegida, derecha y de máximo MAX_LADO por lado (el tamaño con el que se
+ * sube). Todo lo demás (vista previa, huellas, placas, "¿parece auto?") usa esta copia: en
+ * iPhone, abrir varias veces la original (12–48 MP, ~200 MB cada una) llenaba la memoria y
+ * Safari recargaba la página (el formulario regresaba al primer paso). Se hacen de una en
+ * una para no abrir dos originales a la vez. Si no se puede, se usa la original.
+ */
+export function reducirFoto(file: File): Promise<File> {
+  const trabajo = colaReducir.then(async () => {
+    try {
+      const canvas = await aCanvas(file)
+      // Fondo blanco detrás de un PNG o WebP transparente (en JPEG quedaría negro), como jpegDe.
+      const ctx = canvas.getContext('2d')!
+      ctx.globalCompositeOperation = 'destination-over'
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.9))
+      canvas.width = canvas.height = 0 // libera la memoria del canvas (Safari tiene un tope)
+      return blob ? new File([blob], 'foto.jpg', { type: 'image/jpeg' }) : file
+    } catch {
+      return file
+    }
+  })
+  colaReducir = trabajo
+  return trabajo
+}
+
 /**
  * JPEG de la foto con las placas pixeladas, o null si no encontró ninguna (o no se pudo
  * analizar: no se bloquea al usuario). Acepta un archivo elegido o la URL de una foto ya
