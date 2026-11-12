@@ -1,4 +1,5 @@
 import type { MobileNet } from '@tensorflow-models/mobilenet'
+import { diag } from './diagnostico'
 
 /**
  * ¿La foto parece de un auto? Lo revisa MobileNet (TensorFlow.js) en el navegador, sin
@@ -29,21 +30,20 @@ let modelo: Promise<MobileNet> | null = null
 export const esIOS = () =>
   /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1)
 
-/**
- * En iPhone y iPad no se usa: con el detector, Safari cerraba y recargaba la página al poner
- * la primera foto (con WebGL y también con el procesador). Ahí no se bloquea ninguna foto;
- * el equipo revisa cada publicación antes de aprobarla.
- */
-const DETECTOR_DISPONIBLE = !esIOS()
-
 /** Descarga el modelo (~14 MB, una vez) sin hacer más pesada la carga inicial de la página. */
 export function precargarDetector(): Promise<MobileNet> {
-  if (!DETECTOR_DISPONIBLE) return Promise.reject(new Error('Detector no disponible en iOS'))
   modelo ??= (async () => {
+    diag('detector de autos: descargando')
     const [tf, mobilenet] = await Promise.all([import('@tensorflow/tfjs'), import('@tensorflow-models/mobilenet')])
+    // En iPhone y iPad con el procesador en lugar de WebGL: usa menos memoria (Safari cierra
+    // la página si se pasa) y da el mismo resultado; tarda ~1–2 s por foto.
+    if (esIOS()) await tf.setBackend('cpu')
     await tf.ready()
-    return mobilenet.load({ version: 2, alpha: 1.0 })
+    const m = await mobilenet.load({ version: 2, alpha: 1.0 })
+    diag(`detector de autos: listo (${tf.getBackend()})`)
+    return m
   })().catch((e) => {
+    diag(`detector de autos: ERROR ${e}`)
     modelo = null // sin internet o falló la descarga: se reintenta la próxima vez
     throw e
   })
@@ -77,9 +77,9 @@ function reducir(img: HTMLImageElement): HTMLCanvasElement {
 
 /** true / false; null si no se pudo analizar (en ese caso no se bloquea al usuario). */
 export async function pareceAuto(url: string): Promise<boolean | null> {
-  if (!DETECTOR_DISPONIBLE) return null
   try {
     const [m, img] = await Promise.all([precargarDetector(), cargarImagen(url)])
+    diag('detector de autos: analizando')
     const chica = reducir(img)
     const preds = await m.classify(chica, 5).finally(() => {
       // Libera la memoria del canvas (Safari tiene un tope de memoria para canvas).
@@ -88,6 +88,7 @@ export async function pareceAuto(url: string): Promise<boolean | null> {
     const puntaje = preds
       .filter((p) => CLASES_AUTO.has(p.className.split(',')[0].trim()))
       .reduce((suma, p) => suma + p.probability, 0)
+    diag(`detector de autos: ${puntaje >= UMBRAL ? 'sí es auto' : 'no parece auto'}`)
     return puntaje >= UMBRAL
   } catch {
     return null
