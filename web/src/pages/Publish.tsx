@@ -31,6 +31,7 @@ import { useSession } from '../session/SessionContext'
 import { traducir, useI18n } from '../i18n/I18nContext'
 import { nombreCatalogo } from '../lib/catalogo'
 import type { Clave } from '../i18n/es'
+import { CargandoBloqueo } from '../components/CargandoBloqueo'
 
 /** Máximo de fotos por publicación (editar_publicacion valida lo mismo). */
 const MAX_FOTOS = 15
@@ -914,6 +915,7 @@ export function Publish() {
 
   return (
     <div className="wrap" style={{ maxWidth: 980 }} ref={arriba}>
+      <CargandoBloqueo visible={publicando} />
       <div className="pagehead">
         <div>
           <h1>{editId ? t('publicar.editTitle') : t('publicar.title')}</h1>

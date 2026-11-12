@@ -8,6 +8,7 @@ import type { Clave } from '../../i18n/es'
 import { cerrarSesionLocal } from '../../lib/supabase'
 import { passwordError } from '../../lib/formRules'
 import { setRecoveryMode } from '../../session/SessionContext'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 const PASOS: Clave[] = ['auth.recover.stepEmail', 'auth.recover.stepCode', 'auth.recover.stepPassword', 'auth.recover.stepDone']
 
@@ -143,6 +144,7 @@ export function Recover() {
 
   return (
     <AuthShell title={t('auth.recover.artTitle')} sub={t('auth.recover.artSub')} photo={9}>
+      <CargandoBloqueo visible={sending || loading} />
       {step < 3 && <BackButton onClick={atras} />}
       <div className="seg" style={{ alignSelf: 'flex-start', pointerEvents: 'none' }} aria-label={t('auth.recover.stepOf', { n: step + 1 })}>
         {PASOS.map((clave, i) => (

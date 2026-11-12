@@ -20,6 +20,7 @@ import { ModalHead, useUi } from '../components/Ui'
 import { recordarBusqueda, SugerenciasBusqueda } from '../components/SugerenciasBusqueda'
 import { miUbicacion } from '../data/account'
 import { estadosMunicipios, mismoLugar, type EstadoMunicipios } from '../lib/mexico'
+import { CargandoBloqueo } from '../components/CargandoBloqueo'
 
 /** Cada cuánto avanzan solos los destacados (una tarjeta a la vez, como la app). */
 const AUTOPLAY_MS = 3000
@@ -168,6 +169,7 @@ export function Home() {
 
   return (
     <>
+      <CargandoBloqueo visible={guardando} />
       <section className="hero">
         <div className="wrap heroc">
           <span className="eyebrow">{t('home.eyebrow')}</span>

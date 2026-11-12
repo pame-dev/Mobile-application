@@ -211,7 +211,8 @@ class CarDetailViewModel : ViewModel() {
     }
 
     fun report(motivo: String, onDone: (String?) -> Unit) {
-        val id = detail?.car?.id ?: return
+        // Siempre se avisa a [onDone]: la hoja de reporte muestra el bloqueo de carga hasta entonces.
+        val id = detail?.car?.id ?: return onDone(texto(R.string.core_error_generic))
         viewModelScope.launch {
             safeCall { CarRepository.report(id, motivo) }
                 .onSuccess { onDone(null) }

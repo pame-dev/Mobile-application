@@ -6,6 +6,7 @@ import { useUi } from '../../components/Ui'
 import { EmailNotVerifiedError, mensajeUsuario, signIn } from '../../data/auth'
 import { useI18n } from '../../i18n/I18nContext'
 import { useSession } from '../../session/SessionContext'
+import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 
 /** A dónde volver después de entrar (la pantalla que pidió iniciar sesión) o al inicio. */
 export function destinoDe(state: unknown): string {
@@ -70,6 +71,7 @@ export function Login() {
 
   return (
     <AuthShell title={t('auth.login.artTitle')} sub={t('auth.login.artSub')}>
+      <CargandoBloqueo visible={loading} />
       <BackButton onClick={() => navigate('/')} title={t('auth.login.title')} />
       <form className="col gap-4"
         onSubmit={(e) => {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../i18n/I18nContext'
 import { ModalHead, useUi } from './Ui'
+import { CargandoBloqueo } from './CargandoBloqueo'
 
 /** Ventana de confirmación (ConfirmDialog de la app). [onConfirm] puede ser asíncrono: el botón espera. */
 export function ConfirmModal({
@@ -23,6 +24,7 @@ export function ConfirmModal({
   const [busy, setBusy] = useState(false)
   return (
     <div className="modal">
+      <CargandoBloqueo visible={busy} />
       <ModalHead title={title} sub={message} />
       <div className="grid2">
         <button className="btn btn-ghost" disabled={busy} onClick={closeModal}>

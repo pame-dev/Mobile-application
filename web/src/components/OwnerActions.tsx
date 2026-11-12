@@ -10,6 +10,7 @@ import { ConfirmModal } from './Confirm'
 import { ConstanciaField } from './ConstanciaField'
 import { Icon } from './Icon'
 import { ModalHead, useUi } from './Ui'
+import { CargandoBloqueo } from './CargandoBloqueo'
 
 export const STATUS_BADGE: Record<string, string> = {
   Activo: 'b-succ',
@@ -39,6 +40,7 @@ function SoldViaModal({ onDone }: { onDone: (via: string) => Promise<void> }) {
   }
   return (
     <div className="modal">
+      <CargandoBloqueo visible={busy} />
       <ModalHead title={t('vehiculo.soldVia.title')} sub={t('vehiculo.soldVia.sub')} />
       <button className="btn btn-primary btn-block" disabled={busy} onClick={() => void elegir('dentro_app')}>
         {t('vehiculo.soldVia.inside')}
@@ -115,6 +117,7 @@ function FeatureModal({ c, onSent }: { c: OwnCar; onSent: () => void }) {
 
   return (
     <div className="modal wide">
+      <CargandoBloqueo visible={enviando} />
       <span className="nic empty-icon warn">
         <Icon name="star" size={26} />
       </span>

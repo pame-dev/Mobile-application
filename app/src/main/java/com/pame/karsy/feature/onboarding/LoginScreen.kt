@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.onboarding
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -123,6 +124,8 @@ private fun LoginForm(
     onForgot: (String) -> Unit,
     vm: LoginViewModel = viewModel(),
 ) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.loading)
     // Al volver de "Olvidé mi contraseña" se conserva el correo que se usó ahí.
     var email by rememberSaveable { mutableStateOf(initialEmail) }
     var password by rememberSaveable { mutableStateOf("") }
@@ -301,6 +304,8 @@ private fun IconInput(
 
 @Composable
 private fun RecoveryFlow(vm: PasswordRecoveryViewModel) {
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.loading || vm.sending)
     val step = vm.step
     BackHandler(onBack = vm::back)
 

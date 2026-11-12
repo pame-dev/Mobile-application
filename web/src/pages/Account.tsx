@@ -29,6 +29,7 @@ import { haceCuanto } from '../lib/format'
 import { aplicarTema, guardarTemaEnCuenta, temaGuardado, type Tema } from '../lib/tema'
 import { useRecargar } from '../lib/tiempoReal'
 import { useSession } from '../session/SessionContext'
+import { CargandoBloqueo } from '../components/CargandoBloqueo'
 
 // Notificaciones, Configuración, Privacidad y seguridad, Términos y Políticas de privacidad.
 
@@ -568,6 +569,7 @@ function ChangePasswordModal({ email }: { email: string }) {
         void guardar()
       }}
     >
+      <CargandoBloqueo visible={guardando} />
       <ModalHead title={t('password.title')} sub={t('password.sub')} />
       <div className="field">
         <label htmlFor="pw-a">{t('password.current')}</label>

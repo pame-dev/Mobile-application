@@ -21,6 +21,7 @@ import { iniciales, km, precio, whatsappUrl } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
+import { CargandoBloqueo } from '../components/CargandoBloqueo'
 
 const STATUS_BADGE: Record<Car['status'], string> = {
   Activo: 'b-succ',
@@ -217,6 +218,7 @@ function ReportModal({ carId }: { carId: number }) {
 
   return (
     <div className="modal wide">
+      <CargandoBloqueo visible={estado === 'enviando'} />
       <ModalHead title={t('vehiculo.report.title')} />
       {(['publicacion', 'cuenta'] as const).map((tp) => (
         <button

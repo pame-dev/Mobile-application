@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.dashboard
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -136,6 +137,8 @@ fun DashboardScreen(
     }
     // Mientras se genera el archivo: el botón se deshabilita y se ve un indicador.
     var exportando by remember { mutableStateOf(false) }
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.actualizando || exportando)
     if (exportar) {
         val stats = vm.stats
         ExportarDialog(

@@ -313,6 +313,11 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 /* Rueda de carga dentro de un botón (toma el color del texto). */
 .spinner{width:16px;height:16px;flex:none;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:girar .7s linear infinite}
 @keyframes girar{to{transform:rotate(360deg)}}
+/* Bloqueo mientras se guarda o envía algo (CargandoBloqueo): encima de modales y avisos. */
+.cargabloqueo{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:var(--s-5);background:rgba(8,20,32,.55);animation:fade .15s;cursor:progress;outline:none}
+.cargabloqueo-card{display:flex;flex-direction:column;align-items:center;gap:var(--s-3);max-width:300px;padding:var(--s-5) var(--s-6);border-radius:var(--r-lg);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-lg);text-align:center}
+.cargabloqueo-card p{margin:0;font-weight:var(--fw-medium)}
+.cargabloqueo-spin{width:40px;height:40px;border-width:3px;color:var(--teal)}
 @keyframes fade{from{opacity:0}} @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}}
 
 /* Estados de carga y vacíos */

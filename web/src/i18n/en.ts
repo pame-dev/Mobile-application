@@ -11,6 +11,7 @@ const CORE_EN: Record<keyof typeof CORE_ES, string> = {
   'common.cancel': 'Cancel',
   'common.save': 'Save',
   'common.saving': 'Saving…',
+  'common.cargandoBloqueo': 'Working on it… please keep this screen open.',
   'common.undo': 'Undo',
   'common.retry': 'Retry',
   'common.back': 'Back',

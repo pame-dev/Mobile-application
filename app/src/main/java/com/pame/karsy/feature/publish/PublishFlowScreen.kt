@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.publish
 
+import com.pame.karsy.core.components.CargandoBloqueo
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -54,6 +55,8 @@ fun PublishFlowScreen(onBack: () -> Unit, onFinished: () -> Unit) {
 
     // El botón atrás del sistema regresa al paso anterior (paso 1 -> sale del flujo).
     BackHandler(enabled = !vm.published, onBack = goBack)
+    // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
+    CargandoBloqueo(vm.publishing || vm.checkingPhotos)
 
     Box(
         modifier = Modifier
