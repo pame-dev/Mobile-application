@@ -10,6 +10,13 @@ import type Ocr from '@gutenye/ocr-browser'
 
 /** Mismo tamaño máximo con el que se suben las fotos (jpegDe). */
 const MAX_LADO = 1600
+/**
+ * Lado máximo con el que PaddleOCR busca el texto (la librería no pone límite). Con 1600 px
+ * su memoria de WebAssembly llegaba a ~370 MB y en iPhone Safari cerraba y recargaba la
+ * página; con 960 px son ~150 MB y sigue encontrando placas chicas (~150 px de ancho en la
+ * foto de 1600). Las cajas se pasan después a la foto completa para pixelar.
+ */
+const LADO_OCR = 960
 const PLACA = /^(?=.*[A-Z])(?=(?:.*\d){2})[A-Z0-9]{5,8}$/
 /** Modelos de PaddleOCR (~16 MB) del mismo paquete npm, servidos por jsDelivr. */
 const MODELOS = 'https://cdn.jsdelivr.net/npm/@gutenye/ocr-models@1.4.2/assets/'
@@ -112,9 +119,16 @@ export function reducirFoto(file: File): Promise<File> {
 export async function taparPlacas(origen: Blob | string): Promise<Blob | null> {
   try {
     const [modelo, canvas] = await Promise.all([precargarTapaPlacas(), aCanvas(origen)])
-    const datos = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height)
+    const escala = Math.min(1, LADO_OCR / Math.max(canvas.width, canvas.height))
+    const chico = document.createElement('canvas')
+    chico.width = Math.round(canvas.width * escala)
+    chico.height = Math.round(canvas.height * escala)
+    chico.getContext('2d')!.drawImage(canvas, 0, 0, chico.width, chico.height)
+    const datos = chico.getContext('2d')!.getImageData(0, 0, chico.width, chico.height)
+    chico.width = chico.height = 0
     const res = await modelo.detect({ data: datos.data, width: datos.width, height: datos.height })
-    // Las cajas vienen en el tamaño con el que el modelo analizó la foto.
+    // Las cajas vienen en el tamaño con el que el modelo analizó la foto (la copia chica);
+    // al dividir entre ese tamaño quedan en la foto completa.
     const sx = canvas.width / res.resizedImageWidth
     const sy = canvas.height / res.resizedImageHeight
     const placas = res.texts.filter((t) => parecePlaca(t.text))
