@@ -261,7 +261,6 @@ export function Publish() {
   /** Fotos a las que se les están tapando las placas (key de la Foto). */
   const [tapando, setTapando] = useState<Set<string>>(new Set())
   const trabajosPlacas = useRef<Promise<void>[]>([])
-  const existentesRevisadas = useRef(false)
   /** Fotos más recientes (después de un await, las variables del render ya pueden ser viejas). */
   const fotosActuales = useRef<Foto[]>([])
   const arriba = useRef<HTMLDivElement>(null)
@@ -592,9 +591,9 @@ export function Publish() {
   }, [step])
 
   /**
-   * Tapa las placas de una foto (menos la del tablero, que no tiene y donde se ve el
-   * kilometraje). Si encontró alguna, la Foto pasa a ser la versión tapada; una foto ya
-   * publicada (al editar) deja de usar su ruta y se sube de nuevo, ya censurada.
+   * Tapa las placas de una foto nueva (menos la del tablero, que no tiene y donde se ve el
+   * kilometraje). Si encontró alguna, la Foto pasa a ser la versión tapada. Las que ya estaban
+   * publicadas (al editar) no se vuelven a analizar: se revisaron al subirlas.
    */
   const prepararFoto = (f: Foto) => {
     setTapando((t) => new Set(t).add(f.key))
@@ -614,16 +613,6 @@ export function Publish() {
     })
     trabajosPlacas.current.push(trabajo)
   }
-
-  // Al editar, también se tapan las placas de las fotos que ya estaban publicadas: así, aunque
-  // el dueño no cambie las fotos, el admin las ve censuradas al revisar la edición.
-  useEffect(() => {
-    if (step !== 1 || !editId || cargandoEdicion || existentesRevisadas.current) return
-    existentesRevisadas.current = true
-    angulos.forEach((f, i) => f?.ruta && i !== ANGULOS.length - 1 && prepararFoto(f))
-    extras.forEach((f) => f.ruta && prepararFoto(f))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, editId, cargandoEdicion])
 
   /** Si en el recuadro del tablero se ve el auto por fuera, se avisa (sin bloquear: el detector puede fallar). */
   const revisarTablero = (f: Foto) => {
