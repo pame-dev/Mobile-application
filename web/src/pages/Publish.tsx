@@ -25,7 +25,7 @@ import { calcularRango, compararPrecio, type Rango } from '../lib/precioSugerido
 import { huellaVisual, mismaFoto } from '../lib/huellaVisual'
 import { ANGULOS_CON_AUTO, pareceAuto, precargarDetector } from '../lib/detectorAutos'
 import { jpegDe } from '../lib/mexico'
-import { precargarTapaPlacas, reducirFoto, taparPlacas } from '../lib/tapaPlacas'
+import { precargarTapaPlacas, reducirFoto, TAPA_PLACAS_DISPONIBLE, taparPlacas } from '../lib/tapaPlacas'
 import { borrarDiag, diag, leerDiag, tam } from '../lib/diagnostico'
 import { publicUrl } from '../lib/supabase'
 import { useSession } from '../session/SessionContext'
@@ -1203,7 +1203,7 @@ export function Publish() {
                 </span>
               </div>
               <p className="muted text-sm">
-                {t('publicar.platesHidden')}
+                {t(TAPA_PLACAS_DISPONIBLE ? 'publicar.platesHidden' : 'publicar.platesAvoid')}
               </p>
               <div className="photogrid">
                 {angulos.map((f, i) => (

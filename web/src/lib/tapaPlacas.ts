@@ -1,5 +1,6 @@
 import type Ocr from '@gutenye/ocr-browser'
 import { diag, tam } from './diagnostico'
+import { esIOS } from './detectorAutos'
 
 /**
  * Pixela las placas que aparezcan en una foto antes de subirla (privacidad del vendedor).
@@ -26,8 +27,16 @@ export const parecePlaca = (texto: string) => PLACA.test(texto.toUpperCase().rep
 
 let ocr: Promise<Ocr> | null = null
 
+/**
+ * En iPhone y iPad no se tapan placas: Safari cerraba la página justo al terminar el análisis
+ * (tardaba ~18 s por foto). Ahí el formulario pide no mostrar la placa (publicar.platesAvoid)
+ * y el equipo revisa cada publicación antes de aprobarla.
+ */
+export const TAPA_PLACAS_DISPONIBLE = !esIOS()
+
 /** Descarga el OCR una vez (solo al llegar al paso de fotos, no al abrir la página). */
 export function precargarTapaPlacas(): Promise<Ocr> {
+  if (!TAPA_PLACAS_DISPONIBLE) return Promise.reject(new Error('Tapado de placas no disponible en iOS'))
   ocr ??= (async () => {
     diag('modelo de placas: descargando')
     const [{ default: OcrBrowser }, ort] = await Promise.all([import('@gutenye/ocr-browser'), import('onnxruntime-web')])
@@ -126,6 +135,7 @@ export function reducirFoto(file: File): Promise<File> {
  * publicada (al editar).
  */
 export async function taparPlacas(origen: Blob | string): Promise<Blob | null> {
+  if (!TAPA_PLACAS_DISPONIBLE) return null
   try {
     diag('placas: abriendo foto y esperando modelo')
     const [modelo, canvas] = await Promise.all([precargarTapaPlacas(), aCanvas(origen)])
