@@ -25,10 +25,17 @@ const UMBRAL = 0.1
 
 let modelo: Promise<MobileNet> | null = null
 
+/** iPhone o iPad (el iPad se presenta como Mac, pero con pantalla táctil). */
+const esIOS = () =>
+  /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1)
+
 /** Descarga el modelo (~14 MB, una vez) sin hacer más pesada la carga inicial de la página. */
 export function precargarDetector(): Promise<MobileNet> {
   modelo ??= (async () => {
     const [tf, mobilenet] = await Promise.all([import('@tensorflow/tfjs'), import('@tensorflow-models/mobilenet')])
+    // En iPhone y iPad el análisis con la tarjeta gráfica (WebGL) hacía que Safari cerrara y
+    // recargara la página. Con el procesador tarda ~1 s por foto, con el mismo resultado.
+    if (esIOS()) await tf.setBackend('cpu')
     await tf.ready()
     return mobilenet.load({ version: 2, alpha: 1.0 })
   })().catch((e) => {
