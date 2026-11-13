@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.admin
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,7 +28,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.DrawerState
@@ -39,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,19 +68,21 @@ import com.pame.karsy.core.theme.Outfit
 /** Opción activa del menú: azul fijo, con buen contraste para el texto blanco en ambos temas. */
 private val DrawerActive = KarsyBlue
 
+/** En el orden del menú: lo que más se revisa primero; Usuarios, que se consulta menos, al final. */
 enum class AdminSection(@StringRes val labelRes: Int) {
     Inicio(R.string.admin2_section_home),
-    Usuarios(R.string.admin2_section_users),
     Vehiculos(R.string.admin2_section_vehicles),
     Reportes(R.string.admin2_section_reports),
+    Verificaciones(R.string.admin2_section_verifications),
     Destacados(R.string.admin2_section_featured),
-    Verificaciones(R.string.admin2_section_verifications);
+    Usuarios(R.string.admin2_section_users);
 
     val label: String get() = texto(labelRes)
 
     val icon: ImageVector
         get() = when (this) {
-            Inicio -> Icons.Outlined.Home
+            // "Resumen": gráfica, para no confundirlo con la casita de "Ir a Karsy".
+            Inicio -> Icons.Outlined.Insights
             Usuarios -> Icons.Outlined.Group
             Vehiculos -> Icons.Outlined.DirectionsCar
             Reportes -> Icons.Outlined.Flag
@@ -83,8 +93,8 @@ enum class AdminSection(@StringRes val labelRes: Int) {
     companion object {
         /** Secciones que ve cada rol de panel (rol_panel en la BD); el administrador, todas. */
         fun delRol(rol: String?): List<AdminSection> = when (rol) {
-            "moderador_publicaciones" -> listOf(Usuarios, Vehiculos, Reportes)
-            "moderador_verificaciones" -> listOf(Destacados, Verificaciones)
+            "moderador_publicaciones" -> listOf(Vehiculos, Reportes, Usuarios)
+            "moderador_verificaciones" -> listOf(Verificaciones, Destacados)
             else -> entries
         }
     }
@@ -104,6 +114,10 @@ fun AdminDrawerContent(
     adminName: String,
     badges: Map<AdminSection, Int>,
     onLogout: () -> Unit,
+    onProfile: () -> Unit,
+    onNotifications: () -> Unit,
+    onSettings: () -> Unit,
+    onIrAKarsy: () -> Unit,
 ) {
     ModalDrawerSheet(
         drawerState = drawerState,
@@ -142,6 +156,7 @@ fun AdminDrawerContent(
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
+                DrawerGroupTitle(stringResource(R.string.admin2_group_panel))
                 AdminSection.delRol(SessionManager.account?.rolPanel).forEach { section ->
                     DrawerItem(
                         section = section,
@@ -152,46 +167,96 @@ fun AdminDrawerContent(
                 }
             }
 
+            // Tu cuenta: tocar el nombre lleva a Mi perfil; notificaciones y configuración en íconos.
+            DrawerGroupTitle(stringResource(R.string.admin2_group_account), Modifier.padding(top = 12.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 4.dp, top = 12.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(AvatarBlue)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(KarsyRadius.Md))
+                        .clickable(role = Role.Button, onClick = onProfile)
+                        .padding(vertical = 6.dp)
                 ) {
-                    Text(
-                        adminName.take(1).uppercase().ifEmpty { "A" },
-                        fontFamily = DmSans,
-                        fontSize = KarsyTextSize.BodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = KarsyWhite
-                    )
-                }
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        adminName.ifEmpty { stringResource(R.string.admin2_administrator) },
-                        fontFamily = DmSans,
-                        fontSize = KarsyTextSize.Body,
-                        fontWeight = FontWeight.SemiBold,
-                        color = KarsyWhite.copy(alpha = 0.85f)
-                    )
-                    Text(
-                        stringResource(R.string.admin2_logout),
-                        fontFamily = DmSans,
-                        fontSize = KarsyTextSize.Small,
-                        color = KarsyWhite.copy(alpha = 0.6f),
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .padding(top = 2.dp)
-                            .clickable(onClick = onLogout)
-                    )
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(AvatarBlue)
+                    ) {
+                        Text(
+                            adminName.take(1).uppercase().ifEmpty { "A" },
+                            fontFamily = DmSans,
+                            fontSize = KarsyTextSize.BodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = KarsyWhite
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            adminName.ifEmpty { stringResource(R.string.admin2_administrator) },
+                            fontFamily = DmSans,
+                            fontSize = KarsyTextSize.Body,
+                            fontWeight = FontWeight.SemiBold,
+                            color = KarsyWhite.copy(alpha = 0.85f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            stringResource(if (SessionManager.isAdmin) R.string.admin2_administrator else R.string.admin2_moderator),
+                            fontFamily = DmSans,
+                            fontSize = KarsyTextSize.Small,
+                            color = KarsyWhite.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+                IconButton(onClick = onNotifications) {
+                    Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.admin2_notifications_cd), tint = KarsyWhite.copy(alpha = 0.75f))
+                }
+                IconButton(onClick = onSettings) {
+                    Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.admin2_settings_cd), tint = KarsyWhite.copy(alpha = 0.75f))
                 }
             }
+            DrawerAction(Icons.Outlined.Public, stringResource(R.string.admin2_go_karsy), onIrAKarsy)
+            DrawerAction(Icons.AutoMirrored.Outlined.Logout, stringResource(R.string.admin2_logout), onLogout)
         }
+    }
+}
+
+/** Título de un grupo del menú ("PANEL", "TU CUENTA"). */
+@Composable
+private fun DrawerGroupTitle(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        fontFamily = DmSans,
+        fontSize = KarsyTextSize.Tiny,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.08.em,
+        color = KarsyWhite.copy(alpha = 0.5f),
+        modifier = modifier.padding(start = 12.dp, bottom = 4.dp)
+    )
+}
+
+/** Fila de acción de la cuenta ("Ir a Karsy", "Cerrar sesión"). */
+@Composable
+private fun DrawerAction(icon: ImageVector, text: String, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(KarsyRadius.Md))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 12.dp)
+    ) {
+        Icon(icon, contentDescription = null, tint = KarsyWhite.copy(alpha = 0.75f), modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(14.dp))
+        Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold, color = KarsyWhite.copy(alpha = 0.85f))
     }
 }
 

@@ -53,14 +53,16 @@ export const es = {
   'admin.noPermission': 'No tienes permiso para hacer esto.',
 
   // Menú lateral
-  'admin.sec.home': 'Inicio',
+  'admin.sec.home': 'Resumen',
+  'admin.groupPanel': 'Panel',
+  'admin.groupAccount': 'Tu cuenta',
   'admin.sec.users': 'Usuarios',
   'admin.sec.vehicles': 'Vehículos',
   'admin.sec.reports': 'Reportes',
   'admin.sec.featured': 'Destacados',
   'admin.administrator': 'Administrador',
   'admin.moderator': 'Moderador',
-  'admin.backHome': 'Volver al inicio',
+  'admin.backHome': 'Ir a Karsy',
 
   // Estados mostrados en insignias y pestañas
   'admin.st.active': 'Activo',
@@ -464,14 +466,16 @@ export const en: Record<keyof typeof es, string> = {
   'admin.locale': 'en-US',
   'admin.noPermission': "You don't have permission to do this.",
 
-  'admin.sec.home': 'Home',
+  'admin.sec.home': 'Summary',
+  'admin.groupPanel': 'Panel',
+  'admin.groupAccount': 'Your account',
   'admin.sec.users': 'Users',
   'admin.sec.vehicles': 'Vehicles',
   'admin.sec.reports': 'Reports',
   'admin.sec.featured': 'Featured',
   'admin.administrator': 'Administrator',
   'admin.moderator': 'Moderator',
-  'admin.backHome': 'Back to home',
+  'admin.backHome': 'Go to Karsy',
 
   'admin.st.active': 'Active',
   'admin.st.suspended': 'Suspended',

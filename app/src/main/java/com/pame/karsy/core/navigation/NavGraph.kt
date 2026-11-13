@@ -599,7 +599,10 @@ fun KarsyNavGraph(
                         onCarClick = ::openAdminCar,
                         onReviewReport = { navController.navigate(Routes.AdminReportReview.createRoute(it)) },
                         onLogout = ::logout,
-                        onNotifications = { navController.navigate(Routes.Notifications.route) }
+                        onNotifications = { navController.navigate(Routes.Notifications.route) },
+                        onProfile = { goSection(Routes.Profile.route) },
+                        onSettings = { navController.navigate(Routes.Settings.route) },
+                        onIrAKarsy = ::goHome,
                     )
                 }
                 // Publicación abierta desde el panel: solo acciones de admin (aunque el admin sea el dueño).

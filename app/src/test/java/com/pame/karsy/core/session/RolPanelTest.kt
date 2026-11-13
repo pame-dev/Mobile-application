@@ -27,6 +27,22 @@ class RolPanelTest {
         )
     }
 
+    @Test fun orden_por_rol_y_primera_seccion_es_la_de_entrada() {
+        assertEquals(
+            listOf(AdminSection.Inicio, AdminSection.Vehiculos, AdminSection.Reportes,
+                AdminSection.Verificaciones, AdminSection.Destacados, AdminSection.Usuarios),
+            AdminSection.delRol("administrador"),
+        )
+        assertEquals(
+            listOf(AdminSection.Vehiculos, AdminSection.Reportes, AdminSection.Usuarios),
+            AdminSection.delRol("moderador_publicaciones"),
+        )
+        assertEquals(
+            listOf(AdminSection.Verificaciones, AdminSection.Destacados),
+            AdminSection.delRol("moderador_verificaciones"),
+        )
+    }
+
     @Test fun sin_rol_no_expone_nada_extra_a_un_moderador() {
         // null cae en entries (el panel se protege con tienePanel); se fija el comportamiento actual.
         assertEquals(AdminSection.entries.toList(), AdminSection.delRol(null))

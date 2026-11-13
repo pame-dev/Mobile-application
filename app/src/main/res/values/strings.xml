@@ -935,7 +935,7 @@
     <string name="admin1_reject_other_desc">Especifica el motivo en los comentarios adicionales.</string>
 
     <!-- Administración (2) -->
-    <string name="admin2_section_home">Inicio</string>
+    <string name="admin2_section_home">Resumen</string>
     <string name="admin2_section_users">Usuarios</string>
     <string name="admin2_section_lots">Lotes</string>
     <string name="admin2_section_vehicles">Vehículos</string>
@@ -943,6 +943,12 @@
     <string name="admin2_section_featured">Destacados</string>
     <string name="admin2_section_verifications">Verificación</string>
     <string name="admin2_administrator">Administrador</string>
+    <string name="admin2_moderator">Moderador</string>
+    <string name="admin2_group_panel">PANEL</string>
+    <string name="admin2_group_account">TU CUENTA</string>
+    <string name="admin2_go_karsy">Ir a Karsy</string>
+    <string name="admin2_notifications_cd">Notificaciones</string>
+    <string name="admin2_settings_cd">Configuración</string>
     <string name="admin2_logout">Cerrar sesión</string>
     <string name="admin2_last_days">Últimos %1$d días</string>
     <string name="admin2_range_short">%1$dd</string>
