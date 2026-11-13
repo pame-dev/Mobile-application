@@ -1,5 +1,11 @@
 package com.pame.karsy.feature.cardetail
 
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.relocation.BringIntoViewRequester
 import com.pame.karsy.core.components.TextoAviso
 import com.pame.karsy.core.components.TituloAviso
 import com.pame.karsy.core.components.CargandoBloqueo
@@ -194,6 +200,14 @@ fun CarDetailScreen(
     val isVisitor = userMode == UserMode.VISITANTE
     val isOwner = detail.sellerId == SessionManager.userId
     val context = LocalContext.current
+    // Para quien no es el dueño: el estado si ya no está a la venta (null = disponible).
+    val noDisponible = detail.car.status.takeIf {
+        !isOwner && it in setOf(EstadoAuto.VENDIDO, EstadoAuto.PAUSADO, EstadoAuto.DESHABILITADO)
+    }
+    // "Ver autos parecidos" baja hasta "Vehículos similares".
+    val detalleScroll = rememberScrollState()
+    val similaresRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
 
     var activeImg by rememberSaveable { mutableIntStateOf(0) }
     var showContact by rememberSaveable { mutableStateOf(false) }
@@ -306,12 +320,15 @@ fun CarDetailScreen(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(detalleScroll)
                     .padding(bottom = 20.dp)
             ) {
                 topNotice?.invoke()
-                // Vendida: quien la tenga en favoritos (o la abra) ve que ya no está disponible.
-                if (detail.car.status == EstadoAuto.VENDIDO) {
+                // Vendida, pausada o deshabilitada: quien no es el dueño (p. ej. desde favoritos)
+                // ve que ya no está disponible. El dueño ve su aviso de vendida (abajo los demás).
+                if (noDisponible != null) {
+                    NoDisponibleNotice(vendido = noDisponible == EstadoAuto.VENDIDO)
+                } else if (detail.car.status == EstadoAuto.VENDIDO) {
                     SoldNotice(isOwner = isOwner, via = detail.car.soldVia)
                 }
                 // Solo el dueño: si el público ya la ve. Nueva en revisión = nadie más la ve;
@@ -341,8 +358,16 @@ fun CarDetailScreen(
                     activeImg = activeImg,
                     onSelect = { activeImg = it },
                     onOpenFullscreen = { showViewer = true },
+                    noDisponible = noDisponible,
                 )
-                DetailBody(detail = detail, onOpenSeller = ::openSeller, similares = vm.similares, onCarClick = onCarClick)
+                DetailBody(
+                    detail = detail,
+                    onOpenSeller = ::openSeller,
+                    similares = vm.similares,
+                    onCarClick = onCarClick,
+                    noDisponible = noDisponible != null,
+                    similaresRequester = similaresRequester,
+                )
             }
             }
 
@@ -379,11 +404,14 @@ fun CarDetailScreen(
                         .navigationBarsPadding()
                         .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 20.dp)
                 ) {
-                    // Ya vendido: no tiene caso contactar al vendedor.
-                    if (detail.car.status == EstadoAuto.VENDIDO) PrimaryButton(
-                        text = stringResource(R.string.detail_sold_unavailable),
-                        onClick = {},
-                        enabled = false
+                    // Vendido, pausado o deshabilitado: no tiene caso contactar; se ofrecen parecidos
+                    // (baja a "Vehículos similares"; si no hay, regresa).
+                    if (noDisponible != null) PrimaryButton(
+                        text = stringResource(R.string.detail_see_similar),
+                        onClick = {
+                            if (vm.similares.isNotEmpty()) scope.launch { similaresRequester.bringIntoView() }
+                            else onBack()
+                        }
                     )
                     else PrimaryButton(text = stringResource(R.string.detail_contact_seller), onClick = ::handleContact)
                 }
@@ -764,6 +792,68 @@ private fun OwnerButton(
     ) { content() }
 }
 
+/** Foto en escala de grises (auto vendido o que ya no está a la venta). */
+internal val FotoEnGris = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+
+/** Etiqueta "Vendido" / "No disponible" sobre la foto (detalle y favoritos). */
+@Composable
+internal fun EtiquetaNoDisponible(vendido: Boolean, modifier: Modifier = Modifier) {
+    Text(
+        stringResource(if (vendido) R.string.profile_status_sold else R.string.detail_unavailable_badge),
+        color = KarsyWhite,
+        fontFamily = DmSans,
+        fontSize = KarsyTextSize.Small,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier
+            .clip(RoundedCornerShape(KarsyRadius.Xl))
+            .background(Color.Black.copy(alpha = 0.65f))
+            .padding(horizontal = 12.dp, vertical = 5.dp)
+    )
+}
+
+/**
+ * Aviso gris para quien no es el dueño: el auto ya se vendió o ya no está a la venta (pausado o
+ * deshabilitado; no se dice cuál ni por qué). Sigue el tema (claro y oscuro).
+ */
+@Composable
+private fun NoDisponibleNotice(vendido: Boolean) {
+    val shape = RoundedCornerShape(KarsyRadius.Lg)
+    Column(
+        Modifier
+            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(KarsySurface)
+            .border(1.dp, KarsyBorder, shape)
+            .padding(14.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                if (vendido) Icons.Rounded.Sell else Icons.Rounded.Info,
+                contentDescription = null,
+                tint = KarsyMid,
+                modifier = Modifier.size(17.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(if (vendido) R.string.detail_sold_title else R.string.detail_unavailable_title),
+                fontFamily = Outfit,
+                fontSize = KarsyTextSize.BodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = KarsyCharcoal
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            stringResource(if (vendido) R.string.detail_sold_desc else R.string.detail_unavailable_desc),
+            fontFamily = DmSans,
+            fontSize = KarsyTextSize.Body,
+            lineHeight = 18.sp,
+            color = KarsyMid
+        )
+    }
+}
+
 /** Aviso de publicación vendida: para el comprador ya no está disponible; el dueño ve dónde la vendió. */
 @Composable
 private fun SoldNotice(isOwner: Boolean, via: String?) {
@@ -968,7 +1058,14 @@ private fun HeaderSquareButton(onClick: () -> Unit, content: @Composable () -> U
 }
 
 @Composable
-private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, onOpenFullscreen: () -> Unit) {
+private fun Gallery(
+    detail: CarDetail,
+    activeImg: Int,
+    onSelect: (Int) -> Unit,
+    onOpenFullscreen: () -> Unit,
+    /** Estado si ya no está a la venta (para quien no es el dueño): foto en gris y etiqueta. */
+    noDisponible: String? = null,
+) {
     val gallery = detail.gallery
     val car = detail.car
     val scope = rememberCoroutineScope()
@@ -989,9 +1086,18 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
                 model = gallery[page],
                 contentDescription = car.title,
                 contentScale = ContentScale.Crop,
+                colorFilter = if (noDisponible != null) FotoEnGris else null,
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(onClick = onOpenFullscreen)
+            )
+        }
+        noDisponible?.let {
+            EtiquetaNoDisponible(
+                vendido = it == EstadoAuto.VENDIDO,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(14.dp)
             )
         }
         car.badge?.let {
@@ -1039,7 +1145,16 @@ private fun Gallery(detail: CarDetail, activeImg: Int, onSelect: (Int) -> Unit, 
 }
 
 @Composable
-private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit, similares: List<Car>, onCarClick: (Long) -> Unit) {
+private fun DetailBody(
+    detail: CarDetail,
+    onOpenSeller: () -> Unit,
+    similares: List<Car>,
+    onCarClick: (Long) -> Unit,
+    /** Ya no está a la venta: el precio va en gris y tachado. */
+    noDisponible: Boolean = false,
+    /** Para que "Ver autos parecidos" lleve hasta "Vehículos similares". */
+    similaresRequester: BringIntoViewRequester = remember { BringIntoViewRequester() },
+) {
     val car = detail.car
     // Escudo de verificado junto al nombre del vendedor (lote o particular).
     var vendedorVerificado by remember { mutableStateOf(false) }
@@ -1093,7 +1208,8 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit, similares: L
             fontFamily = Outfit,
             fontSize = KarsyTextSize.Display,
             fontWeight = FontWeight.Bold,
-            color = KarsyTealText,
+            color = if (noDisponible) KarsyMid else KarsyTealText,
+            textDecoration = if (noDisponible) TextDecoration.LineThrough else null,
         )
         Spacer(Modifier.height(18.dp))
 
@@ -1185,20 +1301,23 @@ private fun DetailBody(detail: CarDetail, onOpenSeller: () -> Unit, similares: L
 
         // Vehículos similares: mismo tipo de carrocería (como la web), en una fila que se desliza.
         if (similares.isNotEmpty()) {
-            SectionLabel(stringResource(R.string.detail_similar_title))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                similares.forEach { s ->
-                    VehicleCard(
-                        car = s,
-                        isFavorite = false,
-                        onClick = { onCarClick(s.id) },
-                        onToggleFavorite = {},
-                        showFavorite = false,
-                        modifier = Modifier.width(280.dp)
-                    )
+            // "Ver autos parecidos" trae esta sección a la vista.
+            Column(Modifier.bringIntoViewRequester(similaresRequester)) {
+                SectionLabel(stringResource(R.string.detail_similar_title))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.horizontalScroll(rememberScrollState())
+                ) {
+                    similares.forEach { s ->
+                        VehicleCard(
+                            car = s,
+                            isFavorite = false,
+                            onClick = { onCarClick(s.id) },
+                            onToggleFavorite = {},
+                            showFavorite = false,
+                            modifier = Modifier.width(280.dp)
+                        )
+                    }
                 }
             }
         }

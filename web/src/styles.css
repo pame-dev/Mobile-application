@@ -516,6 +516,12 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 .revisionaviso.peligro{background:var(--error-l);border-color:var(--error)}
 .revisionaviso.peligro > .i{color:var(--error)}
 .enrevision img{opacity:.55;filter:grayscale(.7)}
+/* Ya no está a la venta (vendido, pausado o deshabilitado): foto en gris y precio tachado. */
+.fueradeventa img{filter:grayscale(1);opacity:.7}
+.tachado{text-decoration:line-through;color:var(--mid)}
+.vcard-quitar{margin:0 var(--s-4) var(--s-4)}
+.revisionaviso.neutro{background:var(--bg);border-color:var(--border)}
+.revisionaviso.neutro > .i{color:var(--mid)}
 .ownerbar .acts{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 /* Celular: los botones del dueño en dos columnas parejas, no en filas de ancho desigual. */
 @media (max-width:640px){ .ownerbar .acts{display:grid;grid-template-columns:1fr 1fr} .ownerbar .acts > .btn{width:100%;justify-content:center} }

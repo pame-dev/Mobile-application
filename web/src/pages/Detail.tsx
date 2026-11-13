@@ -436,6 +436,14 @@ export function Detail() {
   const acciones = !esDueno
   // Vendido: aviso y sin "Contactar" (igual que la app).
   const vendido = c.status === 'Vendido'
+  // Pausado por el dueño o deshabilitado por el equipo: quien lo tenía en favoritos lo ve
+  // como "no disponible" (sin decir por qué). Al dueño se le muestran sus propios avisos.
+  const fueraDeVenta = acciones && (vendido || c.status === 'Pausado' || c.status === 'Deshabilitado')
+  const verParecidos = () => {
+    const seccion = document.getElementById('similares')
+    if (seccion) seccion.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    else navigate('/')
+  }
   const abrirContacto = () => {
     const registrar = contactoContado.current !== c.id
     contactoContado.current = c.id
@@ -528,6 +536,17 @@ export function Detail() {
         </div>
       )}
 
+      {/* Quien no es el dueño: el auto ya no está a la venta (vendido, pausado o deshabilitado). */}
+      {fueraDeVenta && (
+        <div className="revisionaviso neutro" role="status">
+          <Icon name="alert" size={20} />
+          <div>
+            <b>{t(vendido ? 'vehiculo.detail.soldTitle' : 'vehiculo.detail.notAvailableTitle')}</b>
+            <p>{t(vendido ? 'vehiculo.detail.soldMsg' : 'vehiculo.detail.notAvailableDesc')}</p>
+          </div>
+        </div>
+      )}
+
       {esDueno && (
         <div className="card ownerbar">
           <div className="row" style={{ flexWrap: 'wrap' }}>
@@ -579,9 +598,10 @@ export function Detail() {
             <CarPhoto
               src={fotos[foto]}
               alt={`${c.brand} ${c.model}`}
-              className={`main ${detail.gallery.length ? 'zoomable' : ''}`}
+              className={`main ${detail.gallery.length ? 'zoomable' : ''} ${fueraDeVenta ? 'fueradeventa' : ''}`}
               onClick={detail.gallery.length ? () => setVisor(true) : undefined}
             >
+              {fueraDeVenta && <span className="tag badge b-neu">{t(vendido ? 'vehiculo.status.Vendido' : 'vehiculo.detail.notAvailableBadge')}</span>}
               {fotos.length > 1 && (
                 <span className="counter">
                   {t('vehiculo.detail.photoCounter', { i: foto + 1, n: fotos.length })}
@@ -667,18 +687,24 @@ export function Detail() {
             </div>
           </div>
           <div>
-            <span className="price-xl num">{precio(c.priceValue)}</span> <span className="mid">{c.currency}</span>
+            <span className={`price-xl num ${fueraDeVenta ? 'tachado' : ''}`}>{precio(c.priceValue)}</span> <span className="mid">{c.currency}</span>
           </div>
-          {acciones && vendido && <div className="note info ink">{t('vehiculo.detail.soldMsg')}</div>}
-          {acciones && (
-            <button
-              className="btn btn-primary btn-block btn-lg"
-              disabled={vendido}
-              onClick={() => (mode === 'guest' ? pedirRegistro(t('vehiculo.detail.guestContact')) : abrirContacto())}
-            >
-              <Icon name="chat" size={18} />
-              {vendido ? t('vehiculo.detail.soldButton') : t('vehiculo.detail.contactSeller')}
+          {/* Ya no está a la venta: en lugar de contactar, autos parecidos. */}
+          {fueraDeVenta ? (
+            <button className="btn btn-primary btn-block btn-lg" onClick={verParecidos}>
+              <Icon name="search" size={18} />
+              {t('vehiculo.detail.seeSimilar')}
             </button>
+          ) : (
+            acciones && (
+              <button
+                className="btn btn-primary btn-block btn-lg"
+                onClick={() => (mode === 'guest' ? pedirRegistro(t('vehiculo.detail.guestContact')) : abrirContacto())}
+              >
+                <Icon name="chat" size={18} />
+                {t('vehiculo.detail.contactSeller')}
+              </button>
+            )
           )}
           <div className="label" style={{ marginTop: 'var(--s-1)' }}>
             {t('vehiculo.detail.sellerContact')}
@@ -706,7 +732,7 @@ export function Detail() {
 
       {similares.length > 0 && (
         <>
-          <div className="sechead">
+          <div className="sechead" id="similares">
             <h2>{t('vehiculo.detail.similar')}</h2>
           </div>
           <div className="vgrid">
