@@ -42,7 +42,11 @@ export const es = {
 
   // Contacto
   'vehiculo.contact.title': 'Información de contacto',
-  'vehiculo.contact.message': 'Hola, me interesa tu {v} que vi en Karsy.',
+  'vehiculo.contact.msgHello': 'Hola {n} 👋',
+  'vehiculo.contact.msgHelloAnon': 'Hola 👋',
+  'vehiculo.contact.msgIntro': 'Soy {n}. Vi tu *{v}* en Karsy:',
+  'vehiculo.contact.msgIntroAnon': 'Vi tu *{v}* en Karsy:',
+  'vehiculo.contact.msgQuestion': '¿Sigue disponible?',
   'vehiculo.contact.error': 'No pudimos obtener los datos del vendedor. Intenta de nuevo.',
   'vehiculo.contact.prefersWa': 'Prefiere que le escribas por WhatsApp',
   'vehiculo.contact.prefersCall': 'Prefiere que le llames',
@@ -238,7 +242,11 @@ export const en: Record<keyof typeof es, string> = {
   'vehiculo.session.revoked': 'You were signed out from another device. Please sign in again.',
 
   'vehiculo.contact.title': 'Contact information',
-  'vehiculo.contact.message': "Hi, I'm interested in your {v} that I saw on Karsy.",
+  'vehiculo.contact.msgHello': 'Hi {n} 👋',
+  'vehiculo.contact.msgHelloAnon': 'Hi 👋',
+  'vehiculo.contact.msgIntro': "I'm {n}. I saw your *{v}* on Karsy:",
+  'vehiculo.contact.msgIntroAnon': 'I saw your *{v}* on Karsy:',
+  'vehiculo.contact.msgQuestion': 'Is it still available?',
   'vehiculo.contact.error': "We couldn't get the seller's details. Please try again.",
   'vehiculo.contact.prefersWa': 'Prefers to be messaged on WhatsApp',
   'vehiculo.contact.prefersCall': 'Prefers a phone call',

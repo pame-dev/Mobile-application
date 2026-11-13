@@ -367,7 +367,11 @@
     <string name="detail_safety_pay1">Don’t send deposits or “holding” payments before seeing the car in person.</string>
     <string name="detail_safety_pay2">Be wary of prices far below market or pressure to close the deal quickly.</string>
     <string name="detail_safety_pay3">Pay only when you receive the invoice endorsed to your name and the keys; ideally by bank transfer, with a receipt.</string>
-    <string name="detail_whatsapp_message">Hi, I\'m interested in your %1$s %2$d that I saw on Karsy.</string>
+    <string name="detail_wa_hello">Hi %1$s 👋</string>
+    <string name="detail_wa_hello_anon">Hi 👋</string>
+    <string name="detail_wa_intro">I\'m %1$s. I saw your *%2$s* on Karsy:</string>
+    <string name="detail_wa_intro_anon">I saw your *%1$s* on Karsy:</string>
+    <string name="detail_wa_question">Is it still available?</string>
     <string name="detail_seller_dealer">Dealer</string>
     <string name="detail_seller_private">Private seller</string>
     <string name="detail_profile_title">Profile</string>
