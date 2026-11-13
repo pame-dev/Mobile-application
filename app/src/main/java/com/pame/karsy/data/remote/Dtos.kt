@@ -140,6 +140,10 @@ data class VerificacionUsuarioDto(
     @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
     @SerialName("fecha_envio") val fechaEnvio: String? = null,
     @SerialName("fecha_revision") val fechaRevision: String? = null,
+    /** 'constancia_situacion_fiscal' (archivo en archivo_path) o 'curp' (texto en curp). */
+    @SerialName("tipo_documento") val tipoDocumento: String? = null,
+    @SerialName("archivo_path") val archivoPath: String? = null,
+    val curp: String? = null,
 )
 
 @Serializable

@@ -1,5 +1,6 @@
 package com.pame.karsy.data.repository
 
+import kotlin.time.Duration.Companion.minutes
 import android.content.Context
 import com.pame.karsy.R
 import com.pame.karsy.core.theme.Tema
@@ -94,6 +95,8 @@ object UserRepository {
             motivoRechazoVerificacion = verificacion?.motivoRechazo,
             fechaEnvioVerificacion = verificacion?.fechaEnvio,
             fechaRevisionVerificacion = verificacion?.fechaRevision,
+            documentoVerificacionPath = verificacion?.archivoPath?.takeIf { it.isNotBlank() },
+            curpEnviada = verificacion?.curp?.takeIf { it.isNotBlank() },
             whatsapp = whatsapp?.numero.orEmpty(),
             medioPrincipal = when {
                 telefono == null -> WHATSAPP
@@ -105,11 +108,18 @@ object UserRepository {
 
     /** Fila más reciente de verificaciones_usuario del usuario (null si nunca envió un documento). */
     private suspend fun ultimaVerificacion(uid: String): VerificacionUsuarioDto? =
-        db.from("verificaciones_usuario").select(Columns.list("estado", "motivo_rechazo", "fecha_envio", "fecha_revision")) {
+        db.from("verificaciones_usuario").select(Columns.list("estado", "motivo_rechazo", "fecha_envio", "fecha_revision", "tipo_documento", "archivo_path", "curp")) {
             filter { eq("user_id", uid) }
             order("fecha_envio", Order.DESCENDING)
             limit(1)
         }.decodeSingleOrNull<VerificacionUsuarioDto>()
+
+    /**
+     * URL firmada y temporal del documento de verificación propio (solo para verlo; la política
+     * constancias_leer_propia solo deja leer la carpeta del usuario en sesión).
+     */
+    suspend fun documentoVerificacionUrl(ruta: String): String =
+        db.storage.from(BUCKET_CONSTANCIAS).createSignedUrl(ruta, 10.minutes)
 
     /** Estado y municipio del perfil en sesión ("Cerca de mí"); null sin sesión o sin estado. */
     suspend fun miUbicacion(): Lugar? {

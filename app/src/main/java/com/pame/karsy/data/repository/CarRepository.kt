@@ -164,16 +164,24 @@ object CarRepository {
             filter { eq("id_cuenta", uid) }
             order("fecha_guardado", Order.DESCENDING)
         }.decodeList<FavoritoDto>().map { it.idPublicacion }
-        return carsByIds(ids).filter(::sigueDisponible)
+        return carsByIds(ids).filter(::seVeEnFavoritos)
     }
 
     /**
-     * Favoritos e historial solo muestran los autos que siguen a la venta (activos): no las
+     * El historial solo muestra los autos que siguen a la venta (activos): no las
      * vendidas (esas quedan en el perfil del vendedor), pausadas, deshabilitadas, en revisión ni
      * rechazadas, aunque las haya abierto el dueño o el admin. No se borran: si se reactivan,
      * vuelven a aparecer.
      */
     internal fun sigueDisponible(car: Car): Boolean = car.status == EstadoAuto.ACTIVO
+
+    /**
+     * Favoritos sí muestra los que ya no están a la venta (vendidos, pausados y, para el equipo,
+     * deshabilitados): la tarjeta los marca "Vendido"/"No disponible" con el botón para quitarlos.
+     * Las que no se pueden leer ya no llegan aquí. En revisión o rechazadas no se muestran.
+     */
+    internal fun seVeEnFavoritos(car: Car): Boolean =
+        car.status != EstadoAuto.PENDIENTE && car.status != EstadoAuto.RECHAZADO
 
     suspend fun setFavorite(id: Long, favorite: Boolean) {
         val uid = SessionManager.userId ?: throw UserFacingException(texto(R.string.core_error_login_to_favorite))

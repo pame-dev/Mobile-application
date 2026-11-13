@@ -96,8 +96,8 @@ export const es = {
   'vehiculo.reason.spam': 'Incumplimiento de tratos o spam',
 
   // Detalle
-  'vehiculo.detail.unavailable': 'Publicación no disponible',
-  'vehiculo.detail.unavailableMsg': 'Puede que se haya vendido, que esté en revisión o que ya no exista.',
+  'vehiculo.detail.unavailable': 'Este auto ya no está disponible',
+  'vehiculo.detail.unavailableMsg': 'Puede que ya no esté publicado o que se haya retirado. Mira otros autos en Karsy.',
   'vehiculo.detail.soldMsg': 'Este vehículo ya se vendió. El vendedor lo marcó como vendido; ya no está disponible.',
   'vehiculo.detail.soldTitle': 'Este auto ya se vendió',
   'vehiculo.detail.notAvailableTitle': 'Este auto ya no está disponible',
@@ -290,8 +290,8 @@ export const en: Record<keyof typeof es, string> = {
   'vehiculo.reason.harassment': 'Offensive language or harassment in messages',
   'vehiculo.reason.spam': 'Broken deals or spam',
 
-  'vehiculo.detail.unavailable': 'Listing unavailable',
-  'vehiculo.detail.unavailableMsg': 'It may have been sold, be under review or no longer exist.',
+  'vehiculo.detail.unavailable': 'This car is no longer available',
+  'vehiculo.detail.unavailableMsg': 'It may no longer be listed or it may have been removed. Check out other cars on Karsy.',
   'vehiculo.detail.soldMsg': 'This vehicle has already been sold. The seller marked it as sold; it is no longer available.',
   'vehiculo.detail.soldTitle': 'This car has been sold',
   'vehiculo.detail.notAvailableTitle': 'This car is no longer available',

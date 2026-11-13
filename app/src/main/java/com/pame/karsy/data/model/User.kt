@@ -39,4 +39,8 @@ data class User(
     val fechaEnvioVerificacion: String? = null,
     /** verificaciones_usuario.fecha_revision de ese último documento (ISO); null si no se ha revisado. */
     val fechaRevisionVerificacion: String? = null,
+    /** Lote: ruta del archivo enviado (bucket constancias-fiscales), para verlo; null si no hay. */
+    val documentoVerificacionPath: String? = null,
+    /** Particular: CURP enviada (solo lectura); null si no envió una. */
+    val curpEnviada: String? = null,
 )

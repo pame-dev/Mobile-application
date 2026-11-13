@@ -1,5 +1,8 @@
 package com.pame.karsy.feature.profile
 
+import android.content.Intent
+import androidx.core.net.toUri
+import com.pame.karsy.core.locale.texto
 import androidx.compose.ui.semantics.Role
 import androidx.compose.material.icons.outlined.PhotoCamera
 import com.pame.karsy.core.components.CargandoBloqueo
@@ -203,7 +206,14 @@ fun ProfileScreen(
                         fechaRevision = user.fechaRevisionVerificacion,
                         error = vm.constanciaError,
                         enviando = vm.enviandoConstancia,
-                        onPick = { vm.subirConstancia(context, it) }
+                        onPick = { vm.subirConstancia(context, it) },
+                        // Ya envió un archivo: lo puede ver (solo lectura) con una URL temporal.
+                        onVerDocumento = if (user.documentoVerificacionPath != null) ({
+                            vm.verDocumentoEnviado { url ->
+                                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+                                    .onFailure { vm.message = texto(R.string.profile_document_open_error) }
+                            }
+                        }) else null
                     )
                     Spacer(Modifier.height(16.dp))
                 }
@@ -221,6 +231,18 @@ fun ProfileScreen(
                         onSend = vm::enviarCurp
                     )
                     Spacer(Modifier.height(16.dp))
+                }
+                // Particular que ya envió su CURP: la ve (solo lectura), también ya verificado.
+                if (user.accountType == "particular" && !SessionManager.isAdmin) {
+                    user.curpEnviada?.let { curpEnviada ->
+                        Text(
+                            stringResource(R.string.profile_curp_sent_value, curpEnviada),
+                            fontFamily = DmSans,
+                            fontSize = KarsyTextSize.Body,
+                            color = KarsyMid,
+                            modifier = Modifier.padding(start = 4.dp, bottom = 16.dp)
+                        )
+                    }
                 }
             } else if (vm.loading) {
                 // Esqueleto: portada con avatar y nombre.
@@ -552,6 +574,8 @@ private fun LoteConstanciaCard(
     error: String?,
     enviando: Boolean,
     onPick: (Uri) -> Unit,
+    /** Abre el documento ya enviado (solo verlo); null si no hay archivo. */
+    onVerDocumento: (() -> Unit)? = null,
 ) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) onPick(uri)
@@ -622,6 +646,22 @@ private fun LoteConstanciaCard(
                         color = ConstanciaGris,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            if (onVerDocumento != null) {
+                Spacer(Modifier.height(14.dp))
+                OutlinedButton(
+                    onClick = onVerDocumento,
+                    shape = RoundedCornerShape(KarsyRadius.Md),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(R.string.profile_view_sent_document),
+                        fontFamily = DmSans,
+                        fontSize = KarsyTextSize.BodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = KarsyInk
                     )
                 }
             }
