@@ -414,7 +414,7 @@ export function DocumentoVehiculoAdmin({ idPublicacion, recargar }: { idPublicac
 
 // ── Revisión de reportes (panel de Reportes y detalle de la publicación) ──
 
-export type TabReportes = 'pendiente' | 'resueltos' | 'todos'
+export type TabReportes = 'pendiente' | 'atendido' | 'descartado' | 'todos'
 
 export const esReporteDeCuenta = (r: ReporteAdmin) => r.motivo_reporte.startsWith('Cuenta del vendedor')
 

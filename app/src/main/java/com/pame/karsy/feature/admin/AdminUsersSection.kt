@@ -110,7 +110,7 @@ fun AdminUsersSection(vm: AdminViewModel, initialFilter: String = "Todos") {
             subtitle = user.name,
             onDismiss = { selected = null }
         ) {
-            AdminUserDetailRows(user)
+            AdminUserDetailRows(user, vm.vehicles)
             // Suspender / reactivar (admin_cambiar_estado_cuenta registra la acción en la bitácora).
             // Como la web: no a uno mismo ni a otro administrador (la BD lo rechazaría).
             if (user.id != SessionManager.userId && !user.isAdmin) {
@@ -214,7 +214,7 @@ fun AdminUserRowContent(user: AdminUser, action: (@Composable () -> Unit)? = nul
 
 /** Datos de la cuenta en el detalle; los lotes agregan responsable, ubicación y vehículos activos. */
 @Composable
-fun AdminUserDetailRows(user: AdminUser) {
+fun AdminUserDetailRows(user: AdminUser, vehicles: List<AdminVehicle> = emptyList()) {
     val typeLabel = adminValueLabel(user.type)
     DetailRow(stringResource(R.string.admin2_name), user.name)
     DetailRow(stringResource(R.string.admin2_email), user.email)
@@ -228,6 +228,26 @@ fun AdminUserDetailRows(user: AdminUser) {
         DetailRow(stringResource(R.string.admin2_location), user.location.ifBlank { "—" })
         DetailRow(stringResource(R.string.admin2_active_vehicles), user.activeVehicles.toString())
     }
-    DetailRow(stringResource(R.string.admin2_legend_publications), user.posts.toString())
+    DetailRow(stringResource(R.string.admin2_legend_publications), desglosePublicaciones(user, vehicles))
     DetailRow(stringResource(R.string.admin2_registration_date), user.date)
+}
+
+/**
+ * "4 (2 activas, 1 vendida, 1 pausada)": el total y por estado, para que no confunda que el
+ * perfil público solo muestre activas y vendidas. Sin vehículos cargados, solo el total.
+ */
+@Composable
+private fun desglosePublicaciones(user: AdminUser, vehicles: List<AdminVehicle>): String {
+    val suyos = vehicles.filter { it.sellerId == user.id }
+    if (suyos.isEmpty()) return user.posts.toString()
+    // Con cambios en revisión sigue publicada: cuenta como activa.
+    val partes = listOf(
+        R.plurals.admin2_count_active to suyos.count { it.status == "Activo" || it.status == "Cambios pendientes" },
+        R.plurals.admin2_count_sold to suyos.count { it.status == "Vendido" },
+        R.plurals.admin2_count_paused to suyos.count { it.status == "Pausado" },
+        R.plurals.admin2_count_disabled to suyos.count { it.status == "Deshabilitado" },
+        R.plurals.admin2_count_review to suyos.count { it.status == "Pendiente" },
+        R.plurals.admin2_count_rejected to suyos.count { it.status == "Rechazado" },
+    ).filter { it.second > 0 }.map { (res, n) -> pluralStringResource(res, n, n) }
+    return stringResource(R.string.admin2_posts_breakdown, maxOf(user.posts, suyos.size), partes.joinToString(", "))
 }

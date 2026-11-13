@@ -50,7 +50,8 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
           )}
         </CarPhoto>
         <div className="body">
-          {showStatus && <span className={`badge ${STATUS_BADGE[car.status]}`} style={{ alignSelf: 'flex-start' }}>{t(statusLabel(car.status))}</span>}
+          {/* Si ya no está a la venta, el estado ya va sobre la foto: no se repite aquí. */}
+          {showStatus && !fueraDeVenta && <span className={`badge ${STATUS_BADGE[car.status]}`} style={{ alignSelf: 'flex-start' }}>{t(statusLabel(car.status))}</span>}
           <div className="row gap-2" style={{ alignItems: 'flex-start' }}>
             <div className="grow">
               <div className="vtitle-row">

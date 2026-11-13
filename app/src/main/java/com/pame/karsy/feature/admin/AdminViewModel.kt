@@ -486,7 +486,6 @@ internal fun adminValueLabelRes(value: String): Int? = when (value) {
     "Vendido" -> R.string.admin2_value_sold
     "Atendido" -> R.string.admin2_value_resolved
     "Descartado" -> R.string.admin2_value_dismissed
-    "Resuelto" -> R.string.admin2_value_closed
     "Usuario" -> R.string.admin2_value_user
     "Publicación" -> R.string.admin2_value_publication
     else -> null
