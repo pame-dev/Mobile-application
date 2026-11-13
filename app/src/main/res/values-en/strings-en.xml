@@ -335,7 +335,8 @@
     <string name="detail_similar_title">Similar vehicles</string>
     <string name="detail_dealer_view_profile">Dealer · View profile</string>
     <string name="detail_private_view_profile">Private seller · View profile</string>
-    <string name="detail_not_found">Vehicle not found</string>
+    <string name="detail_not_found">This car is no longer available</string>
+    <string name="detail_not_found_desc">It may no longer be listed or it may have been removed. Check out other cars on Karsy.</string>
     <string name="detail_load_error">Couldn\'t load the vehicle</string>
     <string name="detail_retry">Try again</string>
     <string name="detail_already_reported">You\'ve already reported this listing.</string>
@@ -676,6 +677,9 @@
     <string name="profile_stat_sold">Sold</string>
     <string name="profile_stat_active">Active</string>
     <string name="profile_saved">Profile saved.</string>
+    <string name="profile_view_sent_document">View submitted document</string>
+    <string name="profile_curp_sent_value">Submitted CURP: %1$s</string>
+    <string name="profile_document_open_error">Couldn\'t open the document.</string>
     <string name="profile_cover_updated">Cover updated.</string>
     <string name="profile_photo_updated">Photo updated.</string>
     <!-- Listing status (display label only) -->

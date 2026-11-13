@@ -337,7 +337,8 @@
     <string name="detail_similar_title">Vehículos similares</string>
     <string name="detail_dealer_view_profile">Lote · Ver perfil</string>
     <string name="detail_private_view_profile">Particular · Ver perfil</string>
-    <string name="detail_not_found">Vehículo no encontrado</string>
+    <string name="detail_not_found">Este auto ya no está disponible</string>
+    <string name="detail_not_found_desc">Puede que ya no esté publicado o que se haya retirado. Mira otros autos en Karsy.</string>
     <string name="detail_load_error">No se pudo cargar el vehículo</string>
     <string name="detail_retry">Reintentar</string>
     <string name="detail_already_reported">Ya habías reportado esta publicación.</string>
@@ -678,6 +679,9 @@
     <string name="profile_stat_sold">Vendidos</string>
     <string name="profile_stat_active">Activas</string>
     <string name="profile_saved">Perfil guardado.</string>
+    <string name="profile_view_sent_document">Ver documento enviado</string>
+    <string name="profile_curp_sent_value">CURP enviada: %1$s</string>
+    <string name="profile_document_open_error">No se pudo abrir el documento.</string>
     <string name="profile_cover_updated">Portada actualizada.</string>
     <string name="profile_photo_updated">Foto actualizada.</string>
     <!-- Estado de la publicación (solo etiqueta visible) -->

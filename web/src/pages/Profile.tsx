@@ -10,7 +10,7 @@ import { Traducido, useTraduccion } from '../components/Traducido'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { enviarCurp, errorConstancia, mensajeUsuario, subirConstancia, uploadAvatar } from '../data/auth'
-import { currentProfile, LLAMADA, myCars, ocultas, removeCover, sePuedeOcultar, updateProfile, uploadCover, WHATSAPP, type OwnCar, type Perfil } from '../data/seller'
+import { currentProfile, LLAMADA, myCars, ocultas, removeCover, sePuedeOcultar, updateProfile, uploadCover, urlDocumentoVerificacion, WHATSAPP, type OwnCar, type Perfil } from '../data/seller'
 import * as R from '../lib/formRules'
 import { iniciales } from '../lib/format'
 import { estadosMunicipios, jpegDe, type EstadoMunicipios } from '../lib/mexico'
@@ -320,12 +320,26 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
   const { toast } = useUi()
   const [curp, setCurp] = useState('')
   const [enviando, setEnviando] = useState(false)
+  // La CURP que mandó, solo para verla (no se puede cambiar mientras está en revisión o verificada).
+  const curpEnviada = perfil.curpEnviada && <span style={{ fontWeight: 600, letterSpacing: ".02em" }}>{t("perfil.curpSentValue", { curp: perfil.curpEnviada })}</span>
 
-  if (perfil.verificacion === 'pendiente') {
+  if (perfil.verificado) {
+    if (!perfil.curpEnviada) return null
     return (
       <div className="note info" style={{ marginTop: 'var(--s-6)', display: 'flex', gap: 'var(--s-3)', alignItems: 'center' }}>
         <Icon name="doc" size={18} />
-        {t('perfil.curpPending')}
+        {curpEnviada}
+      </div>
+    )
+  }
+  if (perfil.verificacion === 'pendiente') {
+    return (
+      <div className="note info" style={{ marginTop: 'var(--s-6)', display: 'flex', gap: 'var(--s-3)', alignItems: 'flex-start' }}>
+        <Icon name="doc" size={18} />
+        <div className="col gap-1">
+          {t('perfil.curpPending')}
+          {curpEnviada}
+        </div>
       </div>
     )
   }
@@ -356,6 +370,7 @@ function VerificarParticular({ perfil, onSent }: { perfil: Perfil; onSent: () =>
       {rechazado && perfil.motivoVerificacion && (
         <Traducido texto={perfil.motivoVerificacion}>{(motivo) => <AlertBox message={t('perfil.curpRejected', { motivo })} />}</Traducido>
       )}
+      {rechazado && curpEnviada && <p className="muted text-sm">{curpEnviada}</p>}
       <div className="field" style={{ maxWidth: 320 }}>
         <input
           className={`input ${error ? 'bad' : ''}`}
@@ -411,6 +426,20 @@ function ConstanciaLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void
           ? [t('perfil.csfRejected'), perfil.motivoVerificacion && t('perfil.csfReason', { motivo })]
           : [t('perfil.csfNone'), t('perfil.csfNoneDetail')]
   const puedeSubir = estado === 'sin_documento' || estado === 'rechazado'
+  /** Abre la constancia que mandó, solo para verla (enlace temporal de 10 minutos). */
+  const verDocumento = async () => {
+    if (!perfil.documentoVerificacion) return
+    // Se abre la pestaña antes de esperar el enlace: si no, el navegador la bloquea.
+    const pestana = window.open('', '_blank')
+    try {
+      const url = await urlDocumentoVerificacion(perfil.documentoVerificacion)
+      if (pestana) pestana.location.href = url
+      else window.location.href = url
+    } catch {
+      pestana?.close()
+      toast(t('perfil.documentOpenError'))
+    }
+  }
 
   const elegir = async (f: File | undefined) => {
     if (!f) return
@@ -447,6 +476,12 @@ function ConstanciaLote({ perfil, onSent }: { perfil: Perfil; onSent: () => void
         </span>
         {error && <span className="ferr">{error}</span>}
       </div>
+      {estado !== 'sin_documento' && perfil.documentoVerificacion && (
+        <button className="btn btn-ghost csfrow-btn" onClick={() => void verDocumento()}>
+          <Icon name="doc" size={16} />
+          {t('perfil.viewSentDocument')}
+        </button>
+      )}
       {puedeSubir && (
         <button className="btn csfrow-btn" disabled={enviando} onClick={() => input.current?.click()}>
           {enviando ? t('perfil.verifySending') : estado === 'rechazado' ? t('perfil.csfChange') : t('perfil.csfUpload')}
@@ -615,7 +650,7 @@ export function Profile() {
 
       {/* Solo el propio lote (no el admin) ve y sube su constancia. */}
       {esLote && mode !== 'admin' && <ConstanciaLote perfil={perfil} onSent={cargar} />}
-      {!esLote && mode !== 'admin' && !perfil.verificado && <VerificarParticular perfil={perfil} onSent={cargar} />}
+      {!esLote && mode !== 'admin' && <VerificarParticular perfil={perfil} onSent={cargar} />}
 
       <div className="twocol" style={{ margin: 'var(--s-6) 0 var(--s-10)' }}>
         <div className="col gap-4">

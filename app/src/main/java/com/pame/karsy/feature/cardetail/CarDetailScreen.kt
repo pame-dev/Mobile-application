@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.cardetail
 
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.graphics.ColorMatrix
@@ -1420,9 +1421,15 @@ private fun NotFound(onBack: () -> Unit, message: String? = null, onRetry: (() -
                     fontWeight = FontWeight.Bold,
                     color = KarsyInk
                 )
-                message?.let {
-                    Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Body, color = KarsyMid, modifier = Modifier.padding(top = 8.dp))
-                }
+                // Sin error: el auto ya no se puede ver (retirado, o deshabilitado por el equipo).
+                Text(
+                    message ?: stringResource(R.string.detail_not_found_desc),
+                    fontFamily = DmSans,
+                    fontSize = KarsyTextSize.Body,
+                    color = KarsyMid,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
                 Spacer(Modifier.height(20.dp))
                 if (onRetry != null) {
                     PrimaryButton(text = stringResource(R.string.detail_retry), onClick = onRetry)

@@ -211,16 +211,23 @@ export async function favoriteCars(userId: string): Promise<Car[]> {
   const rows = check(
     await supabase.from('favoritos').select('id_publicacion').eq('id_cuenta', userId).order('fecha_guardado', { ascending: false }),
   ) as { id_publicacion: number }[]
-  return (await carsByIds(rows.map((r) => r.id_publicacion))).filter(sigueDisponible)
+  return (await carsByIds(rows.map((r) => r.id_publicacion))).filter(seVeEnFavoritos)
 }
 
 /**
- * Favoritos e historial solo muestran los autos que siguen a la venta (activos): no las
+ * El historial solo muestra los autos que siguen a la venta (activos): no las
  * vendidas (esas quedan en el perfil del vendedor), pausadas, deshabilitadas, en revisión ni
  * rechazadas, aunque las haya abierto el dueño o el admin. No se borran: si se reactivan,
  * vuelven a aparecer. Igual que la app.
  */
 export const sigueDisponible = (car: Car) => car.status === 'Activo'
+
+/**
+ * Favoritos sí muestra los que ya no están a la venta (vendidos, pausados y, para el equipo,
+ * deshabilitados): la tarjeta los marca "Vendido"/"No disponible" con el botón para quitarlos.
+ * Las que no se pueden leer ya no llegan aquí. En revisión o rechazadas no se muestran.
+ */
+export const seVeEnFavoritos = (car: Car) => car.status !== 'Pendiente' && car.status !== 'Rechazado'
 
 export async function setFavorite(userId: string, id: number, favorite: boolean): Promise<void> {
   if (favorite) check(await supabase.from('favoritos').insert({ id_cuenta: userId, id_publicacion: id }))

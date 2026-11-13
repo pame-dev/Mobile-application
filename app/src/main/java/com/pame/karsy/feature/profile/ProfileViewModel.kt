@@ -162,6 +162,19 @@ class ProfileViewModel : ViewModel() {
     var enviandoConstancia by mutableStateOf(false)
         private set
 
+    /**
+     * "Ver documento enviado": pide una URL firmada del archivo propio y se la pasa a [abrir].
+     * Solo para verlo; si falla, el error va en [message].
+     */
+    fun verDocumentoEnviado(abrir: (String) -> Unit) {
+        val ruta = user?.documentoVerificacionPath ?: return
+        viewModelScope.launch {
+            safeCall { UserRepository.documentoVerificacionUrl(ruta) }
+                .onSuccess(abrir)
+                .onFailure { message = texto(R.string.profile_document_open_error) }
+        }
+    }
+
     // ── CURP (solo particular) ──
 
     var curp by mutableStateOf("")

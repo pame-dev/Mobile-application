@@ -359,6 +359,10 @@ export interface Perfil {
   fechaVerificacion: string | null
   /** Cuándo la revisó el admin ("Desde el …" si está verificada). */
   fechaRevision: string | null
+  /** Ruta del archivo de la constancia que mandó (lotes), para verlo; null si no hay. */
+  documentoVerificacion: string | null
+  /** CURP que mandó a verificar (particulares); '' si no hay. */
+  curpEnviada: string
 }
 
 interface TelefonoRow {
@@ -386,8 +390,16 @@ export async function currentProfile(): Promise<Perfil | null> {
   const telefono = tels.find((t) => t.permite_llamadas)
   const whatsapp = tels.find((t) => t.es_whatsapp)
   // Último documento de verificación enviado (si la consulta falla, se muestra como sin enviar).
-  const { data: verif } = await supabase.from('verificaciones_usuario').select('estado,motivo_rechazo,fecha_envio,fecha_revision').eq('user_id', user.id).order('fecha_envio', { ascending: false }).limit(1)
-  const ultimaVerificacion = (verif?.[0] ?? null) as { estado: string; motivo_rechazo: string | null; fecha_envio: string; fecha_revision: string | null } | null
+  const { data: verif } = await supabase.from('verificaciones_usuario').select('estado,motivo_rechazo,fecha_envio,fecha_revision,tipo_documento,archivo_path,curp').eq('user_id', user.id).order('fecha_envio', { ascending: false }).limit(1)
+  const ultimaVerificacion = (verif?.[0] ?? null) as {
+    estado: string
+    motivo_rechazo: string | null
+    fecha_envio: string
+    fecha_revision: string | null
+    tipo_documento: string | null
+    archivo_path: string | null
+    curp: string | null
+  } | null
   let correo = user.email ?? ''
   if (!correo) correo = ((await supabase.rpc('mi_correo')).data as string | null) ?? ''
 
@@ -416,6 +428,8 @@ export async function currentProfile(): Promise<Perfil | null> {
     motivoVerificacion: ultimaVerificacion?.motivo_rechazo ?? '',
     fechaVerificacion: ultimaVerificacion?.fecha_envio ?? null,
     fechaRevision: ultimaVerificacion?.fecha_revision ?? null,
+    documentoVerificacion: ultimaVerificacion?.tipo_documento === 'curp' ? null : ultimaVerificacion?.archivo_path || null,
+    curpEnviada: ultimaVerificacion?.curp ?? '',
   }
 }
 
@@ -548,4 +562,14 @@ export async function setOculta(userId: string, id: number, oculta: boolean): Pr
   } else {
     check(await supabase.from('publicaciones_ocultas').delete().eq('id_cuenta', userId).eq('id_publicacion', id))
   }
+}
+
+/**
+ * Enlace temporal (10 min) para ver la constancia que mandó la cuenta en sesión. Solo puede
+ * leer su propia carpeta del bucket (política constancias_leer_propia).
+ */
+export async function urlDocumentoVerificacion(ruta: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('constancias-fiscales').createSignedUrl(ruta, 600)
+  if (error || !data) throw error ?? new Error('Sin enlace')
+  return data.signedUrl
 }
