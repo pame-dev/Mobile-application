@@ -48,8 +48,8 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
     val reports = vm.reports
     val filtered = reports.filter {
         when (status) {
-            "Pendiente" -> it.status == "Pendiente"
-            "Resuelto" -> it.status != "Pendiente"
+            // Cada estado por separado; "Todos" junta los tres.
+            "Pendiente", "Atendido", "Descartado" -> it.status == status
             else -> true
         }
     }
@@ -66,7 +66,7 @@ fun AdminReportsSection(vm: AdminViewModel, onCarClick: (Long) -> Unit, onReview
                     count = pluralStringResource(R.plurals.admin2_reports_count, reports.size, reports.size)
                 ) {
                     // El tipo (usuario / publicación) ya se ve en cada fila; aquí solo importa si falta atenderlo.
-                    AdminValueSelect(status, listOf("Pendiente", "Resuelto", "Todos")) { status = it }
+                    AdminValueSelect(status, listOf("Pendiente", "Atendido", "Descartado", "Todos")) { status = it }
                 }
             }
 

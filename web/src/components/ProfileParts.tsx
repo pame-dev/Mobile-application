@@ -93,6 +93,7 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
   const { t } = useI18n()
   const lista = useMemo(() => alFinalLosVendidos(filtrarCars(cars, filtros, q, orden)), [cars, filtros, q, orden])
   const filtrando = !!q.trim() || hayFiltros(filtros)
+  const vendidos = cars.filter((c) => c.status === 'Vendido').length
 
   return (
     <div>
@@ -102,7 +103,10 @@ export function Inventory({ cars, title, emptyText }: { cars: Car[]; title: stri
           <p className="muted">
             {filtrando
               ? t('perfil.ofTotal', { n: lista.length, total: t(cars.length === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: cars.length }) })
-              : t(cars.length === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: cars.length })}
+              : vendidos > 0
+                ? // Con vendidos, igual que el encabezado: cuántos siguen en venta y cuántos ya se vendieron.
+                  t(vendidos === 1 ? 'perfil.forSaleSoldOne' : 'perfil.forSaleSoldMany', { a: cars.length - vendidos, v: vendidos })
+                : t(cars.length === 1 ? 'perfil.vehiclesOne' : 'perfil.vehiclesMany', { n: cars.length })}
           </p>
         </div>
         {cars.length > 0 && (

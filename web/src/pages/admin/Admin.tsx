@@ -522,13 +522,31 @@ function useSuspender(listo: (m: string) => void) {
   }
 }
 
-function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; listo: (m: string) => void }) {
+/** Publicaciones de una cuenta por estado, para el detalle: "2 activas, 1 vendida, 1 pausada". */
+const DESGLOSE: [string[], Clave, Clave][] = [
+  // Con cambios en revisión sigue a la venta: cuenta como activa.
+  [['Activo', 'Cambios pendientes'], 'admin.bdActiveOne', 'admin.bdActiveMany'],
+  [['Vendido'], 'admin.bdSoldOne', 'admin.bdSoldMany'],
+  [['Pausado'], 'admin.bdPausedOne', 'admin.bdPausedMany'],
+  [['Deshabilitado'], 'admin.bdDisabledOne', 'admin.bdDisabledMany'],
+  [['Pendiente'], 'admin.bdReviewOne', 'admin.bdReviewMany'],
+  [['Rechazado'], 'admin.bdRejectedOne', 'admin.bdRejectedMany'],
+]
+
+function UserDetail({ c, selfId, listo, autos }: { c: CuentaAdmin; selfId: string; listo: (m: string) => void; autos: { car: Car; row: AnuncioRow }[] }) {
   const { closeModal, toast } = useUi()
   const { t } = useI18n()
   const navigate = useNavigate()
   const { suspender, reactivar } = useSuspender(listo)
   const [busy, setBusy] = useState(false)
   const suspendida = c.estado_cuenta === 'suspendida'
+  // Total y desglose por estado (el perfil público solo muestra activas y vendidas).
+  const estados = autos.map((a) => estadoAdmin(a.row, a.car))
+  const partes = DESGLOSE.flatMap(([incluye, uno, varios]) => {
+    const n = estados.filter((e) => incluye.includes(e)).length
+    return n ? [t(n === 1 ? uno : varios, { n })] : []
+  })
+  const publicaciones = partes.length ? `${c.publicaciones} (${partes.join(', ')})` : String(c.publicaciones)
   // No se puede suspender a otro administrador ni a uno mismo.
   const puede = !c.es_admin && c.id_cuenta !== selfId
   return (
@@ -550,7 +568,7 @@ function UserDetail({ c, selfId, listo }: { c: CuentaAdmin; selfId: string; list
             [t('admin.accountType'), c.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(c) }) : tipoCuenta(c)],
             [t('admin.status'), etiquetaEstado(estadoCuenta(c))],
             [t('admin.registrationDate'), fecha(c.fecha_creacion)],
-            [t('admin.listings'), t('admin.listingsCount', { n: c.publicaciones, a: c.activas })],
+            [t('admin.listings'), publicaciones],
             [t('admin.location'), [c.municipio, c.estado].filter(Boolean).join(', ') || '—'],
             ...(c.tipo_cuenta === 'lote' ? [[t('admin.manager'), c.responsable || '—']] : []),
           ] as [string, string][]
@@ -666,7 +684,7 @@ function Usuarios({ datos, selfId, listo, onVisto }: { datos: Datos; selfId: str
                 </td>
                 <td className="num" data-label={t('admin.registrationDate')}>{fecha(x.fecha_creacion)}</td>
                 <td>
-                  <button className="btn btn-ghost btn-sm" onClick={() => openModal(<UserDetail c={x} selfId={selfId} listo={listo} />)}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => openModal(<UserDetail c={x} selfId={selfId} listo={listo} autos={datos.autos.filter((a) => a.car.ownerId === x.id_cuenta)} />)}>
                     {t('admin.viewDetail')}
                   </button>
                 </td>
@@ -1103,8 +1121,9 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const pendientes = datos.reportes.filter((r) => r.estado_reporte === 'pendiente')
-  const resueltos = datos.reportes.filter((r) => r.estado_reporte !== 'pendiente')
-  const lista = tab === 'pendiente' ? pendientes : tab === 'resueltos' ? resueltos : datos.reportes
+  const atendidos = datos.reportes.filter((r) => r.estado_reporte === 'atendido')
+  const descartados = datos.reportes.filter((r) => r.estado_reporte === 'descartado')
+  const lista = tab === 'pendiente' ? pendientes : tab === 'atendido' ? atendidos : tab === 'descartado' ? descartados : datos.reportes
   return (
     <>
       <AdminHead
@@ -1117,8 +1136,9 @@ function Reportes({ datos, listo }: { datos: Datos; listo: (m: string) => void }
         onChange={setTab}
         options={[
           ['pendiente', t('admin.withCount', { label: t('admin.tabPending'), n: pendientes.length })],
-          ['resueltos', t('admin.withCount', { label: t('admin.tabResolved'), n: resueltos.length })],
-          ['todos', t('admin.all')],
+          ['atendido', t('admin.withCount', { label: t('admin.tabAttended'), n: atendidos.length })],
+          ['descartado', t('admin.withCount', { label: t('admin.tabDismissed'), n: descartados.length })],
+          ['todos', t('admin.withCount', { label: t('admin.all'), n: datos.reportes.length })],
         ]}
       />
       <div className="card tablewrap">

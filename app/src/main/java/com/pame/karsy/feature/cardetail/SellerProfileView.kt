@@ -1,5 +1,6 @@
 package com.pame.karsy.feature.cardetail
 
+import com.pame.karsy.data.model.EstadoAuto
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -191,7 +192,12 @@ internal fun SellerProfileView(
                         if (verificado) VerifiedBadge()
                     }
                     Text(
-                        pluralStringResource(R.plurals.detail_seller_listings, cars.size, tipo, cars.size),
+                        // Con vendidos: "Particular · 2 en venta · 1 vendido" (la lista los incluye al final).
+                        cars.count { it.status == EstadoAuto.VENDIDO }.let { vendidos ->
+                            if (vendidos == 0) pluralStringResource(R.plurals.detail_seller_listings, cars.size, tipo, cars.size)
+                            else pluralStringResource(R.plurals.detail_seller_for_sale, cars.size - vendidos, tipo, cars.size - vendidos) +
+                                " · " + pluralStringResource(R.plurals.detail_seller_sold, vendidos, vendidos)
+                        },
                         fontFamily = DmSans,
                         fontSize = KarsyTextSize.Body,
                         fontWeight = FontWeight.SemiBold,

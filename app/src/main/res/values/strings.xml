@@ -1102,7 +1102,6 @@
     <string name="admin2_value_sold">Vendido</string>
     <string name="admin2_value_resolved">Atendido</string>
     <string name="admin2_value_dismissed">Descartado</string>
-    <string name="admin2_value_closed">Resueltos</string>
     <string name="admin2_review_enable">Rehabilitar publicación</string>
     <string name="admin2_review_approve_reenables">Esta publicación está deshabilitada. Si apruebas los cambios, se volverá a habilitar.</string>
     <string name="admin2_value_user">Usuario</string>
@@ -1578,4 +1577,13 @@
     <string name="admin3_export_excel">Excel: para analizar los números</string>
     <string name="admin3_export_pdf">PDF: reporte para presentar o guardar</string>
     <string name="admin3_cancel">Cancelar</string>
+    <string name="admin2_posts_breakdown">%1$d (%2$s)</string>
+    <plurals name="admin2_count_active"><item quantity="one">%d activa</item><item quantity="other">%d activas</item></plurals>
+    <plurals name="admin2_count_sold"><item quantity="one">%d vendida</item><item quantity="other">%d vendidas</item></plurals>
+    <plurals name="admin2_count_paused"><item quantity="one">%d pausada</item><item quantity="other">%d pausadas</item></plurals>
+    <plurals name="admin2_count_disabled"><item quantity="one">%d deshabilitada</item><item quantity="other">%d deshabilitadas</item></plurals>
+    <plurals name="admin2_count_review"><item quantity="one">%d en revisión</item><item quantity="other">%d en revisión</item></plurals>
+    <plurals name="admin2_count_rejected"><item quantity="one">%d rechazada</item><item quantity="other">%d rechazadas</item></plurals>
+    <plurals name="detail_seller_for_sale"><item quantity="one">%1$s · %2$d en venta</item><item quantity="other">%1$s · %2$d en venta</item></plurals>
+    <plurals name="detail_seller_sold"><item quantity="one">%d vendido</item><item quantity="other">%d vendidos</item></plurals>
 </resources>

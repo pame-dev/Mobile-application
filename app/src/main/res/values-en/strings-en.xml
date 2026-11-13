@@ -1100,7 +1100,6 @@
     <string name="admin2_value_sold">Sold</string>
     <string name="admin2_value_resolved">Resolved</string>
     <string name="admin2_value_dismissed">Dismissed</string>
-    <string name="admin2_value_closed">Resolved</string>
     <string name="admin2_review_enable">Re-enable listing</string>
     <string name="admin2_review_approve_reenables">This listing is disabled. If you approve the changes, it will be re-enabled.</string>
     <string name="admin2_value_user">User</string>
@@ -1576,4 +1575,13 @@
     <string name="admin3_export_excel">Excel: to analyze the numbers</string>
     <string name="admin3_export_pdf">PDF: report to present or keep</string>
     <string name="admin3_cancel">Cancel</string>
+    <string name="admin2_posts_breakdown">%1$d (%2$s)</string>
+    <plurals name="admin2_count_active"><item quantity="one">%d active</item><item quantity="other">%d active</item></plurals>
+    <plurals name="admin2_count_sold"><item quantity="one">%d sold</item><item quantity="other">%d sold</item></plurals>
+    <plurals name="admin2_count_paused"><item quantity="one">%d paused</item><item quantity="other">%d paused</item></plurals>
+    <plurals name="admin2_count_disabled"><item quantity="one">%d disabled</item><item quantity="other">%d disabled</item></plurals>
+    <plurals name="admin2_count_review"><item quantity="one">%d under review</item><item quantity="other">%d under review</item></plurals>
+    <plurals name="admin2_count_rejected"><item quantity="one">%d rejected</item><item quantity="other">%d rejected</item></plurals>
+    <plurals name="detail_seller_for_sale"><item quantity="one">%1$s · %2$d for sale</item><item quantity="other">%1$s · %2$d for sale</item></plurals>
+    <plurals name="detail_seller_sold"><item quantity="one">%d sold</item><item quantity="other">%d sold</item></plurals>
 </resources>
