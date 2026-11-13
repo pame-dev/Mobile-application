@@ -35,6 +35,10 @@ object AdminRepository {
             .decodeList<AnuncioDto>()
             .map { CarRepository.toCar(it) to it }
 
+    /** Pendientes que el rol en sesión puede atender, en un solo número (menú de la cuenta). */
+    suspend fun panelPendientes(): Int =
+        db.postgrest.rpc("panel_pendientes").decodeAs<Int>()
+
     suspend fun reports(): List<ReporteAdminDto> =
         db.postgrest.rpc("admin_listar_reportes").decodeList<ReporteAdminDto>()
 

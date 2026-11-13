@@ -89,6 +89,9 @@ fun AdminDashboardScreen(
     onReviewReport: (Long) -> Unit,
     onLogout: () -> Unit,
     onNotifications: () -> Unit,
+    onProfile: () -> Unit,
+    onSettings: () -> Unit,
+    onIrAKarsy: () -> Unit,
     vm: AdminViewModel = viewModel(),
 ) {
     // Mientras guarda o envía, no deja tocar nada más (evita errores por acciones a medias).
@@ -149,7 +152,12 @@ fun AdminDashboardScreen(
                         else -> 0
                     }
                 },
-                onLogout = onLogout
+                onLogout = onLogout,
+                // Se cierra el menú antes de salir: si no, al regresar al panel seguiría abierto.
+                onProfile = { scope.launch { drawerState.close() }; onProfile() },
+                onNotifications = { scope.launch { drawerState.close() }; onNotifications() },
+                onSettings = { scope.launch { drawerState.close() }; onSettings() },
+                onIrAKarsy = { scope.launch { drawerState.close() }; onIrAKarsy() },
             )
         }
     ) {

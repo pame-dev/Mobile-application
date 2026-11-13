@@ -50,10 +50,11 @@ import { CargandoBloqueo } from '../../components/CargandoBloqueo'
 type Seccion = 'inicio' | 'usuarios' | 'vehiculos' | 'reportes' | 'destacados' | 'verificacion'
 
 /** Secciones que ve cada rol de panel (rol_panel en la BD); el administrador, todas. Igual que AdminSection.delRol en la app. */
+// Ordenadas por lo que más se revisa; la primera es la de entrada de cada rol.
 function seccionesDelRol(rol: string | null): Seccion[] {
-  if (rol === 'moderador_publicaciones') return ['usuarios', 'vehiculos', 'reportes']
-  if (rol === 'moderador_verificaciones') return ['destacados', 'verificacion']
-  return ['inicio', 'usuarios', 'vehiculos', 'reportes', 'destacados', 'verificacion']
+  if (rol === 'moderador_publicaciones') return ['vehiculos', 'reportes', 'usuarios']
+  if (rol === 'moderador_verificaciones') return ['verificacion', 'destacados']
+  return ['inicio', 'vehiculos', 'reportes', 'verificacion', 'destacados', 'usuarios']
 }
 
 /** Todo lo que necesita el panel; se recarga después de cada acción. */
@@ -209,13 +210,14 @@ export function Admin() {
     destacados: datos?.destacados.filter((d) => d.estado_solicitud === 'pendiente').length ?? 0,
     verificacion: datos?.verificaciones.filter((v) => v.estado === 'pendiente').length ?? 0,
   }
+  // Mismo orden que seccionesDelRol; cada sección con su número de pendientes.
   const items = ([
-    ['inicio', 'admin.sec.home', 'home'],
-    ['usuarios', 'admin.sec.users', 'users'],
+    ['inicio', 'admin.sec.home', 'chart'],
     ['vehiculos', 'admin.sec.vehicles', 'car', pendientes.vehiculos],
     ['reportes', 'admin.sec.reports', 'flag', pendientes.reportes],
-    ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
     ['verificacion', 'admin.sec.verification', 'shield', pendientes.verificacion],
+    ['destacados', 'admin.sec.featured', 'star', pendientes.destacados],
+    ['usuarios', 'admin.sec.users', 'users'],
   ] as [Seccion, Clave, IconName, number?][]).filter(([k]) => permitidas.includes(k))
   const ir = (s: Seccion, filtro?: string) => navigate((s === 'inicio' ? '/admin' : `/admin/${s}`) + (filtro ? `?${filtro}` : ''))
   /** Navega y, si el panel móvil estaba abierto, lo cierra. */
@@ -268,6 +270,7 @@ export function Admin() {
         <button className="iconbtn sideclose" aria-label={t('nav.closeMenu')} onClick={cerrarMenu}>
           <Icon name="x" size={18} />
         </button>
+        <span className="sidegrupo">{t('admin.groupPanel')}</span>
         {items.map(([k, clave, i, n]) => (
           <button key={k} className={`it ${seccion === k ? 'on' : ''}`} onClick={() => elegir(() => ir(k))}>
             <Icon name={i} />
@@ -277,32 +280,34 @@ export function Admin() {
         ))}
         {/* Minimenú del administrador: siempre visible al fondo de la barra. */}
         <nav className="adminmenu" aria-label={t('nav.myAccount')}>
+          <span className="sidegrupo">{t('admin.groupAccount')}</span>
+          {/* Tocar el nombre lleva a Mi perfil; Notificaciones y Configuración van como íconos. */}
           <div className="amhead">
-            <Ini name={account.nombre} src={publicUrl(account.fotoPerfil)} />
-            <div style={{ minWidth: 0 }}>
-              <b>{account.nombre}</b>
-              <span>{t(account.esAdmin ? 'admin.administrator' : 'admin.moderator')}</span>
-            </div>
+            <button className="amperfil" aria-label={t('nav.myProfile')} onClick={() => elegir(() => navigate('/perfil'))}>
+              <Ini name={account.nombre} src={publicUrl(account.fotoPerfil)} />
+              <span style={{ minWidth: 0 }}>
+                <b>{account.nombre}</b>
+                <span>{t(account.esAdmin ? 'admin.administrator' : 'admin.moderator')}</span>
+              </span>
+            </button>
+            <button
+              className="iconbtn amicono"
+              aria-label={sinLeer ? t('nav.notificationsUnread', { n: sinLeer }) : t('nav.notifications')}
+              onClick={() => elegir(() => navigate('/notificaciones'))}
+            >
+              <Icon name="bell" size={18} />
+              {sinLeer > 0 && <span className="dot">{sinLeer > 99 ? '99+' : sinLeer}</span>}
+            </button>
+            <button className="iconbtn amicono" aria-label={t('nav.settings')} onClick={() => elegir(() => navigate('/configuracion'))}>
+              <Icon name="settings" size={18} />
+            </button>
           </div>
           <hr />
+          {/* Sale del panel a la página principal de Karsy (no es el Resumen del panel). */}
           <button className="it" onClick={() => elegir(() => navigate('/'))}>
-            <Icon name="home" />
+            <Icon name="globe" />
             {t('admin.backHome')}
           </button>
-          <button className="it" onClick={() => elegir(() => navigate('/notificaciones'))}>
-            <Icon name="bell" />
-            {t('nav.notifications')}
-            {sinLeer > 0 && <span className="cnt">{sinLeer > 99 ? '99+' : sinLeer}</span>}
-          </button>
-          <button className="it" onClick={() => elegir(() => navigate('/perfil'))}>
-            <Icon name="user" />
-            {t('nav.myProfile')}
-          </button>
-          <button className="it" onClick={() => elegir(() => navigate('/configuracion'))}>
-            <Icon name="settings" />
-            {t('nav.settings')}
-          </button>
-          <hr />
           <button className="it danger" onClick={() => elegir(() => openModal(<LogoutModal />))}>
             <Icon name="logout" />
             {t('nav.logout')}

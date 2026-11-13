@@ -1,6 +1,15 @@
 package com.pame.karsy.feature.home
 
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +23,6 @@ import androidx.compose.material.icons.automirrored.rounded.Login
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.SpaceDashboard
 import androidx.compose.material3.DropdownMenu
@@ -51,9 +59,10 @@ private val MenuGray: Color get() = KarsyMid
 private val LogoutCoral = KarsyCoral
 
 /**
- * Menú flotante del ícono de perfil (solo con sesión): datos de la cuenta,
- * "Mi perfil", "Mi panel", "Panel de administración" (admin o moderador), "Idioma" y
- * "Cerrar sesión". Se ancla debajo del ícono y se cierra al tocar fuera.
+ * Menú flotante del ícono de perfil (solo con sesión). El encabezado (foto, nombre y correo)
+ * lleva a Mi perfil. Debajo, en grupos: TU CUENTA ("Mis autos") y ADMINISTRACIÓN ("Panel de
+ * administración" con sus [pendientes], admin o moderador). Al final "Idioma" y "Cerrar sesión".
+ * [panelActivo] / [adminActivo] marcan la opción de la pantalla en la que ya se está.
  */
 @Composable
 internal fun AccountMenu(
@@ -69,6 +78,9 @@ internal fun AccountMenu(
     onAdminPanel: () -> Unit,
     onLanguage: () -> Unit,
     onLogout: () -> Unit,
+    pendientes: Int = 0,
+    panelActivo: Boolean = false,
+    adminActivo: Boolean = false,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -79,13 +91,20 @@ internal fun AccountMenu(
         shadowElevation = 10.dp,
         modifier = Modifier.widthIn(min = 240.dp, max = 300.dp)
     ) {
+        // Tocar la foto o el nombre abre Mi perfil (ya no hay fila aparte).
         Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button) {
+                    onDismiss()
+                    onProfile()
+                }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ProfileAvatar(name = name, avatarUrl = avatarUrl, size = 42.dp, initialsSize = 15.sp)
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
                     name,
                     fontFamily = Outfit,
@@ -95,8 +114,8 @@ internal fun AccountMenu(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (email.isNotBlank()) Text(
-                    email,
+                Text(
+                    email.ifBlank { stringResource(R.string.home_my_profile) },
                     fontFamily = DmSans,
                     fontSize = KarsyTextSize.Small,
                     color = MenuGray,
@@ -104,20 +123,30 @@ internal fun AccountMenu(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MenuGray, modifier = Modifier.size(20.dp))
         }
         HorizontalDivider(color = KarsyBorder)
-        MenuOption(Icons.Outlined.Person, stringResource(R.string.home_my_profile), KarsyInk) {
-            onDismiss()
-            onProfile()
+        if (showPanel) {
+            GroupLabel(stringResource(R.string.admin2_group_account))
+            MenuOption(Icons.Outlined.SpaceDashboard, stringResource(R.string.profile_panel_seller), KarsyInk, active = panelActivo) {
+                onDismiss()
+                onPanel()
+            }
         }
-        if (showPanel) MenuOption(Icons.Outlined.SpaceDashboard, stringResource(R.string.profile_panel_seller), KarsyInk) {
-            onDismiss()
-            onPanel()
+        if (showAdminPanel) {
+            GroupLabel(stringResource(R.string.home_menu_group_admin))
+            MenuOption(
+                Icons.Outlined.AdminPanelSettings,
+                stringResource(R.string.home_admin_panel),
+                KarsyInk,
+                active = adminActivo,
+                count = pendientes
+            ) {
+                onDismiss()
+                onAdminPanel()
+            }
         }
-        if (showAdminPanel) MenuOption(Icons.Outlined.AdminPanelSettings, stringResource(R.string.home_admin_panel), KarsyInk) {
-            onDismiss()
-            onAdminPanel()
-        }
+        if (showPanel || showAdminPanel) HorizontalDivider(color = KarsyBorder, modifier = Modifier.padding(top = 4.dp))
         // A la vista (antes solo estaba en Ajustes): los usuarios no lo encontraban.
         MenuOption(Icons.Outlined.Language, stringResource(R.string.settings_language), KarsyInk) {
             onDismiss()
@@ -131,18 +160,72 @@ internal fun AccountMenu(
     }
 }
 
+/** Título de grupo del menú (en mayúsculas, gris, como en el menú del panel). */
 @Composable
-private fun MenuOption(icon: ImageVector, text: String, color: Color, onClick: () -> Unit) {
+private fun GroupLabel(text: String) {
+    Text(
+        text,
+        fontFamily = DmSans,
+        fontSize = KarsyTextSize.Small,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.8.sp,
+        color = MenuGray,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp)
+    )
+}
+
+/**
+ * Opción del menú. [active]: es la pantalla en la que ya se está (fondo suave y texto en
+ * negritas). [count] > 0 muestra una pastilla con los pendientes.
+ */
+@Composable
+private fun MenuOption(
+    icon: ImageVector,
+    text: String,
+    color: Color,
+    active: Boolean = false,
+    count: Int = 0,
+    onClick: () -> Unit,
+) {
+    val pendingCd = if (count > 0) stringResource(R.string.home_menu_pending_cd, count) else null
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 13.dp),
+            .padding(horizontal = 6.dp)
+            .clip(RoundedCornerShape(KarsyRadius.Md))
+            .background(if (active) KarsyBorder.copy(alpha = 0.6f) else Color.Transparent)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                if (active) selected = true
+                if (pendingCd != null) stateDescription = pendingCd
+            }
+            .padding(horizontal = 10.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(19.dp))
-        Text(text, fontFamily = DmSans, fontSize = KarsyTextSize.BodyLarge, fontWeight = FontWeight.SemiBold, color = color)
+        Text(
+            text,
+            fontFamily = DmSans,
+            fontSize = KarsyTextSize.BodyLarge,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
+            color = color,
+            modifier = Modifier.weight(1f)
+        )
+        if (count > 0) {
+            Text(
+                if (count > 99) "99+" else count.toString(),
+                fontFamily = DmSans,
+                fontSize = KarsyTextSize.Small,
+                fontWeight = FontWeight.Bold,
+                color = KarsyWhite,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(KarsyCoral)
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                    .clearAndSetSemantics {}
+            )
+        }
     }
 }
 
