@@ -103,6 +103,8 @@ internal fun ContactSheet(
     /** No se pudo leer el contacto: se muestra el error con "Reintentar" en lugar de "Sin teléfono". */
     error: Boolean = false,
     onRetry: () -> Unit = {},
+    /** Se tocó Llamar o WhatsApp: ahí se cuenta el contacto. */
+    onContactar: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val telefono = contact?.telefono
@@ -244,6 +246,7 @@ internal fun ContactSheet(
                 val llamar: @Composable (Boolean) -> Unit = { primary ->
                     ContactButton(stringResource(R.string.detail_call_seller), Icons.Rounded.Call, primary, enabled = telefono != null) {
                         telefono?.let {
+                            onContactar()
                             val llamada = Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + it.filter { c -> c.isDigit() || c == '+' }))
                             // Sin app de teléfono (p. ej. tabletas): se copia el número en lugar de cerrar la app.
                             if (runCatching { context.startActivity(llamada) }.isFailure) copiarNumero(context, it, sinApp)
@@ -253,6 +256,7 @@ internal fun ContactSheet(
                 val escribir: @Composable (Boolean) -> Unit = { primary ->
                     ContactButton(stringResource(R.string.detail_send_whatsapp), Icons.AutoMirrored.Rounded.Chat, primary, enabled = whatsapp != null) {
                         whatsapp?.let {
+                            onContactar()
                             if (!openWhatsapp(context, it, mensajeWhatsapp)) copiarNumero(context, it, sinWhatsapp)
                         }
                     }

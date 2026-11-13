@@ -609,8 +609,9 @@ fun CarDetailScreen(
             contact = vm.contact,
             loading = vm.contactLoading,
             error = vm.contactError,
-            onRetry = { vm.loadContact(registrar = false) },
+            onRetry = { vm.loadContact() },
             onDismiss = { showContact = false },
+            onContactar = vm::registrarContacto,
             onOpenProfile = {
                 showContact = false
                 openSeller()
