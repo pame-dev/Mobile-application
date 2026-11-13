@@ -1,5 +1,7 @@
 package com.pame.karsy.feature.cardetail
 
+import com.pame.karsy.core.session.SessionManager
+import com.pame.karsy.BuildConfig
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -110,7 +112,21 @@ internal fun ContactSheet(
     val telefono = contact?.telefono
     val whatsapp = contact?.whatsapp
     val prefiereWhatsapp = contact?.medioPrincipal == "whatsapp"
-    val mensajeWhatsapp = stringResource(R.string.detail_whatsapp_message, detail.car.title, detail.car.year)
+    // Mensaje de WhatsApp (igual que la web): saludo con el nombre del vendedor, quién escribe,
+    // el auto en negritas, precio y km, la pregunta y el enlace (WhatsApp muestra la tarjeta con
+    // foto y precio). Sin nombre de alguno de los dos, esa parte no aparece.
+    val car = detail.car
+    val vendedor = contact?.let { if (it.tipoCuenta == "lote") it.nombre else it.nombre.substringBefore(' ') }?.trim().orEmpty()
+    val yo = SessionManager.account?.nombre?.substringBefore(' ')?.trim().orEmpty()
+    val auto = if (car.year > 0) "${car.title} ${car.year}" else car.title
+    val mensajeWhatsapp = listOf(
+        if (vendedor.isNotEmpty()) stringResource(R.string.detail_wa_hello, vendedor) else stringResource(R.string.detail_wa_hello_anon),
+        if (yo.isNotEmpty()) stringResource(R.string.detail_wa_intro, yo, auto) else stringResource(R.string.detail_wa_intro_anon, auto),
+        listOf("${car.price} ${car.currency}", car.kilometraje).filter { it.isNotBlank() }.joinToString(" · "),
+        stringResource(R.string.detail_wa_question),
+        "",
+        "${BuildConfig.WEB_URL}/vehiculo/${car.id}",
+    ).joinToString("\n")
     val sinApp = stringResource(R.string.detail_no_dialer)
     val sinWhatsapp = stringResource(R.string.detail_no_whatsapp_app)
 

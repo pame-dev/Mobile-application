@@ -51,7 +51,20 @@ function ContactModal({ detail }: { detail: CarDetail }) {
   }
 
   const car = detail.car
-  const mensaje = t('vehiculo.contact.message', { v: `${car.brand} ${car.model} ${car.year}` })
+  // Mensaje de WhatsApp: saludo con el nombre del vendedor, quién escribe, el auto en negritas,
+  // precio y km, la pregunta y el enlace (WhatsApp muestra la tarjeta con foto y precio).
+  // Sin nombre de alguno de los dos, esa parte no aparece.
+  const vendedor = c ? (c.tipo_cuenta === 'lote' ? c.nombre : c.nombre.split(' ')[0]).trim() : ''
+  const yo = (account?.nombre ?? '').split(' ')[0].trim()
+  const auto = `${car.brand} ${car.model} ${car.year || ''}`.trim()
+  const mensaje = [
+    vendedor ? t('vehiculo.contact.msgHello', { n: vendedor }) : t('vehiculo.contact.msgHelloAnon'),
+    yo ? t('vehiculo.contact.msgIntro', { n: yo, v: auto }) : t('vehiculo.contact.msgIntroAnon', { v: auto }),
+    [`${precio(car.priceValue)} ${car.currency}`, car.km ? km(car.km) : ''].filter(Boolean).join(' · '),
+    t('vehiculo.contact.msgQuestion'),
+    '',
+    `${window.location.origin}/vehiculo/${car.id}`,
+  ].join('\n')
   const whatsapp = c?.numero_whatsapp ?? (c?.whatsapp ? c.telefono : null)
   const prefiereWa = c?.medio_principal === 'whatsapp'
   return (
@@ -112,7 +125,7 @@ function ContactModal({ detail }: { detail: CarDetail }) {
             </a>
           )}
           {!c.telefono && !whatsapp && <p className="muted">{t('vehiculo.contact.noPhone')}</p>}
-          <p className="mid text-xs">
+          <p className="mid text-xs" style={{ whiteSpace: 'pre-line' }}>
             {t('vehiculo.contact.suggested', { m: mensaje })}
           </p>
           <GuiaSeguridad />
