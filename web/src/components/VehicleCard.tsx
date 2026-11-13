@@ -25,6 +25,8 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
   const fav = useFavorites()
   const { t } = useI18n()
   const on = fav.isFavorite(car.id)
+  // Ya no está a la venta (vendido, pausado o deshabilitado) y no es tuyo: p. ej. en Favoritos.
+  const fueraDeVenta = account?.id !== car.ownerId && (car.status === 'Vendido' || car.status === 'Pausado' || car.status === 'Deshabilitado')
   const ruta = `/vehiculo/${car.id}`
 
   return (
@@ -40,8 +42,12 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
         }}
       >
         {/* Tu publicación nueva en revisión: foto atenuada (todavía nadie más la ve). */}
-        <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model} ${car.year || ''}`} className={showStatus && car.status === 'Pendiente' ? 'enrevision' : ''}>
-          {car.featured && <span className="tag badge b-star">{t('home.featuredBadge')}</span>}
+        <CarPhoto src={car.imageUrl} alt={`${car.brand} ${car.model} ${car.year || ''}`} className={showStatus && car.status === 'Pendiente' ? 'enrevision' : fueraDeVenta ? 'fueradeventa' : ''}>
+          {fueraDeVenta ? (
+            <span className="tag badge b-neu">{t(car.status === 'Vendido' ? 'vehiculo.status.Vendido' : 'vehiculo.detail.notAvailableBadge')}</span>
+          ) : (
+            car.featured && <span className="tag badge b-star">{t('home.featuredBadge')}</span>
+          )}
         </CarPhoto>
         <div className="body">
           {showStatus && <span className={`badge ${STATUS_BADGE[car.status]}`} style={{ alignSelf: 'flex-start' }}>{t(statusLabel(car.status))}</span>}
@@ -59,7 +65,7 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
               </div>
             </div>
             <div>
-              <div className="vprice num">{precio(car.priceValue)}</div>
+              <div className={`vprice num ${fueraDeVenta ? 'tachado' : ''}`}>{precio(car.priceValue)}</div>
               <div className="mid text-xs" style={{ textAlign: 'right' }}>
                 {car.currency}
               </div>
@@ -91,8 +97,15 @@ export function VehicleCard({ car, showStatus = false, note }: { car: Car; showS
           )}
         </div>
       </a>
+      {/* Ya no está a la venta y lo tienes guardado: botón claro para quitarlo de favoritos. */}
+      {fueraDeVenta && on && (
+        <button className="btn btn-ghost btn-sm vcard-quitar" onClick={() => fav.toggle(car.id)}>
+          <Icon name="heart" size={16} />
+          {t('vehiculo.fav.removeFromFavorites')}
+        </button>
+      )}
       {/* Tus propias publicaciones no se guardan en favoritos, ni un auto vendido (no saldría ahí). */}
-      {account?.id !== car.ownerId && car.status !== 'Vendido' && (
+      {account?.id !== car.ownerId && car.status !== 'Vendido' && !(fueraDeVenta && on) && (
         <button
           className={`heart ${on ? 'on' : ''}`}
           aria-label={on ? t('vehiculo.fav.remove') : t('vehiculo.fav.add')}

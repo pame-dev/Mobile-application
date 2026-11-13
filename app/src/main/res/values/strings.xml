@@ -433,7 +433,10 @@
     <string name="detail_sold_owner_title">Marcaste esta publicación como vendida</string>
     <string name="detail_sold_desc">El vendedor lo marcó como vendido; ya no está disponible.</string>
     <string name="detail_sold_owner_desc">Ya no aparece para los compradores. Si la venta no se concretó, márcala como disponible.</string>
-    <string name="detail_sold_unavailable">Vehículo vendido</string>
+    <string name="detail_unavailable_title">Este auto ya no está disponible</string>
+    <string name="detail_unavailable_desc">El vendedor lo pausó o ya no está publicado. Mira autos parecidos.</string>
+    <string name="detail_unavailable_badge">No disponible</string>
+    <string name="detail_see_similar">Ver autos parecidos</string>
     <string name="sold_via_inside">Vendido dentro de la app</string>
     <string name="sold_via_outside">Vendido fuera de la app</string>
     <string name="detail_disabled_reason">Motivo: %1$s</string>

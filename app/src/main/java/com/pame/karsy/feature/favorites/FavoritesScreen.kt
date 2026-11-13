@@ -1,9 +1,13 @@
 package com.pame.karsy.feature.favorites
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.text.style.TextDecoration
+import com.pame.karsy.feature.cardetail.FotoEnGris
+import com.pame.karsy.feature.cardetail.EtiquetaNoDisponible
 import androidx.compose.foundation.layout.heightIn
 import com.pame.karsy.core.components.PrimaryButton
 import com.pame.karsy.core.components.VerifiedShield
-import com.pame.karsy.core.theme.KarsyGreenDark
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
@@ -293,7 +297,6 @@ private fun SearchRow(search: String, onSearch: (String) -> Unit, onFilter: () -
     }
 }
 
-private val SoldBadge = KarsyGreenDark
 
 @Composable
 private fun FavoriteCard(
@@ -304,6 +307,9 @@ private fun FavoriteCard(
 ) {
     val shape = RoundedCornerShape(KarsyRadius.Xl)
     val sold = car.status == EstadoAuto.VENDIDO
+    // Vendido, pausado o deshabilitado: ya no está a la venta (etiqueta, foto en gris,
+    // precio tachado y "Quitar de favoritos" en lugar de "Ver más").
+    val noDisponible = sold || car.status == EstadoAuto.PAUSADO || car.status == EstadoAuto.DESHABILITADO
     Column(
         modifier
             .fillMaxWidth()
@@ -323,13 +329,19 @@ private fun FavoriteCard(
                 model = car.imageUrl,
                 contentDescription = car.model,
                 contentScale = ContentScale.Crop,
-                // Vendido: la foto se atenúa para que se note que ya no está disponible.
-                alpha = if (sold) 0.55f else 1f,
+                // Ya no está a la venta: la foto va en gris y atenuada.
+                alpha = if (noDisponible) 0.7f else 1f,
+                colorFilter = if (noDisponible) FotoEnGris else null,
                 modifier = Modifier.fillMaxSize()
             )
-            StarBadge(
-                text = if (sold) stringResource(R.string.profile_status_sold) else car.condition,
-                background = if (sold) SoldBadge else KarsyNavy.copy(alpha = 0.75f),
+            if (noDisponible) EtiquetaNoDisponible(
+                vendido = sold,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(12.dp)
+            ) else StarBadge(
+                text = car.condition,
+                background = KarsyNavy.copy(alpha = 0.75f),
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(12.dp)
@@ -382,8 +394,29 @@ private fun FavoriteCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(car.price, fontFamily = Outfit, fontSize = KarsyTextSize.TitleLarge, fontWeight = FontWeight.Bold, color = KarsyInk)
-                Button(
+                Text(
+                    car.price,
+                    fontFamily = Outfit,
+                    fontSize = KarsyTextSize.TitleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (noDisponible) KarsyMid else KarsyInk,
+                    textDecoration = if (noDisponible) TextDecoration.LineThrough else null
+                )
+                if (noDisponible) OutlinedButton(
+                    onClick = onRemove,
+                    shape = RoundedCornerShape(KarsyRadius.Md),
+                    border = BorderStroke(1.dp, KarsyBorder),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
+                    modifier = Modifier.height(34.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.core_remove_favorite),
+                        fontFamily = DmSans,
+                        fontSize = KarsyTextSize.Small,
+                        fontWeight = FontWeight.SemiBold,
+                        color = KarsyCharcoal
+                    )
+                } else Button(
                     onClick = onClick,
                     shape = RoundedCornerShape(KarsyRadius.Md),
                     colors = ButtonDefaults.buttonColors(containerColor = KarsyNavy, contentColor = KarsyWhite),
