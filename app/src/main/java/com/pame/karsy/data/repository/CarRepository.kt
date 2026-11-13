@@ -207,7 +207,7 @@ object CarRepository {
         }
     }
 
-    /** Cuenta un contacto con el vendedor (estadísticas); se llama una vez al abrir la hoja de contacto. */
+    /** Cuenta un contacto con el vendedor (estadísticas); se llama al tocar Llamar o WhatsApp. */
     suspend fun registrarContacto(id: Long) {
         val uid = SessionManager.userId ?: return
         runCatching { db.from("interacciones_publicacion").insert(InteraccionInsert(id, uid, "contactar")) }

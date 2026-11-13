@@ -255,20 +255,23 @@ export async function reportListing(id: number, userId: string, tipo: 'publicaci
   }
 }
 
-/** Datos de contacto del vendedor (función contacto_vendedor); con sesión registra el contacto. */
 /** Si la cuenta tiene la insignia de verificado (cuentas.verificado); la ve cualquiera. */
 export async function cuentaVerificada(id: string): Promise<boolean> {
   const c = check(await supabase.from('cuentas').select('verificado').eq('id_cuenta', id).maybeSingle()) as { verificado: boolean | null } | null
   return c?.verificado === true
 }
 
-/** Datos de contacto; con [userId] cuenta además el contacto (estadísticas): una vez por visita al auto. */
-export async function sellerContact(id: number, userId: string | null): Promise<SellerContact | null> {
-  const data = check(await supabase.rpc('contacto_vendedor', { p_id_publicacion: id })) as SellerContact | null
-  if (data && userId) {
-    await supabase.from('interacciones_publicacion').insert({ id_publicacion: id, id_cuenta: userId, tipo_interaccion: 'contactar' })
-  }
-  return data
+/** Datos de contacto del vendedor. Verlos no cuenta como contacto: ver [registrarContacto]. */
+export async function sellerContact(id: number): Promise<SellerContact | null> {
+  return check(await supabase.rpc('contacto_vendedor', { p_id_publicacion: id })) as SellerContact | null
+}
+
+/**
+ * Cuenta un contacto al tocar WhatsApp o Llamar. La base de datos guarda como máximo uno por
+ * persona y auto al día (y nunca los del dueño), así que repetir el toque no infla el número.
+ */
+export async function registrarContacto(id: number, userId: string): Promise<void> {
+  await supabase.from('interacciones_publicacion').insert({ id_publicacion: id, id_cuenta: userId, tipo_interaccion: 'contactar' })
 }
 
 // ── Lotes y vendedores (LotRepository) ──────────────────────────────────────

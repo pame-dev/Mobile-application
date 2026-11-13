@@ -10,7 +10,7 @@ import { VolverButton } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
-import { carDetail, cuentaVerificada, registerView, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
+import { carDetail, cuentaVerificada, registerView, registrarContacto, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
 import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
 import type { Car, CarDetail, SellerContact } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
@@ -32,17 +32,23 @@ const STATUS_BADGE: Record<Car['status'], string> = {
   Pausado: 'b-neu',
 }
 
-/** [registrar]: contar este contacto en las estadísticas (solo la primera vez que se abre en la visita). */
-function ContactModal({ detail, registrar }: { detail: CarDetail; registrar: boolean }) {
+/** Datos del vendedor. Abrirla no cuenta como contacto: cuenta al tocar WhatsApp o Llamar. */
+function ContactModal({ detail }: { detail: CarDetail }) {
   const { account } = useSession()
   const { t } = useI18n()
   const [c, setC] = useState<SellerContact | null | undefined>(undefined)
-  /** Veces que se tocó "Reintentar": al reintentar ya no se vuelve a contar el contacto. */
+  /** Veces que se tocó "Reintentar". */
   const [intento, setIntento] = useState(0)
   useEffect(() => {
-    const contar = registrar && intento === 0
-    sellerContact(detail.car.id, contar ? (account?.id ?? null) : null).then(setC).catch(() => setC(null))
-  }, [detail.car.id, account?.id, registrar, intento])
+    sellerContact(detail.car.id).then(setC).catch(() => setC(null))
+  }, [detail.car.id, intento])
+  // Una vez por ventana; además la base de datos guarda como máximo uno por persona y auto al día.
+  const contado = useRef(false)
+  const contar = () => {
+    if (contado.current || !account) return
+    contado.current = true
+    void registrarContacto(detail.car.id, account.id).catch(() => undefined)
+  }
 
   const car = detail.car
   const mensaje = t('vehiculo.contact.message', { v: `${car.brand} ${car.model} ${car.year}` })
@@ -94,13 +100,13 @@ function ContactModal({ detail, registrar }: { detail: CarDetail; registrar: boo
             </div>
           )}
           {whatsapp && (
-            <a className="btn btn-teal btn-block btn-lg" href={whatsappUrl(whatsapp, mensaje)} target="_blank" rel="noreferrer">
+            <a className="btn btn-teal btn-block btn-lg" href={whatsappUrl(whatsapp, mensaje)} target="_blank" rel="noreferrer" onClick={contar}>
               <Icon name="chat" size={18} />
               {t('vehiculo.contact.sendWa')}
             </a>
           )}
           {c.telefono && (
-            <a className="btn btn-ghost btn-block btn-lg" href={`tel:${c.telefono.replace(/[^\d+]/g, '')}`}>
+            <a className="btn btn-ghost btn-block btn-lg" href={`tel:${c.telefono.replace(/[^\d+]/g, '')}`} onClick={contar}>
               <Icon name="phone" size={18} />
               {t('vehiculo.contact.call')}
             </a>
@@ -273,8 +279,6 @@ export function Detail() {
   const navigate = useNavigate()
   const { account, mode } = useSession()
   const location = useLocation()
-  /** Auto cuyo contacto ya se contó en esta visita (las estadísticas no se inflan al reabrir la ventana). */
-  const contactoContado = useRef<number | null>(null)
   /** Abierto con "Ver publicación" desde la revisión de Vehículos del panel de administración. */
   const origen = location.state as { revisionAdmin?: boolean; revisionReporte?: number } | null
   /** Abierto con "Ver publicación" desde la revisión de un reporte (id del reporte). */
@@ -444,11 +448,7 @@ export function Detail() {
     if (seccion) seccion.scrollIntoView({ behavior: 'smooth', block: 'start' })
     else navigate('/')
   }
-  const abrirContacto = () => {
-    const registrar = contactoContado.current !== c.id
-    contactoContado.current = c.id
-    openModal(<ContactModal detail={detail} registrar={registrar} />)
-  }
+  const abrirContacto = () => openModal(<ContactModal detail={detail} />)
   const fotos = detail.gallery.length ? detail.gallery : [null]
   const on = fav.isFavorite(c.id)
   // Al terminar el registro se regresa a este auto.

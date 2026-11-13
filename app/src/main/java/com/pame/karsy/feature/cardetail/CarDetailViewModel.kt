@@ -182,13 +182,9 @@ class CarDetailViewModel : ViewModel() {
         }
     }
 
-    /** Pide teléfono y correo del vendedor; con [registrar] (al abrir la hoja) cuenta el contacto una vez. */
-    fun loadContact(registrar: Boolean = true) {
+    /** Pide teléfono y correo del vendedor. Verlos no cuenta como contacto: ver [registrarContacto]. */
+    fun loadContact() {
         val id = detail?.car?.id ?: return
-        if (registrar && !contactoRegistrado) {
-            contactoRegistrado = true
-            viewModelScope.launch { CarRepository.registrarContacto(id) }
-        }
         if (contact != null || contactLoading) return
         contactLoading = true
         contactError = false
@@ -200,14 +196,24 @@ class CarDetailViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Cuenta un contacto al tocar Llamar o WhatsApp (abrir la hoja ya no cuenta). Una vez por
+     * visita; además la base de datos guarda como máximo uno por persona y auto al día.
+     */
+    fun registrarContacto() {
+        val id = detail?.car?.id ?: return
+        if (contactoRegistrado) return
+        contactoRegistrado = true
+        viewModelScope.launch { CarRepository.registrarContacto(id) }
+    }
+
     /** Publicaciones visibles del vendedor para su perfil. */
     fun loadSellerCars() {
         val sellerId = detail?.sellerId ?: return
         viewModelScope.launch {
             sellerCars = safeCall { CarRepository.ownerCars(sellerId, onlyVisible = true) }.getOrDefault(emptyList())
         }
-        // Ver el perfil no es contactar: no se cuenta.
-        loadContact(registrar = false)
+        loadContact()
     }
 
     fun report(motivo: String, onDone: (String?) -> Unit) {
