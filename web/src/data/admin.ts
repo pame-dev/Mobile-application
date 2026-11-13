@@ -35,6 +35,11 @@ export interface AdminStats {
   interacciones: { etiquetas: string[]; vistas: number[]; contactos: number[] }
 }
 
+/** Pendientes que el rol de la cuenta puede atender, en un solo número (menú de la cuenta). */
+export async function panelPendientes(): Promise<number> {
+  return Number(check(await supabase.rpc('panel_pendientes')) ?? 0)
+}
+
 export async function adminStats(dias: number): Promise<AdminStats> {
   const j = (check(await supabase.rpc('admin_estadisticas', { p_dias: dias })) ?? {}) as Record<string, unknown>
   const n = (k: string) => Number(j[k] ?? 0)

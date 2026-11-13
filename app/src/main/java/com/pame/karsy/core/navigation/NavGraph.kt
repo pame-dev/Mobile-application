@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.pame.karsy.R
 import com.pame.karsy.core.components.RegisterToast
+import com.pame.karsy.data.repository.AdminRepository
 import com.pame.karsy.data.repository.UserRepository
 import com.pame.karsy.feature.home.AccountMenu
 import com.pame.karsy.feature.profile.LanguageSheet
@@ -39,6 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -322,6 +324,15 @@ fun KarsyNavGraph(
         avatarUrl = if (sessionUserId == null) null
         else if (!accountMenuOpen && avatarUrl != null) avatarUrl
         else safeCall { UserRepository.currentUser()?.avatarUrl }.getOrNull() ?: avatarUrl
+    }
+    // Pendientes del panel (admin o moderador) para el menú de la cuenta y el puntito de Perfil.
+    // Se leen al iniciar sesión, al cambiar de pantalla (p. ej. al volver del panel) y al abrir
+    // el menú, como en la web. Si falla, no se muestra nada (nunca el número de otra cuenta).
+    var panelPendientes by remember { mutableIntStateOf(0) }
+    val conPanel = SessionManager.hasPanel
+    LaunchedEffect(sessionUserId, conPanel, currentRoute, accountMenuOpen) {
+        panelPendientes = if (sessionUserId == null || !conPanel) 0
+        else safeCall { AdminRepository.panelPendientes() }.getOrDefault(0)
     }
     val toastFavorites = stringResource(R.string.home_toast_register_favorites)
     val toastPublish = stringResource(R.string.home_toast_register_publish)
@@ -693,6 +704,7 @@ fun KarsyNavGraph(
                     else barToast = toastPublish
                 },
                 profileMenuOpen = accountMenuOpen,
+                profileDot = panelPendientes > 0,
                 profileMenu = {
                     val account = SessionManager.account
                     if (!userMode.isLoggedIn) {
@@ -715,7 +727,10 @@ fun KarsyNavGraph(
                         showAdminPanel = SessionManager.hasPanel,
                         onAdminPanel = { goSection(Routes.AdminDashboard.route) },
                         onLanguage = { languageOpen = true },
-                        onLogout = { confirmLogout = true }
+                        onLogout = { confirmLogout = true },
+                        pendientes = panelPendientes,
+                        panelActivo = currentRoute == Routes.Dashboard.route,
+                        adminActivo = currentRoute == Routes.AdminDashboard.route
                     )
                 }
             )

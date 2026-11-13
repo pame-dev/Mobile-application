@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.KarsyCoral
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavyDeep
@@ -100,6 +102,8 @@ fun KarsyBottomBar(
     profileMenuOpen: Boolean,
     profileMenu: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    /** Admin o moderador con pendientes en el panel: puntito sobre el ícono de Perfil. */
+    profileDot: Boolean = false,
 ) {
     val shape = RoundedCornerShape(KarsyRadius.Xxl)
     Box(
@@ -141,9 +145,11 @@ fun KarsyBottomBar(
                 Pill(
                     active = current == BottomTab.Profile || profileMenuOpen,
                     icon = if (current == BottomTab.Profile || profileMenuOpen) Icons.Rounded.Person else Icons.Outlined.Person,
-                    description = stringResource(R.string.nav_profile),
+                    description = if (profileDot) stringResource(R.string.nav_profile_pending_cd, stringResource(R.string.nav_profile))
+                    else stringResource(R.string.nav_profile),
                     onClick = { onTab(BottomTab.Profile) },
-                    menuOpen = profileMenuOpen
+                    menuOpen = profileMenuOpen,
+                    dot = profileDot
                 )
                 // El menú se ancla a este Box: como no cabe abajo, se abre hacia arriba.
                 Box(Modifier.align(Alignment.TopEnd)) { profileMenu() }
@@ -176,6 +182,8 @@ private fun Pill(
     onClick: () -> Unit,
     /** La pestaña abre un menú: flechita hacia arriba (se abre hacia arriba) o abajo (abierto). */
     menuOpen: Boolean? = null,
+    /** Puntito de aviso arriba a la derecha del ícono. */
+    dot: Boolean = false,
 ) {
     Box(
         Modifier
@@ -191,6 +199,15 @@ private fun Pill(
         contentAlignment = Alignment.Center
     ) {
         Icon(icon, contentDescription = description, tint = if (active) ActiveIcon else KarsyMid, modifier = Modifier.size(23.dp))
+        if (dot) Box(
+            Modifier
+                .align(Alignment.TopCenter)
+                .offset(x = 10.dp, y = 4.dp)
+                .size(9.dp)
+                .clip(CircleShape)
+                .background(KarsyCoral)
+                .border(1.5.dp, KarsySurface, CircleShape)
+        )
         if (menuOpen != null) {
             Icon(
                 if (menuOpen) Icons.Rounded.KeyboardArrowDown else Icons.Rounded.KeyboardArrowUp,

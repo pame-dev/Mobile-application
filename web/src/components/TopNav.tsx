@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { unreadCount } from '../data/account'
+import { panelPendientes } from '../data/admin'
 import { useI18n } from '../i18n/I18nContext'
 import { iniciales } from '../lib/format'
 import { publicUrl } from '../lib/supabase'
@@ -77,6 +78,15 @@ export function TopNav() {
     }
   }, [account, location.pathname])
 
+  // Admin y moderadores: cuántas cosas esperan revisión (junto a "Panel de administración"
+  // y como puntito en el avatar). Se revisa al cambiar de pantalla y al abrir un menú.
+  const [pendientes, setPendientes] = useState(0)
+  const rolPanel = account?.rolPanel
+  useEffect(() => {
+    if (!rolPanel) return setPendientes(0)
+    void panelPendientes().then(setPendientes).catch(() => undefined)
+  }, [rolPanel, location.pathname, menuOpen, menuMovil])
+
   useEffect(() => {
     setMenuOpen(false)
     setMenuMovil(false)
@@ -101,15 +111,13 @@ export function TopNav() {
     to === '/favoritos' && mode === 'guest'
       ? toast(t('nav.favoritesGuest'), { label: t('nav.registerMe'), onClick: () => navigate('/registro', { state: { from: location.pathname + location.search } }) })
       : navigate(to)
-  /** Opciones de la cuenta: las usa el menú del avatar y el de hamburguesa. */
+  /** Opciones de la cuenta: las usa el menú del avatar y el de hamburguesa (Mi perfil es el encabezado). */
   const cuentaItems: [string, string, IconName][] = [
-    // Mismo orden que el menú de la cuenta en la app: perfil, paneles y después lo demás.
-    ['/perfil', t('nav.myProfile'), 'user'],
     ['/panel', t('nav.myDashboard'), 'chart'],
-    ...(account?.rolPanel ? [['/admin', t('nav.adminPanel'), 'shield'] as [string, string, IconName]] : []),
     ['/historial', t('nav.history'), 'history'],
     ['/configuracion', t('nav.settings'), 'settings'],
   ]
+  const textoPendientes = pendientes === 1 ? t('nav.pendingOne') : t('nav.pendingMany', { n: pendientes })
   const foto = publicUrl(account?.fotoPerfil)
 
   return (
@@ -151,7 +159,7 @@ export function TopNav() {
               <div className="navdesk" style={{ position: 'relative' }} ref={menuRef}>
                 <button
                   className="avatar"
-                  aria-label={t('nav.myAccount')}
+                  aria-label={pendientes > 0 ? `${t('nav.myAccount')} · ${textoPendientes}` : t('nav.myAccount')}
                   aria-expanded={menuOpen}
                   onClick={() => {
                     setMenuOpen((v) => !v)
@@ -159,21 +167,40 @@ export function TopNav() {
                 >
                   {foto ? <img src={foto} alt="" /> : iniciales(account!.nombre)}
                 </button>
+                {pendientes > 0 && <span className="puntito" aria-hidden />}
                 {menuOpen && (
                   <div className="menu">
-                    <div style={{ padding: 'var(--s-3) var(--s-3) var(--s-2)' }}>
-                      <b className="ink">{account!.nombre}</b>
-                      <div className="muted text-xs">
-                        {account!.correo} · {account!.esAdmin ? t('nav.admin') : account!.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
-                      </div>
-                    </div>
+                    {/* Tocar el encabezado lleva a Mi perfil. */}
+                    <button className={`menuperfil${activo('/perfil') ? ' on' : ''}`} aria-label={t('nav.goProfile')} onClick={() => navigate('/perfil')}>
+                      <span style={{ minWidth: 0 }}>
+                        <b className="ink ellipsis">{account!.nombre}</b>
+                        <span className="muted text-xs ellipsis">
+                          {account!.correo} · {account!.esAdmin ? t('nav.admin') : account!.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
+                        </span>
+                      </span>
+                    </button>
                     <hr />
+                    <span className="menugrupo">{t('nav.groupAccount')}</span>
                     {cuentaItems.map(([to, texto, i]) => (
-                      <button key={to} onClick={() => navigate(to)}>
+                      <button key={to} className={activo(to) ? 'on' : ''} onClick={() => navigate(to)}>
                         <Icon name={i} size={18} />
                         {texto}
                       </button>
                     ))}
+                    {account!.rolPanel && (
+                      <>
+                        <span className="menugrupo">{t('nav.groupAdmin')}</span>
+                        <button className={activo('/admin') ? 'on' : ''} onClick={() => navigate('/admin')}>
+                          <Icon name="shield" size={18} />
+                          {t('nav.adminPanel')}
+                          {pendientes > 0 && (
+                            <span className="badge b-dang menucuenta" aria-label={textoPendientes}>
+                              {pendientes > 99 ? '99+' : pendientes}
+                            </span>
+                          )}
+                        </button>
+                      </>
+                    )}
                     <hr />
                     <button
                       style={{ color: 'var(--error-text)' }}
@@ -204,6 +231,8 @@ export function TopNav() {
         <MenuMovil
           links={links}
           cuentaItems={cuentaItems}
+          pendientes={pendientes}
+          textoPendientes={textoPendientes}
           activo={activo}
           irA={irA}
           onCerrar={cerrarMenuMovil}
@@ -222,12 +251,16 @@ export function TopNav() {
 function MenuMovil({
   links,
   cuentaItems,
+  pendientes,
+  textoPendientes,
   activo,
   irA,
   onCerrar,
 }: {
   links: [string, string, IconName][]
   cuentaItems: [string, string, IconName][]
+  pendientes: number
+  textoPendientes: string
   activo: (to: string) => boolean
   irA: (to: string) => void
   onCerrar: () => void
@@ -291,19 +324,20 @@ function MenuMovil({
       <aside ref={panelRef} className="drawer" role="dialog" aria-modal="true" aria-label={t('nav.menu')}>
         <div className="row" style={{ justifyContent: 'space-between' }}>
           {account ? (
-            <div className="row" style={{ minWidth: 0 }}>
+            // Tocar el encabezado lleva a Mi perfil.
+            <button className={`drawerperfil${activo('/perfil') ? ' on' : ''}`} aria-label={t('nav.goProfile')} onClick={() => ir('/perfil')}>
               <span className="avatar" aria-hidden>
                 {foto ? <img src={foto} alt="" /> : iniciales(account.nombre)}
               </span>
-              <div style={{ minWidth: 0 }}>
+              <span style={{ minWidth: 0 }}>
                 <b style={{ display: 'block' }} className="ellipsis ink">
                   {account.nombre}
                 </b>
                 <span className="muted ellipsis text-xs" style={{ display: 'block' }}>
                   {account.esAdmin ? t('nav.admin') : account.tipoCuenta === 'lote' ? t('nav.lot') : t('nav.individual')}
                 </span>
-              </div>
-            </div>
+              </span>
+            </button>
           ) : (
             <b className="ink">{t('nav.menu')}</b>
           )}
@@ -312,36 +346,64 @@ function MenuMovil({
           </button>
         </div>
 
-        {/* Con sesión, el idioma va arriba y con su nombre (los usuarios no lo encontraban al fondo).
-            El visitante lo tiene en la barra de arriba. */}
-        {mode !== 'guest' && (
-          <div className="drawerlang">
-            <span>{t('footer.language')}</span>
-            <LangSwitch />
-          </div>
-        )}
-
-        {/* Una sola lista con la misma separación: navegación, cuenta y cerrar sesión. */}
+        {/* Por grupos: explorar, tu cuenta y (admin o moderador) administración. */}
         <nav className="drawerlinks">
-          {[...links, ...(mode === 'guest' ? [] : cuentaItems)].map(([to, texto, i]) => (
+          <span className="menugrupo">{t('nav.groupExplore')}</span>
+          {links.map(([to, texto, i]) => (
             <button key={to} className={activo(to) ? 'on' : ''} onClick={() => ir(to)}>
               <Icon name={i} size={18} />
               {texto}
             </button>
           ))}
           {mode !== 'guest' && (
-            <button
-              style={{ color: 'var(--error-text)' }}
-              onClick={() => {
-                onCerrar()
-                openModal(<LogoutModal />)
-              }}
-            >
-              <Icon name="logout" size={18} />
-              {t('nav.logout')}
-            </button>
+            <>
+              <span className="menugrupo">{t('nav.groupAccount')}</span>
+              {cuentaItems.map(([to, texto, i]) => (
+                <button key={to} className={activo(to) ? 'on' : ''} onClick={() => ir(to)}>
+                  <Icon name={i} size={18} />
+                  {texto}
+                </button>
+              ))}
+            </>
+          )}
+          {account?.rolPanel && (
+            <>
+              <span className="menugrupo">{t('nav.groupAdmin')}</span>
+              <button className={activo('/admin') ? 'on' : ''} onClick={() => ir('/admin')}>
+                <Icon name="shield" size={18} />
+                {t('nav.adminPanel')}
+                {pendientes > 0 && (
+                  <span className="badge b-dang menucuenta" aria-label={textoPendientes}>
+                    {pendientes > 99 ? '99+' : pendientes}
+                  </span>
+                )}
+              </button>
+            </>
           )}
         </nav>
+
+        {/* Con sesión: idioma y cerrar sesión al final, separados de lo demás.
+            El visitante tiene el idioma en la barra de arriba. */}
+        {mode !== 'guest' && (
+          <div className="drawerpie">
+            <div className="drawerlang">
+              <span>{t('footer.language')}</span>
+              <LangSwitch />
+            </div>
+            <nav className="drawerlinks">
+              <button
+                style={{ color: 'var(--error-text)' }}
+                onClick={() => {
+                  onCerrar()
+                  openModal(<LogoutModal />)
+                }}
+              >
+                <Icon name="logout" size={18} />
+                {t('nav.logout')}
+              </button>
+            </nav>
+          </div>
+        )}
 
         {mode === 'guest' && (
           <div className="col gap-3">

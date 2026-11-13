@@ -643,13 +643,13 @@
     <string name="profile_edit_email_locked">El correo no se puede cambiar.</string>
     <string name="profile_edit_responsible">Responsable</string>
     <!-- Historial -->
-    <string name="profile_history_title">🕘 Historial</string>
+    <string name="profile_history_title">🕘 Vistos recientemente</string>
     <string name="profile_history_empty">Aún no has visto ningún vehículo.</string>
     <!-- Perfil -->
     <string name="profile_title">Mi perfil</string>
-    <string name="profile_history_cd">Historial</string>
+    <string name="profile_history_cd">Vistos recientemente</string>
     <string name="profile_settings_cd">Configuración</string>
-    <string name="profile_panel_seller">Mi panel</string>
+    <string name="profile_panel_seller">Mis autos</string>
     <string name="profile_badge_admin">Administrador</string>
     <string name="profile_badge_lot">Lote</string>
     <string name="profile_verification_field_label">Constancia de Situación Fiscal</string>
@@ -946,6 +946,9 @@
     <string name="admin2_moderator">Moderador</string>
     <string name="admin2_group_panel">PANEL</string>
     <string name="admin2_group_account">TU CUENTA</string>
+    <string name="home_menu_group_admin">ADMINISTRACIÓN</string>
+    <string name="home_menu_pending_cd">%1$d pendientes</string>
+    <string name="nav_profile_pending_cd">%1$s, hay pendientes en el panel</string>
     <string name="admin2_go_karsy">Ir a Karsy</string>
     <string name="admin2_notifications_cd">Notificaciones</string>
     <string name="admin2_settings_cd">Configuración</string>
