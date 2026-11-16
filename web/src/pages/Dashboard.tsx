@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import { VolverButton } from '../components/VolverButton'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
+import { ConditionTag } from '../components/ConditionTag'
 import { Icon, type IconName } from '../components/Icon'
-import { OwnerButtons, STATUS_BADGE, fechaCorta, statusLabel, useOwnerActions } from '../components/OwnerActions'
+import { fechaCorta, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { favoriteCounts, myCars, ocultas, sePuedeOcultar, sellerReport, sellerStats, setOculta, type OwnCar, type ReporteExtra, type SellerStats } from '../data/seller'
 import { traducir, useI18n } from '../i18n/I18nContext'
 import { entero, precio } from '../lib/format'
@@ -336,34 +337,111 @@ function ListingRow({ c, favs, acciones, oculta, onOcultar }: { c: OwnCar; favs:
               : ''
   const peligro = !!motivo
 
+  // Tarjeta como la de Mi panel en la app: foto con el estado encima, datos y acciones abajo.
   return (
-    <div className="listing">
+    <div className="dashcard">
       {/* Publicación nueva en revisión: foto atenuada (todavía nadie más la ve). */}
-      <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} className={c.status === 'Pendiente' ? 'enrevision' : ''} onClick={() => navigate(`/vehiculo/${c.id}`)} />
-      <div style={{ minWidth: 0 }}>
-        <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
-          <b className="ink" style={{ fontFamily: 'var(--f-display)' }}>
+      <div style={{ position: 'relative' }}>
+        <CarPhoto src={c.imageUrl} alt={`${c.brand} ${c.model}`} className={c.status === 'Pendiente' ? 'enrevision' : ''} onClick={() => navigate(`/vehiculo/${c.id}`)}>
+          <span className={`dashstatus ${c.status === 'Activo' ? 'on' : ''}`}>{t(statusLabel(c.status))}</span>
+        </CarPhoto>
+        <AccionesMenu c={c} acciones={acciones} oculta={oculta} onOcultar={onOcultar} />
+      </div>
+      <div className="dashcard-body">
+        <div className="row gap-2">
+          <b className="dashcard-title">
             {c.brand} {c.model} {c.year}
           </b>
-          <span className={`badge ${STATUS_BADGE[c.status]}`}>{t(statusLabel(c.status))}</span>
+          <ConditionTag condicion={c.condition} compact />
         </div>
-        <div className="vprice num" style={{ textAlign: 'left', fontSize: 'var(--fs-md)' }}>
-          {precio(c.priceValue)}
-        </div>
-        {nota && (
-          <div className="muted text-xs" style={{ color: peligro ? 'var(--error)' : undefined }}>
-            {nota}
-          </div>
-        )}
+        <div className="dashcard-price num">{precio(c.priceValue)}</div>
         {favs > 0 && (
-          <div className="mid text-xs">
+          <div className="mid text-xs row gap-1">
+            <span style={{ color: 'var(--error)', display: 'inline-flex' }}>
+              <Icon name="heart" size={13} />
+            </span>
             {t(favs === 1 ? 'perfil.savedByOne' : 'perfil.savedByMany', { n: favs })}
           </div>
         )}
+        {nota && (
+          <div className="text-xs" style={{ color: peligro ? 'var(--error)' : 'var(--teal-text)', fontWeight: 'var(--fw-semibold)' }}>
+            {nota}
+          </div>
+        )}
+        <AccionPrincipal c={c} acciones={acciones} />
       </div>
-      <div className="acts">
-        <OwnerButtons c={c} acciones={acciones} oculta={oculta} onOcultar={onOcultar} />
-      </div>
+    </div>
+  )
+}
+
+/** Botón de abajo de la tarjeta: solo para corregir y reenviar una rechazada (sin destacar, como la app). */
+function AccionPrincipal({ c, acciones }: { c: OwnCar; acciones: ReturnType<typeof useOwnerActions> }) {
+  const { t } = useI18n()
+  if (c.status !== 'Rechazado') return null
+  return (
+    <div className="dashcard-acts">
+      <button className="btn btn-primary btn-sm" onClick={() => acciones.editar(c)}>
+        {t('perfil.fixResubmit')}
+      </button>
+    </div>
+  )
+}
+
+/** Menú ⋮ sobre la foto con las demás acciones (mismas reglas que OwnerButtons, sin Duplicar). */
+function AccionesMenu({ c, acciones, oculta, onOcultar }: { c: OwnCar; acciones: ReturnType<typeof useOwnerActions>; oculta: boolean; onOcultar: (v: boolean) => void }) {
+  const { t } = useI18n()
+  const [abierto, setAbierto] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  // Se cierra al hacer clic fuera o con Escape.
+  useEffect(() => {
+    if (!abierto) return
+    const fuera = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setAbierto(false)
+    const tecla = (e: KeyboardEvent) => e.key === 'Escape' && setAbierto(false)
+    document.addEventListener('mousedown', fuera)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('mousedown', fuera)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [abierto])
+
+  const opciones: [string, () => void, boolean?, boolean?][] = []
+  // Se edita todo menos lo vendido o rechazado; con cambios en revisión no se edita hasta que el equipo responda.
+  if (c.status !== 'Vendido' && c.status !== 'Rechazado') opciones.push([c.inReview ? t('perfil.inReview') : t('perfil.edit'), () => acciones.editar(c), false, c.inReview])
+  if (c.status === 'Activo') opciones.push([t('perfil.disable'), () => acciones.pausar(c), true])
+  if (c.status === 'Pausado') opciones.push([t('perfil.enable'), () => acciones.habilitar(c)])
+  if (c.status === 'Activo') opciones.push([t('perfil.markSold'), () => acciones.vendido(c)])
+  if (c.status === 'Vendido') opciones.push([t('perfil.markAvailable'), () => acciones.disponible(c)])
+  if (sePuedeOcultar(c)) opciones.push([oculta ? t('perfil.showOnProfile') : t('perfil.hide'), () => onOcultar(!oculta)])
+  if (opciones.length === 0) return null
+
+  return (
+    <div className="dashmore" ref={ref}>
+      <button className="dashmore-btn" aria-label={t('perfil.moreActions')} aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <circle cx="12" cy="5" r="2" />
+          <circle cx="12" cy="12" r="2" />
+          <circle cx="12" cy="19" r="2" />
+        </svg>
+      </button>
+      {abierto && (
+        <div className="dashmore-menu" role="menu">
+          {opciones.map(([texto, accion, peligro, deshabilitado]) => (
+            <button
+              key={texto}
+              role="menuitem"
+              disabled={deshabilitado}
+              style={peligro ? { color: 'var(--error)' } : undefined}
+              onClick={() => {
+                setAbierto(false)
+                accion()
+              }}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -414,9 +492,9 @@ export function Dashboard() {
   const destacadas = (cars ?? []).filter((c) => c.featured && c.status === 'Activo').length
   const kpis: [string, string, string, IconName, string, string][] = [
     [t('perfil.kpiActive'), stats ? entero(stats.activas) : '—', t('perfil.kpiActiveSub'), 'car', 'var(--teal-light)', 'var(--teal)'],
-    [t('perfil.kpiSold'), stats ? entero(stats.vendidas) : '—', t('perfil.kpiSoldSub'), 'sold', 'var(--success-l)', 'var(--success)'],
+    [t('perfil.kpiSold'), stats ? entero(stats.vendidas) : '—', t('perfil.kpiSoldSub'), 'sold', 'var(--success-l)', 'var(--ink)'],
     [t('perfil.kpiInReview'), stats ? entero(stats.pendientes) : '—', t('perfil.kpiInReviewSub'), 'shield', 'var(--pill)', 'var(--ink)'],
-    [t('perfil.kpiFeatured'), cars ? entero(destacadas) : '—', t('perfil.kpiFeaturedSub'), 'star', 'var(--b-warn-bg)', 'var(--b-warn)'],
+    [t('perfil.kpiFeatured'), cars ? entero(destacadas) : '—', t('perfil.kpiFeaturedSub'), 'star', 'var(--b-warn-bg)', 'var(--teal)'],
   ]
   // Exportar: Excel (.xlsx) se descarga directo; PDF abre "Imprimir / Guardar como PDF" con el reporte.
   const listo = stats && cars && account
@@ -487,10 +565,6 @@ export function Dashboard() {
             <Icon name="doc" size={18} />
             {t('perfil.export')}
           </button>
-          <button className="btn btn-primary" onClick={() => navigate('/publicar')}>
-            <Icon name="plus" size={18} />
-            {t('nav.publish')}
-          </button>
         </div>
       </div>
       {imprimir && stats && cars && account && <ReportePanel nombre={account.nombre} kpis={kpis.map(([k, n, sub]) => [k, n, sub])} stats={stats} cars={cars} extra={extra} />}
@@ -504,71 +578,75 @@ export function Dashboard() {
         </div>
       )}
 
-      <div className="kpis">
-        {kpis.map(([titulo, n, s, i, bg, fg]) => (
-          <div key={titulo} className="card kpi">
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span className="label">{titulo}</span>
-              <span className="ic" style={{ background: bg, color: fg }}>
-                <Icon name={i} />
-              </span>
-            </div>
-            <b className="num">{n}</b>
-            <span className="muted text-xs">
-              {s}
-            </span>
+      {/* Mismo orden y diseño que Mi panel en la app: estado de las publicaciones, cómo van y la lista. */}
+      <div className="dashkpis">
+        {kpis.map(([titulo, n, s, , , color]) => (
+          <div key={titulo} className="dashkpi">
+            <span className="dashkpi-label">{titulo}</span>
+            <b className="num" style={{ color }}>
+              {n}
+            </b>
+            <span className="muted text-xs">{s}</span>
           </div>
         ))}
       </div>
 
-      <div className="twocol split" style={{ margin: 'var(--s-5) 0 var(--s-10)' }}>
-        <div className="card card-pad">
-          <h2 className="card-title tight">{t('perfil.performanceTitle')}</h2>
-          <p className="muted text-sm" style={{ marginBottom: 'var(--s-3)' }}>
-            {t('perfil.performanceSub')}
-          </p>
-          {stats && cars ? <Rendimiento stats={stats} cars={cars} /> : <div className="skeleton" style={{ height: 190 }} />}
-        </div>
-
-        <div className="card card-pad">
-          <h2 className="card-title">{t('perfil.myVehicles')}</h2>
-          {!cars ? (
-            <div className="skeleton" style={{ height: 240 }} />
-          ) : cars.length === 0 ? (
-            <div className="empty">
-              <p className="muted">{t('perfil.noVehicles')}</p>
-              <button className="btn btn-primary" onClick={() => navigate('/publicar')}>
-                {t('perfil.publishFirst')}
-              </button>
-            </div>
-          ) : (
-            <div className="col gap-2">
-              {visibles.map((c) => (
-                <ListingRow key={c.id} c={c} favs={favs.get(c.id) ?? 0} acciones={acciones} oculta={false} onOcultar={(v) => ocultar(c.id, v)} />
-              ))}
-              {escondidas.length > 0 && (
-                <>
-                  <button className="card row card-pad-sm" style={{ width: '100%', textAlign: 'left', marginTop: 'var(--s-2)' }} onClick={() => setVerOcultas((v) => !v)}>
-                    <span className="mid">
-                      <Icon name="eye" />
-                    </span>
-                    <span className="grow">
-                      <b className="ink">{t('perfil.hiddenListings', { n: escondidas.length })}</b>
-                      <br />
-                      <span className="muted text-xs">
-                        {t('perfil.hiddenDescDashboard')}
-                      </span>
-                    </span>
-                    <Icon name="down" />
-                  </button>
-                  {verOcultas &&
-                    escondidas.map((c) => <ListingRow key={c.id} c={c} favs={favs.get(c.id) ?? 0} acciones={acciones} oculta onOcultar={(v) => ocultar(c.id, v)} />)}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+      <div className="dashbox" style={{ marginTop: 'var(--s-4)' }}>
+        <h2 className="dashbox-title">{t('perfil.performanceTitle')}</h2>
+        <p className="muted text-xs" style={{ marginBottom: 'var(--s-3)' }}>
+          {t('perfil.performanceSub')}
+        </p>
+        {stats && cars ? <Rendimiento stats={stats} cars={cars} /> : <div className="skeleton" style={{ height: 190 }} />}
       </div>
+
+      <section style={{ margin: 'var(--s-6) 0 var(--s-10)' }}>
+        <div className="row" style={{ justifyContent: 'space-between', marginBottom: 'var(--s-3)' }}>
+          <h2 className="dashsec-title">{t('perfil.myVehicles')}</h2>
+          <button className="dashlink" onClick={() => navigate('/publicar')}>
+            + {t('nav.publish')}
+          </button>
+        </div>
+        {!cars ? (
+          <div className="dashgrid">
+            <div className="skeleton" style={{ height: 240 }} />
+            <div className="skeleton" style={{ height: 240 }} />
+          </div>
+        ) : cars.length === 0 ? (
+          <div className="empty">
+            <p className="muted">{t('perfil.noVehicles')}</p>
+            <button className="btn btn-primary" onClick={() => navigate('/publicar')}>
+              {t('perfil.publishFirst')}
+            </button>
+          </div>
+        ) : (
+          <div className="dashgrid">
+            {visibles.map((c) => (
+              <ListingRow key={c.id} c={c} favs={favs.get(c.id) ?? 0} acciones={acciones} oculta={false} onOcultar={(v) => ocultar(c.id, v)} />
+            ))}
+          </div>
+        )}
+
+        {/* Publicaciones ocultas: su propia sección al final, como en la app (se puede contraer). */}
+        {escondidas.length > 0 && (
+          <div style={{ marginTop: 'var(--s-6)' }}>
+            <button className="dashhidden" onClick={() => setVerOcultas((v) => !v)} aria-expanded={verOcultas}>
+              <span className="grow">
+                <span className="dashsec-title">{t('perfil.hiddenListings', { n: escondidas.length })}</span>
+                <br />
+                <span className="muted text-sm">{t('perfil.hiddenDescDashboard')}</span>
+              </span>
+              <Icon name="down" />
+            </button>
+            {verOcultas && (
+              <div className="dashgrid" style={{ marginTop: 'var(--s-3)' }}>
+                {escondidas.map((c) => (
+                  <ListingRow key={c.id} c={c} favs={favs.get(c.id) ?? 0} acciones={acciones} oculta onOcultar={(v) => ocultar(c.id, v)} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
