@@ -592,6 +592,39 @@ table.t tr:hover td{background:var(--bg)}
 .perftrack span{display:block;height:100%;border-radius:var(--r-pill);background:var(--teal)}
 .perfnums{font-size:var(--fs-xs)}
 @media (max-width:640px){ .funnelstep{width:100%!important} }
+/* Mi panel con el diseño de la app: métricas 2×2 (4 en pantalla ancha), recuadros y tarjetas de publicación. */
+.dashkpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-3)}
+.dashkpi,.dashbox,.dashcard{background:var(--surface);border:1px solid var(--outline);border-radius:var(--r-lg)}
+.dashkpi{padding:var(--s-4);display:flex;flex-direction:column;justify-content:space-between;gap:var(--s-1)}
+.dashkpi-label{font-size:var(--fs-xs);font-weight:var(--fw-semibold);color:var(--mid)}
+.dashkpi b{font-family:var(--f-display);font-size:var(--fs-3xl);font-weight:var(--fw-bold);line-height:1.1}
+.dashbox{padding:var(--s-4)}
+.dashbox-title{font-family:var(--f-body);font-size:var(--fs-base);font-weight:var(--fw-bold);color:var(--ink);margin-bottom:2px}
+.dashsec-title{font-size:var(--fs-xl);line-height:var(--lh-tight);font-family:var(--f-display);font-weight:var(--fw-bold);color:var(--ink)}
+.dashlink{background:none;border:0;padding:var(--s-1) var(--s-2);border-radius:var(--r-pill);color:var(--teal-text);font-weight:var(--fw-semibold);font-size:var(--fs-base);cursor:pointer}
+.dashlink:hover{background:var(--teal-light)}
+.dashgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--s-3)}
+.dashcard{display:flex;flex-direction:column;min-width:0}
+.dashcard .ph{height:150px;cursor:pointer;flex:none;border-radius:var(--r-lg) var(--r-lg) 0 0}
+/* Menú ⋮ sobre la foto (como la app): el botón redondo arriba a la derecha y la lista debajo. */
+.dashmore{position:absolute;right:8px;top:8px;z-index:3}
+.dashmore:has(.dashmore-menu){z-index:41}
+.dashmore-btn{width:32px;height:32px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--surface);color:var(--ink);opacity:.92;cursor:pointer;box-shadow:var(--shadow-sm,0 1px 3px rgba(0,0,0,.2))}
+.dashmore-btn:hover{opacity:1}
+.dashmore-menu{position:absolute;right:0;top:38px;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:var(--s-2) 0;z-index:40}
+.dashmore-menu button{display:block;width:100%;border:0;background:none;padding:var(--s-3) var(--s-4);text-align:left;color:var(--ink);font-size:var(--fs-md);cursor:pointer}
+.dashmore-menu button:hover:not(:disabled){background:var(--bg)}
+.dashmore-menu button:disabled{color:var(--mid);cursor:default}
+.dashstatus{position:absolute;left:8px;top:8px;z-index:2;padding:2px 6px;border-radius:4px;font-size:var(--fs-xs);font-weight:var(--fw-semibold);color:#fff;background:rgba(13,43,69,.85)}
+.dashstatus.on{background:rgba(82,163,170,.85);background:color-mix(in srgb,var(--teal) 85%,transparent)}
+.dashcard-body{flex:1;display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-3)}
+.dashcard-title{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm);color:var(--ink)}
+.dashcard-price{font-weight:var(--fw-bold);font-size:var(--fs-base);color:var(--teal-text)}
+.dashcard-acts{margin-top:auto;padding-top:var(--s-2);display:flex;flex-wrap:wrap;gap:var(--s-2)}
+.dashcard-acts .btn{flex:1 1 auto}
+.dashhidden{display:flex;align-items:center;gap:var(--s-3);width:100%;background:none;border:0;padding:0;text-align:left;color:var(--ink);cursor:pointer}
+@media (max-width:1000px){ .dashkpis{grid-template-columns:1fr 1fr} }
+@media (max-width:640px){ .dashgrid{grid-template-columns:1fr 1fr} .dashcard .ph{height:110px} .dashmore-menu{min-width:150px} }
 /* Mi panel: reporte para imprimir / "Guardar como PDF" (solo existe mientras se imprime) */
 .reportepanel{display:none}
 @media print{
