@@ -16,12 +16,77 @@ import type { Car, CarDetail, SellerContact } from '../data/types'
 import { useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { nombreCatalogo } from '../lib/catalogo'
+import { construirTextoCompartir } from '../lib/compartir'
 import { AdminReportBar, AdminReviewBar } from './admin/AdminParts'
 import { iniciales, km, precio, whatsappUrl } from '../lib/format'
 import { useFavorites } from '../session/FavoritesContext'
 import { useSession } from '../session/SessionContext'
 import { useRecargar } from '../lib/tiempoReal'
 import { CargandoBloqueo } from '../components/CargandoBloqueo'
+
+/**
+ * Compartir (mismo mensaje que la app, ver construirTextoCompartir). Con Web Share (celular)
+ * va todo en `text`, URL incluida: si se manda aparte en `url`, WhatsApp la mueve y rompe el
+ * formato. Sin Web Share (escritorio) abre un menú: WhatsApp (sin número) o copiar el mensaje.
+ * La vista previa con foto la pone la Edge Function vista-previa.
+ */
+function CompartirBoton({ c }: { c: Car }) {
+  const { t } = useI18n()
+  const { toast } = useUi()
+  const [menu, setMenu] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menu) return
+    const fuera = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setMenu(false)
+    const tecla = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false)
+    document.addEventListener('mousedown', fuera)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('mousedown', fuera)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [menu])
+
+  const compartir = async () => {
+    const texto = construirTextoCompartir(c, t)
+    if (!navigator.share) return setMenu((v) => !v)
+    try {
+      await navigator.share({ text: texto })
+    } catch (e) {
+      // Cancelar no es error; si el navegador no deja compartir, se ofrece el menú.
+      if ((e as Error)?.name !== 'AbortError') setMenu(true)
+    }
+  }
+  const copiar = async () => {
+    setMenu(false)
+    try {
+      await navigator.clipboard.writeText(construirTextoCompartir(c, t))
+      toast(t('vehiculo.share.copied'))
+    } catch {
+      /* sin permiso al portapapeles */
+    }
+  }
+
+  return (
+    <div className="sharewrap" ref={ref}>
+      <button className="iconbtn" aria-label={t('vehiculo.detail.share')} aria-haspopup="menu" aria-expanded={menu} onClick={() => void compartir()}>
+        <Icon name="share" size={18} />
+      </button>
+      {menu && (
+        <div className="sharemenu" role="menu">
+          <a role="menuitem" href={`https://wa.me/?text=${encodeURIComponent(construirTextoCompartir(c, t))}`} target="_blank" rel="noopener noreferrer" onClick={() => setMenu(false)}>
+            <Icon name="chat" size={18} />
+            {t('vehiculo.share.whatsapp')}
+          </a>
+          <button role="menuitem" onClick={() => void copiar()}>
+            <Icon name="copy" size={18} />
+            {t('vehiculo.share.copy')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const STATUS_BADGE: Record<Car['status'], string> = {
   Activo: 'b-succ',
@@ -467,21 +532,6 @@ export function Detail() {
   // Al terminar el registro se regresa a este auto.
   const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro', { state: { from: location.pathname } }) })
 
-  const compartir = async () => {
-    // Enlace limpio: en WhatsApp muestra la foto y el precio (Edge Function vista-previa) y,
-    // en un Android con Karsy instalada, abre la app en este auto.
-    const url = `${window.location.origin}/vehiculo/${c.id}`
-    try {
-      if (navigator.share) await navigator.share({ title: `${c.brand} ${c.model} ${c.year}`, text: t('vehiculo.detail.shareText'), url })
-      else {
-        await navigator.clipboard.writeText(url)
-        toast(t('vehiculo.detail.linkCopied'))
-      }
-    } catch {
-      /* el usuario canceló */
-    }
-  }
-
   return (
     <div className="wrap">
       {/* Desde la revisión del admin, la barra de abajo ya trae su propio botón de regresar. */}
@@ -673,9 +723,7 @@ export function Detail() {
         <aside className="card sidebox">
           <div className="row" style={{ justifyContent: 'flex-end' }}>
             <div className="row gap-2">
-              <button className="iconbtn" aria-label={t('vehiculo.detail.share')} onClick={compartir}>
-                <Icon name="share" size={18} />
-              </button>
+              <CompartirBoton c={c} />
               {acciones && (
                 <button
                   className="iconbtn"

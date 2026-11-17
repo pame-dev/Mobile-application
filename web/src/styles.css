@@ -83,6 +83,11 @@ svg.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .btn-block{white-space:normal;text-align:center;height:auto;min-height:var(--h-md);padding-block:var(--s-2)}
 .btn-sm.btn-block{min-height:var(--h-sm);padding-block:var(--s-1)}
 .iconbtn{width:40px;height:40px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface);display:inline-grid;place-items:center;color:var(--ink);position:relative}
+/* Menú de Compartir en escritorio (sin Web Share): WhatsApp o copiar el mensaje. */
+.sharewrap{position:relative}
+.sharemenu{position:absolute;right:0;top:46px;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:var(--s-2) 0;z-index:40}
+.sharemenu a,.sharemenu button{display:flex;align-items:center;gap:var(--s-3);width:100%;border:0;background:none;padding:var(--s-3) var(--s-4);text-align:left;color:var(--ink);font-size:var(--fs-md);text-decoration:none;cursor:pointer}
+.sharemenu a:hover,.sharemenu button:hover{background:var(--bg)}
 /* Avisos sin leer: círculo rojo con el número (99+ si son más). */
 .dot{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 var(--s-1);border-radius:var(--r-pill);background:var(--error);border:2px solid var(--surface);color:#fff;font-size:var(--fs-xs);font-weight:var(--fw-bold);line-height:16px;text-align:center;box-sizing:border-box;pointer-events:none}
 .chip{display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--s-3);border-radius:var(--r-pill);border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:var(--fs-sm);font-weight:var(--fw-medium)}
