@@ -268,7 +268,14 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 
 /* Detail */
 .detailgrid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:var(--s-6);align-items:start}
-.gallery .main{height:440px;border-radius:var(--r-xl)}
+.gallery .main{position:relative;height:440px;border-radius:var(--r-xl);overflow:hidden;background:var(--placeholder)}
+/* Foto principal deslizable: tira con snap (dedo y trackpad nativos); Volver, corazón, etiqueta y contador quedan fijos encima. */
+.gallery{user-select:none;-webkit-user-select:none}
+.gallery img{-webkit-user-drag:none}
+.mainstrip{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain}
+.mainstrip::-webkit-scrollbar{display:none}
+.mainstrip .slide{flex:0 0 100%;height:100%;scroll-snap-align:center;scroll-snap-stop:always}
+.gallery .main > .tag{position:absolute;left:10px;top:10px;z-index:2}
 .gallery .main.zoomable{cursor:zoom-in}
 .viewer{position:fixed;inset:0;z-index:100;background:rgba(5,15,25,.94);display:flex;align-items:center;justify-content:center;padding:64px 84px}
 .viewer img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--r-md);user-select:none}
@@ -278,9 +285,32 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .viewer .prev{left:18px}
 .viewer .next{right:18px}
 .viewer .vcount{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.5);padding:var(--s-1) var(--s-3);border-radius:var(--r-pill);font-size:var(--fs-sm)}
-.thumbs{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--s-2);margin-top:var(--s-2)}
-.thumbs .ph{height:70px;border-radius:var(--r-md);cursor:pointer;border:2px solid transparent}
+/* Miniaturas: flecha · fila deslizable · flecha, del ancho de la foto principal (6 miniaturas a la vista). */
+.thumbsrow{display:flex;align-items:center;gap:8px;margin-top:var(--s-2)}
+.thumbnav{flex:none;width:36px;height:70px;cursor:pointer}
+.thumbnav:disabled{opacity:.35;cursor:default}
+.thumbs{position:relative;flex:1;min-width:0;display:flex;gap:var(--s-2);overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.thumbs::-webkit-scrollbar{display:none}
+.thumbs.mas{-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
+.thumbs.antes{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%);mask-image:linear-gradient(90deg,transparent,#000 8%)}
+.thumbs.antes.mas{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.thumbs .ph{flex:0 0 calc((100% - 5 * var(--s-2)) / 6);height:70px;border-radius:var(--r-md);cursor:pointer;border:2px solid transparent;scroll-snap-align:start}
 .thumbs .ph.on{border-color:var(--teal)}
+/* Volver sobre la foto principal (esquina superior izquierda, a la altura del corazón): mismo
+   botón cuadrado que compartir/reportar, con fondo sólido y sombra para leerse sobre cualquier foto. */
+.gallery .photoback{position:absolute;top:14px;left:14px;z-index:3;width:auto;height:42px;display:inline-flex;align-items:center;gap:6px;padding:0 16px 0 12px;font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
+/* Con Volver en la esquina, la etiqueta "Vendido / No disponible" baja justo debajo de él. */
+.gallery .photoback ~ .tag{top:66px;left:14px}
+@media (max-width:640px){
+  .gallery .photoback{top:12px;left:12px;width:40px;height:40px;padding:0;justify-content:center}
+  .gallery .photoback span{display:none}
+  .gallery .photoback ~ .tag{top:62px;left:12px}
+  /* Teléfono: flechas más angostas (28 px, ícono de 16) y del alto de las miniaturas (48 px, área táctil ≥ 40). */
+  .thumbsrow{gap:6px}
+  .thumbnav{width:28px;height:48px;flex-shrink:0}
+  .thumbnav svg{width:16px;height:16px}
+  .thumbs .ph{flex-basis:72px;height:48px}
+}
 .counter{position:absolute;right:14px;bottom:14px;background:rgba(13,43,69,.75);color:#fff;font-size:var(--fs-xs);padding:var(--s-1) var(--s-3);border-radius:var(--r-pill);z-index:2}
 .ficha{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
 .ficha div{background:var(--surface);padding:var(--s-3) var(--s-4)}
