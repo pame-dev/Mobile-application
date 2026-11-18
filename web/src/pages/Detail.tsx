@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { VerifiedShield } from '../components/ConstanciaField'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
@@ -13,7 +13,7 @@ import { VehicleCard } from '../components/VehicleCard'
 import { carDetail, cuentaVerificada, registerView, registrarContacto, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
 import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
 import type { Car, CarDetail, SellerContact } from '../data/types'
-import { useI18n } from '../i18n/I18nContext'
+import { idiomaActual, useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { nombreCatalogo } from '../lib/catalogo'
 import { construirTextoCompartir } from '../lib/compartir'
@@ -83,6 +83,45 @@ function CompartirBoton({ c }: { c: Car }) {
             {t('vehiculo.share.copy')}
           </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Texto del vendedor (Descripción, Detalles del auto) justificado, como en un documento. Respeta
+ * sus saltos de línea y líneas en blanco; las líneas que empiezan con "* ", "- " o "• " se muestran
+ * como lista (solo al mostrarse: el texto guardado no cambia). [lang] activa los guiones automáticos.
+ */
+function TextoJustificado({ texto, lang, className, style }: { texto: string; lang: string; className?: string; style?: CSSProperties }) {
+  // Con texto después del marcador: una línea con solo "- " no se vuelve viñeta vacía.
+  const VINETA = /^\s*[*•-]\s+(?=\S)/
+  type Bloque = { tipo: 'texto'; lineas: string[] } | { tipo: 'lista'; lineas: string[] } | { tipo: 'vacia' }
+  const bloques: Bloque[] = []
+  for (const linea of texto.split('\n')) {
+    const ultimo = bloques[bloques.length - 1]
+    if (!linea.trim()) bloques.push({ tipo: 'vacia' })
+    else if (VINETA.test(linea)) {
+      if (ultimo?.tipo === 'lista') ultimo.lineas.push(linea.replace(VINETA, ''))
+      else bloques.push({ tipo: 'lista', lineas: [linea.replace(VINETA, '')] })
+    } else if (ultimo?.tipo === 'texto') ultimo.lineas.push(linea)
+    else bloques.push({ tipo: 'texto', lineas: [linea] })
+  }
+  return (
+    <div className={`textojust ${className ?? ''}`} lang={lang} style={style}>
+      {bloques.map((b, i) =>
+        b.tipo === 'vacia' ? (
+          <div key={i} className="tj-vacia" aria-hidden />
+        ) : b.tipo === 'lista' ? (
+          <ul key={i}>
+            {b.lineas.map((l, j) => (
+              <li key={j}>{l}</li>
+            ))}
+          </ul>
+        ) : (
+          // Cada renglón escrito termina en salto: justify deja esos finales a la izquierda.
+          <p key={i}>{b.lineas.join('\n')}</p>
+        ),
       )}
     </div>
   )
@@ -923,16 +962,22 @@ export function Detail() {
           </div>
           <div className="card detailrest card-pad">
             <h2 className="card-title">{t('vehiculo.detail.description')}</h2>
-            <p className="muted" style={{ lineHeight: 1.7, whiteSpace: 'pre-line' }}>
-              {(verTraduccion && traduccion?.descripcion) || c.description || t('vehiculo.detail.noDescription')}
-            </p>
+            <TextoJustificado
+              className="muted"
+              style={{ lineHeight: 1.7 }}
+              // Lo escribe el vendedor en español; la traducción va en inglés; el aviso "sin descripción", en el idioma de la web.
+              lang={verTraduccion && traduccion?.descripcion ? 'en' : c.description ? 'es' : idiomaActual()}
+              texto={(verTraduccion && traduccion?.descripcion) || c.description || t('vehiculo.detail.noDescription')}
+            />
             {traduccion?.descripcion && <AvisoTraduccion viendoTraduccion={verTraduccion} onCambiar={() => setVerTraduccion((v) => !v)} />}
           </div>
           <div className="card detailrest card-pad">
             <h2 className="card-title">{t('vehiculo.detail.carDetails')}</h2>
-            <p className="muted" style={{ whiteSpace: 'pre-line' }}>
-              {detail.row.tiene_problemas ? (verTraduccion && traduccion?.problemas) || detail.detalles : t('vehiculo.noProblems')}
-            </p>
+            <TextoJustificado
+              className="muted"
+              lang={!detail.row.tiene_problemas ? idiomaActual() : verTraduccion && traduccion?.problemas ? 'en' : 'es'}
+              texto={detail.row.tiene_problemas ? (verTraduccion && traduccion?.problemas) || detail.detalles : t('vehiculo.noProblems')}
+            />
           </div>
         </div>
 

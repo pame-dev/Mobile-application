@@ -325,6 +325,15 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
   .thumbnav svg{width:16px;height:16px}
   .thumbs .ph{flex-basis:72px;height:48px}
 }
+/* Descripción y Detalles del auto: justificado con guiones automáticos (lang en el contenedor);
+   cada renglón escrito termina en salto, así que su final queda a la izquierda. */
+.textojust p,.textojust ul{margin:0;text-align:justify;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;text-wrap:pretty}
+.textojust p{white-space:pre-line}
+.textojust ul{padding-left:1.25em;list-style:disc}
+.textojust li{padding-left:.15em}
+.textojust .tj-vacia{height:1.6em;height:1lh}
+/* Muy angosto: con justify quedan huecos grandes; se lee mejor a la izquierda. */
+@media (max-width:400px){ .textojust p,.textojust ul{text-align:left} }
 .counter{position:absolute;right:14px;bottom:14px;background:rgba(13,43,69,.75);color:#fff;font-size:var(--fs-xs);padding:var(--s-1) var(--s-3);border-radius:var(--r-pill);z-index:2}
 .ficha{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
 .ficha div{background:var(--surface);padding:var(--s-3) var(--s-4)}
