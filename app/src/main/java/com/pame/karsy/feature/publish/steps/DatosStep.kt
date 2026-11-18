@@ -6,6 +6,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -103,10 +105,20 @@ private val coloresHex = mapOf(
 @Composable
 fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     val catalogs = form.catalogs
-    // "Otros" de color, transmisión y carrocería no se ofrecen (requerirían texto libre).
+    // "Otros" de transmisión y carrocería no se ofrecen (requerirían texto libre); el de color sí,
+    // con un campo para escribirlo.
     val transmisiones = catalogs?.transmisiones.orEmpty().filterNot { it.esOtro }
     val carrocerias = catalogs?.carrocerias.orEmpty().filterNot { it.esOtro }
-    val colores = catalogs?.colores.orEmpty().filterNot { it.esOtro }
+    val colores = catalogs?.colores.orEmpty()
+    // Al elegir "Otros" en Color, el campo de texto toma el foco en cuanto aparece.
+    val focoColorOtro = remember { FocusRequester() }
+    var pedirFocoColor by remember { mutableStateOf(false) }
+    LaunchedEffect(pedirFocoColor, form.colorEsOtro) {
+        if (pedirFocoColor && form.colorEsOtro) {
+            runCatching { focoColorOtro.requestFocus() }
+            pedirFocoColor = false
+        }
+    }
 
     PublishStepScaffold(
         step = 1,
@@ -254,12 +266,26 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                     colores.forEach { c ->
                         ColorSwatch(
                             name = c.nombre,
+                            // "Otros" (y cualquier nombre sin muestra) va en gris neutro.
                             color = coloresHex[c.nombre] ?: KarsyBorderMuted,
                             selected = form.idColor == c.id,
-                            onClick = { form.idColor = c.id },
+                            onClick = {
+                                if (c.esOtro && form.idColor != c.id) pedirFocoColor = true
+                                form.selectColor(c.id)
+                            },
                             enabled = activo("color")
                         )
                     }
+                }
+                if (form.colorEsOtro) {
+                    FieldLabel(stringResource(R.string.publish_color_other_label))
+                    PublishTextInput(
+                        form.colorOtro,
+                        { form.colorOtro = it.take(30) },
+                        stringResource(R.string.publish_color_other_hint),
+                        modifier = Modifier.focusRequester(focoColorOtro),
+                        enabled = activo("color")
+                    )
                 }
             }
 

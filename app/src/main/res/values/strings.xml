@@ -732,6 +732,9 @@
     <string name="publish_not_applicable">No aplica</string>
     <string name="publish_error_body_type">Elige el tipo de carro.</string>
     <string name="publish_error_color">Elige el color.</string>
+    <string name="publish_error_color_other">Escribe el color del vehículo.</string>
+    <string name="publish_color_other_label">Especifica el color</string>
+    <string name="publish_color_other_hint">Ej. Gris Oxford, Azul eléctrico…</string>
     <string name="publish_error_required_photos">Falta subir: %1$s.</string>
     <string name="publish_error_duplicate_photos">Se detectaron fotos repetidas. Todas las fotos deben ser diferentes.</string>
     <string name="publish_error_not_car">No parece un auto: %1$s. Cámbiala por una foto donde se vea el vehículo.</string>

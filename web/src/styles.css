@@ -110,6 +110,20 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .inputicon{position:relative} .inputicon svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mid)} .inputicon .input{padding-left:44px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-3)}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3)}
+/* Clasificación en Publicar: izquierda Tipo de carro → Dueños → Condición (pegados, mismo gap que
+   el formulario); derecha el Color en dos columnas. Arrancan arriba y lo que sobre queda abajo. */
+.clasif{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3);align-items:start}
+.clasif-izq{display:flex;flex-direction:column;gap:var(--s-3);min-width:0}
+/* Color en Publicar: círculos como la app (DatosStep.kt). */
+.colorcampo{grid-column:span 2}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:var(--s-3) var(--s-2)}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:44px;min-height:44px;padding:4px 0;border:0;border-radius:var(--r-sm);background:none;color:var(--mid);font-size:var(--fs-xs);line-height:1.2;text-align:center;cursor:pointer}
+.swatch:disabled{opacity:.5;cursor:default}
+/* Borde gris semitransparente: Negro y Vino se distinguen del fondo oscuro y Blanco del claro. */
+.swatch .swdot{width:32px;height:32px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(128,128,128,.5);display:grid;place-items:center;flex:none}
+.swatch.otro .swdot{background:var(--bg);box-shadow:none;border:1.5px dashed var(--mid);color:var(--mid)}
+.swatch.on .swdot{outline:2px solid var(--teal);outline-offset:3px}
+.swatch.on .name{color:var(--teal-text);font-weight:var(--fw-bold)}
 .seg{display:inline-flex;flex-wrap:wrap;background:var(--bg);border-radius:var(--r-md);padding:var(--s-1);gap:var(--s-1)}
 .seg button{border:0;background:transparent;border-radius:var(--r-sm);height:36px;padding:0 var(--s-4);font-weight:var(--fw-semibold);color:var(--text2)}
 .seg button:disabled{opacity:.5}
@@ -397,6 +411,15 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
   /* 21 px en celular (sin token propio). */
   .sechead h2{font-size:1.3125rem}
   .grid2,.grid3{grid-template-columns:1fr}
+  /* Una columna: Tipo de carro, Color, Dueños anteriores, Condición. */
+  .clasif{display:flex;flex-direction:column}
+  .clasif-izq{display:contents}
+  .clasif-izq > :nth-child(1){order:1}
+  .clasif .colorcampo{order:2}
+  .clasif-izq > :nth-child(2){order:3}
+  .clasif-izq > :nth-child(3){order:4}
+  .swatches{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:var(--s-3) 4px}
+  .swatch{font-size:11px}
   .ficha,.ficha.cols4{grid-template-columns:1fr 1fr}
   .gallery .main{height:260px}
   .viewer{padding:60px 8px 76px}
