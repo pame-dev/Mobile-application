@@ -152,7 +152,8 @@ export function Home() {
         id_marca: num(f.marca),
         id_modelo: num(f.modelo),
         anio: num(f.anio),
-        id_carroceria: cat.carrocerias.find((c) => !c.esOtro && c.nombre === f.tipo)?.id ?? null,
+        // "Otros" incluido: su id también encuentra los tipos escritos a mano.
+        id_carroceria: cat.carrocerias.find((c) => c.nombre === f.tipo)?.id ?? null,
         precio_min: num(f.min),
         precio_max: num(f.max),
         estado_ubicacion: estadoCerca || null,

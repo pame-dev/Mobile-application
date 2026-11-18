@@ -29,8 +29,8 @@ export function FilterFields({ draft, onChange, anios = ANIOS }: { draft: Filtro
           <button type="button" className={`chip ${!draft.tipo ? 'on' : ''}`} aria-pressed={!draft.tipo} onClick={() => set('tipo', '')}>
             {t('filters.all')}
           </button>
+          {/* Con "Otros" al final: ahí caen los tipos escritos a mano al publicar. */}
           {cat?.carrocerias
-            .filter((c) => !c.esOtro)
             .map((c) => (
               <button type="button" key={c.id} className={`chip ${draft.tipo === c.nombre ? 'on' : ''}`} aria-pressed={draft.tipo === c.nombre} onClick={() => set('tipo', c.nombre)}>
                 {nombreCatalogo(c.nombre)}

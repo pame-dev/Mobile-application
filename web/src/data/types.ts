@@ -74,6 +74,8 @@ export interface Car {
   brandId: number | null
   modelId: number | null
   bodyType: string
+  /** Id del catálogo de carrocerías ("Otros" si el vendedor escribió el tipo a mano). */
+  bodyTypeId: number | null
   publishedAt: string
   city: string
   /** Estado y municipio por separado (filtro "Cerca de mí"). */

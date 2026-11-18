@@ -734,6 +734,12 @@
     <string name="publish_error_color_other">Enter the vehicle color.</string>
     <string name="publish_color_other_label">Specify the color</string>
     <string name="publish_color_other_hint">E.g. Oxford Gray, Electric Blue…</string>
+    <string name="publish_error_transmission_other">Enter the transmission.</string>
+    <string name="publish_transmission_other_label">Specify the transmission</string>
+    <string name="publish_transmission_other_hint">E.g. Semi-automatic, Sequential…</string>
+    <string name="publish_error_body_type_other">Enter the body type.</string>
+    <string name="publish_body_type_other_label">Specify the body type</string>
+    <string name="publish_body_type_other_hint">E.g. Crossover, Sports car…</string>
     <string name="publish_error_required_photos">Still missing: %1$s.</string>
     <string name="publish_error_duplicate_photos">Duplicate photos detected. All photos must be different.</string>
     <string name="publish_error_not_car">Doesn\'t look like a car: %1$s. Replace it with a photo that shows the vehicle.</string>

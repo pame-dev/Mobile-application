@@ -113,6 +113,8 @@ interface Datos {
   anio: string
   precio: string
   idTransmision: string
+  /** Texto libre cuando la transmisión es "Otros" (columna transmision_otra). */
+  transmisionOtra: string
   kilometraje: string
   recuperado: boolean
   facturaOriginal: boolean
@@ -125,6 +127,8 @@ interface Datos {
   aspiracion: string
   combustible: string
   idCarroceria: string
+  /** Texto libre cuando el tipo de carro es "Otros" (columna carroceria_otra). */
+  carroceriaOtra: string
   idColor: string
   /** Texto libre cuando el color es "Otros" (columna color_otro). */
   colorOtro: string
@@ -156,12 +160,69 @@ const COLORES_HEX: Record<string, string> = {
 }
 
 const VACIO: Datos = {
-  idMarca: '', marcaOtra: '', idModelo: '', modeloOtro: '', anio: '', precio: '', idTransmision: '', kilometraje: '',
-  recuperado: false, facturaOriginal: false, aireAcondicionado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', idColor: '', colorOtro: '', duenos: '', condicion: '',
+  idMarca: '', marcaOtra: '', idModelo: '', modeloOtro: '', anio: '', precio: '', idTransmision: '', transmisionOtra: '', kilometraje: '',
+  recuperado: false, facturaOriginal: false, aireAcondicionado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', carroceriaOtra: '', idColor: '', colorOtro: '', duenos: '', condicion: '',
   descripcion: '', imperfecciones: '', tipoDocumento: '', documentoTexto: '',
 }
 
 const digitos = (v: string, max = 12) => v.replace(/\D/g, '').slice(0, max)
+
+/** Texto escrito en "Otros" (color, transmisión, tipo): sin espacios a los lados y con mayúscula inicial. */
+const limpiarOtro = (texto: string) => texto.trim().replace(/^./, (l) => l.toLocaleUpperCase('es'))
+
+/** Catálogos con "Otros" y su campo de texto libre (se guarda en la columna *_otro/*_otra). */
+const CAMPOS_CON_OTRO = [
+  { campo: 'idColor', catalogo: 'colores', otro: 'colorOtro' },
+  { campo: 'idTransmision', catalogo: 'transmisiones', otro: 'transmisionOtra' },
+  { campo: 'idCarroceria', catalogo: 'carrocerias', otro: 'carroceriaOtra' },
+] as const
+
+/**
+ * Campo para escribir el valor cuando se eligió "Otros" (color, transmisión, tipo de carro):
+ * máximo 30 caracteres, toma el foco al aparecer (solo si se acaba de elegir "Otros", no al abrir
+ * una edición) y al salir se limpia el texto.
+ */
+function OtroValor({
+  id,
+  label,
+  placeholder,
+  value,
+  disabled,
+  enfocar,
+  onChange,
+  onSalir,
+}: {
+  id: string
+  label: string
+  placeholder: string
+  value: string
+  disabled: boolean
+  enfocar: { current: string | null }
+  onChange: (v: string) => void
+  onSalir: () => void
+}) {
+  return (
+    <div className="field" style={{ marginTop: 'var(--s-3)' }}>
+      <label htmlFor={id}>{label}</label>
+      <input
+        className="input"
+        id={id}
+        maxLength={30}
+        placeholder={placeholder}
+        disabled={disabled}
+        value={value}
+        ref={(el) => {
+          if (el && enfocar.current === id) {
+            enfocar.current = null
+            el.focus()
+          }
+        }}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onSalir}
+      />
+    </div>
+  )
+}
 
 /** Litros al escribir: solo un entero y un decimal; el punto se pone solo ("20" → "2.0"). */
 function litrosAlEscribir(v: string): string {
@@ -231,8 +292,8 @@ export function Publish() {
   /** Campos que ya muestran su error: al salir de ellos o al tocar Siguiente. */
   const [marcados, setMarcados] = useState<Set<string>>(() => new Set())
   const marcar = (campo: string) => setMarcados((m) => (m.has(campo) ? m : new Set(m).add(campo)))
-  /** Al elegir "Otros" en Color, el campo de texto toma el foco en cuanto aparece. */
-  const enfocarColorOtro = useRef(false)
+  /** Campo de "Otros" (colorOtro, transmisionOtra…) que debe tomar el foco en cuanto aparezca. */
+  const enfocarOtro = useRef<string | null>(null)
   const [angulos, setAngulos] = useState<(Foto | null)[]>([null, null, null, null, null])
   const [extras, setExtras] = useState<Foto[]>([])
   /** Foto del motor: recomendada, no obligatoria. Se sube después de los 5 ángulos. */
@@ -321,6 +382,8 @@ export function Publish() {
             anio: a.anio ? String(a.anio) : '',
             precio: a.precio ? String(Math.round(a.precio)) : '',
             idTransmision: a.id_transmision ? String(a.id_transmision) : '',
+            // Fuera de la lista: "Otros" con lo que se escribió (v_anuncios.transmision = transmision_otra).
+            transmisionOtra: esOtro(c.transmisiones, a.id_transmision) ? a.transmision ?? '' : '',
             kilometraje: a.kilometraje != null ? String(a.kilometraje) : '',
             recuperado: a.recuperado_por_seguro === true,
             facturaOriginal: a.factura_original === true,
@@ -330,6 +393,7 @@ export function Publish() {
             ...separarMotor(a.cilindrada),
             combustible: a.tipo_combustible ?? '',
             idCarroceria: a.id_carroceria ? String(a.id_carroceria) : '',
+            carroceriaOtra: esOtro(c.carrocerias, a.id_carroceria) ? a.carroceria ?? '' : '',
             idColor: a.id_color ? String(a.id_color) : '',
             // Color fuera de la lista: "Otros" con el texto que se escribió (v_anuncios.color = color_otro).
             colorOtro: esOtro(c.colores, a.id_color) ? a.color ?? '' : '',
@@ -407,12 +471,15 @@ export function Publish() {
 
   const set = <K extends keyof Datos>(k: K, v: Datos[K]) => {
     setTocado(true)
+    // Catálogos con opción "Otros" y su texto libre: al elegir "Otros" el campo de texto pide el foco.
+    const conOtro = CAMPOS_CON_OTRO.find((o) => o.campo === k)
+    if (conOtro && v !== d[k] && cat?.[conOtro.catalogo].find((x) => String(x.id) === v)?.esOtro) enfocarOtro.current = conOtro.otro
     setD((x) => ({
       ...x,
       [k]: v,
       ...(k === 'idMarca' && v !== x.idMarca ? { idModelo: '', modeloOtro: '' } : {}),
-      // Otro círculo: se oculta el campo de "Otros" y se descarta lo escrito.
-      ...(k === 'idColor' && v !== x.idColor ? { colorOtro: '' } : {}),
+      // Otra opción: se oculta el campo de "Otros" y se descarta lo escrito (color, transmisión, tipo).
+      ...(conOtro && v !== x[k] ? { [conOtro.otro]: '' } : {}),
       // Un eléctrico no tiene cilindros, litros ni aspiración.
       ...(k === 'combustible' && v === ELECTRICO ? { cilindros: '', litros: '', aspiracion: '' } : {}),
     }))
@@ -421,8 +488,12 @@ export function Publish() {
   const marcaSel = cat?.marcas.find((m) => String(m.id) === d.idMarca)
   const modeloSel = cat?.modelos.find((m) => String(m.id) === d.idModelo)
   const colorSel = cat?.colores.find((c) => String(c.id) === d.idColor)
-  /** Color escrito en "Otros": sin espacios a los lados y con la primera letra en mayúscula. */
-  const colorOtroLimpio = d.colorOtro.trim().replace(/^./, (l) => l.toLocaleUpperCase('es'))
+  const transmisionSel = cat?.transmisiones.find((x) => String(x.id) === d.idTransmision)
+  const carroceriaSel = cat?.carrocerias.find((x) => String(x.id) === d.idCarroceria)
+  /** Textos escritos en "Otros", limpios (sin espacios a los lados y con mayúscula inicial). */
+  const colorOtroLimpio = limpiarOtro(d.colorOtro)
+  const transmisionOtraLimpia = limpiarOtro(d.transmisionOtra)
+  const carroceriaOtraLimpia = limpiarOtro(d.carroceriaOtra)
   const esElectrico = d.combustible === ELECTRICO
 
   /**
@@ -433,9 +504,17 @@ export function Publish() {
     { campo: 'idMarca', lleno: !!marcaSel && (!marcaSel.esOtro || !!d.marcaOtra.trim()), error: 'publicar.errBrand' },
     { campo: 'idModelo', lleno: !!modeloSel && (!modeloSel.esOtro || !!d.modeloOtro.trim()), error: 'publicar.errModel' },
     { campo: 'anio', lleno: !!d.anio, error: 'publicar.errYear' },
-    { campo: 'idTransmision', lleno: !!d.idTransmision, error: 'publicar.errTransmission' },
+    {
+      campo: 'idTransmision',
+      lleno: !!transmisionSel && (!transmisionSel.esOtro || !!transmisionOtraLimpia),
+      error: transmisionSel?.esOtro ? 'publicar.errTransmissionOther' : 'publicar.errTransmission',
+    },
     { campo: 'kilometraje', lleno: !!d.kilometraje, error: 'publicar.errMileage' },
-    { campo: 'idCarroceria', lleno: !!d.idCarroceria, error: 'publicar.errBodyType' },
+    {
+      campo: 'idCarroceria',
+      lleno: !!carroceriaSel && (!carroceriaSel.esOtro || !!carroceriaOtraLimpia),
+      error: carroceriaSel?.esOtro ? 'publicar.errBodyTypeOther' : 'publicar.errBodyType',
+    },
     { campo: 'idColor', lleno: !!colorSel && (!colorSel.esOtro || !!colorOtroLimpio), error: colorSel?.esOtro ? 'publicar.errColorOther' : 'publicar.errColor' },
     { campo: 'duenos', lleno: d.duenos !== '', error: 'publicar.errOwners' },
     { campo: 'condicion', lleno: !!d.condicion, error: 'publicar.errCondition' },
@@ -786,7 +865,9 @@ export function Publish() {
         // Con "Otros" se guarda lo que escribió (la BD lo exige justo en ese caso).
         color_otro: colorSel?.esOtro ? colorOtroLimpio : null,
         id_transmision: Number(d.idTransmision),
+        transmision_otra: transmisionSel?.esOtro ? transmisionOtraLimpia : null,
         id_carroceria: Number(d.idCarroceria),
+        carroceria_otra: carroceriaSel?.esOtro ? carroceriaOtraLimpia : null,
         numero_propietarios_anteriores: Number(d.duenos || 0),
         cilindros: d.cilindros && !esElectrico ? Number(d.cilindros) : null,
         cilindrada: esElectrico ? null : unirMotor(d.litros, d.aspiracion),
@@ -918,7 +999,7 @@ export function Publish() {
     ['publicar.brand', marcaNombre],
     ['publicar.model', modeloNombre],
     ['publicar.year', d.anio],
-    ['publicar.transmission', nombre(cat?.transmisiones, d.idTransmision)],
+    ['publicar.transmission', transmisionSel?.esOtro ? transmisionOtraLimpia : nombre(cat?.transmisiones, d.idTransmision)],
     ['publicar.mileage', d.kilometraje ? `${entero(Number(d.kilometraje))} km` : '—'],
     ['publicar.insuranceRecovered', d.recuperado ? t('publicar.yes') : t('publicar.no')],
     ['publicar.originalInvoice', d.facturaOriginal ? t('publicar.yes') : t('publicar.no')],
@@ -927,7 +1008,7 @@ export function Publish() {
     ['publicar.horsepower', d.caballos || '—'],
     ['publicar.engine', unirMotor(d.litros, d.aspiracion) ?? '—'],
     ['publicar.fuel', combustible ? t(combustible.label) : d.combustible || '—'],
-    ['publicar.bodyType', nombre(cat?.carrocerias, d.idCarroceria)],
+    ['publicar.bodyType', carroceriaSel?.esOtro ? carroceriaOtraLimpia : nombre(cat?.carrocerias, d.idCarroceria)],
     ['publicar.color', colorSel?.esOtro ? colorOtroLimpio : nombre(cat?.colores, d.idColor)],
     ['publicar.previousOwners', d.duenos || '0'],
     ['publicar.condition', condicion ? t(condicion.label) : '—'],
@@ -1016,6 +1097,21 @@ export function Publish() {
                       </button>
                     ))}
                   </div>
+                  {transmisionSel?.esOtro && (
+                    <OtroValor
+                      id="transmisionOtra"
+                      label={t('publicar.transmissionOtherLabel')}
+                      placeholder={t('publicar.transmissionOtherPlaceholder')}
+                      value={d.transmisionOtra}
+                      disabled={bloqueado('idTransmision')}
+                      enfocar={enfocarOtro}
+                      onChange={(v) => set('transmisionOtra', v)}
+                      onSalir={() => {
+                        if (d.transmisionOtra !== transmisionOtraLimpia) set('transmisionOtra', transmisionOtraLimpia)
+                        marcar('idTransmision')
+                      }}
+                    />
+                  )}
                 </Campo>
                 <Campo id="kilometraje" label={t('publicar.mileage')} {...validacion('kilometraje', true)}>
                   <input className="input" id="kilometraje" disabled={bloqueado('kilometraje')} inputMode="numeric" placeholder="45,000" value={d.kilometraje ? entero(Number(d.kilometraje)) : ''} onChange={(e) => set('kilometraje', digitos(e.target.value, 7))} />
@@ -1030,6 +1126,21 @@ export function Publish() {
                 <div className="clasif-izq">
                   <Campo id="idCarroceria" label={t('publicar.bodyType')} {...validacion('idCarroceria')}>
                     {select('idCarroceria', cat.carrocerias, t('publicar.select'))}
+                    {carroceriaSel?.esOtro && (
+                      <OtroValor
+                        id="carroceriaOtra"
+                        label={t('publicar.bodyTypeOtherLabel')}
+                        placeholder={t('publicar.bodyTypeOtherPlaceholder')}
+                        value={d.carroceriaOtra}
+                        disabled={bloqueado('idCarroceria')}
+                        enfocar={enfocarOtro}
+                        onChange={(v) => set('carroceriaOtra', v)}
+                        onSalir={() => {
+                          if (d.carroceriaOtra !== carroceriaOtraLimpia) set('carroceriaOtra', carroceriaOtraLimpia)
+                          marcar('idCarroceria')
+                        }}
+                      />
+                    )}
                   </Campo>
                   <Campo id="duenos" label={t('publicar.previousOwners')} {...validacion('duenos')}>
                     {opciones(
@@ -1063,10 +1174,7 @@ export function Publish() {
                           aria-label={nombreCatalogo(c.nombre)}
                           disabled={bloqueado('idColor')}
                           className={`swatch ${sel ? 'on' : ''} ${c.esOtro ? 'otro' : ''}`}
-                          onClick={() => {
-                            if (c.esOtro && !sel) enfocarColorOtro.current = true
-                            set('idColor', String(c.id))
-                          }}
+                          onClick={() => set('idColor', String(c.id))}
                         >
                           <span className="swdot" style={c.esOtro ? undefined : { background: COLORES_HEX[c.nombre] ?? 'var(--border-muted)' }}>
                             {c.esOtro && <Icon name="plus" size={16} />}
@@ -1077,29 +1185,19 @@ export function Publish() {
                     })}
                   </div>
                   {colorSel?.esOtro && (
-                    <div className="field" style={{ marginTop: 'var(--s-3)' }}>
-                      <label htmlFor="colorOtro">{t('publicar.colorOtherLabel')}</label>
-                      <input
-                        className="input"
-                        id="colorOtro"
-                        maxLength={30}
-                        placeholder={t('publicar.colorOtherPlaceholder')}
-                        disabled={bloqueado('idColor')}
-                        value={d.colorOtro}
-                        ref={(el) => {
-                          // Solo al elegir "Otros" (no al abrir una edición que ya lo tenía).
-                          if (el && enfocarColorOtro.current) {
-                            enfocarColorOtro.current = false
-                            el.focus()
-                          }
-                        }}
-                        onChange={(e) => set('colorOtro', e.target.value)}
-                        onBlur={() => {
-                          if (d.colorOtro !== colorOtroLimpio) set('colorOtro', colorOtroLimpio)
-                          marcar('idColor')
-                        }}
-                      />
-                    </div>
+                    <OtroValor
+                      id="colorOtro"
+                      label={t('publicar.colorOtherLabel')}
+                      placeholder={t('publicar.colorOtherPlaceholder')}
+                      value={d.colorOtro}
+                      disabled={bloqueado('idColor')}
+                      enfocar={enfocarOtro}
+                      onChange={(v) => set('colorOtro', v)}
+                      onSalir={() => {
+                        if (d.colorOtro !== colorOtroLimpio) set('colorOtro', colorOtroLimpio)
+                        marcar('idColor')
+                      }}
+                    />
                   )}
                 </Campo>
               </div>
