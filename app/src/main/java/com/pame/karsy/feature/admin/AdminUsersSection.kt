@@ -126,7 +126,8 @@ fun AdminUsersSection(vm: AdminViewModel, initialFilter: String = "Todos") {
                     } else {
                         AdminSheetButton(
                             stringResource(if (isLot) R.string.admin2_suspend_lot else R.string.admin2_suspend_account),
-                            AdminButtonStyle.Destructive
+                            // Rojo lleno con texto blanco, como la web.
+                            AdminButtonStyle.Danger
                         ) {
                             vm.dismissMessage()
                             suspending = user

@@ -230,6 +230,7 @@
     <string name="home_stat_models">Modelos</string>
     <string name="home_toast_register_favorites">Regístrate para guardar tus favoritos</string>
     <string name="home_toast_register_publish">Regístrate para publicar tu vehículo</string>
+    <string name="home_toast_register_notifications">Regístrate para recibir avisos</string>
     <string name="home_featured_title">Vehículos destacados</string>
     <string name="home_featured_subtitle">Selección especial de nuestra plataforma</string>
     <string name="home_all_title">Todos los vehículos</string>
@@ -1178,7 +1179,7 @@
     <string name="admin2_featured_list_title">Solicitudes de destacado</string>
     <string name="admin2_requested_by">Solicitado por</string>
     <string name="admin2_review_account_title">Revisar cuenta reportada</string>
-    <string name="admin2_review_keep_account">No suspender</string>
+    <string name="admin2_review_keep_account">Descartar</string>
     <string name="admin2_account_listings">Publicaciones de la cuenta (%1$d)</string>
     <string name="admin2_account_no_listings">Esta cuenta no tiene publicaciones.</string>
     <string name="admin2_badge_reported">Reportada</string>

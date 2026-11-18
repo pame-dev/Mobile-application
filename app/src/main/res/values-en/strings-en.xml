@@ -228,6 +228,7 @@
     <string name="home_stat_models">Models</string>
     <string name="home_toast_register_favorites">Sign up to save your favorites</string>
     <string name="home_toast_register_publish">Sign up to list your vehicle</string>
+    <string name="home_toast_register_notifications">Sign up to get notifications</string>
     <string name="home_featured_title">Featured vehicles</string>
     <string name="home_featured_subtitle">A special selection from our platform</string>
     <string name="home_all_title">All vehicles</string>
@@ -1176,7 +1177,7 @@
     <string name="admin2_featured_list_title">Feature requests</string>
     <string name="admin2_requested_by">Requested by</string>
     <string name="admin2_review_account_title">Review reported account</string>
-    <string name="admin2_review_keep_account">Don\'t suspend</string>
+    <string name="admin2_review_keep_account">Dismiss</string>
     <string name="admin2_account_listings">Account listings (%1$d)</string>
     <string name="admin2_account_no_listings">This account has no listings.</string>
     <string name="admin2_badge_reported">Reported</string>

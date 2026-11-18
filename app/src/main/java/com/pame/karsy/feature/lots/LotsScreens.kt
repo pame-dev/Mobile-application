@@ -2,7 +2,7 @@ package com.pame.karsy.feature.lots
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
 import androidx.activity.compose.BackHandler
 import android.content.Intent
 import android.net.Uri
@@ -76,6 +76,8 @@ import com.pame.karsy.core.components.SubHeader
 import com.pame.karsy.core.locale.rememberTraduccion
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
+import com.pame.karsy.core.navigation.LocalMenuCuenta
+import com.pame.karsy.core.navigation.PuntitoPerfil
 import com.pame.karsy.core.session.UserMode
 import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBg
@@ -98,8 +100,6 @@ import com.pame.karsy.feature.home.HomeFilters
 import com.pame.karsy.feature.home.VehicleCard
 import com.pame.karsy.feature.profile.AvatarViewer
 import com.pame.karsy.feature.profile.ProfileAvatar
-import com.pame.karsy.feature.profile.UnreadBadge
-import com.pame.karsy.feature.profile.rememberUnreadNotifications
 import com.pame.karsy.feature.profile.ZoomableProfileAvatar
 
 // Paleta del módulo de Lotes; en tema oscuro se usan equivalentes con el mismo contraste.
@@ -114,7 +114,6 @@ private val SoftShadow = KarsyNavyDeep.copy(alpha = 0.06f)
 fun LotsScreen(
     userMode: UserMode,
     onLotClick: (String) -> Unit,
-    onNotifications: () -> Unit,
     /** Regresa a la pantalla desde la que se entró (Perfil, Favoritos…) o a Inicio. */
     onBack: () -> Unit,
     vm: LotsViewModel = viewModel(),
@@ -124,7 +123,6 @@ fun LotsScreen(
     // La lupa del encabezado muestra/oculta el buscador de lotes.
     var searchOpen by rememberSaveable { mutableStateOf(false) }
     val lots = vm.visibleLots
-    val sinLeer = rememberUnreadNotifications(enabled = userMode.isLoggedIn)
 
     Column(
         Modifier
@@ -142,17 +140,19 @@ fun LotsScreen(
                     if (!searchOpen) vm.query = ""
                 }
             )
-            // Los avisos son de la cuenta: un visitante no tiene.
-            if (userMode.isLoggedIn) {
-                // Número de avisos sin leer, como en la web.
+            // Perfil (antes en la barra inferior; los avisos ahora están en la barra): mismo botón que
+            // la lupa. El menú de la cuenta se ancla aquí y se abre hacia abajo. Solo con sesión.
+            LocalMenuCuenta.current?.let { cuenta ->
                 Box {
                     HeaderSquareButton(
-                        icon = Icons.Outlined.Notifications,
-                        description = if (sinLeer > 0) pluralStringResource(R.plurals.admin2_notifications_unread, sinLeer, sinLeer)
-                        else stringResource(R.string.home_notifications),
-                        onClick = onNotifications
+                        icon = Icons.Outlined.Person,
+                        description = if (cuenta.puntito) stringResource(R.string.nav_profile_pending_cd, stringResource(R.string.nav_profile))
+                        else stringResource(R.string.nav_profile),
+                        active = cuenta.abierto,
+                        onClick = cuenta.alternar
                     )
-                    UnreadBadge(sinLeer)
+                    if (cuenta.puntito) PuntitoPerfil()
+                    cuenta.menu()
                 }
             }
         }

@@ -1,6 +1,9 @@
 package com.pame.karsy.feature.admin
 
 import com.pame.karsy.core.components.CargandoBloqueo
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -117,16 +120,27 @@ fun AdminVehicleReviewBar(vm: AdminViewModel, vehicle: AdminVehicle, onDone: () 
             if (acted && dialog == null && !vm.working) vm.message?.let {
                 Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg)
             }
-            if (actions.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (actions.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 actions.forEach { decision ->
                     val (label, style) = when (decision) {
                         // Se aprueba desde la ventana con la guía para consultar el NIV o la placa en REPUVE.
-                        VehicleDecision.Approve -> R.string.admin2_repuve_review to AdminButtonStyle.Positive
-                        VehicleDecision.Reject -> R.string.admin2_reject to AdminButtonStyle.Destructive
+                        // Como la web: Rechazar rojo y Revisar en REPUVE verde, llenos y con ícono.
+                        VehicleDecision.Approve -> R.string.admin2_repuve_review to AdminButtonStyle.Success
+                        VehicleDecision.Reject -> R.string.admin2_reject to AdminButtonStyle.Danger
                         VehicleDecision.Disable -> R.string.admin2_review_disable to AdminButtonStyle.Destructive
                         VehicleDecision.Enable -> R.string.admin2_review_enable to AdminButtonStyle.Positive
                     }
-                    AdminSheetButton(stringResource(label), style, Modifier.weight(1f)) {
+                    AdminSheetButton(
+                        stringResource(label),
+                        style,
+                        // "Revisar en REPUVE" es más largo: un poco más de ancho.
+                        Modifier.weight(if (decision == VehicleDecision.Approve) 1.35f else 1f),
+                        icon = when (decision) {
+                            VehicleDecision.Approve -> Icons.Default.Check
+                            VehicleDecision.Reject -> Icons.Default.Close
+                            else -> null
+                        }
+                    ) {
                         if (vm.working) return@AdminSheetButton
                         vm.dismissMessage()
                         when (decision) {

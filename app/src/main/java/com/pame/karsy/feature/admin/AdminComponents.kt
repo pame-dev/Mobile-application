@@ -3,6 +3,10 @@ package com.pame.karsy.feature.admin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import com.pame.karsy.core.theme.KarsyBorderMuted
+import com.pame.karsy.core.theme.KarsyError
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +69,8 @@ import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyBlue
 import com.pame.karsy.core.theme.KarsyCoral
 import com.pame.karsy.core.theme.KarsyGreen
+import com.pame.karsy.core.theme.KarsySuccess
+import androidx.compose.ui.text.style.TextOverflow
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyRed
 import com.pame.karsy.core.theme.KarsyTextSize
@@ -500,14 +506,20 @@ fun AdminDetailModal(
     }
 }
 
-/** Jerarquía de botones en el detalle: principal lleno, destructivo con borde rojo, secundario como texto. */
-enum class AdminButtonStyle { Primary, Positive, Destructive, Secondary }
+/**
+ * Jerarquía de botones en el detalle: principal lleno, destructivo con borde rojo, secundario como texto.
+ * Como la web: [Danger] rojo y [Success] verde llenos con texto blanco (oscuros: se leen en claro y
+ * oscuro), [Outline] con borde gris suave y texto del tema.
+ */
+enum class AdminButtonStyle { Primary, Positive, Destructive, Secondary, Danger, Success, Outline }
 
 @Composable
 fun AdminSheetButton(
     text: String,
     style: AdminButtonStyle,
     modifier: Modifier = Modifier,
+    /** Ícono a la izquierda del texto (como la web). */
+    icon: ImageVector? = null,
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(KarsyRadius.Md)
@@ -516,9 +528,14 @@ fun AdminSheetButton(
         AdminButtonStyle.Positive -> Triple(BadgeTone.Success.fg, KarsyWhite, BadgeTone.Success.fg)
         AdminButtonStyle.Destructive -> Triple(KarsySurface, BadgeTone.Danger.fg, BadgeTone.Danger.fg.copy(alpha = 0.55f))
         AdminButtonStyle.Secondary -> Triple(Color.Transparent, KarsyInk, Color.Transparent)
+        AdminButtonStyle.Danger -> Triple(KarsyError, KarsyWhite, KarsyError)
+        // El mismo verde que la web (--success); el blanco encima se lee bien (KarsyGreen se queda corto).
+        AdminButtonStyle.Success -> Triple(KarsySuccess, KarsyWhite, KarsySuccess)
+        AdminButtonStyle.Outline -> Triple(Color.Transparent, KarsyInk, KarsyBorderMuted)
     }
-    Box(
-        contentAlignment = Alignment.Center,
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
@@ -526,15 +543,22 @@ fun AdminSheetButton(
             .background(bg)
             .border(1.5.dp, border, shape)
             .clickable(onClick = onClick, role = Role.Button)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
-        Text(
+        if (icon != null) {
+            Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+        }
+        // Nunca se corta: en pantallas angostas la letra baja un poco hasta que quepa completa.
+        BasicText(
             text,
-            fontFamily = DmSans,
-            fontSize = KarsyTextSize.BodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = fg,
-            maxLines = 1
+            style = TextStyle(fontFamily = DmSans, fontWeight = FontWeight.Bold, color = fg, textAlign = TextAlign.Center),
+            maxLines = 1,
+            softWrap = false,
+            // Solo si ni con la letra mínima cabe (letra del sistema muy grande): "…" en lugar de un corte seco.
+            overflow = TextOverflow.Ellipsis,
+            autoSize = TextAutoSize.StepBased(minFontSize = 12.sp, maxFontSize = KarsyTextSize.BodyLarge, stepSize = 0.5.sp),
+            modifier = Modifier.weight(1f, fill = false)
         )
     }
 }

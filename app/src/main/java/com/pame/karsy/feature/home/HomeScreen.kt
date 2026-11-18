@@ -73,7 +73,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
@@ -100,8 +100,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.pluralStringResource
-import com.pame.karsy.feature.profile.UnreadBadge
-import com.pame.karsy.feature.profile.rememberUnreadNotifications
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -115,6 +113,8 @@ import com.pame.karsy.R
 import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
+import com.pame.karsy.core.navigation.LocalMenuCuenta
+import com.pame.karsy.core.navigation.PuntitoPerfil
 import com.pame.karsy.core.components.SkeletonCarCard
 import com.pame.karsy.core.components.KarsyBrand
 import com.pame.karsy.core.components.RegisterToast
@@ -145,7 +145,6 @@ private val HomeListBg: Color get() = if (Tema.oscuro) KarsyBg else Color(0xFFE9
 fun HomeScreen(
     userMode: UserMode,
     onCarClick: (Long) -> Unit,
-    onNotifications: () -> Unit,
     onRegister: () -> Unit,
     onLogin: () -> Unit,
     vm: HomeViewModel = viewModel(),
@@ -237,7 +236,6 @@ fun HomeScreen(
                     menuOpen = false
                     onLogin()
                 },
-                onNotifications = onNotifications,
                 heroHeightPx = heroHeightPx,
                 onHeight = { headerHeightPx = it }
             )
@@ -480,13 +478,11 @@ internal fun HomeHeader(
     menuOpen: Boolean,
     onToggleMenu: () -> Unit,
     onLogin: () -> Unit,
-    onNotifications: () -> Unit,
     /** Alto del banner de abajo, para continuar el mismo degradado. */
     heroHeightPx: Float,
     onHeight: (Float) -> Unit,
 ) {
     val p = heroPalette()
-    val sinLeer = rememberUnreadNotifications(enabled = userMode.isLoggedIn)
     // Pinta la parte de arriba del degradado que sigue en el banner: sin línea ni corte entre ambos.
     Column(
         Modifier
@@ -506,32 +502,47 @@ internal fun HomeHeader(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             KarsyBrand(color = p.headerContent)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                when {
-                    !userMode.isLoggedIn -> Button(
-                        onClick = onLogin,
-                        shape = RoundedCornerShape(KarsyRadius.Md),
-                        // Turquesa: sobre el azul del encabezado un botón azul no se vería.
-                        colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
-                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
-                        modifier = Modifier.height(38.dp)
-                    ) {
-                        Text(stringResource(R.string.home_login), fontFamily = Outfit, fontSize = KarsyTextSize.Body, fontWeight = FontWeight.SemiBold)
-                    }
-                    else -> {
-                        // Número de avisos sin leer, como en la web.
-                        Box {
-                            HeaderIconButton(p, onClick = onNotifications) {
-                                Icon(
-                                    Icons.Outlined.Notifications,
-                                    contentDescription = if (sinLeer > 0) pluralStringResource(R.plurals.admin2_notifications_unread, sinLeer, sinLeer)
-                                    else stringResource(R.string.home_notifications),
-                                    tint = p.headerContent,
-                                    modifier = Modifier.size(19.dp)
-                                )
-                            }
-                            UnreadBadge(sinLeer)
+            // Puede encogerse: con letra grande del sistema o pantallas angostas, "Iniciar sesión" cede
+            // espacio (se acorta con "…") en lugar de empujar el logo.
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f, fill = false).padding(start = 8.dp)
+            ) {
+                // Visitante: "Iniciar sesión" a un lado del Perfil (igual que antes, ahora junto a él).
+                if (!userMode.isLoggedIn) Button(
+                    onClick = onLogin,
+                    shape = RoundedCornerShape(KarsyRadius.Md),
+                    // Turquesa: sobre el azul del encabezado un botón azul no se vería.
+                    colors = ButtonDefaults.buttonColors(containerColor = KarsyTealText, contentColor = KarsyWhite),
+                    // Un poco más compacto que antes para que quepa junto a Perfil y Filtro en 360 dp.
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.height(38.dp).weight(1f, fill = false)
+                ) {
+                    Text(
+                        stringResource(R.string.home_login),
+                        fontFamily = Outfit,
+                        fontSize = KarsyTextSize.Small,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                // Perfil (antes en la barra inferior): mismo botón que el filtro. El menú de la cuenta
+                // se ancla a este Box y se abre hacia abajo. Solo con sesión (null para el visitante).
+                LocalMenuCuenta.current?.let { cuenta ->
+                    Box {
+                        HeaderIconButton(p, onClick = cuenta.alternar, active = cuenta.abierto) {
+                            Icon(
+                                Icons.Outlined.Person,
+                                contentDescription = if (cuenta.puntito) stringResource(R.string.nav_profile_pending_cd, stringResource(R.string.nav_profile))
+                                else stringResource(R.string.nav_profile),
+                                tint = if (cuenta.abierto) KarsyTeal else p.headerContent,
+                                modifier = Modifier.size(19.dp)
+                            )
                         }
+                        if (cuenta.puntito) PuntitoPerfil()
+                        cuenta.menu()
                     }
                 }
                 HeaderIconButton(p, onClick = onToggleMenu, active = menuOpen) {
