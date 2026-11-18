@@ -317,8 +317,10 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
         <span className="nic">
           <Icon name="shield" size={18} />
         </span>
-        <b className="ink">{t('admin.reviewBar')}</b>
-        <Badge s={estadoAdmin(row, car)} />
+        {/* Título y badge juntos: si el título no cabe, el badge baja pegado a él. */}
+        <span className="bartitulo">
+          <b className="ink">{t('admin.reviewBar')}</b> <Badge s={estadoAdmin(row, car)} />
+        </span>
         <span className="barnota muted">
           {propuesta != null ? t('admin.reviewBarPending') : t('admin.reviewBarDone')}
         </span>
@@ -330,7 +332,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
           <>
             <button className="btn btn-danger btn-sm" disabled={busy} onClick={() => moderacion.rechazar(propuesta, listo)}>
               <Icon name="x" size={14} />
-              {t('admin.reject')}
+              <span className="btxt">{t('admin.reject')}</span>
             </button>
             {/* Se aprueba desde la ventana con la guía para consultar el NIV o la placa en REPUVE. */}
             <button
@@ -341,7 +343,7 @@ export function AdminReviewBar({ car, row, onChanged }: { car: Car; row: Anuncio
               }
             >
               <Icon name="check" size={14} />
-              {t('admin.repuveReview')}
+              <span className="btxt">{t('admin.repuveReview')}</span>
             </button>
           </>
         )}
@@ -512,8 +514,9 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
         <span className="nic">
           <Icon name="flag" size={18} />
         </span>
-        <b className="ink">{t('admin.reportReviewBar', { id: idReporte })}</b>
-        {r && <Badge s={r.estado_reporte.charAt(0).toUpperCase() + r.estado_reporte.slice(1)} />}
+        <span className="bartitulo">
+          <b className="ink">{t('admin.reportReviewBar', { id: idReporte })}</b> {r && <Badge s={r.estado_reporte.charAt(0).toUpperCase() + r.estado_reporte.slice(1)} />}
+        </span>
         <span className="barnota muted">
           {r === null ? t('admin.reportNotFound') : r ? <Traducido texto={r.motivo_reporte} /> : ''}
         </span>
@@ -523,10 +526,10 @@ export function AdminReportBar({ idReporte, ownerId, onChanged }: { idReporte: n
         {r && pendiente && (
           <>
             <button className="btn btn-ghost btn-sm" onClick={() => acciones.descartar(r, listo)}>
-              {t('admin.dismissReport')}
+              <span className="btxt">{t('admin.dismissReport')}</span>
             </button>
             <button className="btn btn-danger btn-sm" onClick={() => acciones.proceder(r, dueno, listo)}>
-              {t(deCuenta ? 'admin.suspendAccount' : 'admin.disableListing')}
+              <span className="btxt">{t(deCuenta ? 'admin.suspendAccount' : 'admin.disableListing')}</span>
             </button>
           </>
         )}

@@ -567,7 +567,7 @@ function UserDetail({ c, selfId, listo, autos }: { c: CuentaAdmin; selfId: strin
           </div>
         </div>
       </div>
-      <div className="ficha" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <div className="ficha dos">
         {(
           [
             [t('admin.accountType'), c.es_admin ? t('admin.typeAdmin', { type: tipoCuenta(c) }) : tipoCuenta(c)],
