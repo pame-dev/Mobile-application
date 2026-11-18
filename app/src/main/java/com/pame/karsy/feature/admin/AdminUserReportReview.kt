@@ -219,10 +219,11 @@ private fun UserReportReviewBar(
             if (acted && dialog == null && !vm.working) vm.message?.let {
                 Text(it, fontFamily = DmSans, fontSize = KarsyTextSize.Small, color = BadgeTone.Danger.fg)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Como la web: "Descartar" con borde gris y "Suspender cuenta" rojo lleno, del mismo ancho.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AdminSheetButton(
                     stringResource(R.string.admin2_review_keep_account),
-                    AdminButtonStyle.Primary,
+                    AdminButtonStyle.Outline,
                     Modifier.weight(1f)
                 ) {
                     vm.dismissMessage()
@@ -231,7 +232,7 @@ private fun UserReportReviewBar(
                 if (canSuspend) {
                     AdminSheetButton(
                         stringResource(if (alreadySuspended) R.string.admin2_close_report_confirm else R.string.admin2_suspend_account),
-                        AdminButtonStyle.Destructive,
+                        AdminButtonStyle.Danger,
                         Modifier.weight(1f)
                     ) {
                         vm.dismissMessage()

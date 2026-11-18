@@ -1179,7 +1179,7 @@
     <string name="admin2_featured_list_title">Solicitudes de destacado</string>
     <string name="admin2_requested_by">Solicitado por</string>
     <string name="admin2_review_account_title">Revisar cuenta reportada</string>
-    <string name="admin2_review_keep_account">No suspender</string>
+    <string name="admin2_review_keep_account">Descartar</string>
     <string name="admin2_account_listings">Publicaciones de la cuenta (%1$d)</string>
     <string name="admin2_account_no_listings">Esta cuenta no tiene publicaciones.</string>
     <string name="admin2_badge_reported">Reportada</string>

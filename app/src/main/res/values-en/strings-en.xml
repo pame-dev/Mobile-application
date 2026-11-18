@@ -1177,7 +1177,7 @@
     <string name="admin2_featured_list_title">Feature requests</string>
     <string name="admin2_requested_by">Requested by</string>
     <string name="admin2_review_account_title">Review reported account</string>
-    <string name="admin2_review_keep_account">Don\'t suspend</string>
+    <string name="admin2_review_keep_account">Dismiss</string>
     <string name="admin2_account_listings">Account listings (%1$d)</string>
     <string name="admin2_account_no_listings">This account has no listings.</string>
     <string name="admin2_badge_reported">Reported</string>
