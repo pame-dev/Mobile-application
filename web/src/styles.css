@@ -110,6 +110,20 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .inputicon{position:relative} .inputicon svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mid)} .inputicon .input{padding-left:44px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-3)}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3)}
+/* Clasificación en Publicar: izquierda Tipo de carro → Dueños → Condición (pegados, mismo gap que
+   el formulario); derecha el Color en dos columnas. Arrancan arriba y lo que sobre queda abajo. */
+.clasif{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3);align-items:start}
+.clasif-izq{display:flex;flex-direction:column;gap:var(--s-3);min-width:0}
+/* Color en Publicar: círculos como la app (DatosStep.kt). */
+.colorcampo{grid-column:span 2}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:var(--s-3) var(--s-2)}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:44px;min-height:44px;padding:4px 0;border:0;border-radius:var(--r-sm);background:none;color:var(--mid);font-size:var(--fs-xs);line-height:1.2;text-align:center;cursor:pointer}
+.swatch:disabled{opacity:.5;cursor:default}
+/* Borde gris semitransparente: Negro y Vino se distinguen del fondo oscuro y Blanco del claro. */
+.swatch .swdot{width:32px;height:32px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(128,128,128,.5);display:grid;place-items:center;flex:none}
+.swatch.otro .swdot{background:var(--bg);box-shadow:none;border:1.5px dashed var(--mid);color:var(--mid)}
+.swatch.on .swdot{outline:2px solid var(--teal);outline-offset:3px}
+.swatch.on .name{color:var(--teal-text);font-weight:var(--fw-bold)}
 .seg{display:inline-flex;flex-wrap:wrap;background:var(--bg);border-radius:var(--r-md);padding:var(--s-1);gap:var(--s-1)}
 .seg button{border:0;background:transparent;border-radius:var(--r-sm);height:36px;padding:0 var(--s-4);font-weight:var(--fw-semibold);color:var(--text2)}
 .seg button:disabled{opacity:.5}
@@ -268,7 +282,14 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 
 /* Detail */
 .detailgrid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:var(--s-6);align-items:start}
-.gallery .main{height:440px;border-radius:var(--r-xl)}
+.gallery .main{position:relative;height:440px;border-radius:var(--r-xl);overflow:hidden;background:var(--placeholder)}
+/* Foto principal deslizable: tira con snap (dedo y trackpad nativos); Volver, corazón, etiqueta y contador quedan fijos encima. */
+.gallery{user-select:none;-webkit-user-select:none}
+.gallery img{-webkit-user-drag:none}
+.mainstrip{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain}
+.mainstrip::-webkit-scrollbar{display:none}
+.mainstrip .slide{flex:0 0 100%;height:100%;scroll-snap-align:center;scroll-snap-stop:always}
+.gallery .main > .tag{position:absolute;left:10px;top:10px;z-index:2}
 .gallery .main.zoomable{cursor:zoom-in}
 .viewer{position:fixed;inset:0;z-index:100;background:rgba(5,15,25,.94);display:flex;align-items:center;justify-content:center;padding:64px 84px}
 .viewer img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--r-md);user-select:none}
@@ -278,9 +299,41 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .viewer .prev{left:18px}
 .viewer .next{right:18px}
 .viewer .vcount{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.5);padding:var(--s-1) var(--s-3);border-radius:var(--r-pill);font-size:var(--fs-sm)}
-.thumbs{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--s-2);margin-top:var(--s-2)}
-.thumbs .ph{height:70px;border-radius:var(--r-md);cursor:pointer;border:2px solid transparent}
+/* Miniaturas: flecha · fila deslizable · flecha, del ancho de la foto principal (6 miniaturas a la vista). */
+.thumbsrow{display:flex;align-items:center;gap:8px;margin-top:var(--s-2)}
+.thumbnav{flex:none;width:36px;height:70px;cursor:pointer}
+.thumbnav:disabled{opacity:.35;cursor:default}
+.thumbs{position:relative;flex:1;min-width:0;display:flex;gap:var(--s-2);overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.thumbs::-webkit-scrollbar{display:none}
+.thumbs.mas{-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
+.thumbs.antes{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%);mask-image:linear-gradient(90deg,transparent,#000 8%)}
+.thumbs.antes.mas{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.thumbs .ph{flex:0 0 calc((100% - 5 * var(--s-2)) / 6);height:70px;border-radius:var(--r-md);cursor:pointer;border:2px solid transparent;scroll-snap-align:start}
 .thumbs .ph.on{border-color:var(--teal)}
+/* Volver sobre la foto principal (esquina superior izquierda, a la altura del corazón): mismo
+   botón cuadrado que compartir/reportar, con fondo sólido y sombra para leerse sobre cualquier foto. */
+.gallery .photoback{position:absolute;top:14px;left:14px;z-index:3;width:auto;height:42px;display:inline-flex;align-items:center;gap:6px;padding:0 16px 0 12px;font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
+/* Con Volver en la esquina, la etiqueta "Vendido / No disponible" baja justo debajo de él. */
+.gallery .photoback ~ .tag{top:66px;left:14px}
+@media (max-width:640px){
+  .gallery .photoback{top:12px;left:12px;width:40px;height:40px;padding:0;justify-content:center}
+  .gallery .photoback span{display:none}
+  .gallery .photoback ~ .tag{top:62px;left:12px}
+  /* Teléfono: flechas más angostas (28 px, ícono de 16) y del alto de las miniaturas (48 px, área táctil ≥ 40). */
+  .thumbsrow{gap:6px}
+  .thumbnav{width:28px;height:48px;flex-shrink:0}
+  .thumbnav svg{width:16px;height:16px}
+  .thumbs .ph{flex-basis:72px;height:48px}
+}
+/* Descripción y Detalles del auto: justificado con guiones automáticos (lang en el contenedor);
+   cada renglón escrito termina en salto, así que su final queda a la izquierda. */
+.textojust p,.textojust ul{margin:0;text-align:justify;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;text-wrap:pretty}
+.textojust p{white-space:pre-line}
+.textojust ul{padding-left:1.25em;list-style:disc}
+.textojust li{padding-left:.15em}
+.textojust .tj-vacia{height:1.6em;height:1lh}
+/* Muy angosto: con justify quedan huecos grandes; se lee mejor a la izquierda. */
+@media (max-width:400px){ .textojust p,.textojust ul{text-align:left} }
 .counter{position:absolute;right:14px;bottom:14px;background:rgba(13,43,69,.75);color:#fff;font-size:var(--fs-xs);padding:var(--s-1) var(--s-3);border-radius:var(--r-pill);z-index:2}
 .ficha{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
 .ficha div{background:var(--surface);padding:var(--s-3) var(--s-4)}
@@ -367,6 +420,15 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
   /* 21 px en celular (sin token propio). */
   .sechead h2{font-size:1.3125rem}
   .grid2,.grid3{grid-template-columns:1fr}
+  /* Una columna: Tipo de carro, Color, Dueños anteriores, Condición. */
+  .clasif{display:flex;flex-direction:column}
+  .clasif-izq{display:contents}
+  .clasif-izq > :nth-child(1){order:1}
+  .clasif .colorcampo{order:2}
+  .clasif-izq > :nth-child(2){order:3}
+  .clasif-izq > :nth-child(3){order:4}
+  .swatches{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:var(--s-3) 4px}
+  .swatch{font-size:11px}
   .ficha,.ficha.cols4{grid-template-columns:1fr 1fr}
   .gallery .main{height:260px}
   .viewer{padding:60px 8px 76px}

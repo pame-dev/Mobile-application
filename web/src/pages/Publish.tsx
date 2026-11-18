@@ -126,6 +126,8 @@ interface Datos {
   combustible: string
   idCarroceria: string
   idColor: string
+  /** Texto libre cuando el color es "Otros" (columna color_otro). */
+  colorOtro: string
   duenos: string
   /** Uno de CONDICIONES o vacío (columna condicion_vehiculo). */
   condicion: string
@@ -137,9 +139,25 @@ interface Datos {
   documentoTexto: string
 }
 
+/** Muestras de color: mismos valores que coloresHex de DatosStep.kt (los nombres vienen de public.colores). */
+const COLORES_HEX: Record<string, string> = {
+  Blanco: '#FFFFFF',
+  Negro: '#1A1A1A',
+  Gris: '#6B7280',
+  Plata: '#B0B8C1',
+  Rojo: '#DC2626',
+  Azul: '#2563EB',
+  Verde: '#16A34A',
+  Beige: '#C9A87C',
+  Café: '#7C4A21',
+  Amarillo: '#FACC15',
+  Naranja: '#EA580C',
+  Vino: '#7F1D1D',
+}
+
 const VACIO: Datos = {
   idMarca: '', marcaOtra: '', idModelo: '', modeloOtro: '', anio: '', precio: '', idTransmision: '', kilometraje: '',
-  recuperado: false, facturaOriginal: false, aireAcondicionado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', idColor: '', duenos: '', condicion: '',
+  recuperado: false, facturaOriginal: false, aireAcondicionado: false, cilindros: '', caballos: '', litros: '', aspiracion: '', combustible: '', idCarroceria: '', idColor: '', colorOtro: '', duenos: '', condicion: '',
   descripcion: '', imperfecciones: '', tipoDocumento: '', documentoTexto: '',
 }
 
@@ -179,9 +197,9 @@ async function huella(f: Foto): Promise<string> {
  * Campo del formulario. Con [campo] participa en la validación por campo: muestra [error] debajo
  * (y el borde en rojo) y, con [onSalir], avisa al perder el foco para validar al salir.
  */
-function Campo({ id, label, children, campo, error, onSalir }: { id?: string; label: string; children: ReactNode; campo?: string; error?: string | null; onSalir?: () => void }) {
+function Campo({ id, label, children, campo, error, onSalir, className = '' }: { id?: string; label: string; children: ReactNode; campo?: string; error?: string | null; onSalir?: () => void; className?: string }) {
   return (
-    <div className={`field ${error ? 'invalid' : ''}`} data-campo={campo} onBlur={onSalir}>
+    <div className={`field ${className} ${error ? 'invalid' : ''}`} data-campo={campo} onBlur={onSalir}>
       <label htmlFor={id}>{label}</label>
       {children}
       {error && (
@@ -213,6 +231,8 @@ export function Publish() {
   /** Campos que ya muestran su error: al salir de ellos o al tocar Siguiente. */
   const [marcados, setMarcados] = useState<Set<string>>(() => new Set())
   const marcar = (campo: string) => setMarcados((m) => (m.has(campo) ? m : new Set(m).add(campo)))
+  /** Al elegir "Otros" en Color, el campo de texto toma el foco en cuanto aparece. */
+  const enfocarColorOtro = useRef(false)
   const [angulos, setAngulos] = useState<(Foto | null)[]>([null, null, null, null, null])
   const [extras, setExtras] = useState<Foto[]>([])
   /** Foto del motor: recomendada, no obligatoria. Se sube después de los 5 ángulos. */
@@ -311,6 +331,8 @@ export function Publish() {
             combustible: a.tipo_combustible ?? '',
             idCarroceria: a.id_carroceria ? String(a.id_carroceria) : '',
             idColor: a.id_color ? String(a.id_color) : '',
+            // Color fuera de la lista: "Otros" con el texto que se escribió (v_anuncios.color = color_otro).
+            colorOtro: esOtro(c.colores, a.id_color) ? a.color ?? '' : '',
             // El menú ya no tiene "0": si estaba en 0, queda vacío para elegir de nuevo.
             duenos: a.numero_propietarios_anteriores ? String(a.numero_propietarios_anteriores) : '',
             condicion: a.condicion_vehiculo ?? '',
@@ -389,6 +411,8 @@ export function Publish() {
       ...x,
       [k]: v,
       ...(k === 'idMarca' && v !== x.idMarca ? { idModelo: '', modeloOtro: '' } : {}),
+      // Otro círculo: se oculta el campo de "Otros" y se descarta lo escrito.
+      ...(k === 'idColor' && v !== x.idColor ? { colorOtro: '' } : {}),
       // Un eléctrico no tiene cilindros, litros ni aspiración.
       ...(k === 'combustible' && v === ELECTRICO ? { cilindros: '', litros: '', aspiracion: '' } : {}),
     }))
@@ -396,6 +420,9 @@ export function Publish() {
 
   const marcaSel = cat?.marcas.find((m) => String(m.id) === d.idMarca)
   const modeloSel = cat?.modelos.find((m) => String(m.id) === d.idModelo)
+  const colorSel = cat?.colores.find((c) => String(c.id) === d.idColor)
+  /** Color escrito en "Otros": sin espacios a los lados y con la primera letra en mayúscula. */
+  const colorOtroLimpio = d.colorOtro.trim().replace(/^./, (l) => l.toLocaleUpperCase('es'))
   const esElectrico = d.combustible === ELECTRICO
 
   /**
@@ -409,7 +436,7 @@ export function Publish() {
     { campo: 'idTransmision', lleno: !!d.idTransmision, error: 'publicar.errTransmission' },
     { campo: 'kilometraje', lleno: !!d.kilometraje, error: 'publicar.errMileage' },
     { campo: 'idCarroceria', lleno: !!d.idCarroceria, error: 'publicar.errBodyType' },
-    { campo: 'idColor', lleno: !!d.idColor, error: 'publicar.errColor' },
+    { campo: 'idColor', lleno: !!colorSel && (!colorSel.esOtro || !!colorOtroLimpio), error: colorSel?.esOtro ? 'publicar.errColorOther' : 'publicar.errColor' },
     { campo: 'duenos', lleno: d.duenos !== '', error: 'publicar.errOwners' },
     { campo: 'condicion', lleno: !!d.condicion, error: 'publicar.errCondition' },
     { campo: 'combustible', lleno: !!d.combustible, error: 'publicar.errFuel' },
@@ -756,6 +783,8 @@ export function Publish() {
         aire_acondicionado: d.aireAcondicionado,
         condicion_vehiculo: d.condicion,
         id_color: Number(d.idColor),
+        // Con "Otros" se guarda lo que escribió (la BD lo exige justo en ese caso).
+        color_otro: colorSel?.esOtro ? colorOtroLimpio : null,
         id_transmision: Number(d.idTransmision),
         id_carroceria: Number(d.idCarroceria),
         numero_propietarios_anteriores: Number(d.duenos || 0),
@@ -899,7 +928,7 @@ export function Publish() {
     ['publicar.engine', unirMotor(d.litros, d.aspiracion) ?? '—'],
     ['publicar.fuel', combustible ? t(combustible.label) : d.combustible || '—'],
     ['publicar.bodyType', nombre(cat?.carrocerias, d.idCarroceria)],
-    ['publicar.color', nombre(cat?.colores, d.idColor)],
+    ['publicar.color', colorSel?.esOtro ? colorOtroLimpio : nombre(cat?.colores, d.idColor)],
     ['publicar.previousOwners', d.duenos || '0'],
     ['publicar.condition', condicion ? t(condicion.label) : '—'],
     // Privado: solo aquí y para el admin; no sale en el anuncio.
@@ -995,31 +1024,83 @@ export function Publish() {
               <div className="label" style={{ marginTop: 'var(--s-2)' }}>
                 {t('publicar.sectionClassification')}
               </div>
-              <div className="grid3">
-                <Campo id="idCarroceria" label={t('publicar.bodyType')} {...validacion('idCarroceria')}>
-                  {select('idCarroceria', cat.carrocerias, t('publicar.select'))}
-                </Campo>
-                <Campo id="idColor" label={t('publicar.color')} {...validacion('idColor')}>
-                  {select('idColor', cat.colores, t('publicar.select'))}
-                </Campo>
-                <Campo id="duenos" label={t('publicar.previousOwners')} {...validacion('duenos')}>
-                  {opciones(
-                    'duenos',
-                    // Sin "0": todo auto seminuevo o usado tuvo al menos un dueño.
-                    Array.from({ length: DUENOS_MAX }, (_, i) => i + 1).map((n) => ({ valor: String(n), texto: n === DUENOS_MAX ? t('publicar.ownersOrMore', { n }) : String(n) })),
-                    t('publicar.select'),
-                  )}
-                </Campo>
-              </div>
-              <div className="grid3">
-                <Campo label={t('publicar.condition')} {...validacion('condicion')}>
-                  <div className="seg" style={{ alignSelf: 'flex-start' }}>
-                    {CONDICIONES.map((c) => (
-                      <button type="button" key={c.valor} disabled={bloqueado('condicion')} className={d.condicion === c.valor ? 'on' : ''} aria-pressed={d.condicion === c.valor} onClick={() => set('condicion', c.valor)}>
-                        {t(c.label)}
-                      </button>
-                    ))}
+              {/* Dos columnas independientes: a la izquierda Tipo de carro, Dueños y Condición seguidos; a la
+                  derecha el Color (puede ocupar varias filas sin dejar hueco a la izquierda). */}
+              <div className="clasif">
+                <div className="clasif-izq">
+                  <Campo id="idCarroceria" label={t('publicar.bodyType')} {...validacion('idCarroceria')}>
+                    {select('idCarroceria', cat.carrocerias, t('publicar.select'))}
+                  </Campo>
+                  <Campo id="duenos" label={t('publicar.previousOwners')} {...validacion('duenos')}>
+                    {opciones(
+                      'duenos',
+                      // Sin "0": todo auto seminuevo o usado tuvo al menos un dueño.
+                      Array.from({ length: DUENOS_MAX }, (_, i) => i + 1).map((n) => ({ valor: String(n), texto: n === DUENOS_MAX ? t('publicar.ownersOrMore', { n }) : String(n) })),
+                      t('publicar.select'),
+                    )}
+                  </Campo>
+                  <Campo label={t('publicar.condition')} {...validacion('condicion')}>
+                    <div className="seg" style={{ alignSelf: 'flex-start' }}>
+                      {CONDICIONES.map((c) => (
+                        <button type="button" key={c.valor} disabled={bloqueado('condicion')} className={d.condicion === c.valor ? 'on' : ''} aria-pressed={d.condicion === c.valor} onClick={() => set('condicion', c.valor)}>
+                          {t(c.label)}
+                        </button>
+                      ))}
+                    </div>
+                  </Campo>
+                </div>
+                {/* Círculos de color como la app (DatosStep.kt); "Otros" pide escribir el color. */}
+                <Campo label={t('publicar.color')} className="colorcampo" {...validacion('idColor')}>
+                  <div className="swatches" role="radiogroup" aria-label={t('publicar.color')}>
+                    {cat.colores.map((c) => {
+                      const sel = d.idColor === String(c.id)
+                      return (
+                        <button
+                          type="button"
+                          key={c.id}
+                          role="radio"
+                          aria-checked={sel}
+                          aria-label={nombreCatalogo(c.nombre)}
+                          disabled={bloqueado('idColor')}
+                          className={`swatch ${sel ? 'on' : ''} ${c.esOtro ? 'otro' : ''}`}
+                          onClick={() => {
+                            if (c.esOtro && !sel) enfocarColorOtro.current = true
+                            set('idColor', String(c.id))
+                          }}
+                        >
+                          <span className="swdot" style={c.esOtro ? undefined : { background: COLORES_HEX[c.nombre] ?? 'var(--border-muted)' }}>
+                            {c.esOtro && <Icon name="plus" size={16} />}
+                          </span>
+                          <span className="name">{nombreCatalogo(c.nombre)}</span>
+                        </button>
+                      )
+                    })}
                   </div>
+                  {colorSel?.esOtro && (
+                    <div className="field" style={{ marginTop: 'var(--s-3)' }}>
+                      <label htmlFor="colorOtro">{t('publicar.colorOtherLabel')}</label>
+                      <input
+                        className="input"
+                        id="colorOtro"
+                        maxLength={30}
+                        placeholder={t('publicar.colorOtherPlaceholder')}
+                        disabled={bloqueado('idColor')}
+                        value={d.colorOtro}
+                        ref={(el) => {
+                          // Solo al elegir "Otros" (no al abrir una edición que ya lo tenía).
+                          if (el && enfocarColorOtro.current) {
+                            enfocarColorOtro.current = false
+                            el.focus()
+                          }
+                        }}
+                        onChange={(e) => set('colorOtro', e.target.value)}
+                        onBlur={() => {
+                          if (d.colorOtro !== colorOtroLimpio) set('colorOtro', colorOtroLimpio)
+                          marcar('idColor')
+                        }}
+                      />
+                    </div>
+                  )}
                 </Campo>
               </div>
               <div className="label" style={{ marginTop: 'var(--s-2)' }}>

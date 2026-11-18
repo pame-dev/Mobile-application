@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { VerifiedShield } from '../components/ConstanciaField'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CarPhoto } from '../components/CarPhoto'
@@ -6,14 +6,14 @@ import { ConditionTag } from '../components/ConditionTag'
 import { Icon } from '../components/Icon'
 import { PhotoViewer } from '../components/PhotoViewer'
 import { Traducido } from '../components/Traducido'
-import { VolverButton } from '../components/VolverButton'
+import { hayPantallaAnterior } from '../components/VolverButton'
 import { OwnerButtons, statusLabel, useOwnerActions } from '../components/OwnerActions'
 import { ModalHead, useUi } from '../components/Ui'
 import { VehicleCard } from '../components/VehicleCard'
 import { carDetail, cuentaVerificada, registerView, registrarContacto, reportListing, sellerContact, UserError, visibleCars, traduccionPublicacion } from '../data/api'
 import { ocultas, ownCar, setOculta, type OwnCar } from '../data/seller'
 import type { Car, CarDetail, SellerContact } from '../data/types'
-import { useI18n } from '../i18n/I18nContext'
+import { idiomaActual, useI18n } from '../i18n/I18nContext'
 import type { Clave } from '../i18n/es'
 import { nombreCatalogo } from '../lib/catalogo'
 import { construirTextoCompartir } from '../lib/compartir'
@@ -84,6 +84,241 @@ function CompartirBoton({ c }: { c: Car }) {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * Texto del vendedor (Descripción, Detalles del auto) justificado, como en un documento. Respeta
+ * sus saltos de línea y líneas en blanco; las líneas que empiezan con "* ", "- " o "• " se muestran
+ * como lista (solo al mostrarse: el texto guardado no cambia). [lang] activa los guiones automáticos.
+ */
+function TextoJustificado({ texto, lang, className, style }: { texto: string; lang: string; className?: string; style?: CSSProperties }) {
+  // Con texto después del marcador: una línea con solo "- " no se vuelve viñeta vacía.
+  const VINETA = /^\s*[*•-]\s+(?=\S)/
+  type Bloque = { tipo: 'texto'; lineas: string[] } | { tipo: 'lista'; lineas: string[] } | { tipo: 'vacia' }
+  const bloques: Bloque[] = []
+  for (const linea of texto.split('\n')) {
+    const ultimo = bloques[bloques.length - 1]
+    if (!linea.trim()) bloques.push({ tipo: 'vacia' })
+    else if (VINETA.test(linea)) {
+      if (ultimo?.tipo === 'lista') ultimo.lineas.push(linea.replace(VINETA, ''))
+      else bloques.push({ tipo: 'lista', lineas: [linea.replace(VINETA, '')] })
+    } else if (ultimo?.tipo === 'texto') ultimo.lineas.push(linea)
+    else bloques.push({ tipo: 'texto', lineas: [linea] })
+  }
+  return (
+    <div className={`textojust ${className ?? ''}`} lang={lang} style={style}>
+      {bloques.map((b, i) =>
+        b.tipo === 'vacia' ? (
+          <div key={i} className="tj-vacia" aria-hidden />
+        ) : b.tipo === 'lista' ? (
+          <ul key={i}>
+            {b.lineas.map((l, j) => (
+              <li key={j}>{l}</li>
+            ))}
+          </ul>
+        ) : (
+          // Cada renglón escrito termina en salto: justify deja esos finales a la izquierda.
+          <p key={i}>{b.lineas.join('\n')}</p>
+        ),
+      )}
+    </div>
+  )
+}
+
+/**
+ * Foto principal deslizable: las fotos van en una tira horizontal con scroll-snap, así el dedo y
+ * el trackpad la arrastran de forma nativa y al soltar se acomoda en una foto (sin vuelta: en la
+ * primera y la última solo rebota). Con el mouse se arrastra con pointer events y cambia de foto
+ * a partir de 50 px o el 20 % del ancho. Lo que va encima (Volver, corazón, contador) se pasa en
+ * [children] y queda fijo: no se mueve con la tira. Un toque sin arrastrar llama a [onAbrir].
+ */
+function FotoPrincipal({
+  fotos,
+  foto,
+  onCambiar,
+  onAbrir,
+  alt,
+  className,
+  children,
+}: {
+  fotos: (string | null)[]
+  foto: number
+  onCambiar: (i: number) => void
+  onAbrir?: () => void
+  alt: string
+  className: string
+  children: ReactNode
+}) {
+  const tira = useRef<HTMLDivElement>(null)
+  // La foto actual y onCambiar al momento (el temporizador del scroll lee los más recientes).
+  const actual = useRef({ foto, onCambiar })
+  actual.current = { foto, onCambiar }
+  const espera = useRef(0)
+  const raton = useRef<{ x: number; left: number; movio: boolean } | null>(null)
+  const arrastro = useRef(false)
+  /** El dedo sigue sobre la tira: aunque se quede quieto, todavía no terminó de deslizar. */
+  const dedo = useRef(false)
+  const varias = fotos.length > 1
+
+  // Flechas, miniaturas o teclado → la tira se desliza a esa foto.
+  useEffect(() => {
+    const el = tira.current
+    if (!el || !el.clientWidth) return
+    // Un "terminó de deslizar" pendiente leería la posición vieja y regresaría a la foto anterior.
+    window.clearTimeout(espera.current)
+    const destino = foto * el.clientWidth
+    if (Math.abs(el.scrollLeft - destino) > 2) el.scrollTo({ left: destino, behavior: 'smooth' })
+  }, [foto])
+  // Al cambiar el tamaño de la ventana, la tira se queda en la foto activa.
+  useEffect(() => {
+    const realinear = () => {
+      const el = tira.current
+      if (el) el.scrollLeft = actual.current.foto * el.clientWidth
+    }
+    window.addEventListener('resize', realinear)
+    return () => {
+      window.removeEventListener('resize', realinear)
+      window.clearTimeout(espera.current)
+    }
+  }, [])
+
+  // Al terminar de deslizar (dedo, trackpad o mouse), la foto que quedó es la activa.
+  const alDeslizar = () => {
+    window.clearTimeout(espera.current)
+    espera.current = window.setTimeout(() => {
+      const el = tira.current
+      if (!el || raton.current || dedo.current || !el.clientWidth) return
+      const i = Math.round(el.scrollLeft / el.clientWidth)
+      if (i !== actual.current.foto) actual.current.onCambiar(i)
+    }, 120)
+  }
+
+  // Arrastre con el mouse (el dedo y el trackpad ya los maneja el navegador).
+  const soltar = (x: number) => {
+    const el = tira.current
+    const r = raton.current
+    raton.current = null
+    if (!el || !r) return
+    arrastro.current = r.movio
+    const ancho = el.clientWidth
+    const dx = x - r.x
+    const desde = Math.round(r.left / ancho)
+    const umbral = Math.min(50, ancho * 0.2)
+    const destino = Math.max(0, Math.min(fotos.length - 1, Math.abs(dx) > umbral ? desde + (dx < 0 ? 1 : -1) : desde))
+    el.scrollTo({ left: destino * ancho, behavior: 'smooth' })
+    // El snap vuelve cuando ya terminó la animación (si vuelve antes, salta).
+    window.setTimeout(() => {
+      if (!raton.current) el.style.scrollSnapType = ''
+    }, 300)
+  }
+
+  return (
+    <div
+      className={`main ${className}`}
+      role={onAbrir ? 'button' : undefined}
+      tabIndex={onAbrir ? 0 : undefined}
+      aria-label={onAbrir ? alt : undefined}
+      onClick={() => {
+        // Un arrastre con el mouse no abre el visor.
+        if (arrastro.current) arrastro.current = false
+        else onAbrir?.()
+      }}
+      onKeyDown={(e) => {
+        if (!onAbrir || e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return
+        e.preventDefault()
+        onAbrir()
+      }}
+    >
+      <div
+        className="mainstrip"
+        ref={tira}
+        onScroll={alDeslizar}
+        onTouchStart={() => (dedo.current = true)}
+        onTouchEnd={() => {
+          // Al soltar, el navegador acomoda la foto (snap) y alDeslizar fija la activa al terminar.
+          dedo.current = false
+          alDeslizar()
+        }}
+        onTouchCancel={() => {
+          dedo.current = false
+          alDeslizar()
+        }}
+        onDragStart={(e) => e.preventDefault()}
+        onPointerDown={(e) => {
+          arrastro.current = false
+          if (!varias || e.pointerType !== 'mouse' || e.button !== 0 || !tira.current) return
+          raton.current = { x: e.clientX, left: tira.current.scrollLeft, movio: false }
+          tira.current.style.scrollSnapType = 'none'
+        }}
+        onPointerMove={(e) => {
+          const r = raton.current
+          if (!r || !tira.current) return
+          const dx = e.clientX - r.x
+          if (Math.abs(dx) > 4) r.movio = true
+          tira.current.scrollLeft = r.left - dx
+        }}
+        onPointerUp={(e) => soltar(e.clientX)}
+        onPointerLeave={(e) => soltar(e.clientX)}
+        onPointerCancel={(e) => soltar(e.clientX)}
+      >
+        {fotos.map((src, i) => (
+          <CarPhoto key={i} src={src} alt={i === foto ? alt : ''} className="slide" />
+        ))}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+/**
+ * Fila de miniaturas con flechas a los lados (del ancho de la foto principal). Las flechas pasan a
+ * la foto anterior/siguiente sin abrir el visor; la fila se desliza con el dedo o el trackpad sin
+ * cambiar la foto. Si no caben todas, la orilla derecha se desvanece para que se note que hay más.
+ */
+function Miniaturas({ fotos, foto, onCambiar }: { fotos: (string | null)[]; foto: number; onCambiar: (i: number) => void }) {
+  const { t } = useI18n()
+  const fila = useRef<HTMLDivElement>(null)
+  // Desvanecido en la orilla donde quedan miniaturas por ver (derecha: hay más; izquierda: ya no está al inicio).
+  const [hayMas, setHayMas] = useState(false)
+  const [hayAntes, setHayAntes] = useState(false)
+  const revisarMas = useCallback(() => {
+    const f = fila.current
+    if (!f) return
+    setHayMas(f.scrollLeft + f.clientWidth < f.scrollWidth - 2)
+    setHayAntes(f.scrollLeft > 2)
+  }, [])
+  // La miniatura activa siempre a la vista (desplazamiento suave, solo dentro de la fila).
+  useEffect(() => {
+    const f = fila.current
+    const activa = f?.children[foto] as HTMLElement | undefined
+    if (f && activa) {
+      // .thumbs tiene position:relative: offsetLeft es la posición dentro de la fila.
+      const izq = activa.offsetLeft
+      if (izq < f.scrollLeft) f.scrollTo({ left: izq, behavior: 'smooth' })
+      else if (izq + activa.offsetWidth > f.scrollLeft + f.clientWidth) f.scrollTo({ left: izq + activa.offsetWidth - f.clientWidth, behavior: 'smooth' })
+    }
+    revisarMas()
+  }, [foto, revisarMas])
+  useEffect(() => {
+    window.addEventListener('resize', revisarMas)
+    return () => window.removeEventListener('resize', revisarMas)
+  }, [revisarMas])
+
+  return (
+    <div className="thumbsrow">
+      <button type="button" className="iconbtn thumbnav" aria-label={t('vehiculo.detail.prevPhoto')} disabled={foto === 0} onClick={() => onCambiar(foto - 1)}>
+        <Icon name="back" size={18} />
+      </button>
+      <div className={`thumbs ${hayMas ? 'mas' : ''} ${hayAntes ? 'antes' : ''}`} ref={fila} onScroll={revisarMas} onDragStart={(e) => e.preventDefault()}>
+        {fotos.map((src, i) => (
+          <CarPhoto key={i} src={src} className={i === foto ? 'on' : ''} onClick={() => onCambiar(i)} alt={t('vehiculo.detail.photoAlt', { n: i + 1 })} />
+        ))}
+      </div>
+      <button type="button" className="iconbtn thumbnav" aria-label={t('vehiculo.detail.nextPhoto')} disabled={foto === fotos.length - 1} onClick={() => onCambiar(foto + 1)}>
+        <Icon name="chev" size={18} />
+      </button>
     </div>
   )
 }
@@ -528,6 +763,8 @@ export function Detail() {
   }
   const abrirContacto = () => openModal(<ContactModal detail={detail} />)
   const fotos = detail.gallery.length ? detail.gallery : [null]
+  /** Foto anterior/siguiente (flechas, teclado o deslizar), sin dar la vuelta. */
+  const irAFoto = (i: number) => setFoto(Math.max(0, Math.min(fotos.length - 1, i)))
   const on = fav.isFavorite(c.id)
   // Al terminar el registro se regresa a este auto.
   const pedirRegistro = (texto: string) => toast(texto, { label: t('nav.registerMe'), onClick: () => navigate('/registro', { state: { from: location.pathname } }) })
@@ -535,13 +772,8 @@ export function Detail() {
   return (
     <div className="wrap">
       {/* Desde la revisión del admin, la barra de abajo ya trae su propio botón de regresar. */}
-      {desdeReporte == null && !desdeRevision ? (
-        <div style={{ paddingBlock: 'var(--s-5)' }}>
-          <VolverButton fallback="/" />
-        </div>
-      ) : (
-        <div style={{ height: 20 }} />
-      )}
+      {/* 20 px bajo el menú; el botón de volver va sobre la foto principal. */}
+      <div style={{ height: 20 }} />
 
       {desdeReporte != null && (
         <AdminReportBar
@@ -657,13 +889,42 @@ export function Detail() {
         {/* En 1000 px o menos, .detailmain se "deshace" (display: contents) y el bloque de precio y
             contacto (aside) sube justo debajo de la galería con order (styles.css). */}
         <div className="col detailmain" style={{ gap: 'var(--s-5)' }}>
-          <div className="gallery">
-            <CarPhoto
-              src={fotos[foto]}
+          {/* ← y → cambian de foto mientras el foco está en la galería. */}
+          <div
+            className="gallery"
+            onKeyDown={(e) => {
+              if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+              e.preventDefault()
+              irAFoto(foto + (e.key === 'ArrowLeft' ? -1 : 1))
+            }}
+          >
+            <FotoPrincipal
+              fotos={fotos}
+              foto={foto}
+              onCambiar={irAFoto}
               alt={`${c.brand} ${c.model}`}
-              className={`main ${detail.gallery.length ? 'zoomable' : ''} ${fueraDeVenta ? 'fueradeventa' : ''}`}
-              onClick={detail.gallery.length ? () => setVisor(true) : undefined}
+              className={`${detail.gallery.length ? 'zoomable' : ''} ${fueraDeVenta ? 'fueradeventa' : ''}`}
+              onAbrir={detail.gallery.length ? () => setVisor(true) : undefined}
             >
+              {/* Desde la revisión del admin, la barra de arriba ya trae su propio botón de regresar. */}
+              {desdeReporte == null && !desdeRevision && (
+                <button
+                  type="button"
+                  className="iconbtn photoback"
+                  aria-label={t('vehiculo.detail.backToListings')}
+                  title={t('vehiculo.detail.backToListings')}
+                  onClick={(e) => {
+                    // Que no abra el visor de la foto de abajo.
+                    e.stopPropagation()
+                    // Desde Karsy regresa a la pantalla anterior (con sus filtros y scroll); por enlace, al listado.
+                    if (hayPantallaAnterior()) navigate(-1)
+                    else navigate('/', { replace: true })
+                  }}
+                >
+                  <Icon name="back" size={18} />
+                  <span>{t('vehiculo.detail.back')}</span>
+                </button>
+              )}
               {fueraDeVenta && <span className="tag badge b-neu">{t(vendido ? 'vehiculo.status.Vendido' : 'vehiculo.detail.notAvailableBadge')}</span>}
               {fotos.length > 1 && (
                 <span className="counter">
@@ -685,14 +946,8 @@ export function Detail() {
                   <Icon name="heart" size={18} />
                 </button>
               )}
-            </CarPhoto>
-            {fotos.length > 1 && (
-              <div className="thumbs">
-                {fotos.map((src, i) => (
-                  <CarPhoto key={i} src={src} className={i === foto ? 'on' : ''} onClick={() => setFoto(i)} alt={t('vehiculo.detail.photoAlt', { n: i + 1 })} />
-                ))}
-              </div>
-            )}
+            </FotoPrincipal>
+            {fotos.length > 1 && <Miniaturas fotos={fotos} foto={foto} onCambiar={irAFoto} />}
           </div>
           <div className="detailrest">
             <h2 className="card-title">{t('vehiculo.detail.specs')}</h2>
@@ -707,16 +962,22 @@ export function Detail() {
           </div>
           <div className="card detailrest card-pad">
             <h2 className="card-title">{t('vehiculo.detail.description')}</h2>
-            <p className="muted" style={{ lineHeight: 1.7, whiteSpace: 'pre-line' }}>
-              {(verTraduccion && traduccion?.descripcion) || c.description || t('vehiculo.detail.noDescription')}
-            </p>
+            <TextoJustificado
+              className="muted"
+              style={{ lineHeight: 1.7 }}
+              // Lo escribe el vendedor en español; la traducción va en inglés; el aviso "sin descripción", en el idioma de la web.
+              lang={verTraduccion && traduccion?.descripcion ? 'en' : c.description ? 'es' : idiomaActual()}
+              texto={(verTraduccion && traduccion?.descripcion) || c.description || t('vehiculo.detail.noDescription')}
+            />
             {traduccion?.descripcion && <AvisoTraduccion viendoTraduccion={verTraduccion} onCambiar={() => setVerTraduccion((v) => !v)} />}
           </div>
           <div className="card detailrest card-pad">
             <h2 className="card-title">{t('vehiculo.detail.carDetails')}</h2>
-            <p className="muted" style={{ whiteSpace: 'pre-line' }}>
-              {detail.row.tiene_problemas ? (verTraduccion && traduccion?.problemas) || detail.detalles : t('vehiculo.noProblems')}
-            </p>
+            <TextoJustificado
+              className="muted"
+              lang={!detail.row.tiene_problemas ? idiomaActual() : verTraduccion && traduccion?.problemas ? 'en' : 'es'}
+              texto={detail.row.tiene_problemas ? (verTraduccion && traduccion?.problemas) || detail.detalles : t('vehiculo.noProblems')}
+            />
           </div>
         </div>
 

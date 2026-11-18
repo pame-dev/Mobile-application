@@ -41,6 +41,7 @@ import java.security.MessageDigest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.util.Calendar
+import java.util.Locale
 
 /**
  * Estado del flujo "Publicar vehículo" (4 pasos + overlay de éxito).
@@ -147,7 +148,11 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             Triple("transmision", idTransmision != null, R.string.publish_error_transmission),
             Triple("kilometraje", kilometraje.any(Char::isDigit), R.string.publish_error_mileage),
             Triple("carroceria", idCarroceria != null, R.string.publish_error_body_type),
-            Triple("color", idColor != null, R.string.publish_error_color),
+            Triple(
+                "color",
+                idColor != null && !(colorEsOtro && colorOtroLimpio.isEmpty()),
+                if (colorEsOtro) R.string.publish_error_color_other else R.string.publish_error_color
+            ),
             Triple("duenos", duenos.isNotBlank(), R.string.publish_error_owners),
             Triple("condicion", condicion.isNotBlank(), R.string.publish_error_condition),
             Triple("combustible", combustible.isNotBlank(), R.string.publish_error_fuel),
@@ -166,6 +171,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var combustible by mutableStateOf("")
     var idCarroceria by mutableStateOf<Long?>(null)
     var idColor by mutableStateOf<Long?>(null)
+        private set
+    /** Texto libre cuando el color es "Otros" (columna color_otro). */
+    var colorOtro by mutableStateOf("")
     var duenos by mutableStateOf("")
     /** Uno de [CONDICIONES] o vacío (columna condicion_vehiculo). */
     var condicion by mutableStateOf("")
@@ -470,6 +478,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         combustible = a.combustible.orEmpty()
         idCarroceria = a.idCarroceria
         idColor = a.idColor
+        // Color fuera de la lista: "Otros" con lo que se escribió (v_anuncios.color = color_otro).
+        colorOtro = if (colorEsOtro) a.color.orEmpty() else ""
         // El menú ya no tiene "0": si estaba en 0, queda vacío para elegir de nuevo.
         duenos = a.propietariosAnteriores?.takeIf { it > 0 }?.toString().orEmpty()
         condicion = a.condicionVehiculo.orEmpty()
@@ -529,8 +539,12 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         get() = catalogs?.transmisiones?.firstOrNull { it.id == idTransmision }?.nombre.orEmpty()
     val carroceriaNombre: String
         get() = catalogs?.carrocerias?.firstOrNull { it.id == idCarroceria }?.nombre.orEmpty()
+    val colorEsOtro: Boolean get() = catalogs?.colores?.firstOrNull { it.id == idColor }?.esOtro == true
+    /** Color escrito en "Otros": sin espacios a los lados y con la primera letra en mayúscula. */
+    val colorOtroLimpio: String get() = limpiarColorOtro(colorOtro)
     val colorNombre: String
-        get() = catalogs?.colores?.firstOrNull { it.id == idColor }?.nombre.orEmpty()
+        get() = if (colorEsOtro) colorOtroLimpio
+        else catalogs?.colores?.firstOrNull { it.id == idColor }?.nombre.orEmpty()
 
     val titulo: String get() = listOf(marcaNombre, modeloNombre, anio.trim()).filter { it.isNotEmpty() }.joinToString(" ")
     val precioTexto: String get() = Formato.precio(precio.filter(Char::isDigit).toDoubleOrNull())
@@ -552,6 +566,14 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun removeExtraPhoto(uri: Uri) {
         extraPhotos.remove(uri)
         fotosAjenas = fotosAjenas - uri
+    }
+
+    /** Otro color: se oculta el campo de "Otros" y se descarta lo escrito. */
+    fun selectColor(id: Long) {
+        if (id != idColor) {
+            idColor = id
+            colorOtro = ""
+        }
     }
 
     fun selectMarca(id: Long) {
@@ -785,6 +807,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     put("aire_acondicionado", aireAcondicionado)
                     put("condicion_vehiculo", condicion)
                     put("id_color", idColor)
+                    // Con "Otros" se guarda lo que escribió (la BD lo exige justo en ese caso).
+                    put("color_otro", if (colorEsOtro) colorOtroLimpio else null)
                     put("id_transmision", idTransmision)
                     put("id_carroceria", idCarroceria)
                     put("numero_propietarios_anteriores", duenos.filter(Char::isDigit).toIntOrNull() ?: 0)
@@ -896,6 +920,11 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         /** VIN: 17 letras o números sin I, O ni Q. Placa: 4 a 10 letras, números o guiones. */
         private val VIN = Regex("^[A-HJ-NPR-Z0-9]{17}$")
         private val PLACA = Regex("^[A-Z0-9-]{4,10}$")
+
+        private val ESPANOL: Locale = Locale.forLanguageTag("es")
+
+        /** Color escrito en "Otros": sin espacios a los lados y con la primera letra en mayúscula. */
+        fun limpiarColorOtro(texto: String): String = texto.trim().replaceFirstChar { it.titlecase(ESPANOL) }
 
         /** VIN o placa sin espacios y en mayúsculas (igual que documento_vehiculo_valido en la BD). */
         fun normalizarDocumento(texto: String): String = texto.filterNot(Char::isWhitespace).uppercase()
