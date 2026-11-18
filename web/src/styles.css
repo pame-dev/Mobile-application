@@ -47,6 +47,8 @@
   --shadow:0 6px 18px rgba(0,0,0,.35); --shadow-lg:0 18px 50px rgba(0,0,0,.5); --focus:var(--teal); color-scheme:dark }
 *{box-sizing:border-box}
 html,body{background:var(--bg);color:var(--charcoal);margin:0}
+/* Safari en iPhone (y algunos Android) agrandan el texto por su cuenta y empujan badges y botones a otra línea. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{font-family:var(--f-body);font-size:var(--fs-base);line-height:var(--lh-base);-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{font-family:var(--f-display);color:var(--ink);margin:0;text-wrap:balance;letter-spacing:-.01em}
 p{margin:0}
@@ -358,6 +360,9 @@ textarea.input{height:auto;min-height:96px;padding:var(--s-3);resize:vertical}
 .ficha b{font-weight:var(--fw-semibold);color:var(--ink);font-size:var(--fs-base)}
 /* Ficha del detalle (16 datos): 4 columnas, o 2 en celular, para que la última fila no quede con huecos. */
 .ficha.cols4{grid-template-columns:repeat(4,minmax(0,1fr))}
+/* Dos columnas (detalle del usuario): si el último dato queda solo, ocupa la fila completa (sin celda gris vacía). */
+.ficha.dos{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ficha.dos > :last-child:nth-child(odd){grid-column:1 / -1}
 .sidebox{position:sticky;top:88px;padding:var(--s-6);display:flex;flex-direction:column;gap:var(--s-4)}
 /* 34 px: el precio grande no tiene token (la escala llega a 30). */
 .price-xl{font-family:var(--f-display);font-weight:var(--fw-bold);font-size:2.125rem;color:var(--teal-text);line-height:1}
@@ -622,9 +627,28 @@ button.nrow{width:100%;background:none;border-left:0;border-right:0;border-top:0
 @media (max-width:640px){ .ownerbar .acts{display:grid;grid-template-columns:1fr 1fr} .ownerbar .acts > .btn{width:100%;justify-content:center} }
 .adminbar{padding:var(--s-4) var(--s-5);margin-bottom:var(--s-4);display:flex;flex-direction:column;gap:var(--s-3);border-left:4px solid var(--teal)}
 .adminbar .nic{width:34px;height:34px;border-radius:var(--r-sm);background:var(--teal-light);color:var(--teal)}
-.adminbar .acts{display:flex;flex-wrap:wrap;gap:var(--s-2)}
-/* Texto de la barra (motivo del reporte / estado): si no cabe junto al título, baja a su propia línea. */
+.adminbar .bartitulo{flex:0 1 auto;min-width:0}
+.adminbar .bartitulo .badge{vertical-align:middle;margin-left:calc(var(--s-3) - .25em)}
+/* Texto de la barra (estado / motivo del reporte): al lado del título si cabe; si no, en su propia línea. */
 .adminbar .barnota{flex:1 1 220px;min-width:0;font-size:var(--fs-sm);overflow-wrap:anywhere}
+/* Botones en una sola fila: regresar (cuadrado, no se estira) + las dos acciones. */
+.adminbar .acts{display:flex;flex-wrap:nowrap;gap:var(--s-2);align-items:center}
+.adminbar .acts > .iconbtn{flex:none}
+.adminbar .acts > .btn{flex:0 1 auto;min-width:0;white-space:nowrap}
+.adminbar .btxt{min-width:0}
+@media (max-width:640px){
+  /* Celular: el texto va debajo, a todo el ancho (no en una columna angosta al lado del badge). */
+  .adminbar .barnota{flex-basis:100%}
+}
+@media (max-width:480px){
+  .adminbar{padding:var(--s-4)}
+  .adminbar .acts{gap:6px}
+  /* Las dos acciones se reparten el ancho que queda; si un texto no cabe, ocupa dos líneas dentro
+     de su botón (no se corta con "…": algunas son acciones destructivas). */
+  .adminbar .acts > .btn{flex:1 1 auto;padding:4px 10px;gap:6px;font-size:var(--fs-xs);height:auto;min-height:var(--h-sm);white-space:normal;line-height:1.2;text-align:center}
+}
+/* Solo en pantallas muy angostas los botones pueden bajar a otra línea. */
+@media (max-width:339px){ .adminbar .acts{flex-wrap:wrap} }
 
 /* Administración */
 .admin{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh;background:var(--bg)}
