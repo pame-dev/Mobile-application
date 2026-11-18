@@ -5,7 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -19,15 +21,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Business
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
-import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
@@ -41,11 +42,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pame.karsy.R
+import com.pame.karsy.core.theme.DmSans
 import com.pame.karsy.core.theme.KarsyCoral
+import com.pame.karsy.core.theme.KarsyError
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsyMid
 import com.pame.karsy.core.theme.KarsyNavyDeep
@@ -55,7 +61,37 @@ import com.pame.karsy.core.theme.KarsyWhite
 import com.pame.karsy.core.theme.Tema
 
 /** Pestañas de la barra inferior (el "+" central no es pestaña: abre Publicar). */
-enum class BottomTab { Home, Lots, Favorites, Profile }
+enum class BottomTab { Home, Lots, Favorites, Notifications }
+
+/**
+ * Menú de la cuenta para el botón de Perfil de los encabezados. El estado (abierto, puntito de
+ * pendientes) y el menú en sí los maneja NavGraph; cada encabezado solo dibuja su botón con su
+ * estilo y llama a [menu] dentro del mismo Box, así el menú se ancla al botón y abre hacia abajo.
+ */
+class MenuCuenta(
+    val abierto: Boolean,
+    /** Admin o moderador con pendientes en el panel. */
+    val puntito: Boolean,
+    val alternar: () -> Unit,
+    val menu: @Composable () -> Unit,
+)
+
+/** null fuera de las pantallas de NavGraph (p. ej. en vistas previas). */
+val LocalMenuCuenta = compositionLocalOf<MenuCuenta?> { null }
+
+/** Puntito de pendientes en la esquina superior derecha del botón de Perfil del encabezado. */
+@Composable
+fun BoxScope.PuntitoPerfil() {
+    Box(
+        Modifier
+            .align(Alignment.TopEnd)
+            .offset(x = 3.dp, y = (-3).dp)
+            .size(10.dp)
+            .clip(CircleShape)
+            .background(KarsyCoral)
+            .border(1.5.dp, KarsySurface, CircleShape)
+    )
+}
 
 /**
  * Espacio que ocupa la barra inferior flotante sobre el contenido (0 cuando no se muestra).
@@ -91,19 +127,17 @@ private val ActiveIcon: Color get() = if (Tema.oscuro) KarsyInk else KarsyNavyDe
 private val BarShadow = KarsyNavyDeep.copy(alpha = 0.10f)
 
 /**
- * Barra inferior flotante: Inicio, Lotes, "+" (Publicar), Favoritos y Perfil, solo íconos.
- * [profileMenu] se dibuja anclado al ícono de Perfil (el menú de la cuenta se abre hacia arriba).
+ * Barra inferior flotante: Inicio, Lotes, "+" (Publicar), Favoritos y Notificaciones, solo íconos.
+ * El Perfil (y su menú) está en el encabezado de cada pantalla (ver [MenuCuenta]).
  */
 @Composable
 fun KarsyBottomBar(
     current: BottomTab?,
     onTab: (BottomTab) -> Unit,
     onPublish: () -> Unit,
-    profileMenuOpen: Boolean,
-    profileMenu: @Composable () -> Unit,
+    /** Avisos sin leer: globito sobre la campana (sin globito si es 0). */
+    unread: Int,
     modifier: Modifier = Modifier,
-    /** Admin o moderador con pendientes en el panel: puntito sobre el ícono de Perfil. */
-    profileDot: Boolean = false,
 ) {
     val shape = RoundedCornerShape(KarsyRadius.Xxl)
     Box(
@@ -142,17 +176,15 @@ fun KarsyBottomBar(
             }
             TabItem(BottomTab.Favorites, current, Icons.Rounded.Favorite, Icons.Outlined.FavoriteBorder, stringResource(R.string.nav_favorites), onTab)
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                val active = current == BottomTab.Notifications
                 Pill(
-                    active = current == BottomTab.Profile || profileMenuOpen,
-                    icon = if (current == BottomTab.Profile || profileMenuOpen) Icons.Rounded.Person else Icons.Outlined.Person,
-                    description = if (profileDot) stringResource(R.string.nav_profile_pending_cd, stringResource(R.string.nav_profile))
-                    else stringResource(R.string.nav_profile),
-                    onClick = { onTab(BottomTab.Profile) },
-                    menuOpen = profileMenuOpen,
-                    dot = profileDot
+                    active = active,
+                    icon = if (active) Icons.Rounded.Notifications else Icons.Outlined.Notifications,
+                    description = if (unread > 0) pluralStringResource(R.plurals.admin2_notifications_unread, unread, unread)
+                    else stringResource(R.string.home_notifications),
+                    onClick = { onTab(BottomTab.Notifications) },
+                    badge = unread
                 )
-                // El menú se ancla a este Box: como no cabe abajo, se abre hacia arriba.
-                Box(Modifier.align(Alignment.TopEnd)) { profileMenu() }
             }
         }
     }
@@ -180,41 +212,47 @@ private fun Pill(
     icon: ImageVector,
     description: String,
     onClick: () -> Unit,
-    /** La pestaña abre un menú: flechita hacia arriba (se abre hacia arriba) o abajo (abierto). */
-    menuOpen: Boolean? = null,
-    /** Puntito de aviso arriba a la derecha del ícono. */
-    dot: Boolean = false,
+    /** Avisos sin leer: globito rojo con el número, en la esquina del ícono. */
+    badge: Int = 0,
 ) {
-    Box(
-        Modifier
-            .width(52.dp)
-            .height(36.dp)
-            .clip(CircleShape)
-            .background(if (active) ActivePill else Color.Transparent)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(icon, contentDescription = description, tint = if (active) ActiveIcon else KarsyMid, modifier = Modifier.size(23.dp))
-        if (dot) Box(
+    // El globito va en un Box sin recorte encima de la cápsula, para que la forma redonda no lo corte.
+    Box(Modifier.width(52.dp).height(36.dp), contentAlignment = Alignment.Center) {
+        Box(
             Modifier
-                .align(Alignment.TopCenter)
-                .offset(x = 10.dp, y = 4.dp)
-                .size(9.dp)
+                .matchParentSize()
                 .clip(CircleShape)
-                .background(KarsyCoral)
-                .border(1.5.dp, KarsySurface, CircleShape)
-        )
-        if (menuOpen != null) {
-            Icon(
-                if (menuOpen) Icons.Rounded.KeyboardArrowDown else Icons.Rounded.KeyboardArrowUp,
-                contentDescription = null,
-                tint = if (active) ActiveIcon else KarsyMid,
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 1.dp).size(13.dp)
-            )
+                .background(if (active) ActivePill else Color.Transparent)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = description, tint = if (active) ActiveIcon else KarsyMid, modifier = Modifier.size(23.dp))
+        }
+        Box(Modifier.size(23.dp)) {
+            // Mismo rojo y conteo que la campana de antes, a la medida del ícono (no se sale de la barra).
+            if (badge > 0) Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 8.dp, y = (-6).dp)
+                    .defaultMinSize(minWidth = 16.dp, minHeight = 16.dp)
+                    .clip(CircleShape)
+                    .background(KarsyError)
+                    .border(1.5.dp, KarsySurface, CircleShape)
+                    .padding(horizontal = 3.dp)
+            ) {
+                Text(
+                    if (badge > 99) "99+" else badge.toString(),
+                    fontFamily = DmSans,
+                    fontSize = 10.sp,
+                    lineHeight = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = KarsyWhite
+                )
+            }
         }
     }
 }

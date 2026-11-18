@@ -6,7 +6,6 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.mutableStateListOf
 import com.pame.karsy.core.components.AvisoKarsy
 import com.pame.karsy.core.theme.KarsyCoral
-import com.pame.karsy.feature.home.VisitorMenu
 import com.pame.karsy.feature.profile.NotificationPreferencesScreen
 import com.pame.karsy.feature.profile.SavedSearchesScreen
 import androidx.activity.compose.BackHandler
@@ -78,6 +77,7 @@ import com.pame.karsy.feature.onboarding.VerifyEmailScreen
 import com.pame.karsy.feature.onboarding.WelcomeScreen
 import com.pame.karsy.feature.profile.HistoryScreen
 import com.pame.karsy.feature.profile.NotificationsScreen
+import com.pame.karsy.feature.profile.rememberUnreadNotifications
 import com.pame.karsy.feature.profile.ProfileScreen
 import com.pame.karsy.feature.profile.SettingsScreen
 import com.pame.karsy.feature.profile.PrivacyNoticeScreen
@@ -301,15 +301,18 @@ fun KarsyNavGraph(
     // ── Barra inferior ───────────────────────────────────────────────────────
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    // Solo estas pantallas llevan barra; Mi Panel y el panel de admin se marcan como "Perfil".
+    // Pestaña marcada en la barra. Perfil ya no está en la barra (va en el encabezado): Mi perfil,
+    // Mi Panel y el panel de admin llevan barra pero sin pestaña marcada.
     val currentTab = when (currentRoute) {
         Routes.Home.route -> BottomTab.Home
         Routes.Lots.route, Routes.LotProfile.route -> BottomTab.Lots
         Routes.Favorites.route -> BottomTab.Favorites
-        Routes.Profile.route, Routes.Dashboard.route, Routes.AdminDashboard.route -> BottomTab.Profile
+        Routes.Notifications.route -> BottomTab.Notifications
         else -> null
     }
-    val showBottomBar = currentTab != null && BottomBarOverlays.count == 0
+    val conBarra = currentTab != null ||
+        currentRoute in setOf(Routes.Profile.route, Routes.Dashboard.route, Routes.AdminDashboard.route)
+    val showBottomBar = conBarra && BottomBarOverlays.count == 0
     var accountMenuOpen by rememberSaveable { mutableStateOf(false) }
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
     var languageOpen by rememberSaveable { mutableStateOf(false) }
@@ -336,10 +339,44 @@ fun KarsyNavGraph(
     }
     val toastFavorites = stringResource(R.string.home_toast_register_favorites)
     val toastPublish = stringResource(R.string.home_toast_register_publish)
+    val toastNotifications = stringResource(R.string.home_toast_register_notifications)
+    // Avisos sin leer de la campana de la barra; se vuelve a contar al cambiar de pantalla.
+    val sinLeer = rememberUnreadNotifications(enabled = userMode.isLoggedIn, refresco = currentRoute)
+
+    // Menú de la cuenta: el botón de Perfil de cada encabezado lo abre y lo ancla a sí mismo (hacia abajo).
+    // Solo con sesión: el visitante no tiene botón de Perfil (en Inicio ve "Iniciar sesión").
+    val menuCuenta = if (!userMode.isLoggedIn) null else MenuCuenta(
+        abierto = accountMenuOpen,
+        puntito = panelPendientes > 0,
+        alternar = { accountMenuOpen = !accountMenuOpen },
+        menu = {
+            val account = SessionManager.account
+            AccountMenu(
+                expanded = accountMenuOpen,
+                name = account?.nombre.orEmpty(),
+                email = account?.correo.orEmpty(),
+                avatarUrl = avatarUrl,
+                onDismiss = { accountMenuOpen = false },
+                onProfile = { goSection(Routes.Profile.route) },
+                showPanel = userMode.isSeller,
+                onPanel = { goSection(Routes.Dashboard.route) },
+                showAdminPanel = SessionManager.hasPanel,
+                onAdminPanel = { goSection(Routes.AdminDashboard.route) },
+                onLanguage = { languageOpen = true },
+                onLogout = { confirmLogout = true },
+                pendientes = panelPendientes,
+                panelActivo = currentRoute == Routes.Dashboard.route,
+                adminActivo = currentRoute == Routes.AdminDashboard.route
+            )
+        }
+    )
 
     Box(Modifier.fillMaxSize()) {
         // Las pantallas con barra dejan ese espacio libre al final de su lista.
-        CompositionLocalProvider(LocalBottomBarSpace provides if (currentTab != null) BOTTOM_BAR_SPACE else 0.dp) {
+        CompositionLocalProvider(
+            LocalBottomBarSpace provides if (conBarra) BOTTOM_BAR_SPACE else 0.dp,
+            LocalMenuCuenta provides menuCuenta
+        ) {
             NavHost(
                 navController = navController,
                 startDestination = if (restored != null) Routes.Home.route else Routes.Welcome.route
@@ -417,7 +454,6 @@ fun KarsyNavGraph(
                     HomeScreen(
                         userMode = userMode,
                         onCarClick = ::openCar,
-                        onNotifications = { navController.navigate(Routes.Notifications.route) },
                         onRegister = ::goRegister,
                         onLogin = { navController.navigate(Routes.Login.route) }
                     )
@@ -426,7 +462,6 @@ fun KarsyNavGraph(
                     LotsScreen(
                         userMode = userMode,
                         onLotClick = { navController.navigate(Routes.LotProfile.createRoute(it)) },
-                        onNotifications = { navController.navigate(Routes.Notifications.route) },
                         onBack = ::leaveSection
                     )
                 }
@@ -694,45 +729,17 @@ fun KarsyNavGraph(
                             }
                         BottomTab.Favorites ->
                             if (userMode.isLoggedIn) goSection(Routes.Favorites.route) else barToast = toastFavorites
-                        BottomTab.Profile ->
-                            // Con sesión, el menú de la cuenta; sin sesión, iniciar sesión / crear cuenta / idioma.
-                            accountMenuOpen = !accountMenuOpen
+                        // La misma pantalla que abría la campana del encabezado; un visitante no tiene avisos.
+                        BottomTab.Notifications ->
+                            if (userMode.isLoggedIn) navController.navigate(Routes.Notifications.route) { launchSingleTop = true }
+                            else barToast = toastNotifications
                     }
                 },
                 onPublish = {
                     if (userMode.isLoggedIn) navController.navigate(Routes.PublishFlow.createRoute())
                     else barToast = toastPublish
                 },
-                profileMenuOpen = accountMenuOpen,
-                profileDot = panelPendientes > 0,
-                profileMenu = {
-                    val account = SessionManager.account
-                    if (!userMode.isLoggedIn) {
-                        VisitorMenu(
-                            expanded = accountMenuOpen,
-                            onDismiss = { accountMenuOpen = false },
-                            onLogin = { navController.navigate(Routes.Login.route) },
-                            onRegister = ::goRegister,
-                            onLanguage = { languageOpen = true }
-                        )
-                    } else AccountMenu(
-                        expanded = accountMenuOpen,
-                        name = account?.nombre.orEmpty(),
-                        email = account?.correo.orEmpty(),
-                        avatarUrl = avatarUrl,
-                        onDismiss = { accountMenuOpen = false },
-                        onProfile = { goSection(Routes.Profile.route) },
-                        showPanel = userMode.isSeller,
-                        onPanel = { goSection(Routes.Dashboard.route) },
-                        showAdminPanel = SessionManager.hasPanel,
-                        onAdminPanel = { goSection(Routes.AdminDashboard.route) },
-                        onLanguage = { languageOpen = true },
-                        onLogout = { confirmLogout = true },
-                        pendientes = panelPendientes,
-                        panelActivo = currentRoute == Routes.Dashboard.route,
-                        adminActivo = currentRoute == Routes.AdminDashboard.route
-                    )
-                }
+                unread = sinLeer
             )
         }
 

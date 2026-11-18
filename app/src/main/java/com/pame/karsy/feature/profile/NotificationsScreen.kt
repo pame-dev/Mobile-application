@@ -1,6 +1,7 @@
 package com.pame.karsy.feature.profile
 
 import androidx.compose.foundation.background
+import com.pame.karsy.core.navigation.LocalBottomBarSpace
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.core.app.NotificationManagerCompat
@@ -163,7 +164,8 @@ fun NotificationsScreen(
     suspend fun load() {
         safeCall { NotificationRepository.mine() }
             .onSuccess { lista ->
-                if (lista.any { !it.leida }) safeCall { NotificationRepository.markAllRead() }
+                // Al marcarlas leídas, la campana de la barra (visible aquí) vuelve a contar.
+                if (lista.any { !it.leida }) safeCall { NotificationRepository.markAllRead() }.onSuccess { AvisosNuevos.avisar() }
                 notifications = lista
                 errorCarga = null
             }
@@ -187,7 +189,8 @@ fun NotificationsScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
-                    .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp)
+                    // Ahora con barra inferior: su espacio libre al final.
+                    .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 40.dp + LocalBottomBarSpace.current)
             ) {
                 PreferencesRow(onPreferences)
                 Spacer(Modifier.height(14.dp))

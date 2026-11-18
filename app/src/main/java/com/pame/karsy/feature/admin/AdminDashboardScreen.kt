@@ -3,6 +3,8 @@ package com.pame.karsy.feature.admin
 import com.pame.karsy.core.components.CargandoBloqueo
 import com.pame.karsy.core.navigation.HideBottomBarWhile
 import com.pame.karsy.core.navigation.LocalBottomBarSpace
+import com.pame.karsy.core.navigation.LocalMenuCuenta
+import com.pame.karsy.core.navigation.PuntitoPerfil
 import com.pame.karsy.core.theme.KarsyRadius
 import com.pame.karsy.core.theme.KarsyTealText
 import com.pame.karsy.core.theme.KarsyTextSize
@@ -30,7 +32,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -52,7 +54,6 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -62,8 +63,6 @@ import com.pame.karsy.core.components.KarsyPullToRefresh
 import com.pame.karsy.core.components.KarsyLogo
 import com.pame.karsy.core.session.SessionManager
 import com.pame.karsy.core.theme.DmSans
-import com.pame.karsy.feature.profile.UnreadBadge
-import com.pame.karsy.feature.profile.rememberUnreadNotifications
 import com.pame.karsy.core.theme.KarsyInk
 import com.pame.karsy.core.theme.KarsySurface
 import com.pame.karsy.core.theme.KarsyBg
@@ -166,12 +165,8 @@ fun AdminDashboardScreen(
                 .fillMaxSize()
                 .background(KarsyBg)
         ) {
-            AdminTopBar(
-                onMenu = { scope.launch { drawerState.open() } },
-                // Misma campana que Inicio y Lotes: se actualiza sola y al llegar un push.
-                unread = rememberUnreadNotifications(enabled = true),
-                onNotifications = onNotifications
-            )
+            // Los avisos están en la barra inferior; arriba va el Perfil, como en Inicio y Lotes.
+            AdminTopBar(onMenu = { scope.launch { drawerState.open() } })
             // Aviso del resultado de la última acción: se oculta solo a los MESSAGE_MS.
             // Se recuerda el último texto para que la animación de salida lo siga mostrando.
             val message = vm.message
@@ -233,7 +228,7 @@ fun AdminDashboardScreen(
 
 @Composable
 /** Barra superior del panel. Para volver al inicio se usa la barra inferior. */
-private fun AdminTopBar(onMenu: () -> Unit, unread: Int, onNotifications: () -> Unit) {
+private fun AdminTopBar(onMenu: () -> Unit) {
     Column(Modifier.fillMaxWidth().background(KarsySurface)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -255,15 +250,19 @@ private fun AdminTopBar(onMenu: () -> Unit, unread: Int, onNotifications: () -> 
                 color = KarsyInk,
                 modifier = Modifier.weight(1f)
             )
-            // Campana con el número de avisos sin leer (p. ej. solicitudes de verificación).
-            Box {
-                TopBarButton(
-                    Icons.Rounded.Notifications,
-                    if (unread > 0) pluralStringResource(R.plurals.admin2_notifications_unread, unread, unread)
-                    else stringResource(R.string.home_notifications),
-                    onNotifications
-                )
-                UnreadBadge(unread)
+            // Perfil (antes en la barra inferior), mismo botón que el del menú lateral. El menú de la
+            // cuenta se ancla aquí y se abre hacia abajo.
+            LocalMenuCuenta.current?.let { cuenta ->
+                Box {
+                    TopBarButton(
+                        Icons.Outlined.Person,
+                        if (cuenta.puntito) stringResource(R.string.nav_profile_pending_cd, stringResource(R.string.nav_profile))
+                        else stringResource(R.string.nav_profile),
+                        cuenta.alternar
+                    )
+                    if (cuenta.puntito) PuntitoPerfil()
+                    cuenta.menu()
+                }
             }
         }
         HorizontalDivider(thickness = 1.dp, color = KarsyBorder)

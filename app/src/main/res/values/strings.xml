@@ -230,6 +230,7 @@
     <string name="home_stat_models">Modelos</string>
     <string name="home_toast_register_favorites">Regístrate para guardar tus favoritos</string>
     <string name="home_toast_register_publish">Regístrate para publicar tu vehículo</string>
+    <string name="home_toast_register_notifications">Regístrate para recibir avisos</string>
     <string name="home_featured_title">Vehículos destacados</string>
     <string name="home_featured_subtitle">Selección especial de nuestra plataforma</string>
     <string name="home_all_title">Todos los vehículos</string>

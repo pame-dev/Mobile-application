@@ -1,6 +1,12 @@
 package com.pame.karsy.feature.cardetail
 
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.intl.LocaleList
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.graphics.ColorMatrix
@@ -1244,13 +1250,21 @@ private fun DetailBody(
 
         SectionLabel(stringResource(R.string.detail_section_description))
         val noDescription = stringResource(R.string.detail_no_description)
-        TextCard(mostrar?.descripcion ?: detail.descripcionLarga.ifBlank { noDescription })
+        // Español (vendedor), inglés (traducción) o el idioma de la app ("sin descripción").
+        TextCard(
+            mostrar?.descripcion ?: detail.descripcionLarga.ifBlank { noDescription },
+            idioma = when {
+                mostrar?.descripcion != null -> "en"
+                detail.descripcionLarga.isBlank() -> if (enIngles) "en" else "es-MX"
+                else -> "es-MX"
+            }
+        )
         if (traduccion?.descripcion != null) {
             TranslationNote(verTraduccion) { verTraduccion = !verTraduccion }
         }
 
         SectionLabel(stringResource(R.string.detail_section_car_details))
-        TextCard(mostrar?.problemas ?: detail.detalles)
+        TextCard(mostrar?.problemas ?: detail.detalles, idioma = if (mostrar?.problemas != null) "en" else "es-MX")
 
         SectionLabel(stringResource(R.string.detail_section_seller_contact))
         val shape = RoundedCornerShape(KarsyRadius.Lg)
@@ -1378,14 +1392,22 @@ private fun TranslationNote(viendoTraduccion: Boolean, onToggle: () -> Unit) {
 }
 
 @Composable
-private fun TextCard(text: String) {
+private fun TextCard(text: String, idioma: String) {
     val shape = RoundedCornerShape(KarsyRadius.Lg)
-    Text(
-        text,
+    // Justificado como en la web; en teléfonos muy angostos se lee mejor alineado a la izquierda.
+    val alineacion = if (LocalConfiguration.current.screenWidthDp < 360) TextAlign.Start else TextAlign.Justify
+    val estilo = TextStyle(
         fontFamily = DmSans,
         fontSize = KarsyTextSize.Body,
         lineHeight = 21.sp,
         color = KarsyCharcoal,
+        textAlign = alineacion,
+        // Guiones con reglas del idioma del texto, para no dejar huecos grandes entre palabras.
+        hyphens = Hyphens.Auto,
+        lineBreak = LineBreak.Paragraph,
+        localeList = LocaleList(idioma)
+    )
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 20.dp)
@@ -1393,7 +1415,55 @@ private fun TextCard(text: String) {
             .background(KarsySurface)
             .border(1.dp, KarsyBorder, shape)
             .padding(horizontal = 16.dp, vertical = 14.dp)
-    )
+    ) {
+        val bloques = remember(text) { bloquesDeTexto(text) }
+        // Línea en blanco que escribió el vendedor: el alto de un renglón (el lineHeight del estilo).
+        val altoRenglon = with(LocalDensity.current) { estilo.lineHeight.toDp() }
+        bloques.forEach { bloque ->
+            when (bloque) {
+                BloqueTexto.Vacia -> Spacer(Modifier.height(altoRenglon))
+                // Cada renglón termina en salto: Justify deja ese final a la izquierda (no estira "Potencia: 188 hp").
+                is BloqueTexto.Parrafo -> Text(bloque.texto, style = estilo, modifier = Modifier.fillMaxWidth())
+                // Viñeta: el punto con ancho fijo y el texto al lado, así la segunda línea queda alineada con el texto.
+                is BloqueTexto.Vineta -> Row(Modifier.fillMaxWidth()) {
+                    Text("•", style = estilo.copy(textAlign = TextAlign.Start), modifier = Modifier.width(16.dp))
+                    Text(bloque.texto, style = estilo, modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+/** Partes del texto del vendedor para mostrarlo (el texto guardado no cambia). */
+internal sealed interface BloqueTexto {
+    data class Parrafo(val texto: String) : BloqueTexto
+    data class Vineta(val texto: String) : BloqueTexto
+    data object Vacia : BloqueTexto
+}
+
+/** Renglón que empieza con "* ", "- " o "• " seguido de texto. */
+private val VINETA = Regex("""^\s*[*•-]\s+(?=\S)""")
+
+/**
+ * Separa el texto en párrafos (renglones seguidos, unidos con salto), viñetas (una por renglón,
+ * sin el símbolo) y líneas en blanco, respetando lo que escribió el vendedor.
+ */
+internal fun bloquesDeTexto(texto: String): List<BloqueTexto> {
+    val bloques = mutableListOf<BloqueTexto>()
+    val parrafo = mutableListOf<String>()
+    fun cerrarParrafo() {
+        if (parrafo.isNotEmpty()) bloques += BloqueTexto.Parrafo(parrafo.joinToString("\n"))
+        parrafo.clear()
+    }
+    for (linea in texto.lines()) {
+        when {
+            linea.isBlank() -> { cerrarParrafo(); bloques += BloqueTexto.Vacia }
+            VINETA.containsMatchIn(linea) -> { cerrarParrafo(); bloques += BloqueTexto.Vineta(linea.replace(VINETA, "")) }
+            else -> parrafo += linea
+        }
+    }
+    cerrarParrafo()
+    return bloques
 }
 
 @Composable
