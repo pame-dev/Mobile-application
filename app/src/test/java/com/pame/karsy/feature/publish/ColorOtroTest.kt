@@ -8,31 +8,53 @@ class ColorOtroTest {
 
     @Test
     fun limpiar_quitaEspaciosYCapitaliza() {
-        assertEquals("Gris oxford", PublishViewModel.limpiarColorOtro("  gris oxford "))
+        assertEquals("Gris oxford", PublishViewModel.limpiarOtro("  gris oxford "))
     }
 
     @Test
     fun limpiar_conservaElRestoDelTexto() {
-        assertEquals("Azul eléctrico", PublishViewModel.limpiarColorOtro("azul eléctrico"))
+        assertEquals("Azul eléctrico", PublishViewModel.limpiarOtro("azul eléctrico"))
     }
 
     @Test
     fun limpiar_respetaMayusculaConAcento() {
-        assertEquals("Ámbar", PublishViewModel.limpiarColorOtro("Ámbar"))
+        assertEquals("Ámbar", PublishViewModel.limpiarOtro("Ámbar"))
     }
 
     @Test
     fun limpiar_soloEspacios_quedaVacio() {
-        assertEquals("", PublishViewModel.limpiarColorOtro("   "))
+        assertEquals("", PublishViewModel.limpiarOtro("   "))
     }
 
     @Test
     fun limpiar_vacio_quedaVacio() {
-        assertEquals("", PublishViewModel.limpiarColorOtro(""))
+        assertEquals("", PublishViewModel.limpiarOtro(""))
+    }
+
+    @Test
+    fun limpiar_transmision_semiautomatica() {
+        assertEquals("Semiautomática", PublishViewModel.limpiarOtro("  semiautomática "))
+    }
+
+    @Test
+    fun limpiar_tipoDeCarro_crossover() {
+        assertEquals("Crossover", PublishViewModel.limpiarOtro("crossover"))
+    }
+
+    @Test
+    fun limpiar_conservaMayusculasInternas() {
+        assertEquals("Cvt doble", PublishViewModel.limpiarOtro(" cvt doble"))
+        assertEquals("Mini van", PublishViewModel.limpiarOtro("mini van  "))
+    }
+
+    @Test
+    fun limpiar_esIdempotente() {
+        val una = PublishViewModel.limpiarOtro("  crossover ")
+        assertEquals(una, PublishViewModel.limpiarOtro(una))
     }
 
     @Test
     fun limpiar_enieMinuscula_pasaAMayuscula() {
-        assertEquals("Ñandú", PublishViewModel.limpiarColorOtro("ñandú"))
+        assertEquals("Ñandú", PublishViewModel.limpiarOtro("ñandú"))
     }
 }

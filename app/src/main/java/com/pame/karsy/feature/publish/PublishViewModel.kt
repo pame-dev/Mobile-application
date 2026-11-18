@@ -107,6 +107,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     var anio by mutableStateOf("")
     var precio by mutableStateOf("")
     var idTransmision by mutableStateOf<Long?>(null)
+        private set
+    /** Texto libre cuando la transmisión es "Otros" (columna transmision_otra). */
+    var transmisionOtra by mutableStateOf("")
     var kilometraje by mutableStateOf("")
     /** Columna recuperado_por_seguro. */
     var recuperadoPorSeguro by mutableStateOf(false)
@@ -145,9 +148,17 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             Triple("marca", idMarca != null && !(marcaEsOtro && marcaOtra.isBlank()), R.string.publish_error_brand),
             Triple("modelo", idModelo != null && !(modeloEsOtro && modeloOtro.isBlank()), R.string.publish_error_model),
             Triple("anio", anio.isNotBlank(), R.string.publish_error_year),
-            Triple("transmision", idTransmision != null, R.string.publish_error_transmission),
+            Triple(
+                "transmision",
+                idTransmision != null && !(transmisionEsOtro && transmisionOtraLimpia.isEmpty()),
+                if (transmisionEsOtro) R.string.publish_error_transmission_other else R.string.publish_error_transmission
+            ),
             Triple("kilometraje", kilometraje.any(Char::isDigit), R.string.publish_error_mileage),
-            Triple("carroceria", idCarroceria != null, R.string.publish_error_body_type),
+            Triple(
+                "carroceria",
+                idCarroceria != null && !(carroceriaEsOtro && carroceriaOtraLimpia.isEmpty()),
+                if (carroceriaEsOtro) R.string.publish_error_body_type_other else R.string.publish_error_body_type
+            ),
             Triple(
                 "color",
                 idColor != null && !(colorEsOtro && colorOtroLimpio.isEmpty()),
@@ -170,6 +181,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     /** Uno de [COMBUSTIBLES] o vacío (columna tipo_combustible). */
     var combustible by mutableStateOf("")
     var idCarroceria by mutableStateOf<Long?>(null)
+        private set
+    /** Texto libre cuando el tipo de carro es "Otros" (columna carroceria_otra). */
+    var carroceriaOtra by mutableStateOf("")
     var idColor by mutableStateOf<Long?>(null)
         private set
     /** Texto libre cuando el color es "Otros" (columna color_otro). */
@@ -469,6 +483,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         anio = a.anio?.toString().orEmpty()
         precio = a.precio?.toLong()?.toString().orEmpty()
         idTransmision = a.idTransmision
+        // Fuera de la lista: "Otros" con lo que se escribió (v_anuncios.transmision = transmision_otra).
+        transmisionOtra = if (transmisionEsOtro) a.transmision.orEmpty() else ""
         kilometraje = a.kilometraje?.toString().orEmpty()
         recuperadoPorSeguro = a.recuperadoPorSeguro == true
         facturaOriginal = a.facturaOriginal == true
@@ -477,6 +493,7 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         separarMotor(a.cilindrada.orEmpty()).let { (l, asp) -> litros = l; aspiracion = asp }
         combustible = a.combustible.orEmpty()
         idCarroceria = a.idCarroceria
+        carroceriaOtra = if (carroceriaEsOtro) a.carroceria.orEmpty() else ""
         idColor = a.idColor
         // Color fuera de la lista: "Otros" con lo que se escribió (v_anuncios.color = color_otro).
         colorOtro = if (colorEsOtro) a.color.orEmpty() else ""
@@ -535,13 +552,21 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val modeloNombre: String
         get() = if (modeloEsOtro) modeloOtro.trim()
         else catalogs?.modelos?.firstOrNull { it.id == idModelo }?.nombre.orEmpty()
-    val transmisionNombre: String
-        get() = catalogs?.transmisiones?.firstOrNull { it.id == idTransmision }?.nombre.orEmpty()
-    val carroceriaNombre: String
-        get() = catalogs?.carrocerias?.firstOrNull { it.id == idCarroceria }?.nombre.orEmpty()
+    // "Otros" de transmisión, tipo de carro y color: se elige en el catálogo y se escribe el valor.
+    val transmisionEsOtro: Boolean get() = catalogs?.transmisiones?.firstOrNull { it.id == idTransmision }?.esOtro == true
+    val carroceriaEsOtro: Boolean get() = catalogs?.carrocerias?.firstOrNull { it.id == idCarroceria }?.esOtro == true
     val colorEsOtro: Boolean get() = catalogs?.colores?.firstOrNull { it.id == idColor }?.esOtro == true
-    /** Color escrito en "Otros": sin espacios a los lados y con la primera letra en mayúscula. */
-    val colorOtroLimpio: String get() = limpiarColorOtro(colorOtro)
+    /** Textos escritos en "Otros": sin espacios a los lados y con la primera letra en mayúscula. */
+    val transmisionOtraLimpia: String get() = limpiarOtro(transmisionOtra)
+    val carroceriaOtraLimpia: String get() = limpiarOtro(carroceriaOtra)
+    val colorOtroLimpio: String get() = limpiarOtro(colorOtro)
+
+    val transmisionNombre: String
+        get() = if (transmisionEsOtro) transmisionOtraLimpia
+        else catalogs?.transmisiones?.firstOrNull { it.id == idTransmision }?.nombre.orEmpty()
+    val carroceriaNombre: String
+        get() = if (carroceriaEsOtro) carroceriaOtraLimpia
+        else catalogs?.carrocerias?.firstOrNull { it.id == idCarroceria }?.nombre.orEmpty()
     val colorNombre: String
         get() = if (colorEsOtro) colorOtroLimpio
         else catalogs?.colores?.firstOrNull { it.id == idColor }?.nombre.orEmpty()
@@ -566,6 +591,22 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun removeExtraPhoto(uri: Uri) {
         extraPhotos.remove(uri)
         fotosAjenas = fotosAjenas - uri
+    }
+
+    /** Otra transmisión: se oculta el campo de "Otros" y se descarta lo escrito. */
+    fun selectTransmision(id: Long) {
+        if (id != idTransmision) {
+            idTransmision = id
+            transmisionOtra = ""
+        }
+    }
+
+    /** Otro tipo de carro: se oculta el campo de "Otros" y se descarta lo escrito. */
+    fun selectCarroceria(id: Long) {
+        if (id != idCarroceria) {
+            idCarroceria = id
+            carroceriaOtra = ""
+        }
     }
 
     /** Otro color: se oculta el campo de "Otros" y se descarta lo escrito. */
@@ -810,7 +851,9 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     // Con "Otros" se guarda lo que escribió (la BD lo exige justo en ese caso).
                     put("color_otro", if (colorEsOtro) colorOtroLimpio else null)
                     put("id_transmision", idTransmision)
+                    put("transmision_otra", if (transmisionEsOtro) transmisionOtraLimpia else null)
                     put("id_carroceria", idCarroceria)
+                    put("carroceria_otra", if (carroceriaEsOtro) carroceriaOtraLimpia else null)
                     put("numero_propietarios_anteriores", duenos.filter(Char::isDigit).toIntOrNull() ?: 0)
                     put("cilindros", if (esElectrico) null else cilindros.filter(Char::isDigit).toIntOrNull())
                     put("cilindrada", motor.trim().ifEmpty { null })
@@ -923,8 +966,8 @@ class PublishViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
         private val ESPANOL: Locale = Locale.forLanguageTag("es")
 
-        /** Color escrito en "Otros": sin espacios a los lados y con la primera letra en mayúscula. */
-        fun limpiarColorOtro(texto: String): String = texto.trim().replaceFirstChar { it.titlecase(ESPANOL) }
+        /** Texto escrito en "Otros" (color, transmisión, tipo): sin espacios a los lados y con mayúscula inicial. */
+        fun limpiarOtro(texto: String): String = texto.trim().replaceFirstChar { it.titlecase(ESPANOL) }
 
         /** VIN o placa sin espacios y en mayúsculas (igual que documento_vehiculo_valido en la BD). */
         fun normalizarDocumento(texto: String): String = texto.filterNot(Char::isWhitespace).uppercase()

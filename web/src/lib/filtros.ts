@@ -1,3 +1,4 @@
+import { catalogosEnMemoria } from '../data/api'
 import type { Car } from '../data/types'
 import type { Clave } from '../i18n/es'
 
@@ -38,13 +39,16 @@ export function filtrarCars(cars: Car[], f: Filtros, q: string, orden: string, c
   const palabras = normalizado(q).split(' ').filter((p) => p.trim() !== '')
   const min = Number(f.min) || null
   const max = Number(f.max) || null
+  // Tipo "Otros": también los tipos escritos a mano (conservan el id de "Otros", con otro texto).
+  const tipoOtros = catalogosEnMemoria()?.carrocerias.find((c) => c.esOtro)
+  const tipoCoincide = (c: Car) => c.bodyType === f.tipo || (!!tipoOtros && f.tipo === tipoOtros.nombre && c.bodyTypeId === tipoOtros.id)
   const lista = cars.filter(
     (c) =>
       coincide(c, palabras) &&
       (!f.marca || String(c.brandId) === f.marca) &&
       (!f.modelo || String(c.modelId) === f.modelo) &&
       (!f.anio || String(c.year) === f.anio) &&
-      (!f.tipo || c.bodyType === f.tipo) &&
+      (!f.tipo || tipoCoincide(c)) &&
       (min == null || c.priceValue >= min) &&
       (max == null || c.priceValue <= max),
   )

@@ -105,20 +105,13 @@ private val coloresHex = mapOf(
 @Composable
 fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
     val catalogs = form.catalogs
-    // "Otros" de transmisión y carrocería no se ofrecen (requerirían texto libre); el de color sí,
-    // con un campo para escribirlo.
-    val transmisiones = catalogs?.transmisiones.orEmpty().filterNot { it.esOtro }
-    val carrocerias = catalogs?.carrocerias.orEmpty().filterNot { it.esOtro }
+    // Transmisión, tipo de carro y color ofrecen "Otros", con un campo para escribir el valor.
+    val transmisiones = catalogs?.transmisiones.orEmpty()
+    val carrocerias = catalogs?.carrocerias.orEmpty()
     val colores = catalogs?.colores.orEmpty()
-    // Al elegir "Otros" en Color, el campo de texto toma el foco en cuanto aparece.
-    val focoColorOtro = remember { FocusRequester() }
-    var pedirFocoColor by remember { mutableStateOf(false) }
-    LaunchedEffect(pedirFocoColor, form.colorEsOtro) {
-        if (pedirFocoColor && form.colorEsOtro) {
-            runCatching { focoColorOtro.requestFocus() }
-            pedirFocoColor = false
-        }
-    }
+    // Campo de "Otros" que debe tomar el foco al aparecer ("transmision", "carroceria" o "color"):
+    // solo cuando se acaba de elegir "Otros", no al abrir una edición que ya lo tenía.
+    var focoOtro by remember { mutableStateOf<String?>(null) }
 
     PublishStepScaffold(
         step = 1,
@@ -203,7 +196,10 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                                 .clip(RoundedCornerShape(KarsyRadius.Md))
                                 .background(if (selected) KarsyNavy else KarsyBg)
                                 .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, RoundedCornerShape(KarsyRadius.Md))
-                                .clickable(enabled = activo("transmision")) { form.idTransmision = t.id }
+                                .clickable(enabled = activo("transmision")) {
+                                    if (t.esOtro && form.idTransmision != t.id) focoOtro = "transmision"
+                                    form.selectTransmision(t.id)
+                                }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -217,6 +213,15 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                         }
                     }
                 }
+                if (form.transmisionEsOtro) CampoOtro(
+                    label = stringResource(R.string.publish_transmission_other_label),
+                    value = form.transmisionOtra,
+                    onValueChange = { form.transmisionOtra = it },
+                    hint = stringResource(R.string.publish_transmission_other_hint),
+                    enabled = activo("transmision"),
+                    pedirFoco = focoOtro == "transmision",
+                    onFocoPedido = { focoOtro = null }
+                )
             }
 
             PublishField(form, "kilometraje", marcarAlSalir = true) {
@@ -247,11 +252,23 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                                 .clip(CircleShape)
                                 .background(if (selected) KarsyNavy else KarsyBg)
                                 .border(1.5.dp, if (selected) KarsyNavy else KarsyBorderMuted, CircleShape)
-                                .clickable(enabled = activo("carroceria")) { form.idCarroceria = t.id }
+                                .clickable(enabled = activo("carroceria")) {
+                                    if (t.esOtro && form.idCarroceria != t.id) focoOtro = "carroceria"
+                                    form.selectCarroceria(t.id)
+                                }
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
                 }
+                if (form.carroceriaEsOtro) CampoOtro(
+                    label = stringResource(R.string.publish_body_type_other_label),
+                    value = form.carroceriaOtra,
+                    onValueChange = { form.carroceriaOtra = it },
+                    hint = stringResource(R.string.publish_body_type_other_hint),
+                    enabled = activo("carroceria"),
+                    pedirFoco = focoOtro == "carroceria",
+                    onFocoPedido = { focoOtro = null }
+                )
             }
 
             PublishField(form, "color") {
@@ -270,23 +287,22 @@ fun DatosStep(form: PublishViewModel, onNext: () -> Unit, onBack: () -> Unit) {
                             color = coloresHex[c.nombre] ?: KarsyBorderMuted,
                             selected = form.idColor == c.id,
                             onClick = {
-                                if (c.esOtro && form.idColor != c.id) pedirFocoColor = true
+                                if (c.esOtro && form.idColor != c.id) focoOtro = "color"
                                 form.selectColor(c.id)
                             },
                             enabled = activo("color")
                         )
                     }
                 }
-                if (form.colorEsOtro) {
-                    FieldLabel(stringResource(R.string.publish_color_other_label))
-                    PublishTextInput(
-                        form.colorOtro,
-                        { form.colorOtro = it.take(30) },
-                        stringResource(R.string.publish_color_other_hint),
-                        modifier = Modifier.focusRequester(focoColorOtro),
-                        enabled = activo("color")
-                    )
-                }
+                if (form.colorEsOtro) CampoOtro(
+                    label = stringResource(R.string.publish_color_other_label),
+                    value = form.colorOtro,
+                    onValueChange = { form.colorOtro = it },
+                    hint = stringResource(R.string.publish_color_other_hint),
+                    enabled = activo("color"),
+                    pedirFoco = focoOtro == "color",
+                    onFocoPedido = { focoOtro = null }
+                )
             }
 
             PublishField(form, "duenos") {
@@ -726,6 +742,29 @@ private fun CatalogDropdown(
 
 /** Alto máximo de las listas desplegables (con scroll interno). */
 private val MenuMaxHeight = 300.dp
+
+/** Campo para escribir el valor cuando se eligió "Otros" (color, transmisión o tipo de carro), máximo 30 caracteres. */
+@Composable
+private fun CampoOtro(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    hint: String,
+    enabled: Boolean,
+    /** true justo después de elegir "Otros": toma el foco al aparecer y avisa con [onFocoPedido]. */
+    pedirFoco: Boolean,
+    onFocoPedido: () -> Unit,
+) {
+    val foco = remember { FocusRequester() }
+    LaunchedEffect(pedirFoco) {
+        if (pedirFoco) {
+            runCatching { foco.requestFocus() }
+            onFocoPedido()
+        }
+    }
+    FieldLabel(label)
+    PublishTextInput(value, { onValueChange(it.take(30)) }, hint, modifier = Modifier.focusRequester(foco), enabled = enabled)
+}
 
 @Composable
 private fun ColorSwatch(name: String, color: Color, selected: Boolean, onClick: () -> Unit, enabled: Boolean = true) {

@@ -65,17 +65,23 @@ private fun Car.coincide(palabras: List<String>): Boolean {
     return palabras.all { it in texto }
 }
 
-/** Búsqueda y filtros del panel (sin ordenar). Lo usan el catálogo y Favoritos. */
-internal fun List<Car>.filtrar(f: HomeFilters, query: String): List<Car> {
+/**
+ * Búsqueda y filtros del panel (sin ordenar). Lo usan el catálogo, Favoritos y Lotes.
+ * Con [catalogs], el tipo "Otros" también encuentra los tipos escritos a mano (conservan el
+ * id de "Otros" aunque se muestre el texto que escribió el vendedor).
+ */
+internal fun List<Car>.filtrar(f: HomeFilters, query: String, catalogs: Catalogs? = null): List<Car> {
     val palabras = query.normalizado().split(' ').filter { it.isNotBlank() }
     val min = f.precioMin.filter(Char::isDigit).toDoubleOrNull()
     val max = f.precioMax.filter(Char::isDigit).toDoubleOrNull()
+    val tipoOtros = catalogs?.carrocerias?.firstOrNull { it.esOtro }
     return filter { car ->
         car.coincide(palabras) &&
             (f.marca == TODAS || car.brand == f.marca) &&
             (f.modelo == TODOS || car.model == f.modelo) &&
             (f.anio == CUALQUIERA || car.year.toString() == f.anio) &&
-            (f.tipo == TODOS || car.bodyType == f.tipo) &&
+            (f.tipo == TODOS || car.bodyType == f.tipo ||
+                (tipoOtros != null && f.tipo == tipoOtros.nombre && car.bodyTypeId == tipoOtros.id)) &&
             (min == null || car.priceValue >= min) &&
             (max == null || car.priceValue <= max)
     }
@@ -92,7 +98,8 @@ internal fun filterOptionsOf(catalogs: Catalogs?, cars: List<Car>): FilterOption
         },
         anios = listOf(CUALQUIERA) + cars.map { it.year }.filter { it > 0 }
             .distinct().sortedDescending().map { it.toString() },
-        tipos = listOf(TODOS) + c.carrocerias.filterNot { it.esOtro }.map { it.nombre },
+        // Con "Otros" al final: ahí caen los tipos escritos a mano al publicar.
+        tipos = listOf(TODOS) + c.carrocerias.map { it.nombre },
     )
 }
 
@@ -129,7 +136,8 @@ class HomeViewModel : ViewModel() {
                 idMarca = marca?.id,
                 idModelo = marca?.let { m -> c.modelosDe(m.id).firstOrNull { !it.esOtro && it.nombre == f.modelo }?.id },
                 anio = f.anio.takeIf { it != CUALQUIERA }?.toIntOrNull(),
-                idCarroceria = c.carrocerias.firstOrNull { !it.esOtro && it.nombre == f.tipo }?.id,
+                // "Otros" incluido: su id también encuentra los tipos escritos a mano.
+                idCarroceria = c.carrocerias.firstOrNull { it.nombre == f.tipo }?.id,
                 precioMin = f.precioMin.filter(Char::isDigit).toDoubleOrNull(),
                 precioMax = f.precioMax.filter(Char::isDigit).toDoubleOrNull(),
                 estado = cercaDe?.estado?.takeIf { it.isNotBlank() },
@@ -177,7 +185,7 @@ class HomeViewModel : ViewModel() {
         get() {
             val lugar = cercaDe
             // Cerca de mí: solo los del mismo estado.
-            val lista = cars.filtrar(filters, query)
+            val lista = cars.filtrar(filters, query, catalogs)
                 .let { l -> if (lugar == null) l else l.filter { Lugares.mismoLugar(it.estado, lugar.estado) } }
             val ordenada = when (filters.orden) {
                 "Menor precio" -> lista.sortedBy { it.priceValue }

@@ -82,7 +82,7 @@ class LotProfileViewModel : ViewModel() {
     /** Inventario con búsqueda, filtros y orden aplicados. */
     val visibleCars: List<Car>
         get() {
-            val lista = cars.filtrar(filters, query)
+            val lista = cars.filtrar(filters, query, catalogs)
             return when (filters.orden) {
                 ORDEN_OPCIONES[1] -> lista.sortedBy { it.priceValue }
                 ORDEN_OPCIONES[2] -> lista.sortedByDescending { it.priceValue }

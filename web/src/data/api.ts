@@ -45,6 +45,7 @@ export function toCar(a: AnuncioRow): Car {
     brandId: a.id_marca,
     modelId: a.id_modelo,
     bodyType: a.carroceria ?? '',
+    bodyTypeId: a.id_carroceria,
     publishedAt: a.fecha_primera_publicacion ?? a.fecha_creacion,
     city: [a.municipio_ubicacion, a.estado_ubicacion].filter(Boolean).join(', '),
     estado: a.estado_ubicacion ?? '',
@@ -156,6 +157,9 @@ export async function carsByIds(ids: number[]): Promise<Car[]> {
 
 /** Catálogos con "Otros" al final de cada lista (igual que CatalogRepository). */
 let catalogCache: Promise<Catalogs> | null = null
+/** Los catálogos ya descargados, sin esperar (null si todavía no se piden o no llegan). */
+let catalogosListos: Catalogs | null = null
+export const catalogosEnMemoria = (): Catalogs | null => catalogosListos
 export function catalogs(): Promise<Catalogs> {
   catalogCache ??= (async () => {
     const otrosAlFinal = <T extends { esOtro: boolean }>(l: T[]) => [...l].sort((a, b) => Number(a.esOtro) - Number(b.esOtro))
@@ -184,7 +188,7 @@ export function catalogs(): Promise<Catalogs> {
       carrocerias: items(carrocerias, 'id_carroceria', 'nombre_carroceria'),
     }
   })()
-  catalogCache.catch(() => (catalogCache = null))
+  catalogCache.then((c) => (catalogosListos = c)).catch(() => (catalogCache = null))
   return catalogCache
 }
 
