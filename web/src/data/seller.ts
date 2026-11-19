@@ -390,7 +390,9 @@ export async function currentProfile(): Promise<Perfil | null> {
   const telefono = tels.find((t) => t.permite_llamadas)
   const whatsapp = tels.find((t) => t.es_whatsapp)
   // Último documento de verificación enviado (si la consulta falla, se muestra como sin enviar).
-  const { data: verif } = await supabase.from('verificaciones_usuario').select('estado,motivo_rechazo,fecha_envio,fecha_revision,tipo_documento,archivo_path,curp').eq('user_id', user.id).order('fecha_envio', { ascending: false }).limit(1)
+  // Va por mi_ultima_verificacion(): la CURP está cifrada en la tabla y solo esa función la
+  // descifra, para el usuario en sesión.
+  const { data: verif } = await supabase.rpc('mi_ultima_verificacion')
   const ultimaVerificacion = (verif?.[0] ?? null) as {
     estado: string
     motivo_rechazo: string | null

@@ -109,6 +109,11 @@ para correrla en cel:
 
 ./gradlew installDebug
 
+correr el emulador:
+rm -f ~/.android/avd/Pixel_9.avd/*.lock
+~/Android/Sdk/emulator/emulator -avd Pixel_9 -cores 2 -feature -Vulkan -no-boot-anim &
+
+
 hacer respaldos de la db manuales (sin Docker, con pg_dump 17):
 
 # una sola vez: instalar el cliente de Postgres 17 (repo de Ubuntu 24.04 "noble", base de Mint 22)

@@ -1,5 +1,6 @@
 -- pgTAP: verificaciones_usuario (documento de verificación). Correr SOLO contra BD local: supabase test db
 -- ESTADO: ESCRITO, NO EJECUTADO (sin supabase CLI/Docker en el entorno donde se creó).
+-- Ajustado a 20261119120000_curp_cifrada: la CURP del fixture va cifrada y aprobar deja archivo_path NULL.
 -- Casos 15 a 27: la constancia se sube una sola vez (solo sin fila o 'rechazado'; pendiente y
 -- verificado se bloquean). NO EJECUTADOS.
 BEGIN;
@@ -47,8 +48,10 @@ INSERT INTO public.verificaciones_usuario (user_id, tipo_usuario, tipo_documento
 INSERT INTO public.verificaciones_usuario (user_id, tipo_usuario, tipo_documento, archivo_path) VALUES
   ('00000000-0000-0000-0000-0000000000d4', 'lote', 'constancia_situacion_fiscal',
    '00000000-0000-0000-0000-0000000000d4/constancia_situacion_fiscal_1.pdf');
-INSERT INTO public.verificaciones_usuario (user_id, tipo_usuario, tipo_documento, curp, estado) VALUES
-  ('00000000-0000-0000-0000-0000000000d4', 'lote', 'curp', 'GOMC800101HJCRRL09', 'verificado');
+-- La CURP ya no se guarda en claro (la restricción exige curp NULL): va cifrada y con hash.
+INSERT INTO public.verificaciones_usuario (user_id, tipo_usuario, tipo_documento, curp_cifrada, curp_hash, estado) VALUES
+  ('00000000-0000-0000-0000-0000000000d4', 'lote', 'curp',
+   public.curp_cifrar('GOMC800101HJCRRL09'), public.curp_hash('GOMC800101HJCRRL09'), 'verificado');
 UPDATE public.cuentas SET verificado = TRUE WHERE id_cuenta = '00000000-0000-0000-0000-0000000000d4';
 CREATE TEMP TABLE fila_d AS
   SELECT id FROM public.verificaciones_usuario
@@ -211,12 +214,13 @@ SELECT throws_ok(
   'P0001', 'Tu documento ya está verificado y no se puede cambiar.',
   'no se reenvía estando verificado');
 
--- 23. La fila queda igual: mismo id, verificado y con el archivo de antes.
+-- 23. La fila queda igual: mismo id y verificado. Al aprobar, archivo_path pasa a NULL (el archivo
+-- ya no se necesita; la restricción lo permite solo en estado 'verificado').
 SELECT results_eq(
   $$SELECT (v.id = f.id), v.estado, v.archivo_path
     FROM public.verificaciones_usuario v, fila_a f WHERE v.user_id = '00000000-0000-0000-0000-0000000000a1'$$,
-  $$VALUES (TRUE, 'verificado'::TEXT, '00000000-0000-0000-0000-0000000000a1/constancia_situacion_fiscal_3.pdf'::TEXT)$$,
-  'el intento rechazado no cambia la fila verificada');
+  $$VALUES (TRUE, 'verificado'::TEXT, NULL::TEXT)$$,
+  'el intento rechazado no cambia la fila verificada (y aprobar dejó archivo_path en NULL)');
 
 -- 24. Ni la insignia.
 RESET ROLE;
