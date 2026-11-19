@@ -29,7 +29,6 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.storage
 import io.ktor.http.ContentType
 import kotlinx.serialization.json.buildJsonObject
@@ -63,7 +62,7 @@ object UserRepository {
         } else null
         // Último documento enviado (tarjeta de verificación). También con la insignia: el lote
         // verificado ve desde cuándo (fecha_revision).
-        val verificacion = ultimaVerificacion(uid)
+        val verificacion = ultimaVerificacion()
         val telefonos = activePhones(uid)
         val telefono = telefonos.firstOrNull { it.permiteLlamadas }
         val whatsapp = telefonos.firstOrNull { it.esWhatsapp }
@@ -106,13 +105,13 @@ object UserRepository {
         )
     }
 
-    /** Fila más reciente de verificaciones_usuario del usuario (null si nunca envió un documento). */
-    private suspend fun ultimaVerificacion(uid: String): VerificacionUsuarioDto? =
-        db.from("verificaciones_usuario").select(Columns.list("estado", "motivo_rechazo", "fecha_envio", "fecha_revision", "tipo_documento", "archivo_path", "curp")) {
-            filter { eq("user_id", uid) }
-            order("fecha_envio", Order.DESCENDING)
-            limit(1)
-        }.decodeSingleOrNull<VerificacionUsuarioDto>()
+    /**
+     * Fila más reciente de verificaciones_usuario del usuario (null si nunca envió un documento).
+     * Va por mi_ultima_verificacion(): la CURP está cifrada en la tabla y solo esa función la
+     * descifra, para el usuario en sesión.
+     */
+    private suspend fun ultimaVerificacion(): VerificacionUsuarioDto? =
+        db.postgrest.rpc("mi_ultima_verificacion").decodeSingleOrNull<VerificacionUsuarioDto>()
 
     /**
      * URL firmada y temporal del documento de verificación propio (solo para verlo; la política
